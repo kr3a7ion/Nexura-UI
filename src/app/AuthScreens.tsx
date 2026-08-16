@@ -105,11 +105,8 @@ export function LoginScreen({ onLogin }: { onLogin: (role: string, dest: LoginDe
       <div className="hidden lg:flex flex-col justify-between w-[54%] relative z-10 p-14">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: TEAL }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 21h18M4 21V8l8-5 8 5v13M9 21v-6h6v6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </div>
           <div>
-            <div className="font-bold text-white text-base leading-none">Grand Palms HMS</div>
+            <div className="font-bold text-white text-2xl leading-none tracking-tight">Nexura</div>
             <div className="text-xs mt-0.5" style={{ color: TEAL }}>Hospitality Management Platform</div>
           </div>
         </div>
@@ -147,11 +144,8 @@ export function LoginScreen({ onLogin }: { onLogin: (role: string, dest: LoginDe
         <div className="w-full max-w-[420px]">
 
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2.5 mb-7 justify-center">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: TEAL }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 21h18M4 21V8l8-5 8 5v13M9 21v-6h6v6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </div>
-            <span className="font-bold text-white text-lg">Grand Palms HMS</span>
+          <div className="lg:hidden flex items-center mb-7 justify-center">
+            <span className="font-bold text-white text-2xl tracking-tight">Nexura</span>
           </div>
 
           {/* Main card */}
@@ -159,7 +153,7 @@ export function LoginScreen({ onLogin }: { onLogin: (role: string, dest: LoginDe
             style={{ backgroundColor: "rgba(255,255,255,0.98)", backdropFilter: "blur(24px)", boxShadow: "0 32px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06)" }}>
 
             <h1 className="text-xl font-bold mb-0.5" style={{ color: TEXT }}>Sign in to your account</h1>
-            <p className="text-sm mb-6" style={{ color: MUTED }}>Grand Palms Hotel · Abuja Branch</p>
+            <p className="text-sm mb-6" style={{ color: MUTED }}>Sign in to continue to Nexura</p>
 
             {/* Lockout */}
             {isLocked && (

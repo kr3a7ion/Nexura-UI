@@ -13,34 +13,40 @@ export type AddToast = (t: Omit<Toast, "id">) => void;
 export type Screen =
   | "dashboard-mgmt" | "dashboard-role"
   | "reservation-grid" | "new-reservation" | "reservation-search" | "waitlist" | "rate-management" | "group-bookings" | "cancellation"
+  | "room-types" | "rate-calendar" | "availability-board"
   | "check-in" | "check-out" | "in-house-guests" | "arrivals" | "departures" | "guest-profiles" | "room-assignment" | "walk-in" | "folio" | "key-card" | "room-access" | "key-card-log" | "pin-management"
   | "hk-board" | "hk-tasks" | "hk-schedule" | "hk-inspection" | "lost-found" | "linen-supplies" | "dnd-log"
-  | "work-orders" | "asset-register" | "preventive-schedule" | "vendor-contacts"
-  | "pos-terminal" | "kitchen-display" | "table-management" | "menu-management" | "dining-reservations" | "room-service" | "room-charges"
+  | "work-orders" | "asset-register" | "preventive-schedule" | "vendor-contacts" | "work-order-detail"
+  | "pos-terminal" | "kitchen-display" | "table-management" | "menu-management" | "dining-reservations" | "room-service" | "room-charges" | "cash-drawer"
   | "internal-chat" | "guest-messaging" | "announcements" | "shift-handover"
-  | "finance-folio" | "invoices" | "daily-summary" | "accounts-payable" | "revenue-reports"
+  | "night-audit" | "tax-config" | "refund-processing" | "folio-void"
+  | "finance-folio" | "invoices" | "credit-notes" | "daily-summary" | "accounts-payable" | "revenue-reports" | "accounting-export"
   | "stock-dashboard" | "products" | "suppliers" | "stock-transactions" | "purchase-orders"
-  | "staff-directory" | "roles-permissions" | "attendance" | "shift-scheduler" | "payroll"
+  | "staff-directory" | "roles-permissions" | "attendance" | "shift-scheduler" | "payroll" | "staff-profile"
   | "branch-overview" | "branch-comparison" | "sync-status"
   | "rp-occupancy" | "rp-revenue" | "rp-department" | "rp-guest" | "rp-inventory" | "rp-staff"
-  | "user-management" | "system-health" | "device-management" | "backup-restore" | "audit-log"
-  | "hotel-config" | "settings-sync" | "my-preferences" | "door-lock-settings"
-  | "reservation-detail" | "guest-profile-detail" | "work-order-detail" | "staff-profile";
+  | "user-management" | "system-health" | "device-management" | "backup-restore" | "audit-log" | "schema-update" | "error-log"
+  | "hotel-config" | "settings-sync" | "my-preferences" | "door-lock-settings" | "print-settings"
+  | "reservation-detail" | "guest-profile-detail" | "staff-profile-detail" | "leave-management"
+  | "complaint-management" | "complaint-dashboard"
+  | "dispatch-board" | "trip-detail" | "new-trip" | "driver-roster" | "fleet-costing";
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 export const mono = "'JetBrains Mono', monospace";
 export const sans = "'Inter', system-ui, sans-serif";
-export const NAV_BG = "#18181B";
-export const PRIMARY = "#18181B";
-export const TEAL = "#0EA5E9";
-export const ORANGE = "#F59E0B";
-export const SUCCESS = "#059669";
-export const WARNING = "#D97706";
-export const ERROR = "#DC2626";
-export const BORDER = "#E4E4E7";
-export const TEXT = "#18181B";
-export const MUTED = "#71717A";
-export const SUBTLE = "#A1A1AA";
+export const display = "'Plus Jakarta Sans', system-ui, sans-serif";
+export const NAV_BG = "#0F2044";
+export const PRIMARY = "#123A73";
+export const TEAL = "#1BA39C";
+export const ORANGE = "#F57C00";
+export const SUCCESS = "#2E7D32";
+export const WARNING = "#FFA000";
+export const ERROR = "#D32F2F";
+export const BORDER = "#E2E8F0";
+export const TEXT = "#0F172A";
+export const MUTED = "#64748B";
+export const SUBTLE = "#94A3B8";
+export const BG = "#F0F4F8";
 
 // ─── Color Maps ──────────────────────────────────────────────────────────────
 export const resStC: Record<string, { bg: string; text: string }> = {
@@ -87,6 +93,15 @@ export const occData = [
   { day: "Fri", occ: 94, rev: 720 }, { day: "Sat", occ: 96, rev: 780 },
   { day: "Sun", occ: 79, rev: 530 },
 ];
+// 30-day trend for DashboardMgmt (day 1 = 1 Jun)
+export const occ30Data = Array.from({ length: 30 }, (_, i) => {
+  const d = new Date(2026, 5, i + 1);
+  const wk = d.getDay();
+  const base = wk === 5 || wk === 6 ? 88 : wk === 0 ? 76 : 72;
+  const occ = Math.min(100, Math.round(base + Math.sin(i * 0.6) * 8 + (i > 20 ? i - 20 : 0) * 0.5));
+  const rev = Math.round((occ / 100) * 1350 + Math.random() * 80);
+  return { day: `${i + 1}`, occ, rev };
+});
 export const revCat = [
   { name: "Rooms", value: 68, color: PRIMARY }, { name: "Restaurant", value: 18, color: TEAL },
   { name: "Events", value: 8, color: ORANGE }, { name: "Other", value: 6, color: SUBTLE },
