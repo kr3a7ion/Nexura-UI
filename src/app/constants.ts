@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
-export type Role = "MGT" | "FD" | "HK" | "MX" | "FIN" | "RT" | "RSV" | "IT";
+export type Role = "MGT" | "FD" | "HK" | "MX" | "FIN" | "RT" | "RSV" | "IT" | "DRV" | "FLT";
 export type ToastType = "success" | "error" | "info" | "warning";
 export interface Toast { id: string; type: ToastType; title: string; body?: string; }
 export type AddToast = (t: Omit<Toast, "id">) => void;
@@ -29,14 +29,15 @@ export type Screen =
   | "hotel-config" | "settings-sync" | "my-preferences" | "door-lock-settings" | "print-settings"
   | "reservation-detail" | "guest-profile-detail" | "staff-profile-detail" | "leave-management"
   | "complaint-management" | "complaint-dashboard"
-  | "dispatch-board" | "trip-detail" | "new-trip" | "driver-roster" | "fleet-costing";
+  | "dispatch-board" | "trip-detail" | "new-trip" | "driver-roster" | "fleet-costing" | "driver-access-log"
+  | "vehicle-register" | "vehicle-detail" | "fuel-log" | "generator-diesel";
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 export const mono = "'JetBrains Mono', monospace";
 export const sans = "'Inter', system-ui, sans-serif";
 export const display = "'Plus Jakarta Sans', system-ui, sans-serif";
-export const NAV_BG = "#0F2044";
-export const PRIMARY = "#123A73";
+export const NAV_BG = "#111111";
+export const PRIMARY = "#18181B";
 export const TEAL = "#1BA39C";
 export const ORANGE = "#F57C00";
 export const SUCCESS = "#2E7D32";
@@ -142,9 +143,44 @@ export const ROOMS = [
   { id: "304", type: "Standard", floor: 3, status: "Occupied" },
 ];
 export const RES_GRID = [
-  { room: "101", guest: "A. Okonkwo", start: 0, end: 3, color: SUCCESS }, { room: "101", guest: "B. Eze", start: 5, end: 8, color: TEAL },
-  { room: "103", guest: "C. Bello", start: 1, end: 4, color: TEAL }, { room: "201", guest: "D. Hassan", start: 0, end: 5, color: TEAL },
-  { room: "202", guest: "E. Adeyemi", start: 2, end: 6, color: SUCCESS }, { room: "304", guest: "H. Obi", start: 0, end: 4, color: SUCCESS },
+  // Room 101
+  { room:"101", guest:"Adaeze Okonkwo",     start:0,  end:3,  color:SUCCESS, status:"Checked In",  rate:35000, source:"Online",   nights:3, id:"BK-2847" },
+  { room:"101", guest:"Blessing Eze",        start:4,  end:7,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Phone",    nights:3, id:"BK-2861" },
+  { room:"101", guest:"Chioma Okafor",       start:10, end:13, color:TEAL,   status:"Confirmed",   rate:35000, source:"Online",   nights:3, id:"BK-2874" },
+  // Room 102
+  { room:"102", guest:"Peter Okafor",        start:0,  end:1,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Walk-in",  nights:1, id:"BK-2862" },
+  { room:"102", guest:"Musa Ibrahim",        start:3,  end:6,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Online",   nights:3, id:"BK-2863" },
+  { room:"102", guest:"Kemi Suleiman",       start:8,  end:11, color:TEAL,   status:"Confirmed",   rate:35000, source:"Phone",    nights:3, id:"BK-2875" },
+  // Room 103
+  { room:"103", guest:"Chidi Bello",         start:1,  end:4,  color:TEAL,   status:"Confirmed",   rate:45000, source:"Online",   nights:3, id:"BK-2848" },
+  { room:"103", guest:"Ngozi Adeyemi",       start:6,  end:10, color:TEAL,   status:"Confirmed",   rate:45000, source:"Phone",    nights:4, id:"BK-2864" },
+  // Room 104
+  { room:"104", guest:"Tunde Bakare",        start:2,  end:4,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Phone",    nights:2, id:"BK-2840" },
+  { room:"104", guest:"Aisha Mohammed",      start:5,  end:9,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Online",   nights:4, id:"BK-2865" },
+  { room:"104", guest:"Damilola Ogunleye",   start:11, end:14, color:TEAL,   status:"Confirmed",   rate:35000, source:"Walk-in",  nights:3, id:"BK-2876" },
+  // Room 201
+  { room:"201", guest:"Dr. Hassan Umar",     start:0,  end:5,  color:TEAL,   status:"Confirmed",   rate:55000, source:"Online",   nights:5, id:"BK-2849" },
+  { room:"201", guest:"Prof. Emeka Eze",     start:7,  end:11, color:TEAL,   status:"Confirmed",   rate:55000, source:"Direct",   nights:4, id:"BK-2866" },
+  // Room 202
+  { room:"202", guest:"Emmanuel Adeyemi",    start:0,  end:3,  color:SUCCESS, status:"Checked In",  rate:55000, source:"Phone",    nights:3, id:"BK-2848" },
+  { room:"202", guest:"Fatima Garba",        start:4,  end:7,  color:TEAL,   status:"Confirmed",   rate:55000, source:"Online",   nights:3, id:"BK-2867" },
+  { room:"202", guest:"Alhaji Musa Sule",    start:9,  end:13, color:TEAL,   status:"Confirmed",   rate:55000, source:"Phone",    nights:4, id:"BK-2877" },
+  // Room 203
+  { room:"203", guest:"Fatima Musa",         start:0,  end:4,  color:SUCCESS, status:"Checked In",  rate:55000, source:"Online",   nights:4, id:"BK-2850" },
+  { room:"203", guest:"Chukwuemeka Bello",   start:5,  end:8,  color:TEAL,   status:"Confirmed",   rate:55000, source:"Direct",   nights:3, id:"BK-2868" },
+  // Room 204 (Maintenance until day 2, then available)
+  { room:"204", guest:"Yemi Ogundimu",       start:3,  end:6,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Walk-in",  nights:3, id:"BK-2869" },
+  // Room 301
+  { room:"301", guest:"Dr. Afolake Oladele", start:0,  end:6,  color:TEAL,   status:"Confirmed",   rate:85000, source:"Direct",   nights:6, id:"BK-2870" },
+  { room:"301", guest:"Chief Emeka Okafor",  start:7,  end:12, color:TEAL,   status:"Confirmed",   rate:85000, source:"Phone",    nights:5, id:"BK-2878" },
+  // Room 302
+  { room:"302", guest:"Ibrahim Lawal",       start:0,  end:2,  color:SUCCESS, status:"Checked In",  rate:55000, source:"Online",   nights:2, id:"BK-2855" },
+  { room:"302", guest:"Bola Adewale",        start:3,  end:7,  color:TEAL,   status:"Confirmed",   rate:55000, source:"Walk-in",  nights:4, id:"BK-2871" },
+  { room:"302", guest:"Grace Uchenna",       start:9,  end:12, color:TEAL,   status:"Confirmed",   rate:55000, source:"Online",   nights:3, id:"BK-2879" },
+  // Room 304
+  { room:"304", guest:"Chukwuemeka Obi",     start:0,  end:4,  color:SUCCESS, status:"Checked In",  rate:35000, source:"Online",   nights:4, id:"BK-2856" },
+  { room:"304", guest:"Ngozi Eze",           start:5,  end:8,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Phone",    nights:3, id:"BK-2872" },
+  { room:"304", guest:"Ade Adeleke",         start:10, end:14, color:TEAL,   status:"Confirmed",   rate:35000, source:"Direct",   nights:4, id:"BK-2880" },
 ];
 export const IN_HOUSE = [
   { room: "101", guest: "Adaeze Okonkwo", checkin: "22 Jun", checkout: "25 Jun", nights: 1, vip: true, balance: 0 },
@@ -451,3 +487,70 @@ export const NATIONALITY_DATA = [
   { name: "Ghana", value: 9, color: ORANGE }, { name: "South Africa", value: 7, color: "#6366F1" },
   { name: "Other", value: 8, color: SUBTLE },
 ];
+
+// ─── Driver Shift Proposal Store ─────────────────────────────────────────────
+// Shared mutable store — simulates a backend. Both FleetScreens and AdminScreens read/write here.
+
+export interface ShiftProposal {
+  id: string;
+  driverId: string;
+  driverName: string;
+  day: string;
+  weekOf: string;
+  currentShift: "Morning" | "Evening" | "Night" | "Off";
+  proposedShift: "Morning" | "Evening" | "Night" | "Off";
+  reason: string;
+  proposedBy: string;
+  proposedAt: string;
+  status: "pending" | "approved" | "rejected";
+  reviewedBy?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
+}
+
+const _shiftProposals: ShiftProposal[] = [
+  {
+    id: "SP-001", driverId: "DRV-003", driverName: "Musa Danladi",
+    day: "Thu 16", weekOf: "13–19 Oct 2025",
+    currentShift: "Off", proposedShift: "Morning",
+    reason: "Airport pickup schedule — early morning flights booked for Thursday",
+    proposedBy: "Fleet Manager", proposedAt: "12 Oct 2025 09:14", status: "pending",
+  },
+  {
+    id: "SP-002", driverId: "DRV-004", driverName: "Blessing Okafor",
+    day: "Wed 15", weekOf: "13–19 Oct 2025",
+    currentShift: "Off", proposedShift: "Evening",
+    reason: "Covering Emeka Eze's evening shift — he has a medical appointment",
+    proposedBy: "Fleet Manager", proposedAt: "12 Oct 2025 11:45", status: "pending",
+  },
+];
+
+let _nextProposalId = _shiftProposals.length + 1;
+
+export const ShiftProposalStore = {
+  getAll:     (): ShiftProposal[] => [..._shiftProposals],
+  getPending: (): ShiftProposal[] => _shiftProposals.filter(p => p.status === "pending"),
+  getByDriver:(driverId: string): ShiftProposal[] => _shiftProposals.filter(p => p.driverId === driverId),
+  create(p: Omit<ShiftProposal, "id" | "status">): string {
+    const id = `SP-${String(_nextProposalId++).padStart(3, "0")}`;
+    _shiftProposals.push({ ...p, id, status: "pending" });
+    return id;
+  },
+  approve(id: string, reviewedBy: string) {
+    const p = _shiftProposals.find(x => x.id === id);
+    if (p) {
+      p.status = "approved";
+      p.reviewedBy = reviewedBy;
+      p.reviewedAt = new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+    }
+  },
+  reject(id: string, reviewedBy: string, reason: string) {
+    const p = _shiftProposals.find(x => x.id === id);
+    if (p) {
+      p.status = "rejected";
+      p.reviewedBy = reviewedBy;
+      p.reviewedAt = new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+      p.rejectionReason = reason;
+    }
+  },
+};

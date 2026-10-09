@@ -6,7 +6,7 @@ import {
   X, Lock,
   ClipboardList, CalendarCheck, AlertCircle, Clock,
   RefreshCw, Hash, FileText, CreditCard, Truck, Phone,
-  Edit3, Eye, Trash2, Download, Send,
+  Edit3, Eye, Trash2, Download, Send, MessageSquare, Star,
   Shield, Server, Activity,
   MinusCircle, PlusCircle, ShoppingCart, MapPin, Mail,
   UserCheck, BookOpen,
@@ -21,10 +21,11 @@ import {
 import {
   type Role, type Toast, fmtN, uid,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
-  stC, roomStC,
+  stC, roomStC, resStC,
   STAFF, BRANCHES, FOLIO_CHARGES,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, REV_DATA,
-  USERS_DATA, DEVICES, RATE_PLANS, PAYROLL_DATA,
+  USERS_DATA, DEVICES, RATE_PLANS, PAYROLL_DATA, ALL_RES,
+  ShiftProposalStore, type ShiftProposal,
 } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
 
@@ -440,6 +441,9 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
   const [selected, setSelected] = useState<{emp:string;day:string}|null>(null);
   const [swapReq, setSwapReq]   = useState<{from:string;day:string;to:string}|null>(null);
   const [swapTo, setSwapTo]     = useState("");
+  const [driverProposals, setDriverProposals] = useState<ShiftProposal[]>(() => ShiftProposalStore.getPending());
+  const [rejectTarget, setRejectTarget] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const setShift = (empId: string, day: string, shift: ShiftType) => {
     setSchedule(prev => ({ ...prev, [empId]: { ...prev[empId], [day]: shift } }));
@@ -466,6 +470,33 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
     add({ type:"success", title:"Schedule published — Week of 13–19 Oct", body:"All staff notified via device" });
   };
 
+  const approveProposal = (id: string) => {
+    ShiftProposalStore.approve(id, "HR Manager");
+    const p = ShiftProposalStore.getAll().find(x => x.id === id);
+    if (p) add({ type:"success", title:"Shift change approved", body:`${p.driverName}: ${p.day} → ${p.proposedShift}` });
+    setDriverProposals(ShiftProposalStore.getPending());
+  };
+
+  const openReject = (id: string) => { setRejectTarget(id); setRejectReason(""); };
+
+  const confirmReject = () => {
+    if (!rejectTarget) return;
+    if (!rejectReason.trim()) { add({ type:"error", title:"Rejection reason is required" }); return; }
+    ShiftProposalStore.reject(rejectTarget, "HR Manager", rejectReason.trim());
+    const p = ShiftProposalStore.getAll().find(x => x.id === rejectTarget);
+    if (p) add({ type:"warning", title:"Shift change rejected", body:`${p.driverName}: ${p.day} — ${rejectReason.trim()}` });
+    setDriverProposals(ShiftProposalStore.getPending());
+    setRejectTarget(null);
+    setRejectReason("");
+  };
+
+  const shiftPillC: Record<string,{bg:string;text:string}> = {
+    Morning: { bg:"#DCFCE7", text:"#166534" },
+    Evening: { bg:"#DBEAFE", text:"#1E40AF" },
+    Night:   { bg:"#EDE9FE", text:"#6D28D9" },
+    Off:     { bg:"#F3F4F6", text:"#71717A" },
+  };
+
   return (
     <div>
       <PageHeader title="Shift Scheduler" sub="Week of 13–19 Oct 2025 · click a cell to change shift · coverage warnings shown" actions={
@@ -475,6 +506,74 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
           <BtnP label={published?"Published ✓":"Publish Schedule"} icon={Send} onClick={publish} />
         </div>
       } />
+
+      {/* Driver Shift Change Requests from Fleet Manager */}
+      {(driverProposals.length > 0 || ShiftProposalStore.getAll().filter(p=>p.status!=="pending").length > 0) && (
+        <div className="bg-white rounded-xl border mb-5 overflow-hidden" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
+          <div className="px-5 py-3 border-b flex items-center gap-2" style={{ borderColor:BORDER, backgroundColor:"#FFFBEB" }}>
+            <AlertTriangle size={14} style={{ color:"#92400E" }} />
+            <div className="text-sm font-bold" style={{ color:"#92400E" }}>Driver Shift Change Requests</div>
+            {driverProposals.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ backgroundColor:"#F59E0B" }}>
+                {driverProposals.length} pending your review
+              </span>
+            )}
+            {driverProposals.length === 0 && (
+              <span className="text-xs" style={{ color:"#92400E" }}>All requests reviewed</span>
+            )}
+          </div>
+          {driverProposals.length === 0 ? (
+            <div className="px-5 py-4 text-sm" style={{ color:MUTED }}>No pending driver shift change requests.</div>
+          ) : (
+            <div>
+              {driverProposals.map((p, i) => (
+                <div key={p.id} className="px-5 py-3 border-t" style={{ borderColor:i===0?"transparent":BORDER }}>
+                  {rejectTarget === p.id ? (
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-xs font-semibold" style={{ color:ERROR }}>Rejection reason for {p.driverName}:</span>
+                      <input autoFocus value={rejectReason} onChange={e => setRejectReason(e.target.value)}
+                        placeholder="Enter reason…"
+                        className="flex-1 min-w-[200px] px-3 py-1.5 border rounded-lg text-xs outline-none"
+                        style={{ borderColor:ERROR }}
+                        onKeyDown={e => e.key==="Enter" && confirmReject()}
+                      />
+                      <button onClick={confirmReject} className="px-3 py-1.5 rounded-lg text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor:ERROR }}>Confirm Reject</button>
+                      <button onClick={() => { setRejectTarget(null); setRejectReason(""); }} className="px-3 py-1.5 rounded-lg text-xs flex-shrink-0" style={{ backgroundColor:"#F1F5F9", color:MUTED }}>Cancel</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-4 flex-wrap">
+                      <div className="flex-1 min-w-[240px]">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold" style={{ color:TEXT }}>{p.driverName}</span>
+                          <span className="text-xs" style={{ color:MUTED }}>· Driver ·</span>
+                          <span className="text-xs font-medium" style={{ color:MUTED }}>{p.day}</span>
+                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor:shiftPillC[p.currentShift]?.bg, color:shiftPillC[p.currentShift]?.text }}>{p.currentShift}</span>
+                          <span className="text-xs font-bold" style={{ color:MUTED }}>→</span>
+                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor:shiftPillC[p.proposedShift]?.bg, color:shiftPillC[p.proposedShift]?.text }}>{p.proposedShift}</span>
+                        </div>
+                        <div className="text-xs mt-1" style={{ color:MUTED }}>{p.reason}</div>
+                        <div className="text-xs mt-0.5" style={{ color:SUBTLE }}>Submitted {p.proposedAt} by {p.proposedBy}</div>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0 mt-0.5">
+                        <button onClick={() => approveProposal(p.id)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold text-white flex items-center gap-1"
+                          style={{ backgroundColor:SUCCESS }}>
+                          <CheckCircle2 size={12} /> Approve
+                        </button>
+                        <button onClick={() => openReject(p.id)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1"
+                          style={{ borderColor:"#FCA5A5", color:ERROR, backgroundColor:"#FFF1F2" }}>
+                          <XCircle size={12} /> Reject
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Staff on Roster"   value={String(ROSTER.length)}                          sub="This week"          icon={Users}         accent={PRIMARY} />
@@ -595,93 +694,283 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
   const [q, setQ] = useState("");
   const [statusF, setStatusF] = useState("All");
   const [sourceF, setSourceF] = useState("All");
-  const [ratePlanF, setRatePlanF] = useState("All");
+  const [typeF, setTypeF] = useState("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const SAVED = [
-    { label: "Today's Arrivals", q: "", status: "Confirmed" },
-    { label: "All Checked In", q: "", status: "Checked In" },
-    { label: "Cancellations", q: "", status: "Cancelled" },
+
+  const srcColors: Record<string, { bg: string; text: string; dot: string }> = {
+    "Phone":   { bg: "#F3E8FF", text: "#7C3AED", dot: "#A855F7" },
+    "Email":   { bg: "#DBEAFE", text: "#1D4ED8", dot: "#3B82F6" },
+    "Walk-in": { bg: "#CCFBF1", text: "#0F766E", dot: "#14B8A6" },
+    "Online":  { bg: "#DCFCE7", text: "#166534", dot: "#22C55E" },
+    "OTA":     { bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B" },
+  };
+
+  const QUICK = [
+    { label: "Arrivals", status: "Confirmed" },
+    { label: "In-House", status: "Checked In" },
+    { label: "Departures", status: "Checked Out" },
+    { label: "No Shows", status: "No Show" },
+    { label: "Cancelled", status: "Cancelled" },
   ];
+
   const filtered = ALL_RES.filter(r => {
     const ql = q.toLowerCase();
     const matchQ = !q || r.guest.toLowerCase().includes(ql) || r.id.toLowerCase().includes(ql) || r.room.toLowerCase().includes(ql);
     const matchSt = statusF === "All" || r.status === statusF;
     const matchSrc = sourceF === "All" || r.source === sourceF;
-    return matchQ && matchSt && matchSrc;
+    const matchType = typeF === "All" || r.type === typeF;
+    const matchDate = (() => {
+      if (!dateFrom && !dateTo) return true;
+      const rDate = new Date(r.checkin + " 2026");
+      if (isNaN(rDate.getTime())) return true;
+      if (dateFrom && rDate < new Date(dateFrom)) return false;
+      if (dateTo && rDate > new Date(dateTo)) return false;
+      return true;
+    })();
+    return matchQ && matchSt && matchSrc && matchType && matchDate;
   });
+
+  const kpi = [
+    { label: "Total",      value: ALL_RES.length,                                        color: PRIMARY,    icon: BookOpen,      sub: "all reservations"  },
+    { label: "Confirmed",  value: ALL_RES.filter(r => r.status === "Confirmed").length,  color: "#0F766E",  icon: CalendarCheck, sub: "arriving soon"     },
+    { label: "Checked In", value: ALL_RES.filter(r => r.status === "Checked In").length, color: "#1D4ED8",  icon: KeyRound,      sub: "currently in-house"},
+    { label: "No Shows",   value: ALL_RES.filter(r => r.status === "No Show").length,    color: "#991B1B",  icon: XCircle,       sub: "requires action"   },
+  ];
+
+  const typeColors: Record<string, { bg: string; text: string }> = {
+    Standard: { bg: "#F1F5F9", text: "#475569" },
+    Deluxe:   { bg: "#EFF6FF", text: "#1D4ED8" },
+    Suite:    { bg: "#FDF4FF", text: "#7C3AED" },
+  };
+
+  const actionBtn = (label: string, color: string, onClick: () => void) => (
+    <button
+      onClick={onClick}
+      className="text-xs px-2.5 py-1 rounded-lg border font-semibold whitespace-nowrap"
+      style={{ color, borderColor: `${color}35`, backgroundColor: `${color}08` }}>
+      {label}
+    </button>
+  );
+
+  const hasActiveFilters = q || statusF !== "All" || sourceF !== "All" || typeF !== "All" || dateFrom || dateTo;
+
   return (
     <div>
-      <PageHeader title="Reservation Search" sub={`${filtered.length} result${filtered.length !== 1 ? "s" : ""} · Search all reservations`} actions={<BtnP label="New Reservation" icon={Plus} onClick={() => nav && nav("new-reservation","New Reservation")} />} />
-      {/* Saved searches */}
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Saved:</span>
-        {SAVED.map(s => (
-          <button key={s.label} onClick={() => { setQ(s.q); setStatusF(s.status); }}
-            className="text-xs px-3 py-1.5 rounded-full border font-medium transition-colors"
-            style={{ borderColor: statusF === s.status && q === s.q ? PRIMARY : BORDER, backgroundColor: statusF === s.status && q === s.q ? "#EFF6FF" : "white", color: statusF === s.status && q === s.q ? PRIMARY : MUTED }}>
-            {s.label}
-          </button>
-        ))}
-        <button onClick={() => { setQ(""); setStatusF("All"); setSourceF("All"); setRatePlanF("All"); }} className="text-xs px-3 py-1.5 rounded-full border ml-auto" style={{ color: MUTED, borderColor: BORDER }}>Clear filters</button>
+      <PageHeader
+        title="Reservation Lookup"
+        sub="Search and manage all reservations"
+        actions={<BtnP label="New Reservation" icon={Plus} onClick={() => nav && nav("new-reservation","New Reservation")} />}
+      />
+
+      {/* KPI strip */}
+      <div className="grid grid-cols-4 gap-3 mb-5">
+        {kpi.map(k => {
+          const KIcon = k.icon;
+          return (
+            <div key={k.label} className="bg-white rounded-xl border overflow-hidden flex"
+              style={{ borderColor: BORDER }}>
+              {/* Left accent bar */}
+              <div className="w-1 flex-shrink-0" style={{ backgroundColor: k.color }} />
+              <div className="flex items-center gap-3 px-4 py-4 flex-1">
+                {/* Icon bubble */}
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: `${k.color}14` }}>
+                  <KIcon size={18} style={{ color: k.color }} />
+                </div>
+                {/* Text */}
+                <div>
+                  <p className="text-2xl font-bold leading-none mb-1" style={{ color: k.color, fontFamily: mono }}>{k.value}</p>
+                  <p className="text-xs font-semibold" style={{ color: TEXT }}>{k.label}</p>
+                  <p className="text-xs" style={{ color: SUBTLE }}>{k.sub}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
+
+      {/* Quick filter tabs */}
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          onClick={() => { setStatusF("All"); setQ(""); }}
+          className="text-xs px-3 py-1.5 rounded-full border font-semibold transition-colors"
+          style={{ borderColor: statusF === "All" ? PRIMARY : BORDER, backgroundColor: statusF === "All" ? PRIMARY : "white", color: statusF === "All" ? "white" : MUTED }}>
+          All
+        </button>
+        {QUICK.map(q2 => {
+          const active = statusF === q2.status;
+          const c = resStC[q2.status];
+          return (
+            <button key={q2.label} onClick={() => setStatusF(active ? "All" : q2.status)}
+              className="text-xs px-3 py-1.5 rounded-full border font-semibold transition-colors"
+              style={{ borderColor: active ? c.text : BORDER, backgroundColor: active ? c.bg : "white", color: active ? c.text : MUTED }}>
+              {q2.label}
+            </button>
+          );
+        })}
+        {hasActiveFilters && (
+          <button onClick={() => { setQ(""); setStatusF("All"); setSourceF("All"); setTypeF("All"); setDateFrom(""); setDateTo(""); }}
+            className="text-xs px-3 py-1.5 rounded-full border ml-auto flex items-center gap-1"
+            style={{ color: ERROR, borderColor: `${ERROR}30`, backgroundColor: "#FEF2F2" }}>
+            <X size={11} />Clear filters
+          </button>
+        )}
+      </div>
+
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
         {/* Filter bar */}
         <div className="p-4 border-b" style={{ borderColor: BORDER, backgroundColor: "#F9FAFB" }}>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-3">
-            <div className="lg:col-span-2 relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
-              <input value={q} onChange={e => setQ(e.target.value)} placeholder="Guest name, reservation ID, room number, phone…" className="pl-9 pr-4 py-2.5 w-full border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-            <select value={statusF} onChange={e=>setStatusF(e.target.value)} className="px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
-              {["All","Confirmed","Checked In","Checked Out","No Show","Cancelled"].map(s=><option key={s}>{s}</option>)}
+            <div className="lg:col-span-2 relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
+              <input value={q} onChange={e => setQ(e.target.value)}
+                placeholder="Guest name, reservation ID, room number…"
+                className="pl-9 pr-4 py-2.5 w-full border rounded-lg text-sm outline-none transition-colors"
+                style={{ borderColor: q ? PRIMARY : BORDER, boxShadow: q ? `0 0 0 2px ${PRIMARY}15` : undefined }} />
+            </div>
+            <select value={sourceF} onChange={e => setSourceF(e.target.value)}
+              className="px-3 py-2.5 border rounded-lg text-sm outline-none"
+              style={{ borderColor: sourceF !== "All" ? TEAL : BORDER }}>
+              {["All","Phone","Email","Walk-in","Online","OTA"].map(s => <option key={s}>{s}</option>)}
             </select>
-            <button onClick={()=>setShowAdvanced(!showAdvanced)} className="flex items-center justify-center gap-1.5 px-3 py-2.5 border rounded-lg text-sm" style={{ borderColor: showAdvanced ? PRIMARY : BORDER, color: showAdvanced ? PRIMARY : MUTED }}>
-              <Filter size={13} />{showAdvanced ? "Hide" : "More Filters"}
+            <button onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center justify-center gap-1.5 px-3 py-2.5 border rounded-lg text-sm font-medium"
+              style={{ borderColor: showAdvanced ? PRIMARY : BORDER, color: showAdvanced ? PRIMARY : MUTED, backgroundColor: showAdvanced ? "#EFF6FF" : "white" }}>
+              <Filter size={13} />{showAdvanced ? "Hide Filters" : "More Filters"}
             </button>
           </div>
           {showAdvanced && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div><label className="text-xs font-medium block mb-1" style={{ color: MUTED }}>Check-In From</label><input type="date" className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-medium block mb-1" style={{ color: MUTED }}>Check-In To</label><input type="date" className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-medium block mb-1" style={{ color: MUTED }}>Source</label>
-                <select value={sourceF} onChange={e=>setSourceF(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: BORDER }}>
-                  {["All","Phone","Email","Walk-In","Online","OTA"].map(s=><option key={s}>{s}</option>)}
-                </select></div>
-              <div><label className="text-xs font-medium block mb-1" style={{ color: MUTED }}>Rate Plan</label>
-                <select value={ratePlanF} onChange={e=>setRatePlanF(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: BORDER }}>
-                  {["All","Standard Rate","Corporate Rate","Weekend Special","Group Rate (10+)"].map(s=><option key={s}>{s}</option>)}
-                </select></div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+              <div>
+                <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Check-In From</label>
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateFrom ? TEAL : BORDER }} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Check-In To</label>
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateTo ? TEAL : BORDER }} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Room Type</label>
+                <select value={typeF} onChange={e => setTypeF(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: typeF !== "All" ? TEAL : BORDER }}>
+                  {["All","Standard","Deluxe","Suite"].map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="flex items-end">
+                <div className="text-xs px-3 py-2 rounded-lg border w-full text-center" style={{ borderColor: BORDER, color: SUBTLE }}>
+                  {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+                </div>
+              </div>
             </div>
           )}
         </div>
-        <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>
-            {["Reservation ID","Guest","Room","Source","Check-in","Check-out","Nights","Status",""].map((h,i)=>(
-              <th key={i} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>
-            ))}
-          </tr></thead>
-          <tbody>{filtered.map(r => (
-            <tr key={r.id} className="border-t hover:bg-[#F9FAFB] cursor-pointer" style={{ borderColor: "#F4F4F5" }} onClick={() => nav && nav("reservation-detail", r.id)}>
-              <td className="px-5 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{r.id}</td>
-              <td className="px-5 py-3"><div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}>{r.guest.split(" ").map((n:string) => n[0]).join("").slice(0,2)}</div>
-                <span className="text-sm font-medium" style={{ color: TEXT }}>{r.guest}</span>
-              </div></td>
-              <td className="px-5 py-3 text-xs font-bold" style={{ color: PRIMARY }}>Rm {r.room}</td>
-              <td className="px-5 py-3"><span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>{r.source}</span></td>
-              <td className="px-5 py-3 text-xs" style={{ color: MUTED }}>{r.checkin}</td>
-              <td className="px-5 py-3 text-xs" style={{ color: MUTED }}>{r.checkout}</td>
-              <td className="px-5 py-3 text-sm" style={{ color: MUTED }}>{r.nights}n</td>
-              <td className="px-5 py-3"><Badge label={r.status} colors={resStC[r.status] ?? { bg:"#F4F4F5",text:"#374151" }} /></td>
-              <td className="px-5 py-3"><div className="flex gap-1" onClick={e=>e.stopPropagation()}>
-                <button onClick={() => nav && nav("reservation-detail", r.id)} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>View</button>
-                {r.status === "Confirmed" && <button onClick={() => nav ? nav("check-in","Check-In") : add({ type:"success",title:"Check-in started",body:r.guest })} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Check In</button>}
-              </div></td>
-            </tr>
-          ))}</tbody>
-        </table>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[860px]">
+            <thead>
+              <tr style={{ backgroundColor: "#F8FAFC", borderBottom: `1.5px solid ${BORDER}` }}>
+                {["ID","Guest","Room · Type","Source","Check-in → Check-out","Nights · Rate","Status","Actions"].map((h, i) => (
+                  <th key={i} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r, idx) => {
+                const src = srcColors[r.source] ?? { bg: "#F1F5F9", text: "#475569", dot: "#94A3B8" };
+                const stC = resStC[r.status] ?? { bg: "#F4F4F5", text: "#374151" };
+                const tC = typeColors[r.type] ?? { bg: "#F1F5F9", text: "#475569" };
+                return (
+                  <tr key={r.id}
+                    className="border-t cursor-pointer transition-colors"
+                    style={{ borderColor: "#F1F5F9", backgroundColor: idx % 2 === 0 ? "white" : "#FAFAFA" }}
+                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#F0F9FF")}
+                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = idx % 2 === 0 ? "white" : "#FAFAFA")}
+                    onClick={() => nav && nav("reservation-detail", r.guest, r.id)}>
+
+                    {/* ID */}
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-bold" style={{ color: SUBTLE, fontFamily: mono }}>{r.id}</span>
+                    </td>
+
+                    {/* Guest */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: `${PRIMARY}14` }}>
+                          <User size={15} style={{ color: PRIMARY }} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold leading-tight" style={{ color: TEXT }}>{r.guest}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Room + Type */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-bold" style={{ color: PRIMARY }}>Rm {r.room}</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: tC.bg, color: tC.text }}>{r.type}</span>
+                      </div>
+                    </td>
+
+                    {/* Source */}
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold"
+                        style={{ backgroundColor: src.bg, color: src.text }}>
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: src.dot }} />
+                        {r.source}
+                      </span>
+                    </td>
+
+                    {/* Dates */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5 text-xs" style={{ color: TEXT }}>
+                        <span className="font-semibold">{r.checkin}</span>
+                        <span style={{ color: SUBTLE }}>→</span>
+                        <span className="font-semibold">{r.checkout}</span>
+                      </div>
+                    </td>
+
+                    {/* Nights + Rate */}
+                    <td className="px-4 py-3">
+                      <p className="text-xs font-bold" style={{ color: TEXT }}>{r.nights}N</p>
+                      <p className="text-xs" style={{ color: SUBTLE }}>₦{(r.rate / 1000).toFixed(0)}k/night</p>
+                    </td>
+
+                    {/* Status — fixed min-width so all badges are uniform */}
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center justify-center text-xs font-semibold rounded-full px-2.5 py-1"
+                        style={{ backgroundColor: stC.bg, color: stC.text, minWidth: 92, textAlign: "center" }}>
+                        {r.status}
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-1.5">
+                        {actionBtn("View", TEAL, () => nav && nav("reservation-detail", r.guest, r.id))}
+                        {r.status === "Confirmed" && actionBtn("Check In", "#166534", () => nav ? nav("check-in","Check-In") : add({ type:"success",title:"Check-in started",body:r.guest }))}
+                        {r.status === "Checked In" && actionBtn("Check Out", "#92400E", () => nav ? nav("check-out","Check-Out") : add({ type:"info",title:"Check-out started",body:r.guest }))}
+                        {r.status === "No Show" && actionBtn("Void", "#991B1B", () => add({ type:"warning",title:"Marked No-Show",body:r.guest }))}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
         {filtered.length === 0 && <EmptyState icon={Search} message="No reservations match your search. Try different criteria." />}
+
         <div className="flex items-center justify-between px-5 py-3 border-t text-xs" style={{ borderColor: BORDER, color: MUTED }}>
           <span>{filtered.length} of {ALL_RES.length} reservations shown</span>
-          <button onClick={() => add({ type:"info",title:"Exported to CSV",body:`${filtered.length} records` })} className="flex items-center gap-1" style={{ color: PRIMARY }}><Download size={12} />Export CSV</button>
+          <button onClick={() => add({ type:"info",title:"Exported to CSV",body:`${filtered.length} records` })}
+            className="flex items-center gap-1.5 font-semibold" style={{ color: PRIMARY }}>
+            <Download size={12} />Export CSV
+          </button>
         </div>
       </div>
     </div>
@@ -689,233 +978,766 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
 }
 
 // R-03 Reservation Detail
-export function ReservationDetail({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
+export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; resId?: string }) {
   const [tab, setTab] = useState("Overview");
-  const tabs = ["Overview", "Folio", "Guest", "Access", "Requests", "History"];
-  const res = ALL_RES[0];
-  const folioItems = [
-    { date:"1 Aug 09:00", desc:"Room Charge — Night 1", dept:"Rooms", amount:55000 },
-    { date:"1 Aug 07:45", desc:"Restaurant Breakfast × 2", dept:"F&B", amount:8500 },
-    { date:"1 Aug 20:10", desc:"Room Service — Jollof Rice + Chapman", dept:"F&B", amount:6200 },
-    { date:"2 Aug 09:00", desc:"Room Charge — Night 2", dept:"Rooms", amount:55000 },
-    { date:"2 Aug 14:30", desc:"Laundry Service", dept:"Housekeeping", amount:3500 },
+  const [showCancelConfirm, setShowCancelConfirm]   = useState(false);
+  const [showNoShowConfirm, setShowNoShowConfirm]   = useState(false);
+  const [resStatus, setResStatus]                   = useState<string>("");
+  // Action modals
+  const [showExtend,     setShowExtend]     = useState(false);
+  const [showChangeRate, setShowChangeRate] = useState(false);
+  const [showPostCharge, setShowPostCharge] = useState(false);
+  const [showAddReq,     setShowAddReq]     = useState(false);
+  const [showMessage,    setShowMessage]    = useState(false);
+  // Extend Stay form
+  const [newCheckout, setNewCheckout] = useState("");
+  // Change Rate form
+  const [newRate, setNewRate] = useState("");
+  const [newRatePlan, setNewRatePlan] = useState("Standard Rate");
+  // Post Charge form
+  const [chargeDept, setChargeDept]   = useState("Rooms");
+  const [chargeDesc, setChargeDesc]   = useState("");
+  const [chargeAmt,  setChargeAmt]    = useState("");
+  // Add Request form
+  const [reqCat,    setReqCat]    = useState("Housekeeping");
+  const [reqDetail, setReqDetail] = useState("");
+  // Message form
+  const [msgText,    setMsgText]    = useState("");
+  const [msgChannel, setMsgChannel] = useState<"WhatsApp"|"Email"|"SMS">("WhatsApp");
+
+  const [requests, setRequests] = useState([
+    { id:"REQ-01", category:"Amenity",         detail:"Champagne + fruit basket on arrival",         status:"Fulfilled", by:"Grace Achebe" },
+    { id:"REQ-02", category:"Housekeeping",     detail:"Extra pillows × 2",                          status:"Fulfilled", by:"Amaka Osei"   },
+    { id:"REQ-03", category:"Room Preference",  detail:"High floor requested",                        status:"Assigned",  by:"System"       },
+    { id:"REQ-04", category:"Restaurant",       detail:"Table reservation 25 Aug 19:00 — 2 pax",     status:"Pending",   by:"–"            },
+  ]);
+  const [accessCards, setAccessCards] = useState([
+    { type:"Key Card", ref:"KC-0042", issued:"24 Jun 14:12", issuedBy:"John Abubakar", status:"Active" },
+    { type:"Door PIN", ref:"PIN-6631", issued:"24 Jun 14:15", issuedBy:"System",        status:"Active" },
+  ]);
+  const [folioItems, setFolioItems] = useState([
+    { date:"24 Jun 09:00", desc:"Room Charge — Night 1",             dept:"Rooms",        amount:85000 },
+    { date:"24 Jun 07:45", desc:"Restaurant Breakfast × 2",           dept:"F&B",          amount:8500  },
+    { date:"24 Jun 20:10", desc:"Room Service — Jollof Rice + Chapman",dept:"F&B",         amount:6200  },
+    { date:"25 Jun 09:00", desc:"Room Charge — Night 2",             dept:"Rooms",        amount:85000 },
+    { date:"25 Jun 14:30", desc:"Laundry Service",                    dept:"Housekeeping", amount:3500  },
+    { date:"26 Jun 09:00", desc:"Room Charge — Night 3",             dept:"Rooms",        amount:85000 },
+  ]);
+
+  // Look up reservation by resId; fall back to first
+  const baseRes = (resId ? ALL_RES.find(r => r.id === resId) : null) ?? ALL_RES[0];
+  // Overlay mutable status on top of the looked-up record
+  const res = { ...baseRes, status: resStatus || baseRes.status };
+
+  const folioTotal       = folioItems.reduce((s, f) => s + f.amount, 0);
+  const folioVAT         = Math.round(folioTotal * 0.075);
+  const folioGrand       = folioTotal + folioVAT;
+  const depositPaid      = 42500;
+  const folioOutstanding = folioGrand - depositPaid;
+  const pendingCount     = requests.filter(r => r.status === "Pending").length;
+
+  // Status-aware banner config
+  const bannerCfg: Record<string, { bg: string; border: string; textColor: string; icon: React.ElementType; message: string }> = {
+    "Confirmed":    { bg:"#F0FDF4", border:"#BBF7D0", textColor:SUCCESS,  icon:CheckCircle2, message:`Arriving ${res.checkin} · Room ${res.room} prepped and ready` },
+    "Checked In":   { bg:"#EFF6FF", border:"#BFDBFE", textColor:"#1D4ED8",icon:KeyRound,     message:`In-house since ${res.checkin} · Check-out ${res.checkout} at 11:00` },
+    "Checked Out":  { bg:"#F9FAFB", border:BORDER,    textColor:MUTED,    icon:Archive,      message:`Departed ${res.checkout} · Folio settled` },
+    "No Show":      { bg:"#FEF2F2", border:"#FECACA", textColor:ERROR,    icon:XCircle,      message:`Marked No-Show for ${res.checkin} — no charge applied` },
+    "Cancelled":    { bg:"#FEF2F2", border:"#FECACA", textColor:ERROR,    icon:XCircle,      message:`Cancelled · Cancellation policy may apply` },
+  };
+  const banner = bannerCfg[res.status] ?? bannerCfg["Confirmed"];
+  const BannerIcon = banner.icon;
+
+  // Context-sensitive primary CTA
+  const primaryCTA = res.status === "Confirmed"
+    ? { label:"Check In", icon:KeyRound,           action:() => nav ? nav("check-in","Check-In") : add({type:"success",title:"Check-in started",body:res.guest}) }
+    : res.status === "Checked In"
+    ? { label:"Check Out", icon:ArrowUpFromLine,   action:() => nav ? nav("check-out","Check-Out") : add({type:"success",title:"Check-out started",body:res.guest}) }
+    : null;
+
+  // Tab definitions with badges
+  const tabs = [
+    { key:"Overview",  label:"Overview" },
+    { key:"Folio",     label:"Folio",    badge: folioOutstanding > 0 ? `₦${Math.round(folioOutstanding/1000)}k` : null },
+    { key:"Guest",     label:"Guest" },
+    { key:"Access",    label:"Access" },
+    { key:"Requests",  label:"Requests", badge: pendingCount > 0 ? String(pendingCount) : null },
+    { key:"History",   label:"History" },
   ];
-  const folioTotal = folioItems.reduce((s,f)=>s+f.amount,0);
-  const folioVAT = Math.round(folioTotal*0.075);
-  const folioGrand = folioTotal + folioVAT;
-  const ACCESS_LIST = [
-    { type:"Key Card", ref:"KC-0042", issued:"1 Aug 14:12", issuedBy:"John Abubakar", status:"Active" },
-    { type:"Door PIN", ref:"PIN-6631", issued:"1 Aug 14:15", issuedBy:"System", status:"Active" },
-  ];
-  const REQUESTS_LIST = [
-    { id:"REQ-01", category:"Amenity", detail:"Champagne + fruit basket on arrival", status:"Fulfilled", by:"Grace Achebe" },
-    { id:"REQ-02", category:"Housekeeping", detail:"Extra pillows × 2", status:"Fulfilled", by:"Amaka Osei" },
-    { id:"REQ-03", category:"Room Preference", detail:"High floor requested", status:"Assigned", by:"System" },
-    { id:"REQ-04", category:"Restaurant", detail:"Table reservation 25 Aug 19:00 — 2 pax", status:"Pending", by:"–" },
-  ];
+
+  const fulfil = (id: string) => {
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, status:"Fulfilled", by:"Staff" } : r));
+    add({ type:"success", title:"Request marked fulfilled" });
+  };
+
   return (
     <div>
-      <PageHeader title={`Reservation ${res.id}`} sub={`${res.guest} · Room ${res.room} · ${res.type}`}
+      {/* Header — condensed to 3 action groups */}
+      <PageHeader
+        title={`Reservation ${res.id}`}
+        sub={`${res.guest} · ${res.type} Room ${res.room}`}
         actions={
           <div className="flex items-center gap-2 flex-wrap">
-            <BtnO label="Extend Stay" icon={CalendarDays} onClick={()=>add({type:"info",title:"Extend Stay",body:"Select new check-out date"})} />
-            <BtnO label="Change Rate" icon={DollarSign} onClick={()=>add({type:"info",title:"Rate change",body:"Select new rate plan"})} />
-            <BtnO label="No-Show" onClick={()=>add({type:"warning",title:"Marked as No-Show",body:res.guest})} />
-            <BtnO label="Cancel" onClick={()=>add({type:"warning",title:"Cancellation initiated",body:res.id})} />
-            <BtnO label="Print Reg Card" icon={FileText} onClick={()=>add({type:"info",title:"Printing registration card…"})} />
-            <BtnP label="Check In" icon={KeyRound} onClick={()=>nav ? nav("check-in","Check-In") : add({type:"success",title:"Check-in started",body:res.guest})} />
+            {/* Secondary actions */}
+            <BtnO label="Extend Stay"    icon={CalendarDays} onClick={() => { setNewCheckout(res.checkout); setShowExtend(true); }} />
+            <BtnO label="Change Rate"    icon={DollarSign}   onClick={() => { setNewRate(String(res.rate)); setShowChangeRate(true); }} />
+            <BtnO label="Print Reg Card" icon={FileText}      onClick={() => add({type:"info", title:"Printing registration card…", body:`${res.guest} · Room ${res.room}`})} />
+            {/* Destructive — with inline confirm */}
+            {!showNoShowConfirm && !showCancelConfirm && (
+              <div className="flex gap-1">
+                <button onClick={() => setShowNoShowConfirm(true)} className="text-xs px-2.5 py-1.5 rounded-lg border font-medium" style={{ color: ERROR, borderColor:`${ERROR}30`, backgroundColor:`${ERROR}08` }}>No-Show</button>
+                <button onClick={() => setShowCancelConfirm(true)}  className="text-xs px-2.5 py-1.5 rounded-lg border font-medium" style={{ color: ERROR, borderColor:`${ERROR}30`, backgroundColor:`${ERROR}08` }}>Cancel</button>
+              </div>
+            )}
+            {showNoShowConfirm && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs" style={{ borderColor:`${ERROR}40`, backgroundColor:"#FEF2F2" }}>
+                <span style={{ color:ERROR }}>Mark No-Show?</span>
+                <button onClick={() => { setResStatus("No Show"); add({type:"warning",title:"Marked as No-Show",body:res.guest}); setShowNoShowConfirm(false); }} className="font-bold px-2 py-0.5 rounded" style={{ backgroundColor:ERROR, color:"white" }}>Confirm</button>
+                <button onClick={() => setShowNoShowConfirm(false)} className="font-medium" style={{ color:MUTED }}>✕</button>
+              </div>
+            )}
+            {showCancelConfirm && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs" style={{ borderColor:`${ERROR}40`, backgroundColor:"#FEF2F2" }}>
+                <span style={{ color:ERROR }}>Cancel reservation?</span>
+                <button onClick={() => { setResStatus("Cancelled"); add({type:"warning",title:"Reservation cancelled",body:res.id}); setShowCancelConfirm(false); }} className="font-bold px-2 py-0.5 rounded" style={{ backgroundColor:ERROR, color:"white" }}>Confirm</button>
+                <button onClick={() => setShowCancelConfirm(false)} className="font-medium" style={{ color:MUTED }}>✕</button>
+              </div>
+            )}
+            {/* Primary CTA */}
+            {primaryCTA && (
+              <BtnP label={primaryCTA.label} icon={primaryCTA.icon} onClick={primaryCTA.action} />
+            )}
           </div>
-        } />
-      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
-        {/* Status banner */}
-        <div className="flex items-center gap-4 px-5 py-2.5 border-b" style={{ backgroundColor: "#F0FDF4", borderColor: "#BBF7D0" }}>
-          <Badge label={res.status} colors={resStC[res.status] ?? { bg:"#F4F4F5",text:"#374151" }} />
-          <span className="text-sm" style={{ color: SUCCESS }}>Arriving today at 14:00 · Suite 501 prepped and ready</span>
-          <button className="ml-auto text-xs flex items-center gap-1 font-medium" style={{ color: SUCCESS }} onClick={()=>add({type:"success",title:"Message sent",body:res.guest})}><MessageSquare size={12}/>Message Guest</button>
+        }
+      />
+
+      {/* ── Persistent Hero Strip ──────────────────────────────────────────── */}
+      <div className="bg-white rounded-xl border mb-4 overflow-hidden" style={{ borderColor: BORDER }}>
+        <div className="flex items-center gap-5 px-5 py-4">
+          {/* Avatar */}
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: `${PRIMARY}14` }}>
+            <User size={26} style={{ color: PRIMARY }} />
+          </div>
+          {/* Name + meta */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-base font-bold" style={{ color: TEXT }}>{res.guest}</span>
+              <Star size={13} fill={ORANGE} style={{ color: ORANGE }} />
+              <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor:`${ORANGE}15`, color:ORANGE }}>VIP</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs" style={{ color: MUTED }}>
+              <span style={{ fontFamily: mono }}>{res.id}</span>
+              <span>·</span>
+              <span>{res.type} · Rm {res.room}</span>
+              <span>·</span>
+              <span>{res.checkin} → {res.checkout}</span>
+              <span>·</span>
+              <span>{res.nights} nights</span>
+            </div>
+          </div>
+          {/* KPI chips */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="text-center px-4 py-2 rounded-xl" style={{ backgroundColor:"#F8FAFC" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: MUTED }}>Nightly</p>
+              <p className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{res.rate.toLocaleString()}</p>
+            </div>
+            <div className="text-center px-4 py-2 rounded-xl" style={{ backgroundColor: folioOutstanding > 0 ? `${ERROR}08` : "#F0FDF4" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: folioOutstanding > 0 ? ERROR : SUCCESS }}>Outstanding</p>
+              <p className="text-sm font-bold" style={{ color: folioOutstanding > 0 ? ERROR : SUCCESS, fontFamily: mono }}>₦{folioOutstanding.toLocaleString()}</p>
+            </div>
+            <Badge label={res.status} colors={resStC[res.status] ?? { bg:"#F4F4F5", text:"#374151" }} />
+          </div>
         </div>
-        {/* Tabs */}
+
+        {/* Status-aware banner */}
+        <div className="flex items-center gap-3 px-5 py-2.5 border-t" style={{ backgroundColor: banner.bg, borderColor: banner.border }}>
+          <BannerIcon size={13} style={{ color: banner.textColor }} />
+          <span className="text-xs font-medium flex-1" style={{ color: banner.textColor }}>{banner.message}</span>
+          <button className="text-xs flex items-center gap-1 font-semibold" style={{ color: banner.textColor }}
+            onClick={() => setShowMessage(true)}>
+            <MessageSquare size={11} />Message Guest
+          </button>
+        </div>
+      </div>
+
+      {/* ── Tabbed detail panel ───────────────────────────────────────────── */}
+      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
+        {/* Tabs with badges */}
         <div className="flex border-b overflow-x-auto" style={{ borderColor: BORDER }}>
-          {tabs.map(t=>(
-            <button key={t} onClick={()=>setTab(t)} className="px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0"
-              style={{ color: tab===t ? PRIMARY : MUTED, borderBottom: tab===t ? `2px solid ${PRIMARY}` : "2px solid transparent" }}>{t}</button>
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className="px-5 py-3 text-sm font-medium whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 transition-colors"
+              style={{ color: tab===t.key ? PRIMARY : MUTED, borderBottom: tab===t.key ? `2px solid ${PRIMARY}` : "2px solid transparent" }}>
+              {t.label}
+              {t.badge && (
+                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full leading-none"
+                  style={{ backgroundColor: t.key === "Folio" ? `${ERROR}15` : `${ORANGE}18`, color: t.key === "Folio" ? ERROR : ORANGE }}>
+                  {t.badge}
+                </span>
+              )}
+            </button>
           ))}
         </div>
+
         <div className="p-6">
+          {/* ── Overview ── */}
           {tab === "Overview" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Booking Details</h3>
-                <div className="space-y-2">
-                  {[["Reservation ID",res.id],["Booking Type","Individual"],["Source",res.source],["Room Type",res.type],["Room Number",`Room ${res.room}`],["Check-in",`${res.checkin} 2026, 14:00`],["Check-out",`${res.checkout} 2026, 11:00`],["Nights",String(res.nights)],["Rate Plan","Standard Rate"],["Nightly Rate",`₦${res.rate.toLocaleString()}`],["Subtotal",`₦${(res.rate*res.nights).toLocaleString()}`],["VAT (7.5%)",`₦${Math.round(res.rate*res.nights*0.075).toLocaleString()}`],["Total",`₦${Math.round(res.rate*res.nights*1.075).toLocaleString()} incl. VAT`]].map(([k,v])=>(
-                    <div key={k} className="flex gap-4 text-sm"><span className="w-36 flex-shrink-0" style={{ color: MUTED }}>{k}</span><span className="font-medium" style={{ color: TEXT }}>{v as string}</span></div>
-                  ))}
-                </div>
+            <div>
+              {/* Stat cards row */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                {[
+                  { label:"Check-in",   value:res.checkin,          sub:"14:00 arrival",      accent:TEAL    },
+                  { label:"Check-out",  value:res.checkout,         sub:"11:00 departure",    accent:PRIMARY },
+                  { label:"Nights",     value:`${res.nights}N`,     sub:`₦${res.rate.toLocaleString()}/night`, accent:PRIMARY },
+                  { label:"Folio",      value:`₦${folioGrand.toLocaleString()}`, sub:`₦${depositPaid.toLocaleString()} deposit paid`, accent: folioOutstanding > 0 ? ERROR : SUCCESS },
+                ].map(c => (
+                  <div key={c.label} className="p-4 rounded-xl border" style={{ borderColor: BORDER }}>
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: MUTED }}>{c.label}</p>
+                    <p className="text-lg font-bold leading-tight" style={{ color: c.accent, fontFamily: mono }}>{c.value}</p>
+                    <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{c.sub}</p>
+                  </div>
+                ))}
               </div>
-              <div>
-                <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Quick Actions</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {[{label:"Assign Room",icon:BedDouble},{label:"Post Charge",icon:DollarSign},{label:"Add Request",icon:Plus},{label:"Print Folio",icon:FileText}].map(a=>(
-                    <button key={a.label} onClick={()=>add({type:"info",title:a.label})} className="flex items-center gap-2 p-3 rounded-xl border text-sm font-medium" style={{ borderColor: BORDER, color: TEXT }}>
-                      <a.icon size={15} style={{ color: PRIMARY }} />{a.label}
-                    </button>
-                  ))}
+              {/* Booking detail grid + quick actions */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Booking Details</h3>
+                  <div className="space-y-2">
+                    {([
+                      ["Reservation ID", res.id],
+                      ["Source",         res.source],
+                      ["Room Type",      res.type],
+                      ["Room Number",    `Room ${res.room}`],
+                      ["Check-in",       `${res.checkin}, 14:00`],
+                      ["Check-out",      `${res.checkout}, 11:00`],
+                      ["Rate Plan",      "Standard Rate"],
+                      ["Nightly Rate",   `₦${res.rate.toLocaleString()}`],
+                      ["VAT (7.5%)",     `₦${Math.round(res.rate * res.nights * 0.075).toLocaleString()}`],
+                      ["Total incl. VAT",`₦${Math.round(res.rate * res.nights * 1.075).toLocaleString()}`],
+                    ] as [string, string][]).map(([k, v]) => (
+                      <div key={k} className="flex gap-4 py-1.5 border-b text-sm" style={{ borderColor:"#F8FAFC" }}>
+                        <span className="w-36 flex-shrink-0 text-xs font-medium" style={{ color: MUTED }}>{k}</span>
+                        <span className="font-semibold" style={{ color: TEXT, fontFamily: k.includes("Rate") || k.includes("VAT") || k.includes("Total") ? mono : undefined }}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="p-3 rounded-xl mt-4" style={{ backgroundColor: "#F0F4F8" }}>
-                  <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Folio Balance</div>
-                  <div className="text-2xl font-bold" style={{ color: PRIMARY, fontFamily: mono }}>₦{folioGrand.toLocaleString()}</div>
-                  <div className="text-xs" style={{ color: MUTED }}>Incl. VAT · Deposit: ₦27,500 paid</div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick Actions</h3>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    {([
+                      {label:"Post Charge", icon:DollarSign,    action:()=>setShowPostCharge(true)},
+                      {label:"Add Request", icon:Plus,          action:()=>setShowAddReq(true)},
+                      {label:"Print Folio", icon:FileText,      action:()=>add({type:"info",title:"Folio sent to printer",body:res.guest})},
+                      {label:"Message",     icon:MessageSquare, action:()=>setShowMessage(true)},
+                    ] as { label: string; icon: React.ElementType; action:()=>void }[]).map(a => (
+                      <button key={a.label} onClick={a.action}
+                        className="flex items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-colors hover:bg-gray-50"
+                        style={{ borderColor: BORDER, color: TEXT }}>
+                        <a.icon size={15} style={{ color: PRIMARY }} />{a.label}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Special notes */}
+                  <div className="p-4 rounded-xl border-l-4" style={{ backgroundColor:"#FFFBEB", borderLeftColor:ORANGE }}>
+                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: ORANGE }}>Special Notes</p>
+                    <p className="text-sm" style={{ color: TEXT }}>Champagne on arrival · High floor preferred · Airport transfer booked for 26 Jun 11:30</p>
+                  </div>
                 </div>
               </div>
             </div>
           )}
+
+          {/* ── Folio ── */}
           {tab === "Folio" && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Folio Charges</h3>
-                <div className="flex gap-2"><BtnO label="Post Charge" icon={Plus} onClick={()=>add({type:"info",title:"Post charge form"})} /><BtnO label="Print Folio" icon={FileText} onClick={()=>add({type:"info",title:"Folio printed"})} /></div>
+                <div>
+                  <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Folio Charges</h3>
+                  <p className="text-xs mt-0.5" style={{ color: MUTED }}>{folioItems.length} line items · deposit ₦{depositPaid.toLocaleString()} applied</p>
+                </div>
+                <div className="flex gap-2">
+                  <BtnO label="Post Charge" icon={Plus}      onClick={() => setShowPostCharge(true)} />
+                  <BtnO label="Print Folio" icon={FileText}   onClick={() => add({type:"info",title:"Folio sent to printer",body:res.guest})} />
+                </div>
               </div>
               <table className="w-full mb-4">
-                <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Date/Time","Description","Dept","Amount"].map(h=><th key={h} className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-                <tbody>{folioItems.map((f,i)=>(
-                  <tr key={i} className="border-t" style={{ borderColor: "#F1F5F9" }}>
-                    <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{f.date}</td>
-                    <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>{f.desc}</td>
-                    <td className="px-4 py-3"><span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>{f.dept}</span></td>
-                    <td className="px-4 py-3 text-sm font-semibold text-right" style={{ color: TEXT, fontFamily: mono }}>₦{f.amount.toLocaleString()}</td>
+                <thead>
+                  <tr style={{ backgroundColor:"#F8FAFC", borderBottom:`1px solid ${BORDER}` }}>
+                    {["Date/Time","Description","Dept","Amount"].map(h => (
+                      <th key={h} className="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>
+                    ))}
                   </tr>
-                ))}</tbody>
+                </thead>
+                <tbody>
+                  {folioItems.map((f, i) => (
+                    <tr key={f.date + f.desc} className="border-t hover:bg-gray-50" style={{ borderColor:"#F1F5F9" }}>
+                      <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{f.date}</td>
+                      <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>{f.desc}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                          style={{ backgroundColor: f.dept === "Rooms" ? "#EFF6FF" : f.dept === "F&B" ? "#F0FDF4" : "#FDF4FF", color: f.dept === "Rooms" ? PRIMARY : f.dept === "F&B" ? SUCCESS : "#7C3AED" }}>
+                          {f.dept}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm font-bold text-right" style={{ color: TEXT, fontFamily: mono }}>₦{f.amount.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
               </table>
-              <div className="p-4 rounded-xl" style={{ backgroundColor: "#F0F4F8" }}>
-                {[["Subtotal",`₦${folioTotal.toLocaleString()}`],["VAT (7.5%)",`₦${folioVAT.toLocaleString()}`]].map(([k,v])=>(
-                  <div key={k} className="flex justify-between text-sm mb-1"><span style={{ color: MUTED }}>{k}</span><span style={{ fontFamily: mono }}>{v as string}</span></div>
+              <div className="p-4 rounded-xl" style={{ backgroundColor:"#F8FAFC", border:`1px solid ${BORDER}` }}>
+                {([
+                  ["Subtotal",    `₦${folioTotal.toLocaleString()}`,       TEXT  ],
+                  ["VAT (7.5%)", `₦${folioVAT.toLocaleString()}`,          MUTED ],
+                  ["Deposit paid",`-₦${depositPaid.toLocaleString()}`,      SUCCESS],
+                ] as [string, string, string][]).map(([k, v, c]) => (
+                  <div key={k} className="flex justify-between text-sm mb-1.5">
+                    <span style={{ color: MUTED }}>{k}</span>
+                    <span style={{ color: c, fontFamily: mono }}>{v}</span>
+                  </div>
                 ))}
-                <div className="flex justify-between font-bold mt-2 pt-2 border-t" style={{ borderColor: BORDER }}>
-                  <span style={{ color: TEXT }}>Total Due</span><span style={{ color: PRIMARY, fontFamily: mono }}>₦{folioGrand.toLocaleString()}</span>
+                <div className="flex justify-between font-bold mt-2 pt-2 border-t text-base" style={{ borderColor: BORDER }}>
+                  <span style={{ color: TEXT }}>Outstanding</span>
+                  <span style={{ color: folioOutstanding > 0 ? ERROR : SUCCESS, fontFamily: mono }}>
+                    ₦{folioOutstanding.toLocaleString()}
+                  </span>
                 </div>
               </div>
             </div>
           )}
+
+          {/* ── Guest ── */}
           {tab === "Guest" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
-                <div className="flex items-center gap-4 p-4 rounded-xl mb-4" style={{ backgroundColor: "#F0F4F8" }}>
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}>CB</div>
-                  <div><div className="flex items-center gap-2 mb-1"><span className="text-base font-bold" style={{ color: TEXT }}>{res.guest}</span><Star size={13} fill={ORANGE} style={{ color: ORANGE }} /></div>
+                <div className="flex items-center gap-4 p-4 rounded-xl mb-4" style={{ backgroundColor:"#F8FAFC", border:`1px solid ${BORDER}` }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: `${PRIMARY}14` }}>
+                    <User size={26} style={{ color: PRIMARY }} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-base font-bold" style={{ color: TEXT }}>{res.guest}</span>
+                      <Star size={13} fill={ORANGE} style={{ color: ORANGE }} />
+                    </div>
                     <div className="text-xs" style={{ color: MUTED }}>VIP · 15 previous stays · Guest since 2019</div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor:"#FEF3C7", color:"#92400E" }}>Gold Member</span>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  {[["Phone","+234 803 555 6666"],["Email","c.bello@example.com"],["Nationality","Nigerian"],["ID Type","International Passport"],["ID Number","A12345678"],["Company","Bello & Associates Ltd"],["Loyalty Tier","Gold"]].map(([k,v])=>(
-                    <div key={k} className="flex gap-4 text-sm"><span className="w-32 flex-shrink-0" style={{ color: MUTED }}>{k}</span><span className="font-medium" style={{ color: TEXT }}>{v as string}</span></div>
+                <div className="space-y-0">
+                  {([
+                    ["Phone",       "+234 803 555 6666"],
+                    ["Email",       "c.bello@example.com"],
+                    ["Nationality", "Nigerian"],
+                    ["ID Type",     "International Passport"],
+                    ["ID Number",   "A12345678"],
+                    ["Company",     "Bello & Associates Ltd"],
+                    ["Loyalty Tier","Gold"],
+                  ] as [string, string][]).map(([k, v]) => (
+                    <div key={k} className="flex gap-4 py-2 border-b text-sm" style={{ borderColor:"#F8FAFC" }}>
+                      <span className="w-32 flex-shrink-0 text-xs font-medium" style={{ color: MUTED }}>{k}</span>
+                      <span className="font-semibold" style={{ color: TEXT }}>{v}</span>
+                    </div>
                   ))}
                 </div>
               </div>
               <div>
-                <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Stay History</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Stay History</h3>
                 <div className="space-y-2">
-                  {[{id:"BK-2701",dates:"12–14 Mar 2026",room:"Suite 501",total:"₦177,375"},
-                    {id:"BK-2544",dates:"25–27 Dec 2025",room:"Suite 501",total:"₦245,000"},
-                    {id:"BK-2388",dates:"14–17 Aug 2025",room:"Deluxe 302",total:"₦138,750"}].map(h=>(
-                    <div key={h.id} className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: "#F9FAFB" }}>
-                      <div><div className="text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>{h.id}</div><div className="text-xs" style={{ color: MUTED }}>{h.dates} · {h.room}</div></div>
-                      <span className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{h.total}</span>
+                  {[
+                    {id:"BK-2701", dates:"12–14 Mar 2026", room:"Suite 501",   total:"₦177,375", nights:2},
+                    {id:"BK-2544", dates:"25–27 Dec 2025", room:"Suite 501",   total:"₦245,000", nights:2},
+                    {id:"BK-2388", dates:"14–17 Aug 2025", room:"Deluxe 302",  total:"₦138,750", nights:3},
+                  ].map(h => (
+                    <div key={h.id} className="flex items-center justify-between p-3 rounded-xl border cursor-pointer hover:bg-gray-50 transition-colors"
+                      style={{ borderColor: BORDER }}
+                      onClick={() => add({type:"info",title:`Opening ${h.id}`,body:h.dates})}>
+                      <div>
+                        <div className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{h.id}</div>
+                        <div className="text-xs" style={{ color: MUTED }}>{h.dates} · {h.room} · {h.nights}N</div>
+                      </div>
+                      <span className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>{h.total}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 p-3 rounded-xl" style={{ backgroundColor:`${TEAL}08`, border:`1px solid ${TEAL}25` }}>
+                  <p className="text-xs font-semibold" style={{ color: TEAL }}>Lifetime value: ₦561,125 across 18 stays</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Access ── */}
+          {tab === "Access" && (
+            <div className="flex gap-6 items-start">
+              {/* Left: credentials */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Room Access Credentials</h3>
+                    <p className="text-xs mt-0.5" style={{ color: MUTED }}>Room {res.room} · valid until {res.checkout} 11:00</p>
+                  </div>
+                  <BtnP label="Issue New Card" icon={Plus} onClick={() => {
+                    const ref = `KC-${String(Math.floor(Math.random()*9000)+1000)}`;
+                    setAccessCards(p=>[...p,{type:"Key Card",ref,issued:`${new Date().toLocaleDateString("en-NG",{day:"numeric",month:"short"})} ${new Date().toLocaleTimeString("en-NG",{hour:"2-digit",minute:"2-digit"})}`,issuedBy:"Staff",status:"Active"}]);
+                    add({type:"success",title:"Key card issued",body:`${ref} · Room ${res.room} — insert blank card`});
+                  }} />
+                </div>
+                <div className="space-y-3">
+                  {accessCards.map(a => (
+                    <div key={a.ref} className="flex items-center justify-between p-4 rounded-xl border" style={{ borderColor: BORDER }}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: a.status==="Active"?"#EFF6FF":"#F9FAFB" }}>
+                          {a.type === "Key Card" ? <CreditCard size={17} style={{ color: a.status==="Active"?PRIMARY:SUBTLE }} /> : <Lock size={17} style={{ color: a.status==="Active"?PRIMARY:SUBTLE }} />}
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold" style={{ color: a.status==="Active"?TEXT:MUTED }}>{a.type}</div>
+                          <div className="text-xs mt-0.5" style={{ color: MUTED, fontFamily: mono }}>{a.ref} · Issued {a.issued} by {a.issuedBy}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                          style={{ backgroundColor: a.status==="Active"?"#CCFBF1":"#F1F5F9", color: a.status==="Active"?"#0F766E":MUTED }}>
+                          {a.status}
+                        </span>
+                        {a.status === "Active" && (
+                          <button onClick={() => {
+                              setAccessCards(p => p.map(c => c.ref===a.ref ? {...c, status:"Revoked"} : c));
+                              add({type:"warning", title:`${a.type} deactivated`, body:a.ref});
+                            }}
+                            className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold"
+                            style={{ color: ERROR, borderColor:`${ERROR}25`, backgroundColor:`${ERROR}06` }}>
+                            Deactivate
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: access log */}
+              <div className="w-80 flex-shrink-0 bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
+                <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Access Log</h3>
+                <div className="space-y-0">
+                  {([
+                    ["24 Jun 14:13","Door opened — Key Card KC-0042","Main Entrance"],
+                    ["24 Jun 14:20","Door opened — Key Card KC-0042","Room 501"],
+                    ["24 Jun 22:04","Door opened — PIN 6631","Room 501"],
+                    ["25 Jun 07:30","Door opened — Key Card KC-0042","Room 501"],
+                  ] as [string,string,string][]).map(([ts, event, loc]) => (
+                    <div key={ts + event} className="py-2.5 border-b last:border-0" style={{ borderColor:"#F1F5F9" }}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-medium" style={{ color: TEXT }}>{event}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 ml-2" style={{ backgroundColor:"#F1F5F9", color: MUTED }}>{loc}</span>
+                      </div>
+                      <span className="text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{ts}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           )}
-          {tab === "Access" && (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Room Access Credentials</h3>
-                <BtnP label="Issue New Card" icon={Plus} onClick={()=>add({type:"success",title:"Key card issued",body:`Room ${res.room} — insert blank card`})} />
-              </div>
-              <div className="space-y-3 mb-6">
-                {ACCESS_LIST.map(a=>(
-                  <div key={a.ref} className="flex items-center justify-between p-4 rounded-xl border" style={{ borderColor: BORDER }}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#EFF6FF" }}>
-                        {a.type === "Key Card" ? <CreditCard size={16} style={{ color: PRIMARY }} /> : <Lock size={16} style={{ color: PRIMARY }} />}
-                      </div>
-                      <div><div className="text-sm font-semibold" style={{ color: TEXT }}>{a.type}</div>
-                        <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{a.ref} · Issued {a.issued} by {a.issuedBy}</div></div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#CCFBF1", color: "#0F766E" }}>{a.status}</span>
-                      <button onClick={()=>add({type:"warning",title:`${a.type} deactivated`,body:a.ref})} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: ERROR, borderColor: `${ERROR}20` }}>Deactivate</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Access Log</h3>
-              <div className="space-y-2">
-                {[["1 Aug 14:13","Door opened — Key Card KC-0042","Main Entrance"],["1 Aug 14:20","Door opened — Key Card KC-0042","Room 501"],["1 Aug 22:04","Door opened — PIN 6631","Room 501"],["2 Aug 07:30","Door opened — Key Card KC-0042","Room 501"]].map(([ts,event,loc],i)=>(
-                  <div key={i} className="flex gap-3 text-xs items-center">
-                    <span className="w-32 flex-shrink-0" style={{ color: SUBTLE, fontFamily: mono }}>{ts}</span>
-                    <span className="flex-1" style={{ color: TEXT }}>{event}</span>
-                    <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor: "#F0F4F8", color: MUTED }}>{loc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+
+          {/* ── Requests ── */}
           {tab === "Requests" && (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Service & Special Requests</h3>
-                <BtnP label="Add Request" icon={Plus} onClick={()=>add({type:"info",title:"Add request"})} />
-              </div>
-              <div className="space-y-3">
-                {REQUESTS_LIST.map(r=>(
-                  <div key={r.id} className="flex items-start justify-between p-4 rounded-xl border" style={{ borderColor: r.status==="Pending" ? `${ORANGE}40` : BORDER, backgroundColor: r.status==="Pending" ? "#FFFBEB" : "white" }}>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>{r.category}</span>
-                        <span className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{r.id}</span>
-                      </div>
-                      <div className="text-sm font-medium" style={{ color: TEXT }}>{r.detail}</div>
-                      {r.by !== "–" && <div className="text-xs mt-1" style={{ color: MUTED }}>Fulfilled by {r.by}</div>}
-                    </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{
-                        backgroundColor: r.status==="Fulfilled" ? "#CCFBF1" : r.status==="Pending" ? "#FEF3C7" : "#EFF6FF",
-                        color: r.status==="Fulfilled" ? "#0F766E" : r.status==="Pending" ? "#D97706" : PRIMARY
-                      }}>{r.status}</span>
-                      {r.status === "Pending" && <button onClick={()=>add({type:"success",title:"Request marked fulfilled",body:r.detail})} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Fulfil</button>}
-                    </div>
+            <div className="flex gap-6 items-start">
+              {/* Left: request list */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Service & Special Requests</h3>
+                    <p className="text-xs mt-0.5" style={{ color: MUTED }}>{pendingCount} pending · {requests.length} total</p>
                   </div>
-                ))}
+                  <BtnP label="Add Request" icon={Plus} onClick={() => setShowAddReq(true)} />
+                </div>
+                <div className="space-y-3">
+                  {requests.map(r => (
+                    <div key={r.id} className="flex items-start justify-between p-4 rounded-xl border transition-colors"
+                      style={{ borderColor: r.status==="Pending" ? `${ORANGE}50` : BORDER, backgroundColor: r.status==="Pending" ? "#FFFBEB" : "white" }}>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor:"#EFF6FF", color: PRIMARY }}>{r.category}</span>
+                          <span className="text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{r.id}</span>
+                        </div>
+                        <div className="text-sm font-medium" style={{ color: TEXT }}>{r.detail}</div>
+                        {r.by !== "–" && <div className="text-xs mt-1" style={{ color: MUTED }}>by {r.by}</div>}
+                      </div>
+                      <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{
+                          backgroundColor: r.status==="Fulfilled" ? "#CCFBF1" : r.status==="Pending" ? "#FEF3C7" : "#EFF6FF",
+                          color: r.status==="Fulfilled" ? "#0F766E" : r.status==="Pending" ? "#D97706" : PRIMARY,
+                        }}>{r.status}</span>
+                        {r.status === "Pending" && (
+                          <button onClick={() => fulfil(r.id)}
+                            className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold"
+                            style={{ color: SUCCESS, borderColor:`${SUCCESS}30`, backgroundColor:`${SUCCESS}08` }}>
+                            Fulfil
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: summary panel */}
+              <div className="w-64 flex-shrink-0 space-y-3">
+                {/* Status breakdown */}
+                <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
+                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Status Summary</h3>
+                  <div className="space-y-2.5">
+                    {(["Pending","Assigned","Fulfilled"] as const).map(s => {
+                      const count = requests.filter(r => r.status === s).length;
+                      const color = s==="Fulfilled"?"#0F766E":s==="Pending"?"#D97706":PRIMARY;
+                      const bg    = s==="Fulfilled"?"#CCFBF1":s==="Pending"?"#FEF3C7":"#EFF6FF";
+                      return (
+                        <div key={s} className="flex items-center justify-between">
+                          <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor:bg, color }}>{s}</span>
+                          <span className="text-sm font-black" style={{ color, fontFamily: mono }}>{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Category breakdown */}
+                <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
+                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>By Category</h3>
+                  <div className="space-y-2">
+                    {Array.from(new Set(requests.map(r => r.category))).map(cat => {
+                      const total = requests.filter(r => r.category === cat).length;
+                      const pending = requests.filter(r => r.category === cat && r.status === "Pending").length;
+                      return (
+                        <div key={cat}>
+                          <div className="flex justify-between items-center mb-0.5">
+                            <span className="text-xs font-medium" style={{ color: TEXT }}>{cat}</span>
+                            <span className="text-xs" style={{ color: pending>0?ORANGE:MUTED, fontFamily: mono }}>{total}</span>
+                          </div>
+                          <div className="h-1 rounded-full" style={{ backgroundColor:"#E2E8F0" }}>
+                            <div className="h-1 rounded-full" style={{ width:`${(total/requests.length)*100}%`, backgroundColor: pending>0?ORANGE:SUCCESS }}/>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {pendingCount > 0 && (
+                  <div className="rounded-xl p-3 text-xs" style={{ backgroundColor:`${ORANGE}10`, color: ORANGE }}>
+                    <span className="font-bold">{pendingCount} request{pendingCount>1?"s":""} pending</span> — action required before checkout.
+                  </div>
+                )}
               </div>
             </div>
           )}
+
+          {/* ── History ── */}
           {tab === "History" && (
             <div>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Audit Trail</h3>
-              <div className="space-y-3">
-                {[["1 Aug 09:15","Reservation created via phone","Fatima Al-Hassan","create"],
-                  ["1 Aug 09:20","Room 501 pre-assigned by system","System","assign"],
-                  ["1 Aug 09:22","Confirmation email sent to guest","System","notify"],
-                  ["1 Aug 09:30","Champagne + fruit basket noted","Grace Mensah","request"],
-                  ["1 Aug 10:05","Deposit ₦27,500 collected — POS","John Abubakar","payment"],
-                  ["1 Aug 14:12","Guest checked in — key card issued","John Abubakar","checkin"]].map(([ts,action,by,type],i)=>(
-                  <div key={i} className="flex gap-3 items-start">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: type==="checkin" ? "#CCFBF1" : type==="payment" ? "#EFF6FF" : type==="notify" ? "#F0F4F8" : "#F0FDF4" }}>
-                      {type==="checkin" ? <CheckCircle2 size={12} style={{ color: SUCCESS }} /> : type==="payment" ? <DollarSign size={12} style={{ color: PRIMARY }} /> : <Clock size={12} style={{ color: MUTED }} />}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm" style={{ color: TEXT }}>{action}</div>
-                      <div className="text-xs mt-0.5" style={{ color: MUTED }}>
-                        <span style={{ fontFamily: mono }}>{ts as string}</span> · by {by}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Audit Trail</h3>
+                <button onClick={() => add({type:"info",title:"Audit log exported"})}
+                  className="text-xs flex items-center gap-1 font-semibold" style={{ color: PRIMARY }}>
+                  <Download size={12} />Export
+                </button>
+              </div>
+              <div className="space-y-0">
+                {([
+                  ["24 Jun 09:15","Reservation created via phone",           "Fatima Al-Hassan", "create" ],
+                  ["24 Jun 09:20","Room 501 pre-assigned by system",          "System",           "assign" ],
+                  ["24 Jun 09:22","Confirmation email sent to guest",          "System",           "notify" ],
+                  ["24 Jun 09:30","Champagne + fruit basket noted",            "Grace Mensah",     "request"],
+                  ["24 Jun 10:05","Deposit ₦42,500 collected — POS terminal", "John Abubakar",    "payment"],
+                  ["24 Jun 14:12","Guest checked in — key card issued",        "John Abubakar",    "checkin"],
+                ] as [string,string,string,string][]).map(([ts, action, by, type]) => {
+                  const dotBg  = type==="checkin" ? "#CCFBF1" : type==="payment" ? "#EFF6FF" : type==="request" ? "#FEF3C7" : "#F8FAFC";
+                  const DotIcon = type==="checkin" ? CheckCircle2 : type==="payment" ? DollarSign : type==="request" ? ClipboardList : Clock;
+                  const dotFg  = type==="checkin" ? SUCCESS : type==="payment" ? PRIMARY : type==="request" ? ORANGE : MUTED;
+                  return (
+                    <div key={ts + action} className="flex gap-3 items-start py-3 border-b" style={{ borderColor:"#F8FAFC" }}>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: dotBg }}>
+                        <DotIcon size={13} style={{ color: dotFg }} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium" style={{ color: TEXT }}>{action}</div>
+                        <div className="text-xs mt-0.5" style={{ color: MUTED }}>
+                          <span style={{ fontFamily: mono }}>{ts}</span> · by {by}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* ── Modals ─────────────────────────────────────────────────────────── */}
+      {[showExtend, showChangeRate, showPostCharge, showAddReq, showMessage].some(Boolean) && (
+        <div className="fixed inset-0 z-40 backdrop-blur-sm" style={{ backgroundColor:"rgba(15,23,42,0.35)" }}
+          onClick={() => { setShowExtend(false); setShowChangeRate(false); setShowPostCharge(false); setShowAddReq(false); setShowMessage(false); }} />
+      )}
+
+      {/* Extend Stay */}
+      {showExtend && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
+              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Extend Stay</h2>
+              <button onClick={()=>setShowExtend(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
+            </div>
+            <div className="px-5 py-4 space-y-3">
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Current check-out</label>
+                <p className="text-sm font-bold" style={{ color:TEXT }}>{res.checkout} at 11:00</p></div>
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>New check-out date</label>
+                <input type="date" value={newCheckout} onChange={e=>setNewCheckout(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
+            </div>
+            <div className="flex gap-3 px-5 pb-5">
+              <button onClick={()=>setShowExtend(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
+              <button onClick={()=>{ if(!newCheckout){return;} add({type:"success",title:"Stay extended",body:`New check-out: ${newCheckout}`}); setShowExtend(false); }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Confirm Extension</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Rate */}
+      {showChangeRate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
+              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Change Rate</h2>
+              <button onClick={()=>setShowChangeRate(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
+            </div>
+            <div className="px-5 py-4 space-y-3">
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Rate Plan</label>
+                <select value={newRatePlan} onChange={e=>setNewRatePlan(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
+                  {["Standard Rate","Corporate Rate","Weekend Special","Advance Purchase","Loyalty Rate"].map(p=><option key={p}>{p}</option>)}
+                </select></div>
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Nightly rate (₦)</label>
+                <input type="number" value={newRate} onChange={e=>setNewRate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
+            </div>
+            <div className="flex gap-3 px-5 pb-5">
+              <button onClick={()=>setShowChangeRate(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
+              <button onClick={()=>{ add({type:"success",title:"Rate updated",body:`${newRatePlan} · ₦${Number(newRate).toLocaleString()}/night`}); setShowChangeRate(false); }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Apply Rate</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Post Charge */}
+      {showPostCharge && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
+              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Post Charge</h2>
+              <button onClick={()=>setShowPostCharge(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
+            </div>
+            <div className="px-5 py-4 space-y-3">
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Department</label>
+                <select value={chargeDept} onChange={e=>setChargeDept(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
+                  {["Rooms","F&B","Housekeeping","Spa","Transport","Other"].map(d=><option key={d}>{d}</option>)}
+                </select></div>
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Description</label>
+                <input value={chargeDesc} onChange={e=>setChargeDesc(e.target.value)} placeholder="e.g. Room Service — Dinner"
+                  className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Amount (₦)</label>
+                <input type="number" value={chargeAmt} onChange={e=>setChargeAmt(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
+            </div>
+            <div className="flex gap-3 px-5 pb-5">
+              <button onClick={()=>setShowPostCharge(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
+              <button onClick={()=>{
+                if(!chargeDesc||!chargeAmt)return;
+                const amt = Number(chargeAmt);
+                const now = new Date().toLocaleDateString("en-NG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+                setFolioItems(p=>[...p, {date:now, desc:chargeDesc, dept:chargeDept, amount:amt}]);
+                add({type:"success",title:"Charge posted",body:`₦${amt.toLocaleString()} · ${chargeDesc}`});
+                setChargeDesc(""); setChargeAmt(""); setShowPostCharge(false);
+              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Post to Folio</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Request */}
+      {showAddReq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
+              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Add Service Request</h2>
+              <button onClick={()=>setShowAddReq(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
+            </div>
+            <div className="px-5 py-4 space-y-3">
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Category</label>
+                <select value={reqCat} onChange={e=>setReqCat(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
+                  {["Housekeeping","Amenity","Restaurant","Room Preference","Maintenance","Transport","Other"].map(c=><option key={c}>{c}</option>)}
+                </select></div>
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Request detail</label>
+                <textarea value={reqDetail} onChange={e=>setReqDetail(e.target.value)} rows={3} placeholder="Describe the request…"
+                  className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
+            </div>
+            <div className="flex gap-3 px-5 pb-5">
+              <button onClick={()=>setShowAddReq(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
+              <button onClick={()=>{
+                if(!reqDetail.trim())return;
+                const id = `REQ-${String(requests.length+1).padStart(2,"0")}`;
+                setRequests(p=>[...p, {id, category:reqCat, detail:reqDetail, status:"Pending", by:"Staff"}]);
+                add({type:"success",title:"Request added",body:reqDetail});
+                setReqDetail(""); setShowAddReq(false);
+              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Submit Request</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message Guest */}
+      {showMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
+              <div>
+                <h2 className="text-sm font-bold" style={{ color:TEXT }}>Message Guest</h2>
+                <p className="text-xs mt-0.5" style={{ color:MUTED }}>{res.guest}</p>
+              </div>
+              <button onClick={()=>setShowMessage(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
+            </div>
+            <div className="px-5 py-4 space-y-3">
+              <div className="flex gap-2">
+                {(["WhatsApp","Email","SMS"] as const).map(c=>(
+                  <button key={c} onClick={()=>setMsgChannel(c)}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold border"
+                    style={{ backgroundColor:msgChannel===c?PRIMARY:"white", color:msgChannel===c?"white":MUTED, borderColor:msgChannel===c?PRIMARY:BORDER }}>
+                    {c}
+                  </button>
+                ))}
+              </div>
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Message</label>
+                <textarea value={msgText} onChange={e=>setMsgText(e.target.value)} rows={4}
+                  placeholder={`Hi ${res.guest.split(" ")[0]}, …`}
+                  className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
+            </div>
+            <div className="flex gap-3 px-5 pb-5">
+              <button onClick={()=>setShowMessage(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
+              <button onClick={()=>{
+                if(!msgText.trim())return;
+                add({type:"success",title:`Message sent via ${msgChannel}`,body:res.guest});
+                setMsgText(""); setShowMessage(false);
+              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Send Message</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1139,7 +1961,7 @@ export function GuestProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
                 <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>All stays — most recent first</div>
                 <div className="space-y-2">
                   {STAYS.map(s => (
-                    <div key={s.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#F9FAFB] transition-colors" style={{ backgroundColor: "#F9FAFB" }}>
+                    <div key={s.id} onClick={()=>nav?.("reservation-detail", s.id, s.id)} className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#F0F9F8] transition-colors cursor-pointer" style={{ backgroundColor: "#F9FAFB" }}>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium" style={{ color: TEXT }}>{s.dates}</div>
                         <div className="text-xs" style={{ color: MUTED }}>{s.room} · {s.nights} night{s.nights !== 1 ? "s" : ""} · <span style={{ fontFamily: mono }}>{s.id}</span></div>

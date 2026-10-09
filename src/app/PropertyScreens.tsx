@@ -5,7 +5,7 @@ import {
   LayoutDashboard, CalendarDays, KeyRound, BedDouble, Wrench,
   UtensilsCrossed, MessageSquare, DollarSign, Package, Users,
   Building2, BarChart3, Settings, ChevronLeft, ChevronRight,
-  Bell, LogOut, User, ChevronDown, TrendingUp, TrendingDown,
+  Bell, LogOut, User, ChevronDown, ChevronUp, TrendingUp, TrendingDown,
   AlertTriangle, CheckCircle2, WifiOff, Plus, Search, Filter,
   MoreHorizontal, ArrowRight, Home, Layers, X, Lock, Globe,
   ClipboardList, CalendarCheck, Star, AlertCircle, Clock,
@@ -14,7 +14,7 @@ import {
   HelpCircle, Shield, Server, Cpu, Activity, Wifi,
   MinusCircle, PlusCircle, ShoppingCart, MapPin, Mail,
   UserCheck, BookOpen, Inbox, Zap,
-  ArrowDownToLine, ArrowUpFromLine, XCircle, Camera,
+  ArrowDownToLine, ArrowUpFromLine, XCircle, Camera, Copy, CloudLightning,
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar,
@@ -171,542 +171,16 @@ export function WalkInReg({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   );
 }
 
-// HK-04 Inspection Log
-export function InspectionLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const CHECKLIST = ["Bed made correctly", "Linen clean & pressed", "Bathroom scrubbed", "Toilet disinfected", "Minibar restocked", "Amenities replenished", "Floors vacuumed/mopped", "Surfaces dusted", "Mirrors polished", "TV/AC functioning", "Curtains aligned", "No items left behind"];
-  const LOGS = [
-    { id: "INS-041", room: "104", attendant: "Grace Achebe", inspector: "Grace Mensah", ts: "Today 09:45", score: 18, total: 20, reclean: false, notes: "Minor dust on top shelf. Otherwise excellent.", status: "Passed", checks: CHECKLIST.map((item,i) => ({ item, pass: i !== 7 })) },
-    { id: "INS-040", room: "102", attendant: "Grace Achebe", inspector: "Grace Mensah", ts: "Today 09:30", score: 12, total: 20, reclean: true, notes: "Bathroom not cleaned. Bed linen stained. Re-assigned to Amaka.", status: "Re-clean", checks: CHECKLIST.map((item,i) => ({ item, pass: i < 2 || i > 6 })) },
-    { id: "INS-039", room: "301", attendant: "Amaka Osei", inspector: "David Okafor", ts: "Yesterday 16:00", score: 20, total: 20, reclean: false, notes: "Spotless. Perfect score.", status: "Passed", checks: CHECKLIST.map(item => ({ item, pass: true })) },
-    { id: "INS-038", room: "203", attendant: "Ngozi Ike", inspector: "Grace Mensah", ts: "Yesterday 14:30", score: 17, total: 20, reclean: false, notes: "Minibar not restocked. Items 5 and 11 failed.", status: "Passed", checks: CHECKLIST.map((item,i) => ({ item, pass: i !== 4 && i !== 10 })) },
-    { id: "INS-037", room: "501", attendant: "Grace Achebe", inspector: "David Okafor", ts: "Yesterday 11:00", score: 20, total: 20, reclean: false, notes: "Suite inspection passed fully.", status: "Passed", checks: CHECKLIST.map(item => ({ item, pass: true })) },
-  ];
-  const iC: Record<string, { bg: string; text: string }> = { Passed: { bg: "#DCFCE7", text: "#166534" }, "Re-clean": { bg: "#FEE2E2", text: "#991B1B" } };
-  const ATTENDANTS = ["Grace Achebe", "Amaka Osei", "Ngozi Ike"];
-  const attScores = ATTENDANTS.map(a => {
-    const al = LOGS.filter(l => l.attendant === a);
-    const avg = al.length ? Math.round(al.reduce((s,l) => s + (l.score/l.total*100), 0) / al.length) : 0;
-    return { name: a, avg, count: al.length, fails: al.filter(l => l.reclean).length };
-  });
-  return (
-    <div>
-      <PageHeader title="Inspection Log" sub="Supervisor inspections with per-item checklist results" actions={<BtnP label="New Inspection" icon={Plus} />} />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Inspected Today" value={String(LOGS.filter(l=>l.ts.startsWith("Today")).length)} sub="Rooms checked" icon={CheckCircle2} accent={SUCCESS} />
-        <StatCard label="Re-clean Required" value={String(LOGS.filter(l=>l.reclean).length)} sub="Failed inspection" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Pass Rate" value={`${Math.round(LOGS.filter(l=>l.status==="Passed").length/LOGS.length*100)}%`} sub="All inspections" icon={Activity} accent={PRIMARY} />
-        <StatCard label="Avg Score" value={`${Math.round(LOGS.reduce((s,l)=>s+(l.score/l.total*100),0)/LOGS.length)}%`} sub="All attendants" icon={Star} accent={TEAL} />
-      </div>
-      <div className="grid grid-cols-3 gap-4 mb-5">
-        {attScores.map(a => (
-          <div key={a.name} className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}>{a.name.split(" ").map(n=>n[0]).join("")}</div>
-              <div className="flex-1 min-w-0"><div className="text-sm font-semibold truncate" style={{ color: TEXT }}>{a.name}</div><div className="text-xs" style={{ color: MUTED }}>{a.count} inspections</div></div>
-              <div className="text-xl font-black" style={{ color: a.avg >= 85 ? SUCCESS : a.avg >= 70 ? ORANGE : ERROR, fontFamily: mono }}>{a.avg}%</div>
-            </div>
-            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#E2E8F0" }}>
-              <div className="h-2 rounded-full" style={{ width: `${a.avg}%`, backgroundColor: a.avg >= 85 ? SUCCESS : a.avg >= 70 ? ORANGE : ERROR }} />
-            </div>
-            {a.fails > 0 && <div className="text-xs mt-1.5 font-semibold" style={{ color: ERROR }}>{a.fails} re-clean this week</div>}
-          </div>
-        ))}
-      </div>
-      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-        <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["", "ID", "Room", "Attendant", "Inspector", "Time", "Score", "Re-clean", "Result", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-          <tbody>
-            {LOGS.map(l => (
-              <React.Fragment key={l.id}>
-                <tr className="border-t hover:bg-[#F8FAFC] transition-colors cursor-pointer" style={{ borderColor: BORDER, backgroundColor: l.reclean ? "#FFF5F5" : "transparent" }} onClick={() => setExpanded(expanded === l.id ? null : l.id)}>
-                  <td className="px-4 py-3 text-xs" style={{ color: SUBTLE }}>{expanded === l.id ? "▾" : "▸"}</td>
-                  <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{l.id}</td>
-                  <td className="px-4 py-3 text-base font-bold" style={{ color: PRIMARY }}>{l.room}</td>
-                  <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>{l.attendant}</td>
-                  <td className="px-4 py-3 text-sm" style={{ color: MUTED }}>{l.inspector}</td>
-                  <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: MUTED, fontFamily: mono }}>{l.ts}</td>
-                  <td className="px-4 py-3 text-sm font-bold" style={{ color: l.score/l.total >= 0.85 ? SUCCESS : l.score/l.total >= 0.7 ? ORANGE : ERROR }}>{l.score}/{l.total}</td>
-                  <td className="px-4 py-3">{l.reclean && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Required</span>}</td>
-                  <td className="px-4 py-3"><Badge label={l.status} colors={iC[l.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
-                  <td className="px-4 py-3"><button onClick={e => { e.stopPropagation(); add({ type: "info", title: `Re-inspect Room ${l.room}` }); }} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Re-inspect</button></td>
-                </tr>
-                {expanded === l.id && (
-                  <tr key={l.id + "-d"} style={{ backgroundColor: "#F8FAFC" }}>
-                    <td colSpan={10} className="px-6 py-4 border-t" style={{ borderColor: BORDER }}>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-                        {l.checks.map((c, i) => (
-                          <div key={i} className="flex items-center gap-2 text-xs">
-                            <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.pass ? "#DCFCE7" : "#FEE2E2" }}><span style={{ color: c.pass ? SUCCESS : ERROR, fontSize: 10 }}>{c.pass ? "✓" : "✕"}</span></div>
-                            <span style={{ color: c.pass ? MUTED : ERROR, fontWeight: c.pass ? 400 : 600 }}>{c.item}</span>
-                          </div>
-                        ))}
-                      </div>
-                      {l.notes && <div className="text-xs p-2.5 rounded-lg" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}>Notes: {l.notes}</div>}
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
 
-// HK-06 Linen & Supplies
-export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [floorFilter, setFloorFilter] = useState("All");
-  const [showIssue, setShowIssue] = useState(false);
-  const [issueItem, setIssueItem] = useState("");
-  const [issueQty, setIssueQty] = useState("1");
-  const [issueAtt, setIssueAtt] = useState("Grace Achebe");
-  const ITEMS = [
-    { name: "Bath Towels", cat: "Linen", floor: "All", current: 45, par: 80, reorder: 30, unit: "pcs", soiled: 8, lost: 1 },
-    { name: "Hand Towels", cat: "Linen", floor: "All", current: 60, par: 80, reorder: 30, unit: "pcs", soiled: 5, lost: 0 },
-    { name: "Bed Sheets (Queen)", cat: "Linen", floor: "All", current: 62, par: 100, reorder: 40, unit: "sets", soiled: 12, lost: 0 },
-    { name: "Pillowcases", cat: "Linen", floor: "All", current: 95, par: 200, reorder: 80, unit: "pcs", soiled: 20, lost: 3 },
-    { name: "Duvet Covers", cat: "Linen", floor: "All", current: 48, par: 80, reorder: 30, unit: "pcs", soiled: 7, lost: 0 },
-    { name: "Cleaning Cloths", cat: "Supplies", floor: "1", current: 12, par: 50, reorder: 20, unit: "pcs", soiled: 0, lost: 0 },
-    { name: "Mop Heads", cat: "Supplies", floor: "2", current: 8, par: 20, reorder: 8, unit: "pcs", soiled: 0, lost: 0 },
-    { name: "Toiletry Sets", cat: "Amenities", floor: "All", current: 140, par: 200, reorder: 60, unit: "sets", soiled: 0, lost: 0 },
-    { name: "Toilet Rolls (pack)", cat: "Amenities", floor: "All", current: 88, par: 120, reorder: 40, unit: "packs", soiled: 0, lost: 0 },
-  ];
-  const statusOf = (item: typeof ITEMS[0]) => item.current < item.reorder ? "Critical" : item.current < item.par * 0.6 ? "Low" : "Ok";
-  const sc = (s: string) => s === "Critical" ? { bg: "#FEE2E2", text: "#991B1B", bar: ERROR } : s === "Low" ? { bg: "#FEF3C7", text: "#92400E", bar: WARNING } : { bg: "#DCFCE7", text: "#166534", bar: SUCCESS };
-  const filtered = floorFilter === "All" ? ITEMS : ITEMS.filter(i => i.floor === floorFilter || i.floor === "All");
-  return (
-    <div>
-      <PageHeader title="Linen & Supplies" sub="Par levels, soiled counts, and issue tracking by floor" actions={<><BtnO label="Export" icon={Download} /><BtnP label="Issue to Attendant" icon={Plus} onClick={() => setShowIssue(true)} /></>} />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Critical Items" value={String(ITEMS.filter(i=>statusOf(i)==="Critical").length)} sub="Below reorder point" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Low Stock" value={String(ITEMS.filter(i=>statusOf(i)==="Low").length)} sub="Below 60% of par" icon={TrendingDown} accent={WARNING} />
-        <StatCard label="Soiled Today" value={String(ITEMS.reduce((s,i)=>s+i.soiled,0))} sub="Awaiting laundry" icon={Package} accent={MUTED} />
-        <StatCard label="Ok Items" value={String(ITEMS.filter(i=>statusOf(i)==="Ok").length)} sub="Adequately stocked" icon={CheckCircle2} accent={SUCCESS} />
-      </div>
-      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-        <div className="flex items-center gap-3 px-5 py-3 border-b flex-wrap" style={{ backgroundColor: "#F8FAFC", borderColor: BORDER }}>
-          <span className="text-sm font-semibold" style={{ color: TEXT }}>Stock by Item</span>
-          <div className="flex gap-1.5 ml-2">{["All","1","2","3"].map(f => <button key={f} onClick={() => setFloorFilter(f)} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ backgroundColor: floorFilter===f ? PRIMARY : "white", color: floorFilter===f ? "white" : MUTED, borderColor: floorFilter===f ? PRIMARY : BORDER }}>Floor {f}</button>)}</div>
-        </div>
-        <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item", "Category", "Current / Par", "Soiled", "Lost", "Reorder Point", "Status", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-          <tbody>
-            {filtered.map(item => {
-              const st = statusOf(item);
-              const c = sc(st);
-              const pct = Math.min((item.current / item.par) * 100, 100);
-              return (
-                <tr key={item.name} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER }}>
-                  <td className="px-4 py-3 text-sm font-medium" style={{ color: TEXT }}>{item.name}</td>
-                  <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.cat}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold w-10" style={{ color: c.text, fontFamily: mono }}>{item.current}</span>
-                      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#E2E8F0", minWidth: 80 }}>
-                        <div className="h-2 rounded-full" style={{ width: `${pct}%`, backgroundColor: c.bar }} />
-                      </div>
-                      <span className="text-xs" style={{ color: SUBTLE }}>/{item.par} {item.unit}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm" style={{ color: item.soiled > 0 ? ORANGE : MUTED, fontFamily: mono }}>{item.soiled}</td>
-                  <td className="px-4 py-3 text-sm" style={{ color: item.lost > 0 ? ERROR : MUTED, fontFamily: mono }}>{item.lost}</td>
-                  <td className="px-4 py-3 text-sm" style={{ color: MUTED }}>{item.reorder} {item.unit}</td>
-                  <td className="px-4 py-3"><Badge label={st} colors={{ bg: c.bg, text: c.text }} /></td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      <button onClick={() => { setIssueItem(item.name); setShowIssue(true); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Issue</button>
-                      <button onClick={() => add({ type: "info", title: `Restock requested: ${item.name}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Restock</button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      {showIssue && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowIssue(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border: `1px solid ${BORDER}` }}>
-            <div className="flex items-center justify-between mb-4"><h3 className="text-base font-bold" style={{ color: TEXT }}>Issue to Attendant</h3><button onClick={() => setShowIssue(false)} style={{ color: SUBTLE }}><X size={18} /></button></div>
-            <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Item</label><select value={issueItem} onChange={e => setIssueItem(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option value="">Select item…</option>{ITEMS.map(i => <option key={i.name}>{i.name}</option>)}</select></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Quantity</label><input type="number" min="1" value={issueQty} onChange={e => setIssueQty(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Attendant</label><select value={issueAtt} onChange={e => setIssueAtt(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>{"Grace Achebe,Amaka Osei,Ngozi Ike".split(",").map(a=><option key={a}>{a}</option>)}</select></div>
-              </div>
-            </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowIssue(false)} /><button disabled={!issueItem} onClick={() => { add({ type: "success", title: `${issueQty}× ${issueItem} issued to ${issueAtt}` }); setShowIssue(false); setIssueItem(""); setIssueQty("1"); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Issue</button></div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+// InspectionLog, LinenSupplies, HousekeepingSchedule, KeyCardMgmt, HKMyTasks → HKOpsScreens.tsx
+export { InspectionLog, LinenSupplies, HousekeepingSchedule, KeyCardMgmt, HKMyTasks } from "./HKOpsScreens";
 
-// HK-08 Housekeeping Schedule
-export function HousekeepingSchedule({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const ATTENDANTS = ["Grace Achebe", "Amaka Osei", "Ngozi Ike"];
-  const ROOMS = ["101","102","103","104","201","202","203","204","301","302","303","304"];
-  const SHIFTS = ["Morning (07:00–15:00)", "Evening (15:00–23:00)", "Night (23:00–07:00)"];
-  const [shift, setShift] = useState(SHIFTS[0]);
-  const [assignments, setAssignments] = useState<Record<string, string>>({
-    "101": "Grace Achebe", "102": "Grace Achebe", "103": "Amaka Osei", "104": "Grace Achebe",
-    "201": "Ngozi Ike", "202": "Ngozi Ike", "203": "", "204": "",
-    "301": "Amaka Osei", "302": "Ngozi Ike", "303": "", "304": "",
-  });
-  const [published, setPublished] = useState(false);
-  const toggleAssign = (room: string, att: string) => {
-    setAssignments(p => ({ ...p, [room]: p[room] === att ? "" : att }));
-    setPublished(false);
-  };
-  const autoBalance = () => {
-    const newAss: Record<string, string> = {};
-    ROOMS.forEach((r, i) => { newAss[r] = ATTENDANTS[i % ATTENDANTS.length]; });
-    setAssignments(newAss);
-    setPublished(false);
-    add({ type: "info", title: "Workload balanced", body: `${ROOMS.length} rooms distributed across ${ATTENDANTS.length} attendants` });
-  };
-  const workload = (att: string) => ROOMS.filter(r => assignments[r] === att).length;
-  const MAX_LOAD = 6;
-  return (
-    <div>
-      <PageHeader title="Housekeeping Schedule" sub="Room assignments per attendant · Click cell to assign" actions={<><BtnO label="Balance Workload" icon={RefreshCw} onClick={autoBalance} /><BtnP label={published ? "Published ✓" : "Publish Schedule"} icon={published ? CheckCircle2 : Send} onClick={() => { setPublished(true); add({ type: "success", title: "Schedule published", body: "Field devices notified" }); }} /></>} />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Rooms Scheduled" value={String(ROOMS.filter(r=>assignments[r]).length)} sub={`of ${ROOMS.length} total`} icon={CalendarDays} accent={PRIMARY} />
-        <StatCard label="Unassigned" value={String(ROOMS.filter(r=>!assignments[r]).length)} sub="Need assignment" icon={AlertTriangle} accent={WARNING} />
-        <StatCard label="Staff on Duty" value={String(ATTENDANTS.length)} sub="This shift" icon={Users} accent={TEAL} />
-        <StatCard label="Shift" value={shift.split(" ")[0]} sub={shift.split(" ")[1] ?? ""} icon={Clock} accent={ORANGE} />
-      </div>
-      {/* Shift selector */}
-      <div className="flex items-center gap-3 mb-5">
-        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Shift:</span>
-        {SHIFTS.map(s => <button key={s} onClick={() => setShift(s)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold" style={{ backgroundColor: shift===s ? PRIMARY : "white", color: shift===s ? "white" : MUTED, borderColor: shift===s ? PRIMARY : BORDER }}>{s}</button>)}
-      </div>
-      {/* Attendant workload summary */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
-        {ATTENDANTS.map(a => {
-          const n = workload(a);
-          const pct = (n / MAX_LOAD) * 100;
-          return (
-            <div key={a} className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}>{a.split(" ").map(x=>x[0]).join("")}</div>
-                <div className="flex-1 min-w-0"><div className="text-sm font-semibold truncate" style={{ color: TEXT }}>{a}</div><div className="text-xs" style={{ color: MUTED }}>{n} rooms</div></div>
-                <div className="text-xl font-black" style={{ color: n > MAX_LOAD ? ERROR : n >= MAX_LOAD * 0.8 ? ORANGE : SUCCESS, fontFamily: mono }}>{n}</div>
-              </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E2E8F0" }}>
-                <div className="h-1.5 rounded-full" style={{ width: `${Math.min(pct,100)}%`, backgroundColor: n > MAX_LOAD ? ERROR : n >= MAX_LOAD * 0.8 ? ORANGE : SUCCESS }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      {/* Assignment grid */}
-      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-        <div className="flex border-b" style={{ borderColor: BORDER, backgroundColor: "#F9FAFB" }}>
-          <div className="w-20 flex-shrink-0 px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Room</div>
-          {ATTENDANTS.map(a => <div key={a} className="flex-1 text-center py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{a.split(" ")[0]}</div>)}
-          <div className="w-24 px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Status</div>
-        </div>
-        {ROOMS.map(room => (
-          <div key={room} className="flex items-center border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER, minHeight: 48 }}>
-            <div className="w-20 flex-shrink-0 px-4 py-2 font-bold" style={{ color: PRIMARY }}>{room}</div>
-            {ATTENDANTS.map(a => (
-              <div key={a} className="flex-1 flex justify-center py-2">
-                <div onClick={() => toggleAssign(room, a)} className="w-7 h-7 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" style={{ borderColor: assignments[room] === a ? PRIMARY : "#CBD5E1", backgroundColor: assignments[room] === a ? PRIMARY : "transparent" }}>
-                  {assignments[room] === a && <CheckCircle2 size={13} color="white" />}
-                </div>
-              </div>
-            ))}
-            <div className="w-24 px-4 py-2">
-              {assignments[room] ? <span className="text-xs px-2 py-0.5 rounded font-semibold" style={{ backgroundColor: "#DCFCE7", color: "#166534" }}>Assigned</span> : <span className="text-xs px-2 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>Unassigned</span>}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
-// MX-02 Work Order Detail
-export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [status, setStatus] = useState("In Progress");
-  const [guestImpact, setGuestImpact] = useState(true);
-  const [note, setNote] = useState("");
-  const [partNote, setPartNote] = useState("");
-  const [showClose, setShowClose] = useState(false);
-  const [resolution, setResolution] = useState("");
-  const [labourHours, setLabourHours] = useState("1.5");
-  const [showFollowUp, setShowFollowUp] = useState(false);
 
-  const TIMELINE = [
-    { ts: "24 Jun 08:58", event: "Work order created", by: "John Abubakar", note: "AC unit in Room 207 not cooling. Guest complaint — hot room.", color: PRIMARY },
-    { ts: "24 Jun 09:05", event: "Assigned to technician", by: "Grace Mensah", note: "Assigned to Emeka Nwosu (HVAC specialist)", color: TEAL },
-    { ts: "24 Jun 09:15", event: "Status → In Progress", by: "Emeka Nwosu", note: "Checked unit — low refrigerant. Sourcing R-410A. Estimated 2h.", color: ORANGE },
-  ];
-  const [timeline, setTimeline] = useState(TIMELINE);
 
-  const PARTS = [
-    { item: "R-410A Refrigerant (1kg)", qty: 1, unit: 8500, ref: "STK-0044" },
-    { item: "Condenser Filter", qty: 1, unit: 2200, ref: "STK-0041" },
-  ];
+// WorkOrderDetail, AssetRegister, PreventiveSchedule, VendorContacts → MaintenanceScreens.tsx
+export { WorkOrderDetail, AssetRegister, PreventiveSchedule, VendorContacts } from "./MaintenanceScreens";
 
-  const STATUS_STEPS = ["Reported","Assigned","In Progress","Completed","Cancelled"];
-
-  const postNote = () => {
-    if (!note.trim()) return;
-    setTimeline(p => [...p, { ts: new Date().toLocaleTimeString("en-NG",{hour:"2-digit",minute:"2-digit"}), event: "Note added", by: "Current User", note, color: MUTED }]);
-    add({ type: "success", title: "Note posted" }); setNote("");
-  };
-
-  const closeWO = () => {
-    if (!resolution.trim()) { add({ type: "warning", title: "Resolution notes required to close" }); return; }
-    setStatus("Completed"); setShowClose(false);
-    setTimeline(p => [...p, { ts: new Date().toLocaleTimeString("en-NG",{hour:"2-digit",minute:"2-digit"}), event: "Work order closed", by: "Current User", note: resolution, color: SUCCESS }]);
-    add({ type: "success", title: "WO-0091 closed", body: "Guest room status updated" });
-  };
-
-  const partTotal = PARTS.reduce((s,p) => s+p.qty*p.unit, 0);
-  const labourCost = parseFloat(labourHours || "0") * 5000;
-
-  return (
-    <div>
-      <PageHeader title="Work Order WO-0091" sub="Room 207 · HVAC · Reported 24 Jun 08:58 by John Abubakar"
-        actions={<><BtnO label="Escalate" icon={AlertTriangle} onClick={() => add({ type: "warning", title: "WO-0091 escalated to GM" })} /><BtnP label="Close Order" icon={CheckCircle2} onClick={() => setShowClose(true)} /></>} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Main column */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Header card */}
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <div className="text-lg font-bold" style={{ color: TEXT }}>AC not cooling — Room 207</div>
-                <div className="text-sm mt-0.5" style={{ color: MUTED }}>SLA Deadline: <span className="font-semibold" style={{ color: ERROR }}>24 Jun 14:58</span> · Age: <span style={{ fontFamily: mono }}>1h 20m</span></div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setGuestImpact(p=>!p)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold" style={{ borderColor: guestImpact ? `${ERROR}40` : BORDER, backgroundColor: guestImpact ? "#FEF2F2" : "white", color: guestImpact ? ERROR : MUTED }}>
-                  <AlertCircle size={12} />Guest Impact {guestImpact ? "ON" : "OFF"}
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              {[["Location","Room 207"],["Category","HVAC"],["Priority","High"],["Assigned To","Emeka Nwosu"],["Asset","AST-001 — Central AC"],["Status",status]].map(([k,v]) => (
-                <div key={k}><div className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: MUTED }}>{k}</div>
-                <div className="text-sm font-semibold" style={{ color: k==="Priority" ? ERROR : k==="Status" ? PRIMARY : TEXT }}>{v}</div></div>
-              ))}
-            </div>
-            <div><div className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: MUTED }}>Description</div>
-            <p className="text-sm leading-relaxed" style={{ color: TEXT }}>AC unit not cooling in Room 207. Guest reported warm room temperature (29°C vs 23°C set point). Technician to inspect compressor, refrigerant levels, filter, and thermostat calibration. Room has been offered a temporary fan.</p></div>
-          </div>
-
-          {/* Photo attachments — colored div placeholders */}
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Photo Evidence</h3><button className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: TEAL, borderColor: `${TEAL}30` }} onClick={() => add({ type: "info", title: "Camera access requested" })}>+ Upload</button></div>
-            <div className="flex gap-3">
-              {[["#DBEAFE","AC Unit — External"],["#FEF3C7","Control Panel"],["#DCFCE7","Filter — clogged"]].map(([bg, label]) => (
-                <div key={label} className="flex-1 rounded-xl flex flex-col items-center justify-center gap-1.5 py-6 cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: bg, minHeight: 80 }}>
-                  <Camera size={20} style={{ color: MUTED }} />
-                  <span className="text-xs text-center px-2" style={{ color: MUTED }}>{label}</span>
-                </div>
-              ))}
-              <div className="flex-1 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 py-6 cursor-pointer" style={{ borderColor: BORDER }}>
-                <Plus size={18} style={{ color: SUBTLE }} /><span className="text-xs" style={{ color: SUBTLE }}>Add photo</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Parts consumed */}
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Parts Consumed</h3><button onClick={() => add({ type: "info", title: "Log parts from stock" })} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>+ Log Parts</button></div>
-            <table className="w-full mb-3">
-              <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item","Qty","Unit Cost","Total","Stock Ref"].map(h=><th key={h} className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-              <tbody>{PARTS.map((p,i) => <tr key={i} className="border-t" style={{ borderColor: BORDER }}><td className="px-3 py-2.5 text-sm" style={{ color: TEXT }}>{p.item}</td><td className="px-3 py-2.5 text-sm" style={{ color: TEXT, fontFamily: mono }}>{p.qty}</td><td className="px-3 py-2.5 text-sm" style={{ color: TEXT, fontFamily: mono }}>₦{p.unit.toLocaleString()}</td><td className="px-3 py-2.5 text-sm font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{(p.qty*p.unit).toLocaleString()}</td><td className="px-3 py-2.5 text-xs" style={{ color: TEAL, fontFamily: mono }}>{p.ref}</td></tr>)}</tbody>
-            </table>
-            <div className="flex items-center gap-4 pt-3 border-t" style={{ borderColor: BORDER }}>
-              <span className="text-xs" style={{ color: MUTED }}>Parts total: <span className="font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{partTotal.toLocaleString()}</span></span>
-              <div className="flex items-center gap-2"><span className="text-xs" style={{ color: MUTED }}>Labour hours:</span><input type="number" step="0.5" min="0" value={labourHours} onChange={e=>setLabourHours(e.target.value)} className="w-16 px-2 py-1 text-xs border rounded outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-              <span className="text-xs" style={{ color: MUTED }}>Labour @ ₦5,000/h: <span className="font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{labourCost.toLocaleString()}</span></span>
-              <span className="ml-auto text-sm font-bold" style={{ color: PRIMARY, fontFamily: mono }}>Total: ₦{(partTotal+labourCost).toLocaleString()}</span>
-            </div>
-          </div>
-
-          {/* Activity timeline */}
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Activity Log</h3>
-            <div className="space-y-0">
-              {timeline.map((t, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: t.color }} />
-                    {i < timeline.length - 1 && <div className="w-0.5 flex-1 mt-1 mb-1" style={{ backgroundColor: "#E2E8F0" }} />}
-                  </div>
-                  <div className="pb-4 flex-1">
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{t.ts}</span>
-                      <span className="text-xs font-semibold" style={{ color: t.color }}>{t.event}</span>
-                      <span className="text-xs" style={{ color: MUTED }}>by {t.by}</span>
-                    </div>
-                    <p className="text-sm mt-0.5" style={{ color: TEXT }}>{t.note}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="pt-4 border-t" style={{ borderColor: "#F4F4F5" }}>
-              <textarea value={note} onChange={e=>setNote(e.target.value)} className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none resize-none mb-2" rows={2} placeholder="Add note or update…" style={{ borderColor: BORDER }} />
-              <BtnP label="Post Update" icon={Send} onClick={postNote} />
-            </div>
-          </div>
-        </div>
-
-        {/* Right sidebar */}
-        <div className="space-y-4">
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Status Transition</h3>
-            <div className="space-y-2">
-              {STATUS_STEPS.map(s => (
-                <button key={s} onClick={() => { if (s === "Completed") { setShowClose(true); } else { setStatus(s); add({ type: "success", title: `Status → ${s}` }); setTimeline(p=>[...p,{ts:new Date().toLocaleTimeString("en-NG",{hour:"2-digit",minute:"2-digit"}),event:`Status → ${s}`,by:"Current User",note:"",color:woC[s]?.text??MUTED}]); } }} className="w-full flex items-center gap-2.5 p-2.5 rounded-xl border text-sm font-medium" style={{ borderColor: s===status ? PRIMARY : BORDER, backgroundColor: s===status ? "#EFF6FF" : "white", color: s===status ? PRIMARY : MUTED }}>
-                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: woC[s]?.text ?? SUBTLE }} />{s}
-                  {s==="Completed" && <span className="ml-auto text-xs" style={{ color: SUBTLE }}>requires notes</span>}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Linked Asset</h3>
-            <div className="space-y-1.5 text-xs">
-              {[["Asset Tag","AST-001"],["Asset","Central AC Unit"],["Location","Roof"],["Last Service","12 Mar 2025"],["Next Service","12 Jun 2025"]].map(([k,v]) => (
-                <div key={k} className="flex gap-2"><span className="w-24 flex-shrink-0" style={{ color: MUTED }}>{k}</span><span className="font-medium" style={{ color: TEXT }}>{v}</span></div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Follow-up PM</h3><button onClick={() => setShowFollowUp(true)} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Create</button></div>
-            {showFollowUp ? (
-              <div className="space-y-2">
-                <select className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }}><option>Monthly PM — AC Unit</option><option>Quarterly — AC full service</option></select>
-                <input type="date" className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }} defaultValue="2025-07-24" />
-                <button onClick={() => { setShowFollowUp(false); add({ type: "success", title: "PM task created — AST-001" }); }} className="w-full py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Create PM Task</button>
-              </div>
-            ) : <p className="text-xs" style={{ color: SUBTLE }}>Create a preventive maintenance task from this work order to prevent recurrence.</p>}
-          </div>
-        </div>
-      </div>
-
-      {/* Close modal */}
-      {showClose && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowClose(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Close Work Order</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>Document the resolution before closing. This is required and will appear on the audit trail.</p>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Resolution Notes</label>
-            <textarea value={resolution} onChange={e=>setResolution(e.target.value)} placeholder="Describe what was found and what was done to resolve the issue…" rows={4} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowClose(false)} /><button disabled={!resolution.trim()} onClick={closeWO} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>Close Order</button></div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// MX-04 Asset Register
-export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [catFilter, setCatFilter] = useState("All");
-  const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<string | null>(null);
-
-  const REGISTER = [
-    { id: "AST-001", name: "Central Air Conditioning Unit", cat: "HVAC", location: "Roof", criticality: "Critical", purchased: "Jan 2021", cost: 2850000, warranty: "Jan 2024", supplier: "Airecon Nigeria", lastService: "12 Mar 2025", nextService: "12 Jun 2025", serviceStatus: "Overdue", downtimeYTD: "4h 20m", runtime: "8,742 h", status: "Operational" },
-    { id: "AST-002", name: "Commercial Refrigerator (Restaurant)", cat: "Kitchen", location: "Restaurant Kitchen", criticality: "High", purchased: "Mar 2022", cost: 980000, warranty: "Mar 2025", supplier: "CoolTech Ltd", lastService: "10 May 2025", nextService: "10 Aug 2025", serviceStatus: "Ok", downtimeYTD: "0h", runtime: "—", status: "Operational" },
-    { id: "AST-003", name: "Elevator #1 (10-person)", cat: "Infrastructure", location: "Main Building", criticality: "Critical", purchased: "Sep 2019", cost: 12500000, warranty: "Sep 2024", supplier: "Otis Nigeria", lastService: "01 Jun 2025", nextService: "01 Sep 2025", serviceStatus: "Ok", downtimeYTD: "1h", runtime: "—", status: "Operational" },
-    { id: "AST-004", name: "Diesel Generator 50kVA", cat: "Generator", location: "Generator Room", criticality: "Critical", purchased: "Jun 2020", cost: 4200000, warranty: "Jun 2025", supplier: "Mikano Int'l", lastService: "15 May 2025", nextService: "15 Jun 2025", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "3,412 h", status: "Operational" },
-    { id: "AST-005", name: "Toyota HiAce Bus (Hotel Shuttle)", cat: "Vehicle", location: "Parking", criticality: "Medium", purchased: "Feb 2023", cost: 9800000, warranty: "Feb 2026", supplier: "Toyota Nigeria", lastService: "01 Apr 2025", nextService: "01 Jul 2025", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "14,200 km", status: "Operational" },
-    { id: "AST-006", name: "Commercial Washing Machine", cat: "Laundry", location: "Laundry Room", criticality: "High", purchased: "Aug 2021", cost: 1450000, warranty: "Aug 2024", supplier: "CleanPro", lastService: "20 Feb 2025", nextService: "20 May 2025", serviceStatus: "Overdue", downtimeYTD: "8h", runtime: "—", status: "Degraded" },
-    { id: "AST-007", name: "Pool Circulation Pump", cat: "Pool", location: "Pool Area", criticality: "Medium", purchased: "Nov 2022", cost: 620000, warranty: "Nov 2025", supplier: "AquaTech", lastService: "05 Jun 2025", nextService: "05 Sep 2025", serviceStatus: "Ok", downtimeYTD: "2h", runtime: "—", status: "Operational" },
-    { id: "AST-008", name: "CCTV System (32-channel)", cat: "IT", location: "Security Room", criticality: "High", purchased: "Jan 2022", cost: 1800000, warranty: "Jan 2025", supplier: "SecureVision", lastService: "15 Jan 2025", nextService: "15 Jul 2025", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "—", status: "Operational" },
-    { id: "AST-009", name: "Conference Room AV System", cat: "IT", location: "Conference Room A", criticality: "Low", purchased: "Mar 2023", cost: 2200000, warranty: "Mar 2026", supplier: "AV Solutions NG", lastService: "10 Jun 2025", nextService: "10 Dec 2025", serviceStatus: "Ok", downtimeYTD: "0h", runtime: "—", status: "Operational" },
-    { id: "AST-010", name: "Toyota Hilux (Management)", cat: "Vehicle", location: "Parking", criticality: "Low", purchased: "Oct 2022", cost: 14500000, warranty: "Oct 2025", supplier: "Toyota Nigeria", lastService: "15 Mar 2025", nextService: "15 Jun 2025", serviceStatus: "Overdue", downtimeYTD: "0h", runtime: "28,440 km", status: "Operational" },
-  ];
-
-  const CATS = ["All","HVAC","Kitchen","Infrastructure","Generator","Vehicle","Laundry","Pool","IT"];
-  const stC: Record<string, { bg: string; text: string }> = { Ok: { bg: "#DCFCE7", text: "#166534" }, "Due Soon": { bg: "#FEF3C7", text: "#92400E" }, Overdue: { bg: "#FEE2E2", text: "#991B1B" } };
-  const statusC: Record<string, { bg: string; text: string }> = { Operational: { bg: "#DCFCE7", text: "#166534" }, Degraded: { bg: "#FEF3C7", text: "#92400E" }, Offline: { bg: "#FEE2E2", text: "#991B1B" } };
-
-  const visible = REGISTER.filter(a => (catFilter === "All" || a.cat === catFilter) && (!search || a.name.toLowerCase().includes(search.toLowerCase()) || a.id.toLowerCase().includes(search.toLowerCase())));
-  const sel = selected ? REGISTER.find(a=>a.id===selected) : null;
-
-  return (
-    <div className="flex gap-5">
-      <div className="flex-1 min-w-0">
-        <PageHeader title="Asset Register" sub="All property assets including vehicles and generators" actions={<><BtnO label="Export" icon={Download} /><BtnP label="Add Asset" icon={Plus} onClick={() => add({ type: "info", title: "Add new asset" })} /></>} />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Total Assets" value={String(REGISTER.length)} sub="Registered items" icon={Package} accent={PRIMARY} />
-          <StatCard label="Overdue Service" value={String(REGISTER.filter(a=>a.serviceStatus==="Overdue").length)} sub="Past schedule" icon={AlertTriangle} accent={ERROR} />
-          <StatCard label="Due Soon" value={String(REGISTER.filter(a=>a.serviceStatus==="Due Soon").length)} sub="Within 30 days" icon={CalendarDays} accent={WARNING} />
-          <StatCard label="Degraded" value={String(REGISTER.filter(a=>a.status==="Degraded").length)} sub="Needs attention" icon={Activity} accent={ORANGE} />
-        </div>
-        <div className="flex items-center gap-3 mb-4 flex-wrap">
-          <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search asset name or ID…" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-52" style={{ borderColor: BORDER }} /></div>
-          <div className="flex gap-1.5 flex-wrap">{CATS.map(c => <button key={c} onClick={() => setCatFilter(c)} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ backgroundColor: catFilter===c ? PRIMARY : "white", color: catFilter===c ? "white" : MUTED, borderColor: catFilter===c ? PRIMARY : BORDER }}>{c}</button>)}</div>
-        </div>
-        <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Asset ID","Name / Category","Location","Criticality","Purchase Cost","Warranty","Supplier","Next Service","Runtime","Status",""].map(h=><th key={h} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-            <tbody>
-              {visible.map(a => (
-                <tr key={a.id} onClick={() => setSelected(selected===a.id?null:a.id)} className="border-t cursor-pointer transition-colors" style={{ borderColor: BORDER, backgroundColor: selected===a.id ? "#EFF6FF" : "white" }}>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{a.id}</td>
-                  <td className="px-3 py-3"><div className="text-sm font-medium" style={{ color: TEXT }}>{a.name}</div><div className="text-xs" style={{ color: SUBTLE }}>{a.cat}</div></td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{a.location}</td>
-                  <td className="px-3 py-3"><span className="text-xs font-semibold" style={{ color: a.criticality==="Critical" ? ERROR : a.criticality==="High" ? ORANGE : a.criticality==="Medium" ? WARNING : MUTED }}>{a.criticality}</span></td>
-                  <td className="px-3 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{a.cost.toLocaleString()}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{a.warranty}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{a.supplier}</td>
-                  <td className="px-3 py-3">
-                    <div className="text-xs font-semibold" style={{ color: a.serviceStatus==="Overdue" ? ERROR : a.serviceStatus==="Due Soon" ? ORANGE : MUTED }}>{a.nextService}</div>
-                    <Badge label={a.serviceStatus} colors={stC[a.serviceStatus] ?? { bg: "#F4F4F5", text: "#374151" }} />
-                  </td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{a.runtime}</td>
-                  <td className="px-3 py-3"><Badge label={a.status} colors={statusC[a.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
-                  <td className="px-3 py-3">
-                    <div className="flex gap-1">
-                      <button onClick={e=>{e.stopPropagation();add({type:"info",title:`Work order → ${a.name}` });}} className="text-xs px-2 py-1 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>WO</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Detail panel */}
-      {sel && (
-        <div className="w-80 flex-shrink-0 space-y-4">
-          <div className="bg-white rounded-xl border p-5 sticky top-4" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-4"><h3 className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</h3><button onClick={()=>setSelected(null)} style={{ color: SUBTLE }}><X size={16} /></button></div>
-            <div className="text-base font-bold mb-1" style={{ color: TEXT }}>{sel.name}</div>
-            <div className="flex gap-1.5 mb-4"><span className="text-xs px-2 py-0.5 rounded font-semibold" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>{sel.cat}</span><span className="text-xs font-semibold" style={{ color: sel.criticality==="Critical"?ERROR:sel.criticality==="High"?ORANGE:MUTED }}>{sel.criticality}</span></div>
-            <div className="space-y-2 text-xs mb-4">
-              {[["Location",sel.location],["Supplier",sel.supplier],["Purchased",sel.purchased],["Cost",`₦${sel.cost.toLocaleString()}`],["Warranty",sel.warranty],["Last Service",sel.lastService],["Next Service",sel.nextService],["Runtime/Odometer",sel.runtime],["Downtime YTD",sel.downtimeYTD]].map(([k,v])=>(
-                <div key={k} className="flex gap-2"><span className="w-28 flex-shrink-0" style={{ color: MUTED }}>{k}</span><span className="font-medium" style={{ color: TEXT }}>{v}</span></div>
-              ))}
-            </div>
-            <div className="space-y-2">
-              <button onClick={() => add({ type: "info", title: `Work order → ${sel.name}` })} className="w-full py-2.5 rounded-xl text-sm font-semibold border" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Create Work Order</button>
-              <button onClick={() => add({ type: "success", title: `Service logged — ${sel.id}` })} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL }}>Log Service</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // RT-05 Dining Reservations
 export function DiningReservations({ add }: { add: (t: Omit<Toast, "id">) => void }) {
@@ -1416,7 +890,7 @@ export function PayrollSummary({ add }: { add: (t: Omit<Toast, "id">) => void })
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5"><StatCard label="Total Gross Pay" value={`₦${PAYROLL_DATA.reduce((s,p)=>s+p.baseSalary+p.overtime,0).toLocaleString()}`} sub="This pay period" icon={DollarSign} accent={PRIMARY} /><StatCard label="Total Deductions" value={`₦${PAYROLL_DATA.reduce((s,p)=>s+p.deductions,0).toLocaleString()}`} sub="Tax + pension + misc" icon={TrendingDown} accent={ERROR} /><StatCard label="Net Payroll" value={fmtN(total)} sub="To be disbursed" icon={CheckCircle2} accent={SUCCESS} /></div>
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
         <table className="w-full"><thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Staff Member", "Department", "Base Salary", "Overtime", "Deductions", "Net Pay", ""].map((h, i) => <th key={i} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-          <tbody>{PAYROLL_DATA.map(p => <tr key={p.name} className="border-t hover:bg-[#F9FAFB]" style={{ borderColor: "#F4F4F5" }}><td className="px-5 py-3"><div className="flex items-center gap-2.5"><div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: PRIMARY }}>{p.name.split(" ").map(n => n[0]).join("").slice(0, 2)}</div><span className="text-sm font-medium" style={{ color: TEXT }}>{p.name}</span></div></td><td className="px-5 py-3 text-xs" style={{ color: MUTED }}>{p.dept}</td><td className="px-5 py-3 text-sm" style={{ color: TEXT }}>₦{p.baseSalary.toLocaleString()}</td><td className="px-5 py-3 text-sm" style={{ color: p.overtime > 0 ? TEAL : MUTED }}>{p.overtime > 0 ? `+₦${p.overtime.toLocaleString()}` : "—"}</td><td className="px-5 py-3 text-sm" style={{ color: ERROR }}>−₦{p.deductions.toLocaleString()}</td><td className="px-5 py-3 text-sm font-bold" style={{ color: SUCCESS }}>₦{p.net.toLocaleString()}</td><td className="px-5 py-3"><button className="text-xs px-2 py-1 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Breakdown</button></td></tr>)}</tbody>
+          <tbody>{PAYROLL_DATA.map(p => <tr key={p.name} className="border-t hover:bg-[#F9FAFB]" style={{ borderColor: "#F4F4F5" }}><td className="px-5 py-3"><div className="flex items-center gap-2.5"><div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${PRIMARY}14` }}><User size={13} style={{ color: PRIMARY }} /></div><span className="text-sm font-medium" style={{ color: TEXT }}>{p.name}</span></div></td><td className="px-5 py-3 text-xs" style={{ color: MUTED }}>{p.dept}</td><td className="px-5 py-3 text-sm" style={{ color: TEXT }}>₦{p.baseSalary.toLocaleString()}</td><td className="px-5 py-3 text-sm" style={{ color: p.overtime > 0 ? TEAL : MUTED }}>{p.overtime > 0 ? `+₦${p.overtime.toLocaleString()}` : "—"}</td><td className="px-5 py-3 text-sm" style={{ color: ERROR }}>−₦{p.deductions.toLocaleString()}</td><td className="px-5 py-3 text-sm font-bold" style={{ color: SUCCESS }}>₦{p.net.toLocaleString()}</td><td className="px-5 py-3"><button className="text-xs px-2 py-1 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Breakdown</button></td></tr>)}</tbody>
         </table>
       </div>
     </div>
@@ -1427,236 +901,1618 @@ export function PayrollSummary({ add }: { add: (t: Omit<Toast, "id">) => void })
 // BranchComparison → MultibranchSettingsScreens.tsx
 export { BranchComparison } from "./MultibranchSettingsScreens";
 
+
 export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [expandedId, setExpandedId] = useState<string | null>("GRP-001");
-  const [showCreate, setShowCreate] = useState(false);
-  const [newGroup, setNewGroup] = useState({ name: "", type: "Corporate", contact: "", rooms: "5", checkin: "", checkout: "", cutoff: "" });
-  const groups = [
-    { id:"GRP-001", name:"Dangote Group Executive Retreat", type:"Corporate", contact:"Mrs. Toyin Ahmed", rooms:12, picked:9, checkin:"4 Aug 2026", checkout:"6 Aug 2026", nights:2, cutoffDays:3, status:"Confirmed",
-      rooming:[{name:"Alhaji Dangote",room:"Suite 501",status:"Assigned"},{name:"Mrs. Toyin Ahmed",room:"Deluxe 302",status:"Assigned"},{name:"Emeka Obi",room:"Standard 101",status:"Assigned"},{name:"Kemi Afolabi",room:"Standard 102",status:"Assigned"},{name:"Bode Adewale",room:"Standard 201",status:"Pending"}]
-    },
-    { id:"GRP-002", name:"Adeyemi Wedding Party", type:"Wedding", contact:"Mr. Bolu Adeyemi", rooms:8, picked:3, checkin:"10 Aug 2026", checkout:"12 Aug 2026", nights:2, cutoffDays:9, status:"Confirmed",
-      rooming:[{name:"Mr. Bolu Adeyemi",room:"Suite 501",status:"Assigned"},{name:"Mrs. Ngozi Adeyemi",room:"Deluxe 303",status:"Assigned"},{name:"Tunde Bakare",room:"Standard 103",status:"Pending"}]
-    },
-  ];
-  const createGroup = () => {
-    if (!newGroup.name || !newGroup.contact) { add({ type:"warning",title:"Fill in group name and contact" }); return; }
-    setShowCreate(false);
-    add({ type:"success",title:"Group booking created",body:`${newGroup.name} · ${newGroup.rooms} rooms · ${newGroup.type}` });
-    setNewGroup({ name:"",type:"Corporate",contact:"",rooms:"5",checkin:"",checkout:"",cutoff:"" });
+  // ── Constants ──────────────────────────────────────────────────────────────
+  const PASS_BG     = "#F9FAFB";
+  const PASS_BORDER = "#E2E8F0";
+  const PASS_MUTED  = "#64748B";
+  const PASS_DASH   = "#CBD5E1";
+
+  const RATE_PLANS      = ["Group Rate", "Corporate Rate", "Negotiated", "Full Package"];
+  const STATUS_PIPELINE = ["Tentative", "Contracted", "Confirmed", "Active", "Departed"];
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  const [groupTypes,   setGroupTypes]   = useState(["Corporate", "Wedding", "Conference", "Government", "Tour Group", "Other"]);
+  const [selectedId,   setSelectedId]   = useState<string | null>(null);
+  const [detailTab,    setDetailTab]    = useState<"overview"|"rooming"|"folio"|"contract">("overview");
+  const [showCreate,   setShowCreate]   = useState(false);
+  const [filterType,   setFilterType]   = useState("All");
+  const [searchTerm,   setSearchTerm]   = useState("");
+  const [assignSlot,   setAssignSlot]   = useState<number | null>(null);
+  const [assignName,   setAssignName]   = useState("");
+  const [editingFolio, setEditingFolio] = useState(false);
+  const [newCharge,    setNewCharge]    = useState({ description: "", amount: "" });
+  const [showTypeManager, setShowTypeManager] = useState(false);
+  const [newTypeName,     setNewTypeName]     = useState("");
+  const [paymentInput,    setPaymentInput]    = useState({ show: false, amount: "", groupId: "" });
+  const [editingGroup,  setEditingGroup]  = useState<string | null>(null);
+  const [editForm,      setEditForm]      = useState<Record<string, any>>({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [form, setForm] = useState({
+    name: "", type: "Corporate", organizer: "", phone: "", email: "",
+    checkin: "2026-09-10", checkout: "2026-09-12",
+    standardRooms: 4, deluxeRooms: 4, suiteRooms: 2,
+    ratePlan: "Group Rate", cutoffDate: "2026-09-05", notes: "",
+  });
+  const upd = (k: string, v: string | number) => setForm(p => ({ ...p, [k]: v }));
+
+  // ── Types & Mock Data ──────────────────────────────────────────────────────
+  type RoomingGuest = { id: number; name: string; room: string; type: string; status: "Checked In" | "Assigned" | "Pending" };
+  type FolioLine    = { id: number; description: string; amount: number; date: string; category: "room"|"fnb"|"extra"|"payment" };
+  type Group = {
+    id: string; name: string; type: string; organizer: string; phone: string; email: string;
+    checkin: string; checkout: string; nights: number;
+    rooms: { Standard: number; Deluxe: number; Suite: number };
+    ratePlan: string; cutoffDate: string; notes: string; cancelPolicy?: string;
+    depositPct: number; depositPaid: number; estValue: number;
+    status: string; contractSent: boolean; contractSigned: boolean;
+    rooming: RoomingGuest[]; folio: FolioLine[];
   };
+
+  const [groups, setGroups] = useState<Group[]>([
+    {
+      id: "GRP-001", name: "Dangote Group Executive Retreat", type: "Corporate",
+      organizer: "Mrs. Toyin Ahmed", phone: "+234 802 000 0001", email: "toyin@dangote.com",
+      checkin: "2026-08-04", checkout: "2026-08-06", nights: 2,
+      rooms: { Standard: 4, Deluxe: 6, Suite: 2 }, ratePlan: "Corporate Rate", cutoffDate: "2026-08-01", notes: "VIP group — priority handling for all requests.",
+      depositPct: 30, depositPaid: 756000, estValue: 2520000,
+      status: "Confirmed", contractSent: true, contractSigned: true,
+      rooming: [
+        { id: 1, name: "Alhaji A. Dangote",  room: "Suite 501",  type: "Suite",  status: "Checked In" },
+        { id: 2, name: "Mrs. Toyin Ahmed",   room: "Suite 502",  type: "Suite",  status: "Assigned"   },
+        { id: 3, name: "Emeka Obi",          room: "Deluxe 301", type: "Deluxe", status: "Assigned"   },
+        { id: 4, name: "Kemi Afolabi",       room: "Deluxe 302", type: "Deluxe", status: "Assigned"   },
+        { id: 5, name: "Bode Adewale",       room: "Deluxe 303", type: "Deluxe", status: "Pending"    },
+      ],
+      folio: [
+        { id: 1, description: "Room charges — 12 rooms × 2 nights", amount: 2520000, date: "2026-08-06", category: "room"    },
+        { id: 2, description: "Conference hall hire",                amount: 150000,  date: "2026-08-04", category: "extra"   },
+        { id: 3, description: "Airport transfer × 4",               amount: 80000,   date: "2026-08-04", category: "extra"   },
+        { id: 4, description: "Deposit received",                    amount: -756000, date: "2026-07-15", category: "payment" },
+      ],
+    },
+    {
+      id: "GRP-002", name: "Adeyemi Wedding Party", type: "Wedding",
+      organizer: "Mr. Bolu Adeyemi", phone: "+234 803 555 2233", email: "bolu@adeyemi.ng",
+      checkin: "2026-08-10", checkout: "2026-08-12", nights: 2,
+      rooms: { Standard: 4, Deluxe: 3, Suite: 1 }, ratePlan: "Group Rate", cutoffDate: "2026-08-05", notes: "Bridal suite must be ready by 14:00 check-in.",
+      depositPct: 50, depositPaid: 460000, estValue: 920000,
+      status: "Confirmed", contractSent: false, contractSigned: false,
+      rooming: [
+        { id: 1, name: "Mr. Bolu Adeyemi",   room: "Suite 501",  type: "Suite",  status: "Assigned" },
+        { id: 2, name: "Mrs. Ngozi Adeyemi", room: "Deluxe 301", type: "Deluxe", status: "Assigned" },
+        { id: 3, name: "Tunde Bakare",       room: "Deluxe 302", type: "Deluxe", status: "Pending"  },
+      ],
+      folio: [
+        { id: 1, description: "Room charges — 8 rooms × 2 nights", amount: 920000,  date: "2026-08-12", category: "room"    },
+        { id: 2, description: "Wedding setup & décor",              amount: 75000,   date: "2026-08-10", category: "extra"   },
+        { id: 3, description: "Welcome cocktail reception",         amount: 45000,   date: "2026-08-10", category: "fnb"     },
+        { id: 4, description: "Deposit received",                   amount: -460000, date: "2026-07-20", category: "payment" },
+      ],
+    },
+    {
+      id: "GRP-003", name: "CBN Policy Summit Delegation", type: "Government",
+      organizer: "Alhaji M. Sanusi", phone: "+234 809 100 4400", email: "msanusi@cbn.gov.ng",
+      checkin: "2026-08-20", checkout: "2026-08-22", nights: 2,
+      rooms: { Standard: 6, Deluxe: 4, Suite: 2 }, ratePlan: "Negotiated", cutoffDate: "2026-08-15", notes: "",
+      depositPct: 25, depositPaid: 0, estValue: 1730000,
+      status: "Tentative", contractSent: false, contractSigned: false,
+      rooming: [],
+      folio: [
+        { id: 1, description: "Room charges — 12 rooms × 2 nights", amount: 1730000, date: "2026-08-22", category: "room" },
+      ],
+    },
+  ]);
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const PassNotch = () => (
+    <div className="flex items-center" style={{ marginLeft: -1, marginRight: -1 }}>
+      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: "#EFF6FF", border: `1.5px solid ${PASS_BORDER}`, marginLeft: -8 }} />
+      <div className="flex-1 border-t-2 border-dashed" style={{ borderColor: PASS_DASH }} />
+      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: "#EFF6FF", border: `1.5px solid ${PASS_BORDER}`, marginRight: -8 }} />
+    </div>
+  );
+
+  const totalBlocked = (g: Group) => g.rooms.Standard + g.rooms.Deluxe + g.rooms.Suite;
+  const pickupPct    = (g: Group) => totalBlocked(g) === 0 ? 0 : Math.round((g.rooming.length / totalBlocked(g)) * 100);
+  const cutoffDays   = (g: Group) => Math.round((new Date(g.cutoffDate).getTime() - Date.now()) / 86400000);
+  const statusStage  = (g: Group) => {
+    if (g.status === "Departed")    return 4;
+    if (g.status === "Active")      return 3;
+    if (g.status === "Confirmed")   return 2;
+    if (g.status === "Contracted")  return 1;
+    return 0;
+  };
+  const statusColor = (s: string) =>
+    s === "Confirmed"   ? { bg: "#DCFCE7", text: SUCCESS } :
+    s === "Active"      ? { bg: "#DBEAFE", text: PRIMARY }  :
+    s === "Departed"    ? { bg: "#F1F5F9", text: MUTED }    :
+    s === "Contracted"  ? { bg: "#FFF7ED", text: ORANGE }   :
+    s === "Tentative"   ? { bg: "#FEF9C3", text: "#92400E" } :
+                          { bg: "#F1F5F9", text: MUTED };
+  const roomingStatusColor = (s: string) =>
+    s === "Checked In" ? { bg: "#DCFCE7", text: SUCCESS } :
+    s === "Assigned"   ? { bg: "#EFF6FF", text: PRIMARY }  :
+                         { bg: "#FEF3C7", text: "#D97706"  };
+
+  // ── Computed ───────────────────────────────────────────────────────────────
+  // Union of configured types + types that appear in actual group data
+  const allTypes     = Array.from(new Set([...groupTypes, ...groups.map(g => g.type)])).sort();
+  const filterOptions = ["All", ...allTypes];
+
+  const filtered = groups.filter(g => {
+    const matchType   = filterType === "All" || g.type === filterType;
+    const matchSearch = !searchTerm || g.name.toLowerCase().includes(searchTerm.toLowerCase())
+                     || g.organizer.toLowerCase().includes(searchTerm.toLowerCase())
+                     || g.id.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchType && matchSearch;
+  });
+  const selectedG     = groups.find(g => g.id === selectedId) ?? null;
+  const totalRevenue  = groups.reduce((s, g) => s + g.estValue, 0);
+  const totalPickedUp = groups.reduce((s, g) => s + g.rooming.length, 0);
+  const totalBlock    = groups.reduce((s, g) => s + totalBlocked(g), 0);
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+  const doCreateGroup = () => {
+    if (!form.name.trim() || !form.organizer.trim()) {
+      add({ type: "warning", title: "Group name and organizer are required" }); return;
+    }
+    const totalRms  = form.standardRooms + form.deluxeRooms + form.suiteRooms;
+    const estNights = Math.max(1, Math.round((new Date(form.checkout).getTime() - new Date(form.checkin).getTime()) / 86400000));
+    const estVal    = (form.standardRooms * 35000 + form.deluxeRooms * 55000 + form.suiteRooms * 95000) * estNights;
+    const newId     = `GRP-${String(groups.length + 1).padStart(3, "0")}`;
+    setGroups(prev => [...prev, {
+      id: newId, name: form.name.trim(), type: form.type,
+      organizer: form.organizer.trim(), phone: form.phone, email: form.email,
+      checkin: form.checkin, checkout: form.checkout, nights: estNights,
+      rooms: { Standard: form.standardRooms, Deluxe: form.deluxeRooms, Suite: form.suiteRooms },
+      ratePlan: form.ratePlan, cutoffDate: form.cutoffDate, notes: form.notes,
+      depositPct: 30, depositPaid: 0, estValue: estVal,
+      status: "Tentative", contractSent: false, contractSigned: false,
+      rooming: [],
+      folio: [{ id: 1, description: `Room charges — ${totalRms} rooms × ${estNights} nights`, amount: estVal, date: form.checkout, category: "room" as const }],
+    }]);
+    add({ type: "success", title: "Group created", body: `${form.name} · ${totalRms} rooms · Tentative` });
+    setShowCreate(false);
+    setForm({ name: "", type: "Corporate", organizer: "", phone: "", email: "", checkin: "2026-09-10", checkout: "2026-09-12", standardRooms: 4, deluxeRooms: 4, suiteRooms: 2, ratePlan: "Group Rate", cutoffDate: "2026-09-05", notes: "" });
+  };
+
+  const doAssign = (groupId: string, slotIdx: number) => {
+    if (!assignName.trim()) return;
+    setGroups(prev => prev.map(g => {
+      if (g.id !== groupId) return g;
+      const roomTypes = [...Array(g.rooms.Standard).fill("Standard"), ...Array(g.rooms.Deluxe).fill("Deluxe"), ...Array(g.rooms.Suite).fill("Suite")];
+      const type = roomTypes[slotIdx] || "Standard";
+      const newGuest: RoomingGuest = { id: slotIdx + 1, name: assignName.trim(), room: `${type} TBA`, type, status: "Assigned" };
+      const newRooming = [...g.rooming]; newRooming[slotIdx] = newGuest;
+      return { ...g, rooming: newRooming };
+    }));
+    add({ type: "success", title: `${assignName} assigned to slot ${slotIdx + 1}` });
+    setAssignSlot(null); setAssignName("");
+  };
+
+  const doAdvanceStatus = (g: Group) => {
+    const stage = statusStage(g);
+    if (stage >= 4) return;
+    let updates: Partial<Group> = {};
+    let msg = "";
+    if (stage === 0) { updates = { contractSent: true, status: "Contracted" }; msg = `Contract sent to ${g.email}`; }
+    else if (stage === 1) { updates = { status: "Confirmed" };  msg = `${g.id} confirmed`; }
+    else if (stage === 2) { updates = { status: "Active" };     msg = `${g.id} is now active`; }
+    else if (stage === 3) { updates = { status: "Departed" };   msg = `${g.id} marked departed`; }
+    setGroups(prev => prev.map(x => x.id === g.id ? { ...x, ...updates } : x));
+    add({ type: "success", title: msg });
+  };
+
+  const doSaveGroupEdit = (groupId: string) => {
+    setGroups(prev => prev.map(g => {
+      if (g.id !== groupId) return g;
+      const cin  = editForm.checkin  ?? g.checkin;
+      const cout = editForm.checkout ?? g.checkout;
+      const nights = Math.max(1, Math.round((new Date(cout).getTime() - new Date(cin).getTime()) / 86400000));
+      return {
+        ...g,
+        organizer:    editForm.organizer    ?? g.organizer,
+        phone:        editForm.phone        ?? g.phone,
+        email:        editForm.email        ?? g.email,
+        checkin:      cin,
+        checkout:     cout,
+        nights,
+        rooms: {
+          Standard: editForm.standardRooms ?? g.rooms.Standard,
+          Deluxe:   editForm.deluxeRooms   ?? g.rooms.Deluxe,
+          Suite:    editForm.suiteRooms    ?? g.rooms.Suite,
+        },
+        ratePlan:     editForm.ratePlan     ?? g.ratePlan,
+        cutoffDate:   editForm.cutoffDate   ?? g.cutoffDate,
+        notes:        editForm.notes        ?? g.notes,
+        cancelPolicy: editForm.cancelPolicy ?? g.cancelPolicy,
+      };
+    }));
+    add({ type: "success", title: "Group details updated" });
+    setEditingGroup(null);
+    setShowDeleteConfirm(false);
+  };
+
+  const doDeleteGroup = (groupId: string) => {
+    const name = groups.find(g => g.id === groupId)?.name ?? groupId;
+    setGroups(prev => prev.filter(g => g.id !== groupId));
+    setSelectedId(null);
+    setDetailTab("overview");
+    setShowDeleteConfirm(false);
+    setEditingGroup(null);
+    add({ type: "info", title: `${name} deleted` });
+  };
+
+  // ── Inline create form values ──────────────────────────────────────────────
+  const createTotalRms  = form.standardRooms + form.deluxeRooms + form.suiteRooms;
+  const createNights    = Math.max(1, Math.round((new Date(form.checkout).getTime() - new Date(form.checkin).getTime()) / 86400000));
+  const createEstVal    = (form.standardRooms * 35000 + form.deluxeRooms * 55000 + form.suiteRooms * 95000) * createNights;
+
+  // ────────────────────────────────────────────────────────────────────────────
   return (
-    <div>
-      <PageHeader title="Group Bookings" sub="Block bookings for groups, conferences, and events"
-        actions={<BtnP label="New Group Booking" icon={Plus} onClick={()=>setShowCreate(true)} />} />
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Active Groups" value={String(groups.length)} sub="Confirmed blocks" icon={Users} accent={PRIMARY} />
-        <StatCard label="Rooms Blocked" value={String(groups.reduce((s,g)=>s+g.rooms,0))} sub="Across all groups" icon={BedDouble} accent={TEAL} />
-        <StatCard label="Picked Up" value={String(groups.reduce((s,g)=>s+g.picked,0))} sub="Rooms assigned to guests" icon={CheckCircle2} accent={SUCCESS} />
-        <StatCard label="Pending" value={String(groups.reduce((s,g)=>s+(g.rooms-g.picked),0))} sub="Unassigned rooms" icon={AlertCircle} accent={ORANGE} />
-      </div>
-      <div className="space-y-4">
-        {groups.map(g => {
-          const pickupPct = Math.round((g.picked/g.rooms)*100);
-          const cutoffAlert = g.cutoffDays <= 5;
-          return (
-            <div key={g.id} className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: cutoffAlert ? `${ORANGE}60` : BORDER, borderWidth: cutoffAlert ? 2 : 1 }}>
-              {/* Cut-off warning banner */}
-              {cutoffAlert && (
-                <div className="flex items-center gap-2 px-5 py-2 text-xs font-semibold" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}>
-                  <AlertTriangle size={12} />Cut-off in {g.cutoffDays} days — unassigned rooms may be released
+    <div className="relative">
+
+      {/* ── Quick Create Modal ─────────────────────────────────────────────── */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-2xl mx-4 rounded-2xl overflow-hidden shadow-2xl" style={{ backgroundColor: PASS_BG, border: `1.5px solid ${PASS_BORDER}`, maxHeight: "90vh", overflowY: "auto" }}>
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: TEAL }}>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60">New Group Booking</p>
+                <p className="text-base font-bold text-white mt-0.5">Quick Create — saved as Tentative</p>
+              </div>
+              <button onClick={() => setShowCreate(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+                <X size={16} color="white" />
+              </button>
+            </div>
+            <PassNotch />
+
+            <div className="px-6 py-5 space-y-5">
+              {/* Group name + type */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Group Name <span style={{ color: ERROR }}>*</span></label>
+                  <input value={form.name} onChange={e => upd("name", e.target.value)} placeholder="e.g. Zenith Bank Team Offsite"
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
                 </div>
-              )}
-              <div className="p-5">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-base font-semibold" style={{ color: TEXT }}>{g.name}</h3>
-                    <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: MUTED }}>
-                      <span style={{ fontFamily: mono }}>{g.id}</span>
-                      <span className="px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>{g.type}</span>
-                      <span>Contact: {g.contact}</span>
-                    </div>
-                  </div>
-                  <Badge label={g.status} colors={{ bg:"#CCFBF1",text:"#0F766E" }} />
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Group Type</label>
+                  <select value={form.type} onChange={e => upd("type", e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }}>
+                    {allTypes.map(t => <option key={t}>{t}</option>)}
+                  </select>
                 </div>
-                {/* Stats row */}
-                <div className="grid grid-cols-5 gap-3 mb-4">
-                  {[{l:"Rooms Blocked",v:String(g.rooms)},{l:"Picked Up",v:String(g.picked)},{l:"Remaining",v:String(g.rooms-g.picked)},{l:"Check-in",v:g.checkin},{l:"Check-out",v:g.checkout}].map(s=>(
-                    <div key={s.l} className="rounded-xl p-3 text-center" style={{ backgroundColor:"#F0F4F8" }}>
-                      <div className="text-base font-bold" style={{ color: TEXT, fontFamily: s.l.includes("Check") ? "inherit" : mono }}>{s.v}</div>
-                      <div className="text-xs" style={{ color: MUTED }}>{s.l}</div>
+              </div>
+
+              {/* Organizer + contact */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Organizer <span style={{ color: ERROR }}>*</span></label>
+                  <input value={form.organizer} onChange={e => upd("organizer", e.target.value)} placeholder="Full name"
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Phone</label>
+                  <input value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="+234 …"
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Email</label>
+                  <input value={form.email} onChange={e => upd("email", e.target.value)} placeholder="organizer@company.com"
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Check-In</label>
+                  <input type="date" value={form.checkin} onChange={e => upd("checkin", e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Check-Out</label>
+                  <input type="date" value={form.checkout} onChange={e => upd("checkout", e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Cut-Off Date</label>
+                  <input type="date" value={form.cutoffDate} onChange={e => upd("cutoffDate", e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
+                </div>
+              </div>
+
+              {/* Room block */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: PASS_MUTED }}>Room Block</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {([
+                    ["Standard", "standardRooms", "₦35,000/night"],
+                    ["Deluxe",   "deluxeRooms",   "₦55,000/night"],
+                    ["Suite",    "suiteRooms",     "₦95,000/night"],
+                  ] as [string, "standardRooms"|"deluxeRooms"|"suiteRooms", string][]).map(([label, key, rate]) => (
+                    <div key={key} className="rounded-xl p-4 text-center" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }}>
+                      <p className="text-xs font-bold" style={{ color: PASS_MUTED }}>{label}</p>
+                      <p className="text-xs mb-3" style={{ color: PASS_MUTED, opacity: 0.7 }}>{rate}</p>
+                      <div className="flex items-center justify-center gap-3">
+                        <button onClick={() => upd(key, Math.max(0, (form[key] as number) - 1))}
+                          className="w-7 h-7 rounded-full flex items-center justify-center font-bold"
+                          style={{ backgroundColor: PASS_BG, border: `1.5px solid ${PASS_DASH}`, color: PASS_MUTED, fontSize: 18, lineHeight: 1 }}>−</button>
+                        <span className="text-xl font-bold w-6 text-center" style={{ color: TEXT, fontFamily: mono }}>{form[key]}</span>
+                        <button onClick={() => upd(key, (form[key] as number) + 1)}
+                          className="w-7 h-7 rounded-full flex items-center justify-center font-bold"
+                          style={{ backgroundColor: TEAL, color: "white", fontSize: 18, lineHeight: 1 }}>+</button>
+                      </div>
                     </div>
                   ))}
                 </div>
-                {/* Pick-up progress */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between text-xs mb-1.5">
-                    <span className="font-semibold" style={{ color: MUTED }}>Pick-up Progress</span>
-                    <span className="font-bold" style={{ color: pickupPct >= 80 ? SUCCESS : pickupPct >= 50 ? ORANGE : ERROR }}>{pickupPct}% · {g.picked}/{g.rooms} rooms assigned</span>
-                  </div>
-                  <div className="h-2 rounded-full" style={{ backgroundColor: "#E2E8F0" }}>
-                    <div className="h-2 rounded-full transition-all" style={{ width:`${pickupPct}%`, backgroundColor: pickupPct>=80 ? SUCCESS : pickupPct>=50 ? ORANGE : ERROR }} />
-                  </div>
+              </div>
+
+              {/* Rate plan + live estimate */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Rate Plan</label>
+                  <select value={form.ratePlan} onChange={e => upd("ratePlan", e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }}>
+                    {RATE_PLANS.map(r => <option key={r}>{r}</option>)}
+                  </select>
                 </div>
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <button onClick={()=>setExpandedId(expandedId===g.id ? null : g.id)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border" style={{ borderColor: expandedId===g.id ? PRIMARY : BORDER, color: expandedId===g.id ? PRIMARY : MUTED, backgroundColor: expandedId===g.id ? "#EFF6FF" : "white" }}>
-                    <Users size={13} />{expandedId===g.id ? "Hide" : "View"} Rooming List
-                  </button>
-                  <BtnO label="Master Folio" icon={FileText} onClick={()=>add({type:"info",title:`Master folio — ${g.id}`})} />
-                  <button onClick={()=>add({type:"info",title:`PDF generated — ${g.id}`})} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border" style={{ color: MUTED, borderColor: BORDER }}><Download size={13}/>Export PDF</button>
+                <div className="rounded-xl p-4 flex flex-col justify-center" style={{ backgroundColor: `${TEAL}0D`, border: `1.5px solid ${TEAL}28` }}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span style={{ color: PASS_MUTED }}>{createTotalRms} rooms · {createNights} nights</span>
+                    <span className="font-bold" style={{ color: TEAL }}>{form.type}</span>
+                  </div>
+                  <p className="text-xl font-bold" style={{ color: TEAL, fontFamily: mono }}>₦{createEstVal.toLocaleString()}</p>
+                  <p className="text-xs mt-0.5" style={{ color: PASS_MUTED }}>Estimated value (excl. taxes)</p>
                 </div>
               </div>
-              {/* Rooming list expansion */}
-              {expandedId === g.id && (
-                <div className="border-t" style={{ borderColor: BORDER }}>
-                  <div className="px-5 py-3 flex items-center justify-between" style={{ backgroundColor: "#F9FAFB" }}>
-                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>Rooming List ({g.rooming.length} of {g.rooms})</span>
-                    <button onClick={()=>add({type:"info",title:"Add guest to rooming list"})} className="text-xs flex items-center gap-1 font-medium" style={{ color: TEAL }}><Plus size={11}/>Add Guest</button>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Notes</label>
+                <textarea value={form.notes} onChange={e => upd("notes", e.target.value)} placeholder="Special requirements, inclusions, concessions…" rows={2}
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 pb-6 flex gap-3">
+              <button onClick={doCreateGroup} className="flex-1 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2" style={{ backgroundColor: TEAL }}>
+                <CheckCircle2 size={16} /> Create Group Booking
+              </button>
+              <button onClick={() => setShowCreate(false)} className="px-6 py-3 rounded-xl text-sm font-bold" style={{ border: `1.5px solid ${PASS_BORDER}`, color: PASS_MUTED }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Page header ────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: PASS_MUTED }}>Reservations</p>
+          <h1 className="text-2xl font-bold" style={{ color: TEXT }}>Group Bookings</h1>
+        </div>
+        <button onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
+          style={{ backgroundColor: TEAL }}>
+          <Plus size={15} /> New Group
+        </button>
+      </div>
+
+      <div className="flex gap-5 items-start">
+
+        {/* ── Left column: KPI strip + filter + table ─────────────────────── */}
+        <div className={selectedId ? "w-96 flex-shrink-0" : "flex-1"}>
+
+          {/* KPI strip — hidden when detail panel is open */}
+          {!selectedId && (
+            <div className="grid grid-cols-4 gap-4 mb-5">
+              {([
+                ["Active Groups",  String(groups.length),                        "Confirmed & Tentative", Users,        TEAL   ],
+                ["Rooms Blocked",  String(totalBlock),                           "Across all groups",      BedDouble,    PRIMARY],
+                ["Guests Assigned",String(totalPickedUp),                        "Rooming list total",     UserCheck,    SUCCESS],
+                ["Est. Revenue",   `₦${(totalRevenue/1000000).toFixed(1)}M`,    "Combined value",         DollarSign,   ORANGE ],
+              ] as [string,string,string,React.ElementType,string][]).map(([label, value, sub, Icon, accent]) => (
+                <div key={label} className="rounded-2xl p-5 border" style={{ backgroundColor: PASS_BG, borderColor: PASS_BORDER }}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: `${accent}14` }}>
+                    <Icon size={18} style={{ color: accent }} />
                   </div>
-                  <table className="w-full">
-                    <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Guest Name","Room","Status",""].map(h=><th key={h} className="px-5 py-2 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-                    <tbody>
-                      {g.rooming.map((r,i)=>(
-                        <tr key={i} className="border-t" style={{ borderColor:"#F1F5F9" }}>
-                          <td className="px-5 py-2.5 text-sm font-medium" style={{ color: TEXT }}>{r.name}</td>
-                          <td className="px-5 py-2.5 text-xs font-bold" style={{ color: PRIMARY }}>{r.room}</td>
-                          <td className="px-5 py-2.5"><span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: r.status==="Assigned" ? "#CCFBF1" : "#FEF3C7", color: r.status==="Assigned" ? "#0F766E" : "#D97706" }}>{r.status}</span></td>
-                          <td className="px-5 py-2.5"><button onClick={()=>add({type:"info",title:`Reassign — ${r.name}`})} className="text-xs px-2 py-1 rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}>Reassign</button></td>
-                        </tr>
-                      ))}
-                      {Array.from({length: g.rooms-g.rooming.length}).map((_,i)=>(
-                        <tr key={`empty-${i}`} className="border-t" style={{ borderColor:"#F1F5F9", backgroundColor:"#FAFBFD" }}>
-                          <td className="px-5 py-2.5 text-sm italic" style={{ color: SUBTLE }}>Unassigned slot</td>
-                          <td className="px-5 py-2.5 text-xs" style={{ color: SUBTLE }}>–</td>
-                          <td className="px-5 py-2.5"><span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor:"#F0F4F8", color: MUTED }}>Empty</span></td>
-                          <td className="px-5 py-2.5"><button onClick={()=>add({type:"info",title:"Assign guest to this slot"})} className="text-xs px-2 py-1 rounded-lg border" style={{ color: PRIMARY, borderColor:`${PRIMARY}30` }}>Assign</button></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <p className="text-2xl font-bold" style={{ color: TEXT, fontFamily: mono }}>{value}</p>
+                  <p className="text-xs font-semibold mt-0.5" style={{ color: PASS_MUTED }}>{label}</p>
+                  <p className="text-xs mt-0.5" style={{ color: PASS_MUTED, opacity: 0.7 }}>{sub}</p>
                 </div>
+              ))}
+            </div>
+          )}
+
+          {/* Search + type filter */}
+          <div className="flex items-center gap-3 mb-2 flex-wrap">
+            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl flex-1 min-w-48" style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white" }}>
+              <Search size={14} style={{ color: PASS_MUTED }} />
+              <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Search groups…"
+                className="flex-1 text-sm outline-none bg-transparent" style={{ color: TEXT }} />
+            </div>
+            <div className="flex gap-1.5 flex-wrap">
+              {filterOptions.map(t => (
+                <button key={t} onClick={() => setFilterType(t)}
+                  className="px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                  style={{ backgroundColor: filterType === t ? PRIMARY : "white", color: filterType === t ? "white" : PASS_MUTED, border: `1.5px solid ${filterType === t ? PRIMARY : PASS_BORDER}` }}>
+                  {t}
+                </button>
+              ))}
+              <button onClick={() => setShowTypeManager(v => !v)}
+                className="px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1"
+                style={{ backgroundColor: showTypeManager ? `${TEAL}14` : "white", color: showTypeManager ? TEAL : PASS_MUTED, border: `1.5px solid ${showTypeManager ? TEAL + "40" : PASS_BORDER}` }}
+                title="Manage group types">
+                <Settings size={12} />Types
+              </button>
+            </div>
+          </div>
+
+          {/* Type manager panel */}
+          {showTypeManager && (
+            <div className="rounded-xl mb-4 overflow-hidden" style={{ border: `1.5px solid ${TEAL}30`, backgroundColor: `${TEAL}06` }}>
+              <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: `1px solid ${TEAL}20` }}>
+                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: TEAL }}>Manage Group Types</p>
+                <p className="text-xs" style={{ color: PASS_MUTED }}>Types in use appear as filter pills automatically</p>
+              </div>
+              <div className="p-3 flex flex-wrap gap-2">
+                {allTypes.map(t => {
+                  const inUse = groups.some(g => g.type === t);
+                  const inConfig = groupTypes.includes(t);
+                  return (
+                    <div key={t} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold"
+                      style={{ backgroundColor: "white", border: `1.5px solid ${inUse ? TEAL + "40" : PASS_BORDER}`, color: inUse ? TEAL : PASS_MUTED }}>
+                      {t}
+                      {inUse && <span className="font-normal opacity-60" style={{ fontSize: 9 }}>in use</span>}
+                      {!inUse && inConfig && (
+                        <button onClick={() => { setGroupTypes(prev => prev.filter(x => x !== t)); if (filterType === t) setFilterType("All"); }}
+                          className="ml-1 opacity-50 hover:opacity-100 transition-opacity" title={`Remove "${t}"`}>
+                          <X size={11} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 px-3 pb-3">
+                <input value={newTypeName} onChange={e => setNewTypeName(e.target.value)}
+                  placeholder="New type name (e.g. Sports Team)…"
+                  className="flex-1 px-3 py-2 rounded-lg text-xs outline-none"
+                  style={{ border: `1.5px solid ${TEAL}40`, backgroundColor: "white" }}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && newTypeName.trim() && !groupTypes.includes(newTypeName.trim())) {
+                      setGroupTypes(prev => [...prev, newTypeName.trim()]);
+                      setNewTypeName("");
+                    }
+                  }} />
+                <button onClick={() => {
+                  const t = newTypeName.trim();
+                  if (t && !groupTypes.includes(t)) { setGroupTypes(prev => [...prev, t]); setNewTypeName(""); }
+                }}
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-white"
+                  style={{ backgroundColor: TEAL }}>
+                  + Add
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Table */}
+          <div className="rounded-2xl overflow-hidden shadow-sm" style={{ border: `1.5px solid ${PASS_BORDER}` }}>
+            {/* Header row */}
+            <div className="flex items-center px-4 py-2.5" style={{ backgroundColor: "#F1F5F9", borderBottom: `1.5px solid ${PASS_BORDER}` }}>
+              <div className="flex-1 font-bold" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>GROUP</div>
+              {!selectedId && (
+                <>
+                  <div className="w-36 font-bold flex-shrink-0" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>ORGANIZER</div>
+                  <div className="w-28 font-bold flex-shrink-0" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>DATES</div>
+                  <div className="w-16 font-bold flex-shrink-0 text-center" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>ROOMS</div>
+                  <div className="w-24 font-bold flex-shrink-0" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>PICK-UP</div>
+                  <div className="w-24 font-bold flex-shrink-0 text-right" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>VALUE</div>
+                  <div className="w-24 font-bold flex-shrink-0 text-right" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>STATUS</div>
+                </>
               )}
+            </div>
+
+            {/* Data rows */}
+            {filtered.map(g => {
+              const pct        = pickupPct(g);
+              const sc         = statusColor(g.status);
+              const isSelected = selectedId === g.id;
+              const cd         = cutoffDays(g);
+              return (
+                <button key={g.id} onClick={() => { setSelectedId(isSelected ? null : g.id); setDetailTab("overview"); setAssignSlot(null); }}
+                  className="w-full flex items-center px-4 py-3.5 text-left transition-all"
+                  style={{ borderBottom: `1px solid ${PASS_DASH}`, backgroundColor: isSelected ? `${TEAL}08` : "white", borderLeft: `3px solid ${isSelected ? TEAL : "transparent"}` }}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                      <span className="font-bold" style={{ fontSize: 10, color: PASS_MUTED, fontFamily: mono }}>{g.id}</span>
+                      <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 9, backgroundColor: `${TEAL}15`, color: TEAL }}>{g.type}</span>
+                      {cd > 0 && cd <= 5 && <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 9, backgroundColor: "#FEF9C3", color: "#92400E" }}>⚠ {cd}d cut-off</span>}
+                      {cd <= 0 && <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 9, backgroundColor: "#FEE2E2", color: ERROR }}>Cut-off passed</span>}
+                    </div>
+                    <p className="font-semibold text-sm truncate" style={{ color: TEXT }}>{g.name}</p>
+                    {selectedId && <p className="text-xs mt-0.5 truncate" style={{ color: PASS_MUTED }}>{g.organizer}</p>}
+                  </div>
+                  {!selectedId && (
+                    <>
+                      <div className="w-36 flex-shrink-0 pl-2">
+                        <p className="text-xs font-semibold truncate" style={{ color: TEXT }}>{g.organizer}</p>
+                        <p className="text-xs truncate" style={{ color: PASS_MUTED }}>{g.email}</p>
+                      </div>
+                      <div className="w-28 flex-shrink-0 pl-2">
+                        <p className="text-xs font-semibold" style={{ color: TEXT }}>{g.checkin}</p>
+                        <p className="text-xs" style={{ color: PASS_MUTED }}>{g.nights}n · {g.checkout}</p>
+                      </div>
+                      <div className="w-16 flex-shrink-0 text-center">
+                        <p className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>{totalBlocked(g)}</p>
+                      </div>
+                      <div className="w-24 flex-shrink-0 pl-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold" style={{ color: pct >= 80 ? SUCCESS : pct >= 50 ? ORANGE : ERROR, fontFamily: mono }}>{pct}%</span>
+                          <span className="text-xs" style={{ color: PASS_MUTED, fontSize: 9 }}>{g.rooming.length}/{totalBlocked(g)}</span>
+                        </div>
+                        <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: PASS_DASH }}>
+                          <div className="h-1.5 rounded-full" style={{ width: `${pct}%`, backgroundColor: pct >= 80 ? SUCCESS : pct >= 50 ? ORANGE : ERROR }} />
+                        </div>
+                      </div>
+                      <div className="w-24 flex-shrink-0 text-right">
+                        <p className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{(g.estValue/1000000).toFixed(1)}M</p>
+                      </div>
+                      <div className="w-24 flex-shrink-0 text-right">
+                        <span className="text-xs px-2 py-1 rounded-full font-bold" style={{ backgroundColor: sc.bg, color: sc.text }}>{g.status}</span>
+                      </div>
+                    </>
+                  )}
+                </button>
+              );
+            })}
+
+            {filtered.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-12" style={{ color: PASS_MUTED }}>
+                <Building2 size={32} style={{ opacity: 0.3 }} />
+                <p className="text-sm mt-3 font-semibold">No groups found</p>
+                <p className="text-xs mt-1">Adjust search or filters</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Right column: Detail panel ──────────────────────────────────── */}
+        {selectedId && selectedG && (() => {
+          const g        = selectedG;
+          const stage    = statusStage(g);
+          const cd       = cutoffDays(g);
+          const pct      = pickupPct(g);
+          const total    = totalBlocked(g);
+          const sc       = statusColor(g.status);
+          const charges  = g.folio.filter(l => l.category !== "payment").reduce((s, l) => s + l.amount, 0);
+          const payments = Math.abs(g.folio.filter(l => l.category === "payment").reduce((s, l) => s + l.amount, 0));
+          const vat      = Math.round(charges * 0.075);
+          const balance  = charges + vat - payments;
+          const nextBtnLabel = stage === 0 ? "Send Contract" : stage === 1 ? "Mark Confirmed" : stage === 2 ? "Set Active" : stage === 3 ? "Mark Departed" : "Completed";
+
+          return (
+            <div className="flex-1 rounded-2xl overflow-hidden shadow-sm flex flex-col" style={{ border: `1.5px solid ${PASS_BORDER}`, minWidth: 0 }}>
+
+              {/* Panel header — boarding-pass style */}
+              <div className="px-5 py-4" style={{ backgroundColor: TEAL }}>
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="text-xs font-bold text-white opacity-60" style={{ fontFamily: mono }}>{g.id}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: "rgba(255,255,255,0.18)", color: "white" }}>{g.type}</span>
+                    </div>
+                    <p className="text-lg font-bold text-white truncate">{g.name}</p>
+                    <p className="text-xs text-white opacity-60 mt-0.5">{g.organizer} · {g.email}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                    <span className="text-xs px-2.5 py-1 rounded-full font-bold" style={{ backgroundColor: sc.bg, color: sc.text }}>{g.status}</span>
+                    <button onClick={() => { setSelectedId(null); setDetailTab("overview"); setAssignSlot(null); setEditingFolio(false); }}
+                      className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+                      <X size={14} color="white" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <PassNotch />
+
+              {/* Status pipeline */}
+              <div className="px-5 py-3" style={{ backgroundColor: PASS_BG, borderBottom: `1px solid ${PASS_BORDER}` }}>
+                <div className="flex items-center">
+                  {STATUS_PIPELINE.map((s, i) => (
+                    <React.Fragment key={s}>
+                      <div className="flex flex-col items-center">
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center mb-1"
+                          style={{ backgroundColor: i <= stage ? TEAL : PASS_DASH }}>
+                          {i < stage
+                            ? <CheckCircle2 size={12} color="white" />
+                            : <span className="w-2 h-2 rounded-full block" style={{ backgroundColor: i === stage ? "white" : PASS_MUTED }} />}
+                        </div>
+                        <p className="text-center font-bold" style={{ fontSize: 8, color: i <= stage ? TEAL : PASS_MUTED, letterSpacing: "0.06em" }}>{s.toUpperCase()}</p>
+                      </div>
+                      {i < STATUS_PIPELINE.length - 1 && (
+                        <div className="flex-1 h-0.5 mx-1 mb-3.5" style={{ backgroundColor: i < stage ? TEAL : PASS_DASH }} />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex" style={{ borderBottom: `1.5px solid ${PASS_BORDER}`, backgroundColor: PASS_BG }}>
+                {(["overview", "rooming", "folio", "contract"] as const).map(t => (
+                  <button key={t} onClick={() => setDetailTab(t)}
+                    className="flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-all"
+                    style={{ borderBottom: `2px solid ${detailTab === t ? TEAL : "transparent"}`, color: detailTab === t ? TEAL : PASS_MUTED }}>
+                    {t === "rooming" ? `Rooming (${g.rooming.length}/${total})` : t.charAt(0).toUpperCase() + t.slice(1)}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab content */}
+              <div className="flex-1 overflow-y-auto" style={{ backgroundColor: PASS_BG }}>
+
+                {/* ── Overview tab ─────────────────────────────────────────── */}
+                {detailTab === "overview" && (
+                  <div className="p-5 space-y-4">
+                    {cd > 0 && cd <= 5 && editingGroup !== g.id && (
+                      <div className="flex items-center gap-2 p-3 rounded-xl text-sm font-semibold" style={{ backgroundColor: "#FFFBEB", border: `1.5px solid ${ORANGE}30`, color: "#92400E" }}>
+                        <AlertTriangle size={15} /> Cut-off in {cd} day{cd !== 1 ? "s" : ""} — confirm unassigned rooms
+                      </div>
+                    )}
+                    {cd <= 0 && editingGroup !== g.id && (
+                      <div className="flex items-center gap-2 p-3 rounded-xl text-sm font-semibold" style={{ backgroundColor: "#FEE2E2", border: `1.5px solid ${ERROR}30`, color: ERROR }}>
+                        <AlertTriangle size={15} /> Cut-off has passed — room block is frozen
+                      </div>
+                    )}
+
+                    {editingGroup === g.id ? (
+                      <div className="space-y-3">
+                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Edit Group Details</p>
+
+                        {/* Contact fields */}
+                        {([["Organizer","organizer","text"],["Phone","phone","tel"],["Email","email","email"]] as [string,string,string][]).map(([label,field,type]) => (
+                          <div key={field}>
+                            <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>{label}</label>
+                            <input type={type} value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                              className="w-full px-3 py-2 rounded-lg text-sm"
+                              style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }} />
+                          </div>
+                        ))}
+
+                        {/* Date fields */}
+                        <div className="grid grid-cols-3 gap-2">
+                          {([["Check-In","checkin"],["Check-Out","checkout"],["Cut-Off","cutoffDate"]] as [string,string][]).map(([label,field]) => (
+                            <div key={field}>
+                              <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>{label}</label>
+                              <input type="date" value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                                className="w-full px-2 py-2 rounded-lg text-xs"
+                                style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }} />
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Rate plan */}
+                        <div>
+                          <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>Rate Plan</label>
+                          <select value={editForm.ratePlan ?? g.ratePlan} onChange={e => setEditForm(p => ({ ...p, ratePlan: e.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg text-sm"
+                            style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }}>
+                            {RATE_PLANS.map(rp => <option key={rp} value={rp}>{rp}</option>)}
+                          </select>
+                        </div>
+
+                        {/* Room allocation steppers */}
+                        <div>
+                          <label className="block text-xs font-bold mb-2" style={{ color: PASS_MUTED }}>Room Allocation</label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {(["Standard","Deluxe","Suite"] as const).map(rt => {
+                              const key = `${rt.toLowerCase()}Rooms`;
+                              const val = editForm[key] ?? g.rooms[rt];
+                              return (
+                                <div key={rt} className="flex flex-col items-center gap-1 p-3 rounded-xl" style={{ backgroundColor: "white", border: `1.5px solid ${PASS_BORDER}` }}>
+                                  <p className="text-xs font-bold" style={{ color: PASS_MUTED }}>{rt}</p>
+                                  <div className="flex items-center gap-2">
+                                    <button onClick={() => setEditForm(p => ({ ...p, [key]: Math.max(0, val - 1) }))}
+                                      className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
+                                      style={{ backgroundColor: PASS_DASH, color: TEXT }}>−</button>
+                                    <span className="text-lg font-bold w-6 text-center" style={{ color: TEXT, fontFamily: mono }}>{val}</span>
+                                    <button onClick={() => setEditForm(p => ({ ...p, [key]: val + 1 }))}
+                                      className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
+                                      style={{ backgroundColor: TEAL, color: "white" }}>+</button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Notes */}
+                        <div>
+                          <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>Notes</label>
+                          <textarea value={editForm.notes ?? g.notes} onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))}
+                            rows={3} className="w-full px-3 py-2 rounded-lg text-sm resize-none"
+                            style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }} />
+                        </div>
+
+                        {/* Cancellation policy */}
+                        <div>
+                          <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>Cancellation Policy</label>
+                          <input type="text"
+                            value={editForm.cancelPolicy ?? (g.cancelPolicy ?? "48h notice / 1 night penalty")}
+                            onChange={e => setEditForm(p => ({ ...p, cancelPolicy: e.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg text-sm"
+                            style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }} />
+                        </div>
+
+                        {/* Save / Cancel */}
+                        <div className="flex gap-2 pt-1">
+                          <button onClick={() => doSaveGroupEdit(g.id)}
+                            className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white"
+                            style={{ backgroundColor: TEAL }}>Save Changes</button>
+                          <button onClick={() => { setEditingGroup(null); setShowDeleteConfirm(false); }}
+                            className="flex-1 py-2.5 rounded-xl text-xs font-bold"
+                            style={{ border: `1.5px solid ${PASS_BORDER}`, color: PASS_MUTED, backgroundColor: "white" }}>Cancel</button>
+                        </div>
+
+                        {/* Delete zone */}
+                        {showDeleteConfirm ? (
+                          <div className="p-4 rounded-xl space-y-3" style={{ backgroundColor: "#FEF2F2", border: `1.5px solid ${ERROR}30` }}>
+                            <p className="text-sm font-bold" style={{ color: ERROR }}>Delete {g.name}?</p>
+                            <p className="text-xs" style={{ color: PASS_MUTED }}>This cannot be undone. All rooming and folio data will be lost.</p>
+                            <div className="flex gap-2">
+                              <button onClick={() => doDeleteGroup(g.id)}
+                                className="flex-1 py-2 rounded-lg text-xs font-bold text-white"
+                                style={{ backgroundColor: ERROR }}>Yes, Delete</button>
+                              <button onClick={() => setShowDeleteConfirm(false)}
+                                className="flex-1 py-2 rounded-lg text-xs font-bold"
+                                style={{ border: `1.5px solid ${PASS_BORDER}`, color: PASS_MUTED, backgroundColor: "white" }}>Keep Group</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button onClick={() => setShowDeleteConfirm(true)}
+                            className="w-full py-2 rounded-xl text-xs font-bold"
+                            style={{ border: `1.5px solid ${ERROR}30`, color: ERROR, backgroundColor: "#FEF2F2" }}>
+                            Delete This Group
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-2 gap-3">
+                          {([
+                            ["Check-In",    g.checkin,        CalendarDays ],
+                            ["Check-Out",   g.checkout,       CalendarDays ],
+                            ["Nights",      String(g.nights), Clock        ],
+                            ["Cut-Off",     g.cutoffDate,     AlertTriangle],
+                            ["Rate Plan",   g.ratePlan,       DollarSign   ],
+                            ["Total Rooms", String(total),    BedDouble    ],
+                          ] as [string, string, React.ElementType][]).map(([label, value, Icon]) => (
+                            <div key={label} className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: "white", border: `1px solid ${PASS_BORDER}` }}>
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${TEAL}10` }}>
+                                <Icon size={15} style={{ color: TEAL }} />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold uppercase" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.06em" }}>{label}</p>
+                                <p className="font-semibold text-sm mt-0.5 truncate" style={{ color: TEXT }}>{value}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="p-4 rounded-xl" style={{ backgroundColor: "white", border: `1px solid ${PASS_BORDER}` }}>
+                          <div className="flex justify-between text-xs mb-2">
+                            <span className="font-bold uppercase tracking-wider" style={{ color: PASS_MUTED }}>Pick-Up Progress</span>
+                            <span className="font-bold" style={{ color: pct >= 80 ? SUCCESS : pct >= 50 ? ORANGE : ERROR, fontFamily: mono }}>{pct}% · {g.rooming.length}/{total}</span>
+                          </div>
+                          <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: PASS_DASH }}>
+                            <div className="h-2 rounded-full" style={{ width: `${pct}%`, backgroundColor: pct >= 80 ? SUCCESS : pct >= 50 ? ORANGE : ERROR }} />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2">
+                          {([
+                            ["Standard", g.rooms.Standard, "₦35K/nt"],
+                            ["Deluxe",   g.rooms.Deluxe,   "₦55K/nt"],
+                            ["Suite",    g.rooms.Suite,    "₦95K/nt"],
+                          ] as [string, number, string][]).map(([type, count, rate]) => (
+                            <div key={type} className="text-center p-3 rounded-xl" style={{ backgroundColor: "white", border: `1px solid ${PASS_BORDER}` }}>
+                              <p className="text-xs font-bold" style={{ color: PASS_MUTED }}>{type}</p>
+                              <p className="text-2xl font-bold my-1" style={{ color: count > 0 ? TEXT : PASS_DASH, fontFamily: mono }}>{count}</p>
+                              <p className="text-xs" style={{ color: PASS_MUTED }}>{rate}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {g.notes && (
+                          <div className="px-4 py-3 rounded-xl text-sm italic" style={{ backgroundColor: "white", border: `1px solid ${PASS_BORDER}`, color: PASS_MUTED }}>
+                            "{g.notes}"
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <button onClick={() => doAdvanceStatus(g)} disabled={stage >= 4}
+                            className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1.5"
+                            style={{ backgroundColor: stage < 4 ? TEAL : PASS_DASH }}>
+                            <ArrowRight size={13} />{nextBtnLabel}
+                          </button>
+                          <button onClick={() => {
+                            setEditForm({
+                              organizer: g.organizer, phone: g.phone, email: g.email,
+                              checkin: g.checkin, checkout: g.checkout, cutoffDate: g.cutoffDate,
+                              ratePlan: g.ratePlan, notes: g.notes,
+                              standardRooms: g.rooms.Standard, deluxeRooms: g.rooms.Deluxe, suiteRooms: g.rooms.Suite,
+                              cancelPolicy: g.cancelPolicy ?? "48h notice / 1 night penalty",
+                            });
+                            setEditingGroup(g.id);
+                          }}
+                            className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5"
+                            style={{ border: `1.5px solid ${PASS_BORDER}`, color: TEXT, backgroundColor: "white" }}>
+                            <Edit3 size={13} />Edit
+                          </button>
+                          <button onClick={() => add({ type: "info", title: `PDF — ${g.id}` })}
+                            className="px-3 py-2.5 rounded-xl text-xs font-bold flex items-center"
+                            style={{ border: `1.5px solid ${PASS_BORDER}`, color: PASS_MUTED, backgroundColor: "white" }}>
+                            <Download size={13} />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Rooming list tab ─────────────────────────────────────── */}
+                {detailTab === "rooming" && (
+                  <div>
+                    <div className="flex items-center justify-between px-5 py-3 sticky top-0 z-10" style={{ backgroundColor: "#F1F5F9", borderBottom: `1px solid ${PASS_BORDER}` }}>
+                      <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>{g.rooming.length} of {total} slots assigned</p>
+                      <button onClick={() => add({ type: "info", title: "Rooming list exported" })} className="flex items-center gap-1 text-xs font-bold" style={{ color: TEAL }}>
+                        <Download size={11} />CSV
+                      </button>
+                    </div>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr style={{ backgroundColor: "white", borderBottom: `1px solid ${PASS_BORDER}` }}>
+                          {["#", "GUEST", "TYPE", "ROOM", "STATUS", ""].map(h => (
+                            <th key={h} className={`px-4 py-2.5 font-bold ${h === "" ? "text-right" : "text-left"}`} style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.from({ length: total }, (_, idx) => {
+                          const roomTypes = [...Array(g.rooms.Standard).fill("Standard"), ...Array(g.rooms.Deluxe).fill("Deluxe"), ...Array(g.rooms.Suite).fill("Suite")];
+                          const guest = g.rooming[idx];
+                          const rType = roomTypes[idx] || "Standard";
+                          const rsc   = guest ? roomingStatusColor(guest.status) : null;
+                          return (
+                            <tr key={idx} style={{ borderBottom: `1px solid ${PASS_DASH}`, backgroundColor: idx % 2 === 0 ? "white" : "#FAFAF8" }}>
+                              <td className="px-4 py-3 font-bold" style={{ color: PASS_MUTED, fontFamily: mono, fontSize: 11 }}>{String(idx + 1).padStart(2, "0")}</td>
+                              <td className="px-4 py-3">
+                                {guest ? (
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${TEAL}18` }}>
+                                      <User size={12} style={{ color: TEAL }} />
+                                    </div>
+                                    <span className="font-semibold" style={{ color: TEXT }}>{guest.name}</span>
+                                  </div>
+                                ) : (
+                                  <span style={{ color: PASS_MUTED }}>Slot {idx + 1}</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-xs font-semibold" style={{ color: PASS_MUTED }}>{guest ? guest.type : rType}</td>
+                              <td className="px-4 py-3 text-xs" style={{ color: guest ? TEXT : PASS_MUTED, fontFamily: mono }}>{guest ? guest.room : "—"}</td>
+                              <td className="px-4 py-3">
+                                {rsc
+                                  ? <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: rsc.bg, color: rsc.text }}>{guest!.status}</span>
+                                  : <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: "#F1F5F9", color: MUTED }}>Unassigned</span>}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                {assignSlot === idx ? (
+                                  <div className="flex items-center gap-1 justify-end">
+                                    <input value={assignName} onChange={e => setAssignName(e.target.value)}
+                                      placeholder="Guest name…" autoFocus
+                                      className="px-2 py-1.5 text-xs rounded-lg outline-none"
+                                      style={{ border: `1.5px solid ${TEAL}`, width: 120 }}
+                                      onKeyDown={e => e.key === "Enter" && doAssign(g.id, idx)} />
+                                    <button onClick={() => doAssign(g.id, idx)} className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: TEAL }}>OK</button>
+                                    <button onClick={() => { setAssignSlot(null); setAssignName(""); }} className="px-2 py-1.5 rounded-lg text-xs" style={{ color: PASS_MUTED }}>✕</button>
+                                  </div>
+                                ) : (
+                                  <button onClick={() => { setAssignSlot(idx); setAssignName(""); }}
+                                    className="text-xs px-3 py-1.5 rounded-lg font-bold"
+                                    style={{ border: `1.5px solid ${guest ? PASS_BORDER : TEAL}28`, color: guest ? PASS_MUTED : TEAL, backgroundColor: guest ? "transparent" : `${TEAL}08` }}>
+                                    {guest ? "Reassign" : "Assign"}
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* ── Folio tab ────────────────────────────────────────────── */}
+                {detailTab === "folio" && (
+                  <div>
+                    <div className="flex items-center justify-between px-5 py-3 sticky top-0 z-10" style={{ backgroundColor: "#F1F5F9", borderBottom: `1px solid ${PASS_BORDER}` }}>
+                      <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Master Folio — {g.id}</p>
+                      <button onClick={() => setEditingFolio(v => !v)} className="flex items-center gap-1 text-xs font-bold" style={{ color: editingFolio ? ORANGE : TEAL }}>
+                        <Plus size={11} />{editingFolio ? "Done" : "Add Charge"}
+                      </button>
+                    </div>
+                    {editingFolio && (
+                      <div className="px-5 py-3 flex items-center gap-2" style={{ backgroundColor: `${TEAL}08`, borderBottom: `1px solid ${PASS_BORDER}` }}>
+                        <input value={newCharge.description} onChange={e => setNewCharge(p => ({ ...p, description: e.target.value }))}
+                          placeholder="Description (e.g. Welcome dinner)"
+                          className="flex-1 px-3 py-2 rounded-lg text-xs outline-none" style={{ border: `1.5px solid ${TEAL}40`, backgroundColor: "white" }} />
+                        <input value={newCharge.amount} onChange={e => setNewCharge(p => ({ ...p, amount: e.target.value }))}
+                          placeholder="Amount (₦)" type="number"
+                          className="w-28 px-3 py-2 rounded-lg text-xs outline-none" style={{ border: `1.5px solid ${TEAL}40`, backgroundColor: "white" }} />
+                        <button onClick={() => {
+                          if (!newCharge.description || !newCharge.amount) return;
+                          setGroups(prev => prev.map(x => x.id === g.id ? {
+                            ...x, folio: [...x.folio, { id: x.folio.length + 1, description: newCharge.description, amount: Number(newCharge.amount), date: new Date().toISOString().split("T")[0], category: "extra" as const }],
+                          } : x));
+                          setNewCharge({ description: "", amount: "" });
+                          add({ type: "success", title: "Charge added to folio" });
+                        }} className="px-4 py-2 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: TEAL }}>Add</button>
+                      </div>
+                    )}
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr style={{ backgroundColor: "white", borderBottom: `1px solid ${PASS_BORDER}` }}>
+                          <th className="px-5 py-2.5 text-left font-bold" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>DESCRIPTION</th>
+                          <th className="px-5 py-2.5 text-left font-bold" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>DATE</th>
+                          <th className="px-5 py-2.5 text-right font-bold" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>AMOUNT</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {g.folio.map(line => (
+                          <tr key={line.id} style={{ borderBottom: `1px solid ${PASS_DASH}`, backgroundColor: line.category === "payment" ? "#F0FDF4" : "white" }}>
+                            <td className="px-5 py-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: line.category === "payment" ? SUCCESS : line.category === "room" ? TEAL : line.category === "fnb" ? ORANGE : PRIMARY }} />
+                                <span style={{ color: TEXT }}>{line.description}</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3 text-xs" style={{ color: PASS_MUTED, fontFamily: mono }}>{line.date}</td>
+                            <td className="px-5 py-3 text-right font-semibold" style={{ color: line.category === "payment" ? SUCCESS : TEXT, fontFamily: mono }}>
+                              {line.category === "payment" ? "–" : ""}₦{Math.abs(line.amount).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                        <tr style={{ backgroundColor: "#FAFAF8", borderBottom: `1.5px dashed ${PASS_DASH}` }}>
+                          <td className="px-5 py-2.5 text-xs font-semibold" style={{ color: PASS_MUTED }}>VAT (7.5%)</td>
+                          <td></td>
+                          <td className="px-5 py-2.5 text-right font-semibold text-xs" style={{ color: PASS_MUTED, fontFamily: mono }}>₦{vat.toLocaleString()}</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr style={{ backgroundColor: PASS_BG, borderTop: `1.5px solid ${PASS_BORDER}` }}>
+                          <td className="px-5 py-4 font-bold text-sm" style={{ color: TEXT }}>Balance Due</td>
+                          <td></td>
+                          <td className="px-5 py-4 text-right font-bold text-lg" style={{ color: balance > 0 ? ORANGE : SUCCESS, fontFamily: mono }}>₦{balance.toLocaleString()}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                    {paymentInput.show && paymentInput.groupId === g.id && (
+                      <div className="px-5 py-3 flex items-center gap-2" style={{ backgroundColor: `${SUCCESS}08`, borderTop: `1px solid ${PASS_BORDER}` }}>
+                        <span className="text-xs font-bold" style={{ color: PASS_MUTED }}>Amount (₦)</span>
+                        <input value={paymentInput.amount} onChange={e => setPaymentInput(p => ({ ...p, amount: e.target.value }))}
+                          placeholder="e.g. 500000" type="number" autoFocus
+                          className="flex-1 px-3 py-2 rounded-lg text-xs outline-none" style={{ border: `1.5px solid ${SUCCESS}40`, backgroundColor: "white" }} />
+                        <button onClick={() => {
+                          const amt = Number(paymentInput.amount);
+                          if (!amt || amt <= 0) return;
+                          setGroups(prev => prev.map(x => x.id === g.id ? {
+                            ...x,
+                            depositPaid: x.depositPaid + amt,
+                            folio: [...x.folio, { id: x.folio.length + 1, description: `Payment received`, amount: -amt, date: new Date().toISOString().split("T")[0], category: "payment" as const }],
+                          } : x));
+                          add({ type: "success", title: `₦${amt.toLocaleString()} recorded — ${g.id}` });
+                          setPaymentInput({ show: false, amount: "", groupId: "" });
+                        }} className="px-4 py-2 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: SUCCESS }}>Record</button>
+                        <button onClick={() => setPaymentInput({ show: false, amount: "", groupId: "" })} className="px-2 py-2 text-xs" style={{ color: PASS_MUTED }}>✕</button>
+                      </div>
+                    )}
+                    <div className="px-5 py-4 flex gap-2">
+                      <button onClick={() => add({ type: "info", title: `Invoice sent — ${g.id}` })} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white" style={{ backgroundColor: PRIMARY }}>
+                        Send Invoice
+                      </button>
+                      <button onClick={() => setPaymentInput({ show: !paymentInput.show || paymentInput.groupId !== g.id, amount: "", groupId: g.id })} className="flex-1 py-2.5 rounded-xl text-xs font-bold" style={{ border: `1.5px solid ${paymentInput.show && paymentInput.groupId === g.id ? SUCCESS : PASS_BORDER}`, color: paymentInput.show && paymentInput.groupId === g.id ? SUCCESS : PASS_MUTED, backgroundColor: "white" }}>
+                        Record Payment
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Contract tab ─────────────────────────────────────────── */}
+                {detailTab === "contract" && (
+                  <div className="p-5 space-y-4">
+                    <div className="rounded-xl p-4 flex items-center gap-3" style={{ backgroundColor: g.contractSigned ? "#F0FDF4" : g.contractSent ? "#FFF7ED" : "white", border: `1.5px solid ${g.contractSigned ? SUCCESS + "30" : g.contractSent ? ORANGE + "30" : PASS_BORDER}` }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: g.contractSigned ? `${SUCCESS}15` : g.contractSent ? `${ORANGE}15` : PASS_BORDER }}>
+                        {g.contractSigned ? <CheckCircle2 size={20} style={{ color: SUCCESS }} /> : g.contractSent ? <Clock size={20} style={{ color: ORANGE }} /> : <FileText size={20} style={{ color: PASS_MUTED }} />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm" style={{ color: TEXT }}>{g.contractSigned ? "Contract Signed" : g.contractSent ? "Contract Sent — Awaiting Signature" : "Contract Not Sent"}</p>
+                        <p className="text-xs mt-0.5" style={{ color: PASS_MUTED }}>{g.contractSigned ? "Organizer has signed. Booking confirmed." : g.contractSent ? `Sent to ${g.email}` : "Contract has not been issued yet."}</p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${PASS_BORDER}` }}>
+                      <div className="px-4 py-2.5" style={{ backgroundColor: "#F1F5F9" }}>
+                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Contract Terms</p>
+                      </div>
+                      {([
+                        ["Rate Plan",        g.ratePlan],
+                        ["Cut-Off Date",     g.cutoffDate],
+                        ["Deposit Required", `${g.depositPct}% of est. value`],
+                        ["Cancellation",     g.cancelPolicy ?? "48h notice / 1 night penalty"],
+                        ["Room Block",       `${total} rooms held until cut-off`],
+                      ]).map(([label, value]) => (
+                        <div key={label} className="flex justify-between px-4 py-2.5 text-sm" style={{ borderTop: `1px solid ${PASS_DASH}` }}>
+                          <span style={{ color: PASS_MUTED }}>{label}</span>
+                          <span className="font-semibold" style={{ color: TEXT }}>{value}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${PASS_BORDER}` }}>
+                      <div className="px-4 py-2.5" style={{ backgroundColor: "#F1F5F9" }}>
+                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Payment Schedule</p>
+                      </div>
+                      {([
+                        [`Deposit (${g.depositPct}%)`, `₦${Math.round(g.estValue * g.depositPct / 100).toLocaleString()}`, g.depositPaid > 0, "On contract signing"],
+                        ["Balance",                     `₦${Math.round(g.estValue * (1 - g.depositPct / 100) * 1.075).toLocaleString()}`, false, "On check-in"],
+                      ] as [string, string, boolean, string][]).map(([label, amount, paid, due]) => (
+                        <div key={label} className="flex items-center justify-between px-4 py-3" style={{ borderTop: `1px solid ${PASS_DASH}` }}>
+                          <div>
+                            <p className="font-semibold text-sm" style={{ color: TEXT }}>{label}</p>
+                            <p className="text-xs" style={{ color: PASS_MUTED }}>{due}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-sm" style={{ color: TEXT, fontFamily: mono }}>{amount}</p>
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: paid ? "#DCFCE7" : "#FEF3C7", color: paid ? SUCCESS : "#92400E" }}>{paid ? "Paid" : "Pending"}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex gap-2">
+                      {!g.contractSent && (
+                        <button onClick={() => { setGroups(prev => prev.map(x => x.id === g.id ? { ...x, contractSent: true } : x)); add({ type: "success", title: "Contract sent", body: g.email }); }}
+                          className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1.5" style={{ backgroundColor: TEAL }}>
+                          <Send size={13} />Send Contract
+                        </button>
+                      )}
+                      {g.contractSent && !g.contractSigned && (
+                        <button onClick={() => { setGroups(prev => prev.map(x => x.id === g.id ? { ...x, contractSigned: true, status: "Confirmed" } : x)); add({ type: "success", title: "Contract signed", body: g.id }); }}
+                          className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1.5" style={{ backgroundColor: SUCCESS }}>
+                          <CheckCircle2 size={13} />Mark as Signed
+                        </button>
+                      )}
+                      {g.contractSent && (
+                        <button onClick={() => { setGroups(prev => prev.map(x => x.id === g.id ? { ...x, contractSent: true } : x)); add({ type: "info", title: "Contract resent", body: g.email }); }}
+                          className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5"
+                          style={{ border: `1.5px solid ${PASS_BORDER}`, color: PASS_MUTED, backgroundColor: "white" }}>
+                          <RefreshCw size={13} />Resend
+                        </button>
+                      )}
+                      <button onClick={() => add({ type: "info", title: `Contract PDF — ${g.id}` })}
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5"
+                        style={{ border: `1.5px solid ${PASS_BORDER}`, color: PASS_MUTED, backgroundColor: "white" }}>
+                        <Download size={13} />PDF
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    </div>
+  );
+}
+
+export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
+  const PASS_BG     = "#F9FAFB";
+  const PASS_BORDER = "#E2E8F0";
+  const PASS_MUTED  = "#64748B";
+  const PASS_DASH   = "#CBD5E1";
+  const ROOM_TYPES  = ["Suite", "Deluxe", "Standard"];
+  const SOURCES     = ["Walk-in", "Phone", "Online", "Referral"];
+
+  type WLEntry = {
+    id: string; guest: string; phone: string; email: string;
+    type: string; dates: string; waitDays: number; priority: number;
+    source: string; notes: string;
+    contacted: boolean; contactedAt: string | null;
+    availMatch: boolean;
+  };
+
+  const [entries, setEntries] = useState<WLEntry[]>([
+    { id:"WL-018", guest:"Amara Nwosu",   phone:"+234 802 111 2233", email:"amara@nwosu.ng",   type:"Suite",    dates:"26–29 Aug", waitDays:2, priority:1, source:"Phone",    notes:"VIP — CEO of Nwosu Group. Prefers high floor.",              contacted:false, contactedAt:null,          availMatch:true  },
+    { id:"WL-017", guest:"Kunle Badmus",  phone:"+234 803 445 6677", email:"kunle@badmus.com",  type:"Deluxe",   dates:"25–27 Aug", waitDays:3, priority:2, source:"Walk-in",  notes:"Travelling with spouse. Needs connecting rooms if possible.", contacted:true,  contactedAt:"Today 09:14", availMatch:false },
+    { id:"WL-016", guest:"Sade Oladipo",  phone:"+234 809 900 1122", email:"sade@gmail.com",    type:"Standard", dates:"25 Aug",    waitDays:1, priority:3, source:"Online",   notes:"",                                                           contacted:false, contactedAt:null,          availMatch:false },
+    { id:"WL-015", guest:"Emeka Nwosu",   phone:"+234 706 334 5566", email:"emeka@nwosu.ng",    type:"Deluxe",   dates:"3–5 Sep",   waitDays:5, priority:4, source:"Referral", notes:"Referred by GRP-001.",                                       contacted:true,  contactedAt:"Yesterday",   availMatch:false },
+    { id:"WL-014", guest:"Funke Abosede", phone:"+234 812 667 8899", email:"funke@abosede.ng",  type:"Standard", dates:"2–4 Sep",   waitDays:6, priority:5, source:"Phone",    notes:"Requested ground-floor room.",                               contacted:false, contactedAt:null,          availMatch:false },
+  ]);
+
+  const [dismissed,     setDismissed]     = useState<string[]>([]);
+  const [filterType,    setFilterType]    = useState("All");
+  const [searchTerm,    setSearchTerm]    = useState("");
+  const [showAdd,       setShowAdd]       = useState(false);
+  const [editingId,     setEditingId]     = useState<string | null>(null);
+  const [showPromoteId, setShowPromoteId] = useState<string | null>(null);
+  const [roomAvailType, setRoomAvailType] = useState<string | null>("Suite");
+  const [form, setForm] = useState({ guest:"", phone:"", email:"", type:"Suite", dates:"", source:"Walk-in", notes:"" });
+  const upd = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
+
+  const list    = entries.filter(e =>
+    !dismissed.includes(e.id) &&
+    (filterType === "All" || e.type === filterType) &&
+    (!searchTerm || e.guest.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.phone.includes(searchTerm))
+  );
+  const sorted  = [...list].sort((a, b) => a.priority - b.priority);
+  const matches = roomAvailType ? sorted.filter(e => e.type === roomAvailType) : [];
+  const avgWait = list.length ? (list.reduce((s, e) => s + e.waitDays, 0) / list.length).toFixed(1) : "0";
+  const contactedCount = list.filter(e => e.contacted).length;
+
+  const doPromote = (e: WLEntry) => {
+    add({ type:"success", title:`${e.guest} promoted to reservation`, body:`${e.type} · ${e.dates}` });
+    setDismissed(d => [...d, e.id]);
+    setShowPromoteId(null);
+    if (e.availMatch) setRoomAvailType(null);
+  };
+
+  const doContact = (e: WLEntry) => {
+    setEntries(prev => prev.map(x => x.id === e.id ? { ...x, contacted:true, contactedAt:"Just now" } : x));
+    add({ type:"info", title:`Contacted ${e.guest}`, body:"SMS + email sent" });
+  };
+
+  const doRemove = (e: WLEntry) => {
+    add({ type:"warning", title:`${e.guest} removed from waitlist` });
+    setDismissed(d => [...d, e.id]);
+  };
+
+  const doMove = (id: string, dir: -1 | 1) => {
+    setEntries(prev => {
+      const arr  = [...prev];
+      const idx  = arr.findIndex(e => e.id === id);
+      const tgt  = arr.findIndex(e => e.priority === arr[idx].priority + dir);
+      if (tgt === -1) return prev;
+      [arr[idx].priority, arr[tgt].priority] = [arr[tgt].priority, arr[idx].priority];
+      return arr;
+    });
+  };
+
+  const doAdd = () => {
+    if (!form.guest.trim()) { add({ type:"warning", title:"Guest name is required" }); return; }
+    if (editingId) {
+      setEntries(prev => prev.map(e => e.id === editingId ? {
+        ...e, guest:form.guest.trim(), phone:form.phone, email:form.email,
+        type:form.type, dates:form.dates, source:form.source, notes:form.notes,
+      } : e));
+      add({ type:"success", title:`${form.guest} updated` });
+    } else {
+      const maxP  = entries.length ? Math.max(...entries.map(e => e.priority)) : 0;
+      const newId = `WL-0${String(entries.length + 13).padStart(2,"0")}`;
+      setEntries(prev => [...prev, {
+        id:newId, guest:form.guest.trim(), phone:form.phone, email:form.email,
+        type:form.type, dates:form.dates, waitDays:0, priority:maxP + 1,
+        source:form.source, notes:form.notes, contacted:false, contactedAt:null, availMatch:false,
+      }]);
+      add({ type:"success", title:`${form.guest} added to waitlist`, body:`${form.type} · Priority ${maxP + 1}` });
+    }
+    setShowAdd(false);
+    setEditingId(null);
+    setForm({ guest:"", phone:"", email:"", type:"Suite", dates:"", source:"Walk-in", notes:"" });
+  };
+
+  const sourceBadge = (s: string) => ({
+    "Walk-in":  { bg:"#EFF6FF", color:PRIMARY  },
+    "Phone":    { bg:"#F0FDF4", color:SUCCESS   },
+    "Online":   { bg:"#FFF7ED", color:ORANGE    },
+    "Referral": { bg:"#FAF5FF", color:"#7C3AED" },
+  }[s] ?? { bg:"#F1F5F9", color:MUTED });
+
+  const priorityColor = (p: number) => p === 1 ? ERROR : p === 2 ? ORANGE : p === 3 ? WARNING : MUTED;
+
+  const PassDivider = () => (
+    <div className="flex items-center" style={{ marginLeft:-1, marginRight:-1 }}>
+      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor:"#EFF6FF", border:`1.5px solid ${PASS_BORDER}`, marginLeft:-8 }} />
+      <div className="flex-1 border-t-2 border-dashed" style={{ borderColor:PASS_DASH }} />
+      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor:"#EFF6FF", border:`1.5px solid ${PASS_BORDER}`, marginRight:-8 }} />
+    </div>
+  );
+
+  return (
+    <div>
+
+      {/* ── Add Guest Modal ─────────────────────────────────────────────── */}
+      {showAdd && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor:"rgba(15,23,42,0.55)", backdropFilter:"blur(4px)" }}>
+          <div className="w-full max-w-lg mx-4 rounded-2xl overflow-hidden shadow-2xl" style={{ backgroundColor:PASS_BG, border:`1.5px solid ${PASS_BORDER}` }}>
+            <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor:TEAL }}>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60">Waitlist</p>
+                <p className="text-base font-bold text-white mt-0.5">{editingId ? "Edit Entry" : "Add Guest to Waitlist"}</p>
+              </div>
+              <button onClick={() => { setShowAdd(false); setEditingId(null); setForm({ guest:"", phone:"", email:"", type:"Suite", dates:"", source:"Walk-in", notes:"" }); }} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor:"rgba(255,255,255,0.2)" }}>
+                <X size={16} color="white" />
+              </button>
+            </div>
+            <PassDivider />
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Guest Name <span style={{ color:ERROR }}>*</span></label>
+                <input value={form.guest} onChange={e => upd("guest", e.target.value)} placeholder="Full name"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${PASS_DASH}`, backgroundColor:"white" }} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Phone</label>
+                  <input value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="+234 …"
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${PASS_DASH}`, backgroundColor:"white" }} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Email</label>
+                  <input value={form.email} onChange={e => upd("email", e.target.value)} placeholder="guest@email.com"
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${PASS_DASH}`, backgroundColor:"white" }} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Room Preference</label>
+                  <select value={form.type} onChange={e => upd("type", e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ border:`1.5px solid ${PASS_DASH}`, backgroundColor:"white" }}>
+                    {ROOM_TYPES.map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Requested Dates</label>
+                  <input value={form.dates} onChange={e => upd("dates", e.target.value)} placeholder="e.g. 10–12 Sep"
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${PASS_DASH}`, backgroundColor:"white" }} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Source</label>
+                <div className="flex gap-2 flex-wrap">
+                  {SOURCES.map(s => {
+                    const sb = sourceBadge(s);
+                    return (
+                      <button key={s} onClick={() => upd("source", s)}
+                        className="px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                        style={{ backgroundColor:form.source === s ? sb.bg : "white", color:form.source === s ? sb.color : PASS_MUTED, border:`1.5px solid ${form.source === s ? sb.color + "40" : PASS_BORDER}` }}>
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Notes</label>
+                <textarea value={form.notes} onChange={e => upd("notes", e.target.value)} placeholder="Special requests, VIP notes…" rows={2}
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border:`1.5px solid ${PASS_DASH}`, backgroundColor:"white" }} />
+              </div>
+            </div>
+            <div className="px-6 pb-6 flex gap-3">
+              <button onClick={doAdd} className="flex-1 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2" style={{ backgroundColor:TEAL }}>
+                {editingId ? <><Edit3 size={15} />Save Changes</> : <><Plus size={15} />Add to Waitlist</>}
+              </button>
+              <button onClick={() => { setShowAdd(false); setEditingId(null); setForm({ guest:"", phone:"", email:"", type:"Suite", dates:"", source:"Walk-in", notes:"" }); }} className="px-5 py-3 rounded-xl text-sm font-bold" style={{ border:`1.5px solid ${PASS_BORDER}`, color:PASS_MUTED }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Promote confirm ─────────────────────────────────────────────── */}
+      {showPromoteId && (() => {
+        const e = sorted.find(x => x.id === showPromoteId);
+        if (!e) return null;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor:"rgba(15,23,42,0.45)", backdropFilter:"blur(4px)" }}>
+            <div className="w-80 rounded-2xl overflow-hidden shadow-2xl" style={{ backgroundColor:PASS_BG, border:`1.5px solid ${PASS_BORDER}` }}>
+              <div className="px-5 py-4" style={{ backgroundColor:SUCCESS }}>
+                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-70">Confirm Promotion</p>
+                <p className="text-base font-bold text-white mt-0.5">Promote to Reservation?</p>
+              </div>
+              <div className="px-5 py-4 space-y-3">
+                <div className="rounded-xl p-4" style={{ backgroundColor:"white", border:`1px solid ${PASS_BORDER}` }}>
+                  <p className="font-bold text-sm" style={{ color:TEXT }}>{e.guest}</p>
+                  <p className="text-xs mt-0.5" style={{ color:PASS_MUTED }}>{e.type} · {e.dates}</p>
+                  <p className="text-xs mt-0.5" style={{ color:PASS_MUTED }}>{e.phone}</p>
+                </div>
+                <p className="text-xs" style={{ color:PASS_MUTED }}>This removes {e.guest} from the waitlist and opens a reservation for {e.type} · {e.dates}.</p>
+              </div>
+              <div className="px-5 pb-5 flex gap-2">
+                <button onClick={() => doPromote(e)} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor:SUCCESS }}>Confirm</button>
+                <button onClick={() => setShowPromoteId(null)} className="px-4 py-2.5 rounded-xl text-sm font-bold" style={{ border:`1.5px solid ${PASS_BORDER}`, color:PASS_MUTED }}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Header ──────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color:PASS_MUTED }}>Reservations</p>
+          <h1 className="text-2xl font-bold" style={{ color:TEXT }}>Waitlist</h1>
+        </div>
+        <button onClick={() => setShowAdd(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
+          style={{ backgroundColor:TEAL }}>
+          <Plus size={15} />Add Guest
+        </button>
+      </div>
+
+      {/* ── KPI strip ───────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-4 gap-4 mb-5">
+        {([
+          ["On Waitlist",      String(list.length),    "Awaiting a room",              Users,        TEAL   ],
+          ["Avg Wait",         `${avgWait} days`,      "Based on current list",        Clock,        ORANGE ],
+          ["Contacted",        String(contactedCount), `of ${list.length} reached`,    Phone,        SUCCESS],
+          ["Converted / mo",  "12",                   "Promoted this month",          CheckCircle2, PRIMARY],
+        ] as [string,string,string,React.ElementType,string][]).map(([label, value, sub, Icon, accent]) => (
+          <div key={label} className="rounded-2xl p-5 border" style={{ backgroundColor:PASS_BG, borderColor:PASS_BORDER }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor:`${accent}14` }}>
+              <Icon size={18} style={{ color:accent }} />
+            </div>
+            <p className="text-2xl font-bold" style={{ color:TEXT, fontFamily:mono }}>{value}</p>
+            <p className="text-xs font-semibold mt-0.5" style={{ color:PASS_MUTED }}>{label}</p>
+            <p className="text-xs mt-0.5" style={{ color:PASS_MUTED, opacity:0.7 }}>{sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Room available alert ─────────────────────────────────────────── */}
+      {roomAvailType && matches.length > 0 && (
+        <div className="flex items-start gap-3 px-5 py-4 rounded-2xl mb-5" style={{ backgroundColor:"#CCFBF1", border:"1.5px solid #5EEAD4" }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor:"#14B8A630" }}>
+            <CheckCircle2 size={18} style={{ color:"#0F766E" }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-sm" style={{ color:"#0F766E" }}>
+              {roomAvailType} room just freed up — {matches.length} guest{matches.length !== 1 ? "s" : ""} match
+            </p>
+            <p className="text-xs mt-0.5" style={{ color:"#0F766E", opacity:0.8 }}>
+              {matches.map(m => m.guest).join(", ")} · Click <strong>Promote</strong> on a highlighted row to convert immediately
+            </p>
+          </div>
+          <button onClick={() => setRoomAvailType(null)} style={{ color:"#0F766E", opacity:0.5 }}><X size={14} /></button>
+        </div>
+      )}
+
+      {/* ── Search + Filter pills ────────────────────────────────────────── */}
+      <div className="flex items-center gap-3 mb-3 flex-wrap">
+        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl flex-1 min-w-48" style={{ border:`1.5px solid ${PASS_BORDER}`, backgroundColor:"white" }}>
+          <Search size={14} style={{ color:PASS_MUTED }} />
+          <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Search guests by name, ID, email, phone…"
+            className="flex-1 text-sm outline-none bg-transparent" style={{ color:TEXT }} />
+          {searchTerm && (
+            <button onClick={() => setSearchTerm("")} style={{ color:PASS_MUTED }}><X size={13} /></button>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        {["All", ...ROOM_TYPES].map(t => (
+          <button key={t} onClick={() => setFilterType(t)}
+            className="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all"
+            style={{ backgroundColor:filterType === t ? PRIMARY : PASS_BG, color:filterType === t ? "white" : PASS_MUTED, border:`1.5px solid ${filterType === t ? PRIMARY : PASS_BORDER}` }}>
+            {t}{t !== "All" && ` (${list.filter(e => e.type === t).length})`}
+          </button>
+        ))}
+        <div className="ml-auto">
+          {!roomAvailType && (
+            <button onClick={() => setRoomAvailType("Suite")}
+              className="text-xs px-3 py-1.5 rounded-full font-bold"
+              style={{ backgroundColor:`${TEAL}10`, color:TEAL, border:`1.5px solid ${TEAL}30` }}>
+              ↑ Simulate Room Available
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Waitlist table ───────────────────────────────────────────────── */}
+      <div className="rounded-2xl overflow-hidden shadow-sm" style={{ border:`1.5px solid ${PASS_BORDER}` }}>
+        <div className="flex items-center px-4 py-2.5" style={{ backgroundColor:"#F1F5F9", borderBottom:`1.5px solid ${PASS_BORDER}` }}>
+          <div className="w-10 font-bold" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>#</div>
+          <div className="w-6 flex-shrink-0" />
+          <div className="flex-1 font-bold" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>GUEST</div>
+          <div className="w-24 font-bold flex-shrink-0" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>ROOM TYPE</div>
+          <div className="w-28 font-bold flex-shrink-0" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>DATES</div>
+          <div className="w-20 font-bold flex-shrink-0" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>WAITING</div>
+          <div className="w-20 font-bold flex-shrink-0" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>SOURCE</div>
+          <div className="font-bold flex-shrink-0" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>ACTIONS</div>
+        </div>
+
+        {sorted.map((e) => {
+          const isMatch    = roomAvailType === e.type;
+          const sb         = sourceBadge(e.source);
+          const maxP       = Math.max(...sorted.map(x => x.priority));
+          return (
+            <div key={e.id} className="flex items-center px-4 py-3.5"
+              style={{ borderBottom:`1px solid ${PASS_DASH}`, backgroundColor:isMatch ? "#F0FDFA" : "white", borderLeft:`3px solid ${isMatch ? "#14B8A6" : "transparent"}` }}>
+
+              {/* Priority badge */}
+              <div className="w-10 flex-shrink-0">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                  style={{ backgroundColor:priorityColor(e.priority) }}>
+                  {e.priority}
+                </div>
+              </div>
+
+              {/* Reorder arrows */}
+              <div className="w-6 flex-shrink-0 flex flex-col gap-0.5">
+                <button onClick={() => doMove(e.id, -1)} disabled={e.priority === 1}
+                  className="flex items-center justify-center transition-opacity disabled:opacity-10 opacity-30 hover:opacity-100"
+                  style={{ color:PASS_MUTED }}>
+                  <ChevronUp size={11} />
+                </button>
+                <button onClick={() => doMove(e.id, 1)} disabled={e.priority === maxP}
+                  className="flex items-center justify-center transition-opacity disabled:opacity-10 opacity-30 hover:opacity-100"
+                  style={{ color:PASS_MUTED }}>
+                  <ChevronDown size={11} />
+                </button>
+              </div>
+
+              {/* Guest info */}
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-semibold text-sm" style={{ color:TEXT }}>{e.guest}</p>
+                  {isMatch && <span className="text-xs px-2 py-0.5 rounded-full font-bold animate-pulse" style={{ backgroundColor:"#14B8A6", color:"white" }}>Room Open</span>}
+                </div>
+                <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                  <span className="text-xs" style={{ color:PASS_MUTED, fontFamily:mono }}>{e.id}</span>
+                  <span className="text-xs" style={{ color:PASS_MUTED }}>{e.phone}</span>
+                  {e.email && <span className="text-xs" style={{ color:PASS_MUTED }}>{e.email}</span>}
+                  {e.contacted && (
+                    <span className="text-xs font-semibold flex items-center gap-1" style={{ color:SUCCESS }}>
+                      <CheckCircle2 size={10} />Contacted {e.contactedAt}
+                    </span>
+                  )}
+                </div>
+                {e.notes && <p className="text-xs mt-0.5 truncate" style={{ color:PASS_MUTED, fontStyle:"italic" }}>"{e.notes}"</p>}
+              </div>
+
+              {/* Room type */}
+              <div className="w-24 flex-shrink-0">
+                <span className="text-xs px-2.5 py-1 rounded-full font-bold" style={{ backgroundColor:"#EFF6FF", color:PRIMARY }}>{e.type}</span>
+              </div>
+
+              {/* Dates */}
+              <div className="w-28 flex-shrink-0">
+                <p className="text-xs font-semibold" style={{ color:TEXT }}>{e.dates || "—"}</p>
+              </div>
+
+              {/* Wait time */}
+              <div className="w-20 flex-shrink-0">
+                <p className="text-xs font-semibold" style={{ color:e.waitDays >= 5 ? ERROR : e.waitDays >= 3 ? ORANGE : PASS_MUTED }}>
+                  {e.waitDays === 0 ? "Just added" : `${e.waitDays}d`}
+                </p>
+              </div>
+
+              {/* Source */}
+              <div className="w-20 flex-shrink-0">
+                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor:sb.bg, color:sb.color }}>{e.source}</span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button onClick={() => setShowPromoteId(e.id)}
+                  className="text-xs px-3 py-1.5 rounded-lg font-bold"
+                  style={{ backgroundColor:isMatch ? SUCCESS : `${SUCCESS}12`, color:isMatch ? "white" : SUCCESS, border:`1.5px solid ${SUCCESS}30` }}>
+                  Promote
+                </button>
+                {!e.contacted ? (
+                  <button onClick={() => doContact(e)}
+                    className="text-xs px-3 py-1.5 rounded-lg font-bold"
+                    style={{ backgroundColor:"white", color:PASS_MUTED, border:`1.5px solid ${PASS_BORDER}` }}>
+                    Contact
+                  </button>
+                ) : (
+                  <button onClick={() => doContact(e)}
+                    className="text-xs px-3 py-1.5 rounded-lg font-bold"
+                    style={{ backgroundColor:`${SUCCESS}0D`, color:SUCCESS, border:`1.5px solid ${SUCCESS}20` }}>
+                    Resend
+                  </button>
+                )}
+                <button onClick={() => {
+                  setForm({ guest:e.guest, phone:e.phone, email:e.email, type:e.type, dates:e.dates, source:e.source, notes:e.notes });
+                  setEditingId(e.id);
+                  setShowAdd(true);
+                }}
+                  className="text-xs px-2.5 py-1.5 rounded-lg font-bold"
+                  style={{ backgroundColor:"white", color:PRIMARY, border:`1.5px solid ${PRIMARY}20` }}>
+                  Edit
+                </button>
+                <button onClick={() => doRemove(e)}
+                  className="text-xs px-2.5 py-1.5 rounded-lg font-bold"
+                  style={{ backgroundColor:"white", color:ERROR, border:`1.5px solid ${ERROR}20` }}>
+                  Remove
+                </button>
+              </div>
             </div>
           );
         })}
-      </div>
-      {/* Create Group Modal */}
-      {showCreate && (
-        <>
-          <div className="fixed inset-0 z-40 backdrop-blur-sm" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>setShowCreate(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>New Group Booking</h3>
-            <p className="text-xs mb-5" style={{ color: MUTED }}>Create a block reservation for a group event.</p>
-            <div className="space-y-3">
-              {[["Group / Event Name","name","e.g. Zenith Bank Annual Conference"],["Lead Contact","contact","Contact person name"],["Rooms Required","rooms","e.g. 10"],["Cut-off Date","cutoff","YYYY-MM-DD"]].map(([label,key,placeholder])=>(
-                <div key={key as string}><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>{label as string}</label>
-                  <input value={(newGroup as Record<string,string>)[key as string]} onChange={e=>setNewGroup(p=>({...p,[key as string]:e.target.value}))} placeholder={placeholder as string} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              ))}
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Group Type</label>
-                <select value={newGroup.type} onChange={e=>setNewGroup(p=>({...p,type:e.target.value}))} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
-                  {["Corporate","Wedding","Conference","Government","Other"].map(t=><option key={t}>{t}</option>)}
-                </select></div>
-            </div>
-            <div className="flex gap-3 mt-5">
-              <button onClick={()=>setShowCreate(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button>
-              <button onClick={createGroup} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Create Group</button>
-            </div>
+
+        {sorted.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-14" style={{ backgroundColor:"white" }}>
+            <CheckCircle2 size={36} style={{ color:SUCCESS }} />
+            <p className="text-sm font-semibold mt-3" style={{ color:TEXT }}>Waitlist is clear</p>
+            <p className="text-xs mt-1" style={{ color:PASS_MUTED }}>No guests currently waiting for a room</p>
           </div>
-        </>
-      )}
-    </div>
-  );
-}
+        )}
 
-// R-05 Waitlist
-export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [dismissed, setDismissed] = useState<string[]>([]);
-  const fullList = [
-    ...WAITLIST_DATA,
-    { id:"WL-015", guest:"Emeka Nwosu", type:"Deluxe", dates:"3–5 Aug", waiting:"5 days", priority: 4, availOpened: true },
-    { id:"WL-014", guest:"Funke Abosede", type:"Standard", dates:"2–4 Aug", waiting:"6 days", priority: 5, availOpened: false },
-  ];
-  const list = fullList.filter(w => !dismissed.includes(w.id));
-  return (
-    <div>
-      <PageHeader title="Waitlist" sub={`${list.length} guests awaiting a room`} actions={<BtnP label="Add to Waitlist" icon={Plus} onClick={()=>add({type:"info",title:"Add guest to waitlist"})} />} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
-        <StatCard label="On Waitlist" value={String(list.length)} sub="Awaiting room" icon={Users} accent={PRIMARY} />
-        <StatCard label="Avg Wait Time" value="2.3 days" sub="Based on occupancy" icon={Clock} accent={WARNING} />
-        <StatCard label="Converted This Month" value="12" sub="From waitlist to booking" icon={CheckCircle2} accent={SUCCESS} />
-      </div>
-      {/* Availability opened banner */}
-      {list.some(w => (w as {availOpened?:boolean}).availOpened) && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl mb-4 text-sm font-medium" style={{ backgroundColor:"#CCFBF1", color:"#0F766E", border:"1px solid #5EEAD4" }}>
-          <CheckCircle2 size={16} /><span>A room became available — guests below flagged with <strong>Room Available</strong> can be promoted now</span>
-        </div>
-      )}
-      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
-        <table className="w-full">
-          <thead><tr style={{ backgroundColor:"#F9FAFB" }}>
-            {["Priority","Ref","Guest","Room Type","Requested Dates","Waiting","",""].map((h,i)=>(
-              <th key={i} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>
-            ))}
-          </tr></thead>
-          <tbody>{list.map(w=>{
-            const availOpened = (w as {availOpened?:boolean}).availOpened;
-            return (
-              <tr key={w.id} className="border-t" style={{ borderColor:"#F1F5F9", backgroundColor: availOpened ? "rgba(27,163,156,0.04)" : "white" }}>
-                <td className="px-5 py-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-sm"
-                    style={{ backgroundColor: w.priority===1 ? ERROR : w.priority===2 ? ORANGE : w.priority===3 ? WARNING : MUTED }}>{w.priority}</div>
-                </td>
-                <td className="px-5 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{w.id}</td>
-                <td className="px-5 py-3">
-                  <div className="text-sm font-medium" style={{ color: TEXT }}>{w.guest}</div>
-                  {availOpened && <div className="text-xs font-semibold mt-0.5" style={{ color: TEAL }}>Room Available</div>}
-                </td>
-                <td className="px-5 py-3"><span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor:"#EFF6FF",color:PRIMARY }}>{w.type}</span></td>
-                <td className="px-5 py-3 text-sm" style={{ color: MUTED }}>{w.dates}</td>
-                <td className="px-5 py-3 text-xs font-semibold" style={{ color: ORANGE }}>{w.waiting}</td>
-                <td className="px-5 py-3">
-                  {availOpened && <span className="text-xs px-2 py-1 rounded-full font-bold animate-pulse" style={{ backgroundColor: TEAL, color: "white" }}>Room Open</span>}
-                </td>
-                <td className="px-5 py-3">
-                  <div className="flex gap-1">
-                    <button onClick={()=>{ add({type:"success",title:`${w.guest} promoted to reservation`,body:`${w.type} · ${w.dates}`}); setDismissed(d=>[...d,w.id]); }}
-                      className="text-xs px-2.5 py-1.5 rounded-lg border font-medium" style={{ color: SUCCESS, borderColor:`${SUCCESS}30` }}>Promote</button>
-                    <button onClick={()=>add({type:"info",title:`Contacted ${w.guest}`,body:"SMS + email sent"})}
-                      className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}>Contact</button>
-                    <button onClick={()=>{ add({type:"warning",title:`${w.guest} removed from waitlist`}); setDismissed(d=>[...d,w.id]); }}
-                      className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: ERROR, borderColor:`${ERROR}20` }}>Remove</button>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}</tbody>
-        </table>
-        {list.length === 0 && <EmptyState icon={Users} message="Waitlist is clear — no guests waiting for a room." />}
-        <div className="flex items-center justify-between px-5 py-3 border-t text-xs" style={{ borderColor: BORDER, color: MUTED }}>
-          <span>{dismissed.length} guests promoted or removed this session</span>
-          <button onClick={()=>add({type:"info",title:"Exported waitlist"})} className="flex items-center gap-1" style={{ color: PRIMARY }}><Download size={12}/>Export CSV</button>
+        <div className="flex items-center justify-between px-5 py-3 border-t text-xs" style={{ borderColor:PASS_BORDER, backgroundColor:PASS_BG }}>
+          <span style={{ color:PASS_MUTED }}>{dismissed.length} guest{dismissed.length !== 1 ? "s" : ""} promoted or removed this session</span>
+          <button onClick={() => add({ type:"info", title:"Waitlist exported" })} className="flex items-center gap-1 font-bold" style={{ color:TEAL }}>
+            <Download size={12} />Export CSV
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// R-06 Rate Management
 export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void }) {
+  const ROOM_CATEGORIES = ["Standard", "Deluxe", "Suite"];
+  const ROOM_TYPE_MULTIPLIERS = { Standard: 1, Deluxe: 1.57, Suite: 2.71 };
+
   const [plans, setPlans] = useState(RATE_PLANS.map(r => ({ ...r })));
   const [selectedPlan, setSelectedPlan] = useState<(typeof RATE_PLANS)[0] | null>(null);
   const [editPlan, setEditPlan] = useState<(typeof RATE_PLANS)[0] | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [editValues, setEditValues] = useState({ name: "", base: "", dates: "" });
-  const ROOM_TYPE_MULTIPLIERS = { Standard: 1, Deluxe: 1.57, Suite: 2.71 };
-  const openEdit = (r: typeof RATE_PLANS[0]) => { setEditPlan(r); setEditValues({ name: r.name, base: r.base.toString(), dates: r.dates }); };
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editValues, setEditValues] = useState({ name: "", base: "", dates: "", rooms: [] as string[] });
+  const [createValues, setCreateValues] = useState({ name: "", base: "", dates: "Year-round", rooms: ["Standard", "Deluxe", "Suite"] as string[] });
+  const updC = (k: string, v: string) => setCreateValues(p => ({ ...p, [k]: v }));
+
+  const openEdit = (r: typeof RATE_PLANS[0]) => {
+    setEditPlan(r);
+    setEditValues({ name: r.name, base: r.base.toString(), dates: r.dates, rooms: [...(r.rooms as string[])] });
+  };
   const saveEdit = () => {
     if (!editPlan) return;
-    setPlans(p => p.map(r => r.id === editPlan.id ? { ...r, name: editValues.name, base: Number(editValues.base) || r.base, dates: editValues.dates } : r));
-    if (selectedPlan?.id === editPlan.id) setSelectedPlan(p => p ? { ...p, name: editValues.name, base: Number(editValues.base) || p.base, dates: editValues.dates } : null);
+    const rooms = editValues.rooms.length > 0 ? editValues.rooms : (editPlan.rooms as string[]);
+    const base  = Number(editValues.base) || editPlan.base;
+    setPlans(p => p.map(r => r.id === editPlan.id ? { ...r, name: editValues.name, base, dates: editValues.dates, rooms } : r));
+    if (selectedPlan?.id === editPlan.id) setSelectedPlan(p => p ? { ...p, name: editValues.name, base, dates: editValues.dates, rooms } : null);
     setEditPlan(null);
     add({ type: "success", title: "Rate plan updated", body: editValues.name });
+  };
+  const doCreate = () => {
+    if (!createValues.name.trim() || !createValues.base) {
+      add({ type: "warning", title: "Plan name and base rate are required" }); return;
+    }
+    const newId = `RP-${String(plans.length + 1).padStart(3, "0")}`;
+    const rooms = createValues.rooms.length > 0 ? createValues.rooms : ["Standard"];
+    setPlans(prev => [...prev, { id: newId, name: createValues.name.trim(), base: Number(createValues.base), dates: createValues.dates || "Year-round", active: true, rooms } as typeof RATE_PLANS[0]]);
+    add({ type: "success", title: "Rate plan created", body: `${createValues.name} · ${rooms.join(", ")}` });
+    setShowCreate(false);
+    setCreateValues({ name: "", base: "", dates: "Year-round", rooms: ["Standard", "Deluxe", "Suite"] });
+  };
+  const doDelete = (id: string) => {
+    const plan = plans.find(r => r.id === id);
+    setPlans(prev => prev.filter(r => r.id !== id));
+    if (selectedPlan?.id === id) setSelectedPlan(null);
+    setShowDeleteConfirm(false);
+    add({ type: "warning", title: `${plan?.name} deleted` });
   };
   const toggleActive = (id: string) => {
     const plan = plans.find(r => r.id === id);
@@ -1683,7 +2539,7 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
               ))}
             </tr></thead>
             <tbody>{plans.map((r,i)=>(
-              <tr key={r.id} onClick={()=>setSelectedPlan(r)} className="border-t cursor-pointer transition-colors"
+              <tr key={r.id} onClick={()=>{ setSelectedPlan(r); setShowDeleteConfirm(false); }} className="border-t cursor-pointer transition-colors"
                 style={{ borderColor:"#F4F4F5", backgroundColor: selectedPlan?.id===r.id ? "#EFF6FF" : i%2===0 ? "white" : "#FAFBFD" }}>
                 <td className="px-4 py-3.5 text-xs" style={{ color: MUTED, fontFamily: mono }}>{r.id}</td>
                 <td className="px-4 py-3.5 text-sm font-semibold" style={{ color: selectedPlan?.id===r.id ? PRIMARY : TEXT }}>{r.name}</td>
@@ -1710,7 +2566,7 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
             <div className="flex items-start justify-between mb-4">
               <div><h3 className="text-sm font-bold" style={{ color: TEXT }}>{selectedPlan.name}</h3>
                 <div className="text-xs mt-0.5" style={{ color: MUTED, fontFamily: mono }}>{selectedPlan.id}</div></div>
-              <button onClick={()=>setSelectedPlan(null)} className="text-xs p-1 rounded" style={{ color: MUTED }}><X size={14}/></button>
+              <button onClick={()=>{ setSelectedPlan(null); setShowDeleteConfirm(false); }} className="text-xs p-1 rounded" style={{ color: MUTED }}><X size={14}/></button>
             </div>
             <div className="mb-4">
               <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Plan Details</div>
@@ -1749,12 +2605,28 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
                 );
               })}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-3">
               <button onClick={()=>openEdit(selectedPlan)} className="flex-1 py-2 rounded-xl text-sm font-semibold border" style={{ color: PRIMARY, borderColor:`${PRIMARY}30` }}>Edit Plan</button>
               <button onClick={()=>{ toggleActive(selectedPlan.id); setSelectedPlan(p=>p?{...p,active:!p.active}:null); }} className="flex-1 py-2 rounded-xl text-sm font-semibold" style={{ backgroundColor: selectedPlan.active ? "#FFF1F2" : "#F0FDF4", color: selectedPlan.active ? ERROR : SUCCESS }}>
                 {selectedPlan.active ? "Deactivate" : "Activate"}
               </button>
             </div>
+            {showDeleteConfirm ? (
+              <div className="p-3 rounded-xl space-y-3" style={{ backgroundColor: "#FEF2F2", border: `1.5px solid ${ERROR}30` }}>
+                <p className="text-xs font-bold" style={{ color: ERROR }}>Delete "{selectedPlan.name}"?</p>
+                <p className="text-xs" style={{ color: MUTED }}>This removes the plan permanently and cannot be undone.</p>
+                <div className="flex gap-2">
+                  <button onClick={() => doDelete(selectedPlan.id)} className="flex-1 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: ERROR }}>Yes, Delete</button>
+                  <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-1.5 rounded-lg text-xs font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Keep</button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setShowDeleteConfirm(true)}
+                className="w-full py-2 rounded-xl text-xs font-bold"
+                style={{ border: `1.5px solid ${ERROR}20`, color: ERROR, backgroundColor: "#FEF2F2" }}>
+                Delete Plan
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -1772,6 +2644,21 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
                 <input type="number" value={editValues.base} onChange={e=>setEditValues(p=>({...p,base:e.target.value}))} className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
               <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Applicable Dates</label>
                 <input value={editValues.dates} onChange={e=>setEditValues(p=>({...p,dates:e.target.value}))} placeholder="e.g. Year-round, Dec 20 – Jan 5" className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider block mb-2" style={{ color: MUTED }}>Room Types</label>
+                <div className="flex gap-2">
+                  {ROOM_CATEGORIES.map(rt => {
+                    const checked = editValues.rooms.includes(rt);
+                    return (
+                      <button key={rt} onClick={() => setEditValues(p => ({ ...p, rooms: checked ? p.rooms.filter(r => r !== rt) : [...p.rooms, rt] }))}
+                        className="flex-1 py-2.5 rounded-xl text-xs font-bold border-2 transition-all"
+                        style={{ borderColor: checked ? PRIMARY : BORDER, backgroundColor: checked ? "#EFF6FF" : "white", color: checked ? PRIMARY : MUTED }}>
+                        {rt}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <div className="p-3 rounded-xl text-xs" style={{ backgroundColor:"#FFFBEB", border:"1px solid #FDE68A", color:"#92400E" }}>
                 ⚠ Deluxe and Suite rates are calculated as multipliers of the Standard base rate.
               </div>
@@ -1785,22 +2672,69 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
       )}
       {/* Create Modal */}
       {showCreate && (
-        <>
-          <div className="fixed inset-0 z-40 backdrop-blur-sm" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>setShowCreate(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-5" style={{ color: TEXT }}>Create Rate Plan</h3>
-            <div className="space-y-4">
-              {[["Plan Name","e.g. Early Bird Discount"],["Base Rate (₦)","e.g. 42000"],["Applicable Dates","e.g. Aug 1 – Aug 31"]].map(([label,placeholder])=>(
-                <div key={label as string}><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>{label as string}</label>
-                  <input placeholder={placeholder as string} className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              ))}
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor:"rgba(15,23,42,0.55)", backdropFilter:"blur(4px)" }}>
+          <div className="w-full max-w-lg mx-4 rounded-2xl overflow-hidden shadow-2xl bg-white" style={{ border:`1.5px solid ${BORDER}` }}>
+            {/* Header band */}
+            <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: PRIMARY }}>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity:0.6 }}>Rate Plans</p>
+                <p className="text-base font-bold text-white mt-0.5">Create Rate Plan</p>
+              </div>
+              <button onClick={()=>setShowCreate(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor:"rgba(255,255,255,0.18)" }}>
+                <X size={16} color="white" />
+              </button>
             </div>
-            <div className="flex gap-3 mt-5">
-              <button onClick={()=>setShowCreate(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button>
-              <button onClick={()=>{ setShowCreate(false); add({type:"success",title:"Rate plan created"}); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Create Plan</button>
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color: MUTED }}>Plan Name <span style={{ color: ERROR }}>*</span></label>
+                <input value={createValues.name} onChange={e=>updC("name", e.target.value)} placeholder="e.g. Early Bird Discount"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }} />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color: MUTED }}>Base Rate — Standard Room (₦/night) <span style={{ color: ERROR }}>*</span></label>
+                <input type="number" value={createValues.base} onChange={e=>updC("base", e.target.value)} placeholder="e.g. 42000"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white", fontFamily: mono }} />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color: MUTED }}>Applicable Dates</label>
+                <input value={createValues.dates} onChange={e=>updC("dates", e.target.value)} placeholder="e.g. Dec 20 – Jan 5"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }} />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest block mb-2" style={{ color: MUTED }}>Room Types</label>
+                <div className="flex gap-2">
+                  {ROOM_CATEGORIES.map(rt => {
+                    const checked = createValues.rooms.includes(rt);
+                    return (
+                      <button key={rt} onClick={() => setCreateValues(p => ({ ...p, rooms: checked ? p.rooms.filter(r => r !== rt) : [...p.rooms, rt] }))}
+                        className="flex-1 py-2.5 rounded-xl text-xs font-bold border-2 transition-all"
+                        style={{ borderColor: checked ? PRIMARY : BORDER, backgroundColor: checked ? `${PRIMARY}10` : "white", color: checked ? PRIMARY : MUTED }}>
+                        {rt}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {createValues.base && Number(createValues.base) > 0 && (
+                <div className="p-3 rounded-xl" style={{ backgroundColor: "#F0FDF4", border: `1px solid ${SUCCESS}30` }}>
+                  <p className="text-xs font-bold mb-1" style={{ color: SUCCESS }}>Rate Preview</p>
+                  {ROOM_CATEGORIES.filter(rt => createValues.rooms.includes(rt)).map(rt => (
+                    <div key={rt} className="flex justify-between text-xs">
+                      <span style={{ color: MUTED }}>{rt}</span>
+                      <span style={{ color: TEXT, fontFamily: mono }}>₦{Math.round(Number(createValues.base) * ROOM_TYPE_MULTIPLIERS[rt as keyof typeof ROOM_TYPE_MULTIPLIERS]).toLocaleString()}/nt</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="px-6 pb-6 flex gap-3">
+              <button onClick={doCreate} className="flex-1 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2" style={{ backgroundColor: PRIMARY }}>
+                <Plus size={15} />Create Plan
+              </button>
+              <button onClick={()=>setShowCreate(false)} className="px-5 py-3 rounded-xl text-sm font-bold" style={{ border:`1.5px solid ${BORDER}`, color: MUTED }}>Cancel</button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
@@ -1808,146 +2742,418 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
 
 // R-08 Cancellation & Refund
 export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [lookupQ, setLookupQ] = useState("BK-2840");
-  const [selectedRes, setSelectedRes] = useState(ALL_RES[6]);
-  const [waived, setWaived] = useState(false);
+  const [lookupQ,      setLookupQ]      = useState("BK-2840");
+  const [selectedRes,  setSelectedRes]  = useState(ALL_RES[6]);
+  const [waived,       setWaived]       = useState(false);
   const [waiverReason, setWaiverReason] = useState("");
-  const [approver, setApprover] = useState("Grace Mensah");
-  const [refundMethod, setRefundMethod] = useState("Original payment method");
-  const [cancelled, setCancelled] = useState(false);
-  const cancFee = 17500;
-  const deposit = 35000;
-  const refund = waived ? deposit : deposit - cancFee;
-  const lookupResult = ALL_RES.find(r => r.id.toLowerCase().includes(lookupQ.toLowerCase()) || r.guest.toLowerCase().includes(lookupQ.toLowerCase()));
-  const AUDIT_HISTORY = [
-    { ts:"22 Jul 14:03", action:"Reservation BK-2820 cancelled — fee ₦17,500 retained", by:"Fatima Al-Hassan", type:"cancel" },
-    { ts:"18 Jul 09:22", action:"Reservation BK-2801 cancelled — fee waived (medical emergency)", by:"Grace Mensah", type:"waived" },
-    { ts:"15 Jul 11:00", action:"Refund ₦42,000 processed — Bank Transfer", by:"Bola Adewale", type:"refund" },
-    { ts:"10 Jul 16:45", action:"Reservation BK-2778 cancelled — fee ₦17,500 retained", by:"John Abubakar", type:"cancel" },
+  const [cancelReason, setCancelReason] = useState("");
+  const [approver,     setApprover]     = useState("Grace Mensah");
+  const [refundMethod, setRefundMethod] = useState("Original Method");
+  const [refundNote,   setRefundNote]   = useState("");
+  const [step,         setStep]         = useState<"form"|"refund"|"done">("form");
+  const [cancRef,      setCancRef]      = useState("");
+
+  const CANCEL_REASONS: { label: string; icon: React.ElementType; sub: string }[] = [
+    { label: "Guest Request",      icon: User,           sub: "Guest initiated"          },
+    { label: "OTA Cancellation",   icon: Globe,          sub: "Via booking platform"     },
+    { label: "Medical / Emergency",icon: AlertCircle,    sub: "Compassionate waiver"     },
+    { label: "Duplicate Booking",  icon: Copy,           sub: "Reservation error"        },
+    { label: "Force Majeure",      icon: CloudLightning, sub: "Act of God / flight etc." },
+    { label: "Other",              icon: MoreHorizontal, sub: "See notes"                },
   ];
+  const cancFee  = 17500;
+  const deposit  = 35000;
+  const refund   = waived ? deposit : deposit - cancFee;
+
+  // Days until check-in (using checkin string like "28 Jun 2026")
+  const checkinDate = new Date(selectedRes.checkin + " 2026");
+  const daysToCheckin = Math.ceil((checkinDate.getTime() - Date.now()) / 86400000);
+  const withinWindow  = daysToCheckin <= 2;
+
+  const lookupResult = ALL_RES.find(r =>
+    r.id.toLowerCase().includes(lookupQ.toLowerCase()) ||
+    r.guest.toLowerCase().includes(lookupQ.toLowerCase())
+  );
+
+  const AUDIT_HISTORY = [
+    { ts:"22 Jun 14:03", action:"BK-2820 cancelled — fee ₦17,500 retained",             by:"Fatima Al-Hassan", type:"cancel" },
+    { ts:"18 Jun 09:22", action:"BK-2801 cancelled — fee waived (medical emergency)",    by:"Grace Mensah",    type:"waived" },
+    { ts:"15 Jun 11:00", action:"Refund ₦42,000 processed — Bank Transfer",              by:"Bola Adewale",    type:"refund" },
+    { ts:"10 Jun 16:45", action:"BK-2778 cancelled — fee ₦17,500 retained",              by:"John Abubakar",   type:"cancel" },
+  ];
+
+  const doCancel = () => {
+    if (!cancelReason) { add({ type:"warning", title:"Select a cancellation reason" }); return; }
+    const ref = `CX-${Math.floor(10000 + Math.random() * 90000)}`;
+    setCancRef(ref);
+    add({ type:"warning", title:"Reservation cancelled", body:`${selectedRes.id} · ${ref}` });
+    setStep("refund");
+  };
+
+  const doRefund = () => {
+    add({ type:"success", title:"Refund processed", body:`₦${refund.toLocaleString()} → ${selectedRes.guest} via ${refundMethod}` });
+    setStep("done");
+  };
+
+  const reset = () => {
+    setStep("form"); setWaived(false); setWaiverReason(""); setCancelReason(""); setRefundNote(""); setCancRef("");
+  };
+
+  const kpi = [
+    { label:"Cancellations",  value:"24",       sub:"This month",          color:ERROR,   icon:XCircle    },
+    { label:"Total Refunded", value:"₦384,500", sub:"Returned to guests",  color:WARNING, icon:DollarSign },
+    { label:"Fees Collected", value:"₦98,000",  sub:"Cancellation charges", color:SUCCESS, icon:TrendingUp },
+  ];
+
   return (
     <div>
-      <PageHeader title="Cancellation & Refund" sub="Process reservation cancellation with policy enforcement" />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
-        <StatCard label="Cancellations This Month" value={"24"} sub="Total processed" icon={XCircle} accent={ERROR} />
-        <StatCard label="Total Refunds" value={"₦384,500"} sub="Returned to guests" icon={DollarSign} accent={WARNING} />
-        <StatCard label="Fees Collected" value={"₦98,000"} sub="Cancellation charges" icon={TrendingUp} accent={SUCCESS} />
+      <PageHeader title="Cancellation & Refund" sub="Process reservation cancellations with policy enforcement and refund tracking" />
+
+      {/* KPI strip */}
+      <div className="grid grid-cols-3 gap-4 mb-5">
+        {kpi.map(k => {
+          const KI = k.icon;
+          return (
+            <div key={k.label} className="bg-white rounded-xl border overflow-hidden flex" style={{ borderColor: BORDER }}>
+              <div className="w-1 flex-shrink-0" style={{ backgroundColor: k.color }} />
+              <div className="flex items-center gap-3 px-4 py-4 flex-1">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${k.color}14` }}>
+                  <KI size={18} style={{ color: k.color }} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold leading-none mb-1" style={{ color: k.color, fontFamily: mono }}>{k.value}</p>
+                  <p className="text-xs font-semibold" style={{ color: TEXT }}>{k.label}</p>
+                  <p className="text-xs" style={{ color: SUBTLE }}>{k.sub}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
-      {/* Reservation lookup */}
-      <div className="bg-white rounded-xl border p-4 mb-4" style={{ borderColor: BORDER }}>
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
-            <input value={lookupQ} onChange={e=>setLookupQ(e.target.value)} placeholder="Search by reservation ID, guest name, or phone…" className="pl-9 pr-4 py-2.5 w-full border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-          <button onClick={()=>{ if (lookupResult) { setSelectedRes(lookupResult); setWaived(false); setCancelled(false); } else add({type:"warning",title:"No reservation found"}); }}
-            className="px-4 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Look Up</button>
+
+      {/* Reservation lookup bar */}
+      <div className="mb-4">
+        <div className="flex items-center gap-3 max-w-xl">
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
+            <input value={lookupQ} onChange={e => setLookupQ(e.target.value)}
+              placeholder="Reservation ID or guest name…"
+              className="pl-9 pr-4 py-2.5 w-full border rounded-lg text-sm outline-none bg-white"
+              style={{ borderColor: BORDER }} />
+          </div>
+          <button onClick={() => {
+            if (lookupResult) { setSelectedRes(lookupResult); reset(); }
+            else add({ type:"warning", title:"No reservation found" });
+          }} className="px-4 py-2.5 rounded-lg text-sm font-semibold text-white flex-shrink-0"
+            style={{ backgroundColor: PRIMARY }}>
+            Look Up
+          </button>
         </div>
         {lookupResult && lookupResult.id !== selectedRes.id && (
-          <div className="flex items-center gap-3 mt-3 p-3 rounded-xl" style={{ backgroundColor: "#EFF6FF" }}>
-            <div><span className="text-sm font-semibold" style={{ color: TEXT }}>{lookupResult.guest}</span>
-              <span className="text-xs ml-2" style={{ color: MUTED, fontFamily: mono }}>{lookupResult.id} · {lookupResult.type} · {lookupResult.checkin}–{lookupResult.checkout}</span></div>
-            <button onClick={()=>{ setSelectedRes(lookupResult); setWaived(false); setCancelled(false); }} className="ml-auto text-xs px-3 py-1.5 rounded-lg font-semibold" style={{ backgroundColor: PRIMARY, color: "white" }}>Select</button>
+          <div className="flex items-center gap-3 mt-2 p-3 rounded-xl border max-w-xl" style={{ backgroundColor:"#EFF6FF", borderColor:`${PRIMARY}25` }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${PRIMARY}18` }}>
+              <User size={15} style={{ color: PRIMARY }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold" style={{ color: TEXT }}>{lookupResult.guest}</p>
+              <p className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{lookupResult.id} · {lookupResult.type} · {lookupResult.checkin}–{lookupResult.checkout}</p>
+            </div>
+            <button onClick={() => { setSelectedRes(lookupResult); reset(); }}
+              className="text-xs px-3 py-1.5 rounded-lg font-semibold text-white flex-shrink-0"
+              style={{ backgroundColor: PRIMARY }}>
+              Select
+            </button>
           </div>
         )}
       </div>
-      {cancelled ? (
-        <div className="bg-white rounded-xl border p-8 text-center" style={{ borderColor: BORDER }}>
-          <CheckCircle2 size={36} className="mx-auto mb-3" style={{ color: SUCCESS }} />
-          <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Cancellation Processed</h3>
-          <p className="text-sm mb-4" style={{ color: MUTED }}>Reservation {selectedRes.id} cancelled. Refund ₦{refund.toLocaleString()} queued for processing via {refundMethod}.</p>
-          <button onClick={()=>setCancelled(false)} className="text-sm font-medium" style={{ color: PRIMARY }}>Process another cancellation</button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-          {/* Left — Cancellation */}
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Reservation to Cancel</h3>
-            <div className="p-4 rounded-xl mb-4" style={{ backgroundColor: "#F0F4F8" }}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ backgroundColor: PRIMARY }}>
-                  {selectedRes.guest.split(" ").map((n:string)=>n[0]).join("").slice(0,2)}
-                </div>
-                <div><div className="text-sm font-semibold" style={{ color: TEXT }}>{selectedRes.guest}</div>
-                  <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{selectedRes.id} · {selectedRes.type} · {selectedRes.checkin}–{selectedRes.checkout}</div></div>
+
+      {/* ── DONE OVERLAY ── */}
+      {step === "done" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{ backgroundColor: "rgba(15,23,42,0.55)", backdropFilter: "blur(2px)" }}>
+          <div className="bg-white rounded-2xl overflow-hidden w-full max-w-md shadow-2xl">
+            {/* Hero */}
+            <div className="px-8 py-8 text-center relative" style={{ backgroundColor: PRIMARY }}>
+              <button onClick={reset}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+                style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
+                <X size={14} color="white" />
+              </button>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{ backgroundColor:`${TEAL}30`, border:`2px solid ${TEAL}60` }}>
+                <CheckCircle2 size={30} style={{ color: TEAL }} />
               </div>
-              {[["Rate Plan","Standard Rate"],["Nightly Rate",`₦${selectedRes.rate.toLocaleString()}`],["Nights",String(selectedRes.nights)],["Total Value",`₦${Math.round(selectedRes.rate*selectedRes.nights*1.075).toLocaleString()}`],["Deposit Paid",`₦${deposit.toLocaleString()}`]].map(([k,v])=>(
-                <div key={k} className="flex justify-between text-sm mb-1"><span style={{ color: MUTED }}>{k}</span><span style={{ color: TEXT }}>{v as string}</span></div>
-              ))}
+              <p className="text-xs uppercase tracking-widest mb-1.5" style={{ color:"rgba(255,255,255,0.5)" }}>Cancellation Complete</p>
+              <p className="text-3xl font-bold text-white mb-1" style={{ fontFamily: mono }}>{cancRef}</p>
+              <p className="text-sm" style={{ color:"rgba(255,255,255,0.65)" }}>{selectedRes.guest} · {selectedRes.id}</p>
             </div>
-            <div className="border-l-4 p-4 rounded-r-xl mb-4" style={{ borderColor: WARNING, backgroundColor:"#FFFBEB" }}>
-              <div className="text-sm font-semibold mb-1" style={{ color:"#92400E" }}>Cancellation Policy</div>
-              <ul className="text-xs space-y-1" style={{ color:"#92400E" }}>
-                <li>• Free cancellation up to 48 hours before check-in</li>
-                <li>• Within 48 hours: 50% of first night charged (₦{cancFee.toLocaleString()})</li>
-                <li>• No-show: 100% of first night charged</li>
-              </ul>
-            </div>
-            <div className="space-y-2 text-sm mb-4">
-              <div className="flex justify-between"><span style={{ color: MUTED }}>Cancellation fee</span><span className="font-bold" style={{ color: ERROR }}>₦{cancFee.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span style={{ color: MUTED }}>Deposit paid</span><span style={{ color: TEXT }}>₦{deposit.toLocaleString()}</span></div>
-              <div className="flex justify-between font-bold border-t pt-2" style={{ borderColor: BORDER }}>
-                <span style={{ color: TEXT }}>Refundable amount</span>
-                <span style={{ color: refund > 0 ? SUCCESS : ERROR }}>₦{refund.toLocaleString()}</span>
+            {/* Body */}
+            <div className="px-6 py-5">
+              <div className="grid grid-cols-3 gap-2.5 mb-4">
+                {([
+                  ["Cancellation Ref", cancRef,                      mono     ],
+                  ["Refund Amount",    `₦${refund.toLocaleString()}`, mono     ],
+                  ["Refund Via",       refundMethod,                  undefined],
+                ] as [string, string, string | undefined][]).map(([k, v, f]) => (
+                  <div key={k} className="p-3 rounded-xl text-center" style={{ backgroundColor:"#F8FAFC" }}>
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: MUTED }}>{k}</p>
+                    <p className="text-sm font-bold truncate" style={{ color: TEXT, fontFamily: f }}>{v}</p>
+                  </div>
+                ))}
               </div>
-            </div>
-            {/* Waiver toggle */}
-            <label className="flex items-center gap-3 p-3 rounded-xl border cursor-pointer mb-3" style={{ borderColor: waived ? WARNING : BORDER, backgroundColor: waived ? "#FFFBEB" : "white" }}>
-              <div className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0" style={{ borderColor: waived ? WARNING : "#CBD5E1", backgroundColor: waived ? WARNING : "transparent" }}>{waived && <CheckCircle2 size={10} color="white" />}</div>
-              <input type="checkbox" className="hidden" checked={waived} onChange={e=>setWaived(e.target.checked)} />
-              <div><div className="text-sm font-medium" style={{ color: TEXT }}>Waive cancellation fee</div>
-                <div className="text-xs" style={{ color: MUTED }}>Permission-gated — manager authorisation required</div></div>
-            </label>
-            {waived && (
-              <div className="space-y-2 mb-4">
-                <div><label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Waiver Reason</label>
-                  <textarea value={waiverReason} onChange={e=>setWaiverReason(e.target.value)} rows={2} placeholder="e.g. Guest experienced medical emergency…" className="w-full px-3 py-2 border rounded-lg text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-                <div><label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Approving Manager</label>
-                  <select value={approver} onChange={e=>setApprover(e.target.value)} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
-                    {["Grace Mensah","Bola Adewale","John Abubakar"].map(m=><option key={m}>{m}</option>)}
-                  </select></div>
+              <div className="flex items-center gap-2 p-3 rounded-xl mb-5" style={{ backgroundColor:"#F0FDF4", border:`1px solid #BBF7D0` }}>
+                <CheckCircle2 size={13} style={{ color: SUCCESS }} />
+                <span className="text-xs font-medium" style={{ color: SUCCESS }}>Confirmation email sent · Refund queued for processing</span>
               </div>
-            )}
-            <div className="flex gap-2">
-              <BtnO label="Cancel & Keep Fee" onClick={()=>{ add({type:"warning",title:"Reservation cancelled",body:`₦${(deposit-cancFee).toLocaleString()} refund queued`}); setCancelled(true); }} />
-              <button onClick={()=>{ add({type:"error",title:"Reservation cancelled",body:`₦${refund.toLocaleString()} refund → ${selectedRes.guest}`}); setCancelled(true); }}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white" style={{ backgroundColor: ERROR }}>
-                <XCircle size={13} />Confirm Cancel
+              <button onClick={reset}
+                className="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2"
+                style={{ backgroundColor: PRIMARY }}>
+                <Plus size={14} />New Cancellation
               </button>
             </div>
           </div>
-          {/* Right — Refund + Audit */}
-          <div className="space-y-4">
-            <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Process Refund</h3>
-              <div className="mb-3"><label className="text-xs font-semibold uppercase tracking-wider block mb-2" style={{ color: MUTED }}>Refund Method</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {["Original payment method","Cash","Bank Transfer"].map(m=>(
-                    <button key={m} onClick={()=>setRefundMethod(m)} className="py-2 rounded-xl text-xs font-semibold border-2 transition-all"
-                      style={{ borderColor: refundMethod===m ? PRIMARY : BORDER, backgroundColor: refundMethod===m ? "#EFF6FF" : "white", color: refundMethod===m ? PRIMARY : MUTED }}>{m}</button>
-                  ))}
+        </div>
+      )}
+
+      {/* ── MAIN FORM (always visible; done overlay sits on top) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+          {/* Left — Cancellation form */}
+          <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: step === "refund" ? `${SUCCESS}50` : BORDER }}>
+            {/* Step header */}
+            <div className="flex items-center gap-3 px-5 py-3 border-b" style={{
+              borderColor: BORDER,
+              backgroundColor: step === "refund" ? "#F0FDF4" : "#F8FAFC"
+            }}>
+              <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                style={{ backgroundColor: step === "refund" ? SUCCESS : PRIMARY, color:"white" }}>
+                {step === "refund" ? "✓" : "1"}
+              </div>
+              <p className="text-sm font-semibold" style={{ color: step === "refund" ? SUCCESS : TEXT }}>
+                {step === "refund" ? "Cancellation confirmed" : "Cancel Reservation"}
+              </p>
+              {step === "refund" && <span className="text-xs ml-auto font-semibold" style={{ color: SUCCESS, fontFamily: mono }}>{cancRef}</span>}
+            </div>
+
+            <div className="p-5">
+              {/* Reservation card */}
+              <div className="flex items-center gap-3 p-4 rounded-xl mb-4" style={{ backgroundColor:"#F8FAFC", border:`1px solid ${BORDER}` }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: `${PRIMARY}14` }}>
+                  <User size={18} style={{ color: PRIMARY }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold" style={{ color: TEXT }}>{selectedRes.guest}</p>
+                  <p className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{selectedRes.id} · {selectedRes.type} · {selectedRes.checkin}–{selectedRes.checkout}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs font-bold" style={{ color: withinWindow ? ERROR : SUCCESS }}>
+                    {daysToCheckin > 0 ? `${daysToCheckin}d to check-in` : daysToCheckin === 0 ? "Today" : "Past"}
+                  </p>
+                  <p className="text-xs" style={{ color: withinWindow ? ERROR : SUCCESS }}>
+                    {withinWindow ? "Fee applies" : "Free cancel"}
+                  </p>
                 </div>
               </div>
-              <div className="mb-3"><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Refund Amount (₦)</label>
-                <input defaultValue={refund.toLocaleString()} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-              <div className="mb-3"><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Approving Manager</label>
-                <select value={approver} onChange={e=>setApprover(e.target.value)} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
-                  {["Grace Mensah","Bola Adewale","John Abubakar"].map(m=><option key={m}>{m}</option>)}
-                </select></div>
-              <div className="mb-4"><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Notes for Guest</label>
-                <textarea rows={2} placeholder="Optional message with refund notification…" className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-              <BtnP label="Process Refund" icon={DollarSign} onClick={()=>add({type:"success",title:"Refund processed",body:`₦${refund.toLocaleString()} → ${selectedRes.guest} via ${refundMethod}`})} />
+
+              {/* Policy banner */}
+              <div className="border-l-4 p-3 rounded-r-xl mb-4" style={{ borderColor: withinWindow ? ERROR : SUCCESS, backgroundColor: withinWindow ? "#FEF2F2" : "#F0FDF4" }}>
+                <p className="text-xs font-bold mb-1" style={{ color: withinWindow ? ERROR : SUCCESS }}>
+                  {withinWindow ? "Within cancellation window — fee applies" : "Outside cancellation window — free cancellation"}
+                </p>
+                <ul className="text-xs space-y-0.5" style={{ color: withinWindow ? "#7F1D1D" : "#14532D" }}>
+                  <li>• Free cancellation up to 48 hours before check-in</li>
+                  <li>• Within 48 hours: ₦{cancFee.toLocaleString()} (50% first night)</li>
+                  <li>• No-show: 100% of first night charged</li>
+                </ul>
+              </div>
+
+              {/* Fee calculation */}
+              <div className="space-y-2 text-sm mb-4 p-3 rounded-xl" style={{ backgroundColor:"#F8FAFC" }}>
+                {([
+                  ["Cancellation fee",  `₦${waived ? 0 : cancFee.toLocaleString()}`, waived ? MUTED : ERROR],
+                  ["Deposit paid",      `₦${deposit.toLocaleString()}`,               TEXT  ],
+                ] as [string, string, string][]).map(([k, v, c]) => (
+                  <div key={k} className="flex justify-between">
+                    <span style={{ color: MUTED }}>{k}</span>
+                    <span className="font-semibold" style={{ color: c, fontFamily: mono, textDecoration: waived && k === "Cancellation fee" ? "line-through" : undefined }}>{v}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between font-bold pt-2 border-t" style={{ borderColor: BORDER }}>
+                  <span style={{ color: TEXT }}>Refundable</span>
+                  <span style={{ color: refund > 0 ? SUCCESS : ERROR, fontFamily: mono }}>₦{refund.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Cancellation reason */}
+              <div className="mb-4">
+                <label className="text-xs font-bold uppercase tracking-wider block mb-2.5" style={{ color: MUTED }}>
+                  Cancellation Reason <span style={{ color: ERROR }}>*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {CANCEL_REASONS.map(r => {
+                    const selected = cancelReason === r.label;
+                    const RIcon = r.icon;
+                    return (
+                      <button key={r.label} onClick={() => setCancelReason(r.label)}
+                        className="flex items-start gap-3 px-4 py-3.5 border-2 text-left transition-all"
+                        style={{
+                          borderRadius: 10,
+                          borderColor: selected ? PRIMARY : BORDER,
+                          backgroundColor: selected ? "#EFF6FF" : "white",
+                        }}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                          style={{ backgroundColor: selected ? `${PRIMARY}18` : "#F1F5F9" }}>
+                          <RIcon size={15} style={{ color: selected ? PRIMARY : MUTED }} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold leading-tight" style={{ color: selected ? PRIMARY : TEXT }}>{r.label}</p>
+                          <p className="text-xs mt-0.5" style={{ color: selected ? `${PRIMARY}99` : SUBTLE }}>{r.sub}</p>
+                        </div>
+                        {selected && (
+                          <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ml-auto mt-0.5"
+                            style={{ backgroundColor: PRIMARY }}>
+                            <CheckCircle2 size={10} color="white" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Waiver toggle */}
+              <label className="flex items-center gap-3 p-3 rounded-xl border cursor-pointer mb-3" style={{ borderColor: waived ? WARNING : BORDER, backgroundColor: waived ? "#FFFBEB" : "white" }}>
+                <div className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0"
+                  style={{ borderColor: waived ? WARNING : "#CBD5E1", backgroundColor: waived ? WARNING : "transparent" }}>
+                  {waived && <CheckCircle2 size={10} color="white" />}
+                </div>
+                <input type="checkbox" className="hidden" checked={waived} onChange={e => setWaived(e.target.checked)} />
+                <div>
+                  <p className="text-sm font-medium" style={{ color: TEXT }}>Waive cancellation fee</p>
+                  <p className="text-xs" style={{ color: MUTED }}>Manager authorisation required</p>
+                </div>
+              </label>
+
+              {waived && (
+                <div className="space-y-2 mb-4">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Waiver Reason</label>
+                    <textarea value={waiverReason} onChange={e => setWaiverReason(e.target.value)} rows={2}
+                      placeholder="e.g. Guest experienced medical emergency…"
+                      className="w-full px-3 py-2 border rounded-lg text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Approving Manager</label>
+                    <select value={approver} onChange={e => setApprover(e.target.value)} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
+                      {["Grace Mensah","Bola Adewale","John Abubakar"].map(m => <option key={m}>{m}</option>)}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Action buttons — clear hierarchy, disabled when already done */}
+              {step === "form" && (
+                <button onClick={doCancel}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white"
+                  style={{ backgroundColor: ERROR }}>
+                  <XCircle size={15} />Confirm Cancellation
+                </button>
+              )}
             </div>
+          </div>
+
+          {/* Right — Refund + Audit */}
+          <div className="space-y-4">
+            {/* Refund panel — locked until step = "refund" */}
+            <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: step === "refund" ? PRIMARY : BORDER }}>
+              <div className="flex items-center gap-3 px-5 py-3 border-b" style={{ borderColor: BORDER, backgroundColor: step === "refund" ? "#EFF6FF" : "#F8FAFC" }}>
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                  style={{ backgroundColor: step === "refund" ? PRIMARY : "#CBD5E1", color:"white" }}>2</div>
+                <p className="text-sm font-semibold" style={{ color: step === "refund" ? PRIMARY : MUTED }}>Process Refund</p>
+                {step === "form" && <span className="text-xs ml-auto" style={{ color: SUBTLE }}>Complete step 1 first</span>}
+              </div>
+
+              <div className={`p-5 transition-opacity ${step === "form" ? "opacity-40 pointer-events-none select-none" : ""}`}>
+                {/* Refund summary */}
+                <div className="flex items-center gap-3 p-3 rounded-xl mb-4" style={{ backgroundColor:`${SUCCESS}10`, border:`1px solid ${SUCCESS}30` }}>
+                  <DollarSign size={16} style={{ color: SUCCESS }} />
+                  <div>
+                    <p className="text-sm font-bold" style={{ color: SUCCESS, fontFamily: mono }}>₦{refund.toLocaleString()} to refund</p>
+                    <p className="text-xs" style={{ color: MUTED }}>Deposit ₦{deposit.toLocaleString()} · Fee {waived ? "waived" : `₦${cancFee.toLocaleString()} retained`}</p>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-2.5" style={{ color: MUTED }}>Refund Method</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      { label: "Original Method", icon: CreditCard,  sub: "Card / transfer" },
+                      { label: "Cash",             icon: DollarSign, sub: "Physical payout" },
+                      { label: "Bank Transfer",    icon: Building2,  sub: "1–3 business days" },
+                    ] as { label: string; icon: React.ElementType; sub: string }[]).map(m => {
+                      const sel = refundMethod === m.label;
+                      const MI = m.icon;
+                      return (
+                        <button key={m.label} onClick={() => setRefundMethod(m.label)}
+                          className="flex flex-col items-start gap-2 px-3 py-3 border-2 text-left transition-all"
+                          style={{ borderRadius: 10, borderColor: sel ? PRIMARY : BORDER, backgroundColor: sel ? "#EFF6FF" : "white" }}>
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: sel ? `${PRIMARY}18` : "#F1F5F9" }}>
+                            <MI size={13} style={{ color: sel ? PRIMARY : MUTED }} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold leading-tight" style={{ color: sel ? PRIMARY : TEXT }}>{m.label}</p>
+                            <p className="text-xs mt-0.5" style={{ color: sel ? `${PRIMARY}80` : SUBTLE }}>{m.sub}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Refund Amount (₦)</label>
+                  <input value={refund.toLocaleString()} readOnly
+                    className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none font-bold"
+                    style={{ borderColor: BORDER, fontFamily: mono, color: SUCCESS, backgroundColor:"#F0FDF4" }} />
+                </div>
+
+                <div className="mb-3">
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Approving Manager</label>
+                  <select value={approver} onChange={e => setApprover(e.target.value)} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
+                    {["Grace Mensah","Bola Adewale","John Abubakar"].map(m => <option key={m}>{m}</option>)}
+                  </select>
+                </div>
+
+                <div className="mb-4">
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Note for Guest (optional)</label>
+                  <textarea value={refundNote} onChange={e => setRefundNote(e.target.value)} rows={2}
+                    placeholder="Message to include in refund notification…"
+                    className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
+                </div>
+
+                <BtnP label="Process Refund" icon={DollarSign} onClick={doRefund} />
+              </div>
+            </div>
+
             {/* Audit trail */}
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Cancellation Audit Trail</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Recent Cancellations</h3>
               <div className="space-y-3">
-                {AUDIT_HISTORY.map((a,i)=>(
-                  <div key={i} className="flex gap-3 items-start">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: a.type==="refund" ? "#EFF6FF" : a.type==="waived" ? "#FFFBEB" : "#FFF1F2" }}>
-                      {a.type==="refund" ? <DollarSign size={12} style={{ color: PRIMARY }} /> : a.type==="waived" ? <AlertTriangle size={12} style={{ color: ORANGE }} /> : <XCircle size={12} style={{ color: ERROR }} />}
+                {AUDIT_HISTORY.map(a => (
+                  <div key={a.ts + a.by} className="flex gap-3 items-start">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: a.type==="refund" ? "#EFF6FF" : a.type==="waived" ? "#FFFBEB" : "#FEF2F2" }}>
+                      {a.type==="refund"
+                        ? <DollarSign size={13} style={{ color: PRIMARY }} />
+                        : a.type==="waived"
+                        ? <AlertTriangle size={13} style={{ color: ORANGE }} />
+                        : <XCircle size={13} style={{ color: ERROR }} />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs" style={{ color: TEXT }}>{a.action}</div>
-                      <div className="text-xs mt-0.5" style={{ color: MUTED }}><span style={{ fontFamily: mono }}>{a.ts}</span> · {a.by}</div>
+                      <p className="text-xs font-medium" style={{ color: TEXT }}>{a.action}</p>
+                      <p className="text-xs mt-0.5" style={{ color: MUTED }}><span style={{ fontFamily: mono }}>{a.ts}</span> · {a.by}</p>
                     </div>
                   </div>
                 ))}
@@ -1955,1463 +3161,17 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
             </div>
           </div>
         </div>
-      )}
     </div>
   );
 }
 
-// FD-09 Key Card Management
-export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  type EncoderState = "connected" | "encoding" | "disconnected" | "error";
-  type IssueStep = "lookup" | "config" | "read" | "register" | "done";
-  const [encoderSt, setEncoderSt] = useState<EncoderState>("connected");
-  const [showIssue, setShowIssue] = useState(false);
-  const [issueStep, setIssueStep] = useState<IssueStep>("lookup");
-  const [issueRes, setIssueRes] = useState("BK-2848");
-  const [issueRoom, setIssueRoom] = useState("202");
-  const [cardCount, setCardCount] = useState(1);
-  const [validHrs, setValidHrs] = useState("48");
-  const [serialRead, setSerialRead] = useState("");
-  const [revokeId, setRevokeId] = useState<string | null>(null);
-  const [revokeReason, setRevokeReason] = useState("");
-  const MAX_CARDS = 3;
-  const ACTIVE_CARDS = [
-    { id: "KC-001", room: "101", guest: "Adaeze Okonkwo", res: "BK-2845", serial: "A3F9-21CC", issued: "22 Jun 14:03", validTo: "25 Jun 12:00", status: "Active", duplicate: false, by: "John A." },
-    { id: "KC-002", room: "202", guest: "Emmanuel Adeyemi", res: "BK-2848", serial: "B7D4-55EE", issued: "23 Jun 14:12", validTo: "25 Jun 12:00", status: "Active", duplicate: false, by: "John A." },
-    { id: "KC-003", room: "202", guest: "Emmanuel Adeyemi", res: "BK-2848", serial: "B7D4-55EF", issued: "23 Jun 14:35", validTo: "25 Jun 12:00", status: "Active", duplicate: true, by: "Grace M." },
-    { id: "KC-004", room: "304", guest: "Chukwuemeka Obi", res: "BK-2852", serial: "C2A1-9900", issued: "24 Jun 10:00", validTo: "28 Jun 12:00", status: "Active", duplicate: false, by: "John A." },
-    { id: "KC-005", room: "501", guest: "Dr. Chukwuemeka Bello", res: "BK-2854", serial: "D5F2-4412", issued: "24 Jun 14:10", validTo: "27 Jun 12:00", status: "Active", duplicate: false, by: "Grace M." },
-    { id: "KC-006", room: "101", guest: "Adaeze Okonkwo", res: "BK-2845", serial: "A3F9-21CD", issued: "22 Jun 16:00", validTo: "25 Jun 12:00", status: "Revoked", duplicate: false, by: "John A." },
-  ];
-  const [cards, setCards] = useState(ACTIVE_CARDS);
-  const encInfo: Record<EncoderState, { dot: string; label: string }> = {
-    connected: { dot: SUCCESS, label: "Encoder ready (USB — SALTO KS)" },
-    encoding: { dot: WARNING, label: "Encoding in progress…" },
-    disconnected: { dot: ERROR, label: "Encoder not detected" },
-    error: { dot: ERROR, label: "Encoder error — check USB connection" },
-  };
-  const enc = encInfo[encoderSt];
-  const stC = (s: string) => s === "Active" ? { bg: "#DCFCE7", text: "#166534" } : s === "Revoked" ? { bg: "#FEE2E2", text: "#991B1B" } : { bg: "#F3F4F6", text: "#374151" };
-  const stepLabels: IssueStep[] = ["lookup", "config", "read", "register", "done"];
-  const stepNames = ["Reservation", "Configuration", "Read Card", "Register", "Complete"];
-  const simulateRead = () => { setIssueStep("read"); setTimeout(() => { setSerialRead(`E9B3-${Math.floor(Math.random() * 9999).toString().padStart(4,"0")}`); setIssueStep("register"); }, 1400); };
-  const finishIssue = () => {
-    const newCard = { id: `KC-00${cards.length + 1}`, room: issueRoom, guest: "Emmanuel Adeyemi", res: issueRes, serial: serialRead, issued: "24 Jun " + new Date().getHours() + ":" + String(new Date().getMinutes()).padStart(2,"0"), validTo: "25 Jun 12:00", status: "Active" as const, duplicate: cardCount > 1, by: "Grace M." };
-    setCards(p => [...p, newCard]);
-    setIssueStep("done");
-    add({ type: "success", title: `Card encoded — Room ${issueRoom}`, body: `Serial ${serialRead} · Valid ${validHrs}h` });
-  };
-  const revokeCard = () => {
-    if (!revokeId || !revokeReason) return;
-    setCards(p => p.map(c => c.id === revokeId ? { ...c, status: "Revoked" } : c));
-    const isOffline = encoderSt === "disconnected";
-    add({ type: isOffline ? "warning" : "error", title: `Card revoked${isOffline ? " (queued)" : ""}`, body: `${revokeId} · ${revokeReason}${isOffline ? " · Will sync on reconnect" : ""}` });
-    setRevokeId(null); setRevokeReason("");
-  };
-  return (
-    <div>
-      <PageHeader title="Key Card Management" sub="Issue, duplicate, replace and revoke physical room key cards"
-        actions={<><BtnO label="Key Card Log" icon={ClipboardList} /><BtnP label="Issue Card" icon={Plus} onClick={() => { setShowIssue(true); setIssueStep("lookup"); setSerialRead(""); }} /></>} />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Active Cards" value={String(cards.filter(c=>c.status==="Active").length)} sub="Currently issued" icon={CreditCard} accent={SUCCESS} />
-        <StatCard label="Issued Today" value="4" sub="New issuances" icon={Activity} accent={PRIMARY} />
-        <StatCard label="Revoked Today" value={String(cards.filter(c=>c.status==="Revoked").length)} sub="Deactivated" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Duplicates" value={String(cards.filter(c=>c.duplicate&&c.status==="Active").length)} sub="Spare cards active" icon={Layers} accent={TEAL} />
-      </div>
-      {/* Encoder status bar */}
-      <div className="flex items-center gap-4 px-4 py-3 rounded-xl mb-5" style={{ backgroundColor: "#F9FAFB", border: `1px solid ${BORDER}` }}>
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: enc.dot }} />
-          <span className="text-sm font-medium" style={{ color: TEXT }}>{enc.label}</span>
-        </div>
-        {encoderSt === "disconnected" && <span className="text-xs px-2.5 py-1 rounded-lg font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>⚠ Cards will queue offline</span>}
-        <div className="ml-auto flex gap-2">
-          <button onClick={() => { setEncoderSt("encoding"); setTimeout(() => setEncoderSt("connected"), 1200); add({ type: "info", title: "Encoder test complete — 1 device found" }); }} className="text-xs px-3 py-1.5 rounded-lg border font-medium" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Test Encoder</button>
-          <button onClick={() => setEncoderSt(p => p === "connected" ? "disconnected" : "connected")} className="text-xs px-3 py-1.5 rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}>{encoderSt === "connected" ? "Simulate Offline" : "Go Online"}</button>
-        </div>
-      </div>
-      {/* Active cards table */}
-      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-        <div className="flex items-center gap-3 px-5 py-3 border-b" style={{ backgroundColor: "#F8FAFC", borderColor: BORDER }}>
-          <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input placeholder="Search room, guest, serial…" className="pl-7 pr-3 py-1.5 text-xs rounded-xl border bg-white outline-none w-52" style={{ borderColor: BORDER }} /></div>
-          <span className="ml-auto text-xs" style={{ color: SUBTLE }}>{cards.length} credentials</span>
-        </div>
-        <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Guest / Reservation", "Serial", "Issued", "Valid To", "Status", "Flags", "By", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-          <tbody>
-            {cards.map(c => (
-              <tr key={c.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER, opacity: c.status === "Revoked" ? 0.55 : 1 }}>
-                <td className="px-4 py-3 text-base font-bold" style={{ color: PRIMARY }}>{c.room}</td>
-                <td className="px-4 py-3">
-                  <div className="text-sm font-semibold" style={{ color: TEXT }}>{c.guest}</div>
-                  <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{c.res}</div>
-                </td>
-                <td className="px-4 py-3 text-xs font-mono font-semibold" style={{ color: TEXT, fontFamily: mono }}>{c.serial}</td>
-                <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: MUTED, fontFamily: mono }}>{c.issued}</td>
-                <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: MUTED, fontFamily: mono }}>{c.validTo}</td>
-                <td className="px-4 py-3"><Badge label={c.status} colors={stC(c.status)} /></td>
-                <td className="px-4 py-3">{c.duplicate && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#EEF2FF", color: "#4338CA" }}>Dupe</span>}</td>
-                <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{c.by}</td>
-                <td className="px-4 py-3">
-                  {c.status === "Active" ? (
-                    <div className="flex gap-1">
-                      <button onClick={() => add({ type: "success", title: `Duplicate issued — Room ${c.room}`, body: `Insert blank card into encoder` })} disabled={encoderSt !== "connected"} className="text-xs px-2 py-1.5 rounded border disabled:opacity-40" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Duplicate</button>
-                      <button onClick={() => { setRevokeId(c.id); setRevokeReason(""); }} className="text-xs px-2 py-1.5 rounded border" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Revoke</button>
-                    </div>
-                  ) : <span className="text-xs" style={{ color: SUBTLE }}>—</span>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
 
-      {/* Issue Card wizard */}
-      {showIssue && (
-        <>
-          <div className="fixed inset-0 z-40 backdrop-blur-sm" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onClick={() => { if (issueStep !== "read") setShowIssue(false); }} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-lg" style={{ border: `1px solid ${BORDER}` }}>
-            {/* Step progress */}
-            <div className="flex items-center gap-1 px-6 py-4 border-b" style={{ borderColor: BORDER }}>
-              {stepLabels.map((s, i) => (
-                <div key={s} className="flex items-center gap-1 flex-1">
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold flex-shrink-0 ${stepLabels.indexOf(issueStep) >= i ? "text-white" : ""}`} style={{ backgroundColor: stepLabels.indexOf(issueStep) >= i ? PRIMARY : "#E2E8F0", color: stepLabels.indexOf(issueStep) >= i ? "white" : MUTED }}>{stepLabels.indexOf(issueStep) > i ? "✓" : i+1}</div>
-                  <span className="text-xs hidden sm:block" style={{ color: stepLabels.indexOf(issueStep) >= i ? TEXT : MUTED }}>{stepNames[i]}</span>
-                  {i < stepLabels.length - 1 && <div className="flex-1 h-px mx-1" style={{ backgroundColor: stepLabels.indexOf(issueStep) > i ? TEAL : BORDER }} />}
-                </div>
-              ))}
-            </div>
-            <div className="p-6">
-              {issueStep === "lookup" && (
-                <div className="space-y-3">
-                  <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Select Reservation</h3>
-                  <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reservation</label><select value={issueRes} onChange={e => setIssueRes(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>BK-2845 — Adaeze Okonkwo · Room 101</option><option>BK-2848 — Emmanuel Adeyemi · Room 202</option><option>BK-2852 — Chukwuemeka Obi · Room 304</option><option>BK-2854 — Dr. Chukwuemeka Bello · Room 501</option></select></div>
-                  <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Room</label><input value={issueRoom} onChange={e => setIssueRoom(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                  <button onClick={() => setIssueStep("config")} className="w-full mt-2 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Continue</button>
-                </div>
-              )}
-              {issueStep === "config" && (
-                <div className="space-y-3">
-                  <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Card Configuration</h3>
-                  <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Number of Cards (max {MAX_CARDS})</label>
-                    <div className="flex items-center gap-3"><button onClick={() => setCardCount(p => Math.max(1, p-1))} className="w-9 h-9 rounded-xl border flex items-center justify-center font-bold" style={{ borderColor: BORDER, color: TEXT }}>−</button><span className="text-xl font-bold w-8 text-center" style={{ color: TEXT, fontFamily: mono }}>{cardCount}</span><button onClick={() => setCardCount(p => Math.min(MAX_CARDS, p+1))} className="w-9 h-9 rounded-xl border flex items-center justify-center font-bold" style={{ borderColor: BORDER, color: TEXT }}>+</button></div>
-                  </div>
-                  <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Validity (hours from now)</label><select value={validHrs} onChange={e => setValidHrs(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option value="24">24 h — 1 day</option><option value="48">48 h — 2 days</option><option value="72">72 h — 3 days</option><option value="96">96 h — 4 days</option></select></div>
-                  {encoderSt !== "connected" && <div className="p-3 rounded-xl text-xs font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>Encoder offline — card will be queued and encoded when encoder reconnects.</div>}
-                  <div className="flex gap-3 mt-4"><BtnO label="Back" onClick={() => setIssueStep("lookup")} /><button onClick={simulateRead} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Read Card Serial →</button></div>
-                </div>
-              )}
-              {issueStep === "read" && (
-                <div className="py-6 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: `${TEAL}18` }}><CreditCard size={28} style={{ color: TEAL }} /></div>
-                  <h3 className="text-base font-bold" style={{ color: TEXT }}>Insert blank card into encoder</h3>
-                  <p className="text-sm" style={{ color: MUTED }}>Waiting for card read… Do not remove card.</p>
-                  <div className="flex justify-center gap-1">{[0,1,2,3,4].map(i => <div key={i} className="w-2 h-2 rounded-full" style={{ backgroundColor: TEAL, opacity: 0.3 + (i * 0.15), animation: `pulse ${0.8 + i * 0.1}s infinite` }} />)}</div>
-                </div>
-              )}
-              {issueStep === "register" && (
-                <div className="space-y-4">
-                  <h3 className="text-base font-bold" style={{ color: TEXT }}>Register with Lock Provider</h3>
-                  <div className="p-4 rounded-xl" style={{ backgroundColor: "#F0FDF4", border: `1px solid #BBF7D0` }}>
-                    <div className="flex items-center gap-2 mb-2"><CheckCircle2 size={16} style={{ color: SUCCESS }} /><span className="text-sm font-semibold" style={{ color: SUCCESS }}>Card serial read</span></div>
-                    <div className="text-sm font-mono font-bold" style={{ color: TEXT, fontFamily: mono }}>{serialRead}</div>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    {[["Room", issueRoom], ["Reservation", issueRes], ["Cards", String(cardCount)], ["Valid for", `${validHrs} hours`], ["Provider", "SALTO KS"]].map(([k,v]) => (
-                      <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span className="font-semibold" style={{ color: TEXT, fontFamily: ["Room","Reservation","Cards","Valid for"].includes(k) ? "inherit" : mono }}>{v}</span></div>
-                    ))}
-                  </div>
-                  <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setShowIssue(false)} /><button onClick={finishIssue} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Register & Encode</button></div>
-                </div>
-              )}
-              {issueStep === "done" && (
-                <div className="py-4 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: "#DCFCE7" }}><CheckCircle2 size={28} style={{ color: SUCCESS }} /></div>
-                  <h3 className="text-base font-bold" style={{ color: TEXT }}>Card Issued Successfully</h3>
-                  <p className="text-sm" style={{ color: MUTED }}>Room {issueRoom} · Serial <span style={{ fontFamily: mono }}>{serialRead}</span></p>
-                  {encoderSt !== "connected" && <p className="text-xs font-semibold" style={{ color: WARNING }}>Card registered offline — will activate on next sync.</p>}
-                  <button onClick={() => setShowIssue(false)} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Done</button>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
 
-      {/* Revoke modal */}
-      {revokeId && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setRevokeId(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Revoke Card</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>{cards.find(c=>c.id===revokeId)?.serial} · This card will stop working{encoderSt !== "connected" ? " on next lock sync" : " immediately"}.</p>
-            <div className="space-y-2 mb-4">{["Lost / reported stolen","Guest requested replacement","Error issued","Security concern"].map(r => <label key={r} className="flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer" style={{ borderColor: revokeReason===r ? ERROR : BORDER, backgroundColor: revokeReason===r ? "#FEF2F2" : "white" }}><div className="w-4 h-4 rounded-full border-2 flex-shrink-0" style={{ borderColor: revokeReason===r ? ERROR : "#CBD5E1", backgroundColor: revokeReason===r ? ERROR : "transparent" }} /><input type="radio" className="hidden" onChange={() => setRevokeReason(r)} /><span className="text-sm" style={{ color: TEXT }}>{r}</span></label>)}</div>
-            {encoderSt !== "connected" && <p className="text-xs mb-3 font-semibold" style={{ color: WARNING }}>Encoder offline — revocation will queue and apply on next lock sync.</p>}
-            <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setRevokeId(null)} /><button disabled={!revokeReason} onClick={revokeCard} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Confirm Revoke</button></div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
-// HK-02 My Tasks (tablet-optimised)
-export function HKMyTasks({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [statuses, setStatuses] = useState<Record<string, string>>({});
-  const [showInspect, setShowInspect] = useState<string | null>(null);
-  const [showIssue, setShowIssue] = useState<string | null>(null);
-  const [issueDesc, setIssueDesc] = useState("");
-  const [dndRooms, setDndRooms] = useState<Set<string>>(new Set());
 
-  const setStatus = (id: string, s: string) => {
-    setStatuses(p => ({ ...p, [id]: s }));
-    add({ type: "success", title: `Room ${id} marked ${s}` });
-  };
 
-  // Sort: priority first, then by floor
-  const sorted = [...HK_TASK_ROOMS].sort((a, b) => {
-    if (a.priority && !b.priority) return -1;
-    if (!a.priority && b.priority) return 1;
-    return Number(a.id) - Number(b.id);
-  });
-
-  const completed = sorted.filter(r => (statuses[r.id] ?? r.hkStatus) === "Clean").length;
-  const total = sorted.length;
-  const pct = Math.round((completed / total) * 100);
-
-  return (
-    <div>
-      <PageHeader title="My Tasks — Grace Achebe" sub="24 Jun 2025 · Morning Shift" />
-      {/* Progress summary bar */}
-      <div className="bg-white rounded-xl border p-4 mb-5" style={{ borderColor: BORDER }}>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold" style={{ color: TEXT }}>{completed} of {total} rooms cleaned</span>
-          <span className="text-sm font-bold" style={{ color: pct === 100 ? SUCCESS : PRIMARY, fontFamily: mono }}>{pct}%</span>
-        </div>
-        <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E2E8F0" }}>
-          <div className="h-2.5 rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: pct === 100 ? SUCCESS : PRIMARY }} />
-        </div>
-        <div className="flex gap-4 mt-3">
-          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: TEXT }}>{total - completed}</span> remaining</span>
-          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: ORANGE }}>{sorted.filter(r=>r.priority).length}</span> priority</span>
-          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: TEAL }}>{dndRooms.size}</span> DND active</span>
-        </div>
-      </div>
-      <div className="space-y-3">
-        {sorted.map(r => {
-          const st = statuses[r.id] ?? r.hkStatus;
-          const stC = hkC[st] ?? { bg: "#F4F4F5", text: "#374151" };
-          const isDND = dndRooms.has(r.id);
-          return (
-            <div key={r.id} className="bg-white rounded-xl border p-5" style={{ borderColor: r.priority ? ORANGE : isDND ? `${ERROR}40` : BORDER, borderWidth: r.priority || isDND ? 2 : 1 }}>
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl font-black text-white flex-shrink-0" style={{ backgroundColor: st === "Clean" ? SUCCESS : PRIMARY }}>{r.id}</div>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xl font-bold" style={{ color: TEXT }}>Room {r.id}</span>
-                      {r.priority && <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>PRIORITY</span>}
-                      {isDND && <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>DND</span>}
-                    </div>
-                    <div className="text-sm mt-0.5" style={{ color: MUTED }}>{r.type} · Floor {r.floor} · {r.guestStatus}</div>
-                    {r.notes && <div className="text-sm mt-1 font-medium" style={{ color: ORANGE }}>{r.notes}</div>}
-                  </div>
-                </div>
-                <Badge label={st} colors={stC} />
-              </div>
-              {/* Primary action */}
-              <div className="flex gap-2 flex-wrap mb-2">
-                {st === "Dirty" && <button onClick={() => setStatus(r.id, "In Progress")} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY, minHeight: 52 }}>Start Cleaning</button>}
-                {st === "In Progress" && <button onClick={() => setStatus(r.id, "Clean")} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: SUCCESS, minHeight: 52 }}>Mark Cleaned</button>}
-                {st === "Clean" && <button onClick={() => setShowInspect(r.id)} className="flex-1 py-3 rounded-xl text-sm font-bold" style={{ backgroundColor: "#DCFCE7", color: SUCCESS, minHeight: 52 }}>Request Inspection</button>}
-                {st === "Inspected" && <div className="flex-1 py-3 rounded-xl text-sm font-bold text-center flex items-center justify-center" style={{ backgroundColor: "#EFF6FF", color: PRIMARY, minHeight: 52 }}>✓ Inspected</div>}
-              </div>
-              {/* Secondary actions */}
-              <div className="flex gap-2 flex-wrap">
-                <button onClick={() => { setShowIssue(r.id); setIssueDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: ORANGE, borderColor: `${ORANGE}40`, minHeight: 44 }}>Report Issue</button>
-                <button onClick={() => { setDndRooms(p => { const n = new Set(p); isDND ? n.delete(r.id) : n.add(r.id); return n; }); add({ type: isDND ? "info" : "warning", title: isDND ? `DND cleared — Room ${r.id}` : `DND set — Room ${r.id}` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: isDND ? ERROR : MUTED, borderColor: isDND ? `${ERROR}40` : BORDER, minHeight: 44 }}>{isDND ? "Clear DND" : "Mark DND"}</button>
-                <button onClick={() => add({ type: "info", title: `Lost item logged — Room ${r.id}` })} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: MUTED, borderColor: BORDER, minHeight: 44 }}>Log L&F</button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      {/* Inspect modal */}
-      {showInspect && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowInspect(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-2" style={{ color: TEXT }}>Request Inspection — Room {showInspect}</h3>
-            <p className="text-sm mb-4" style={{ color: MUTED }}>An inspector will be notified to verify Room {showInspect} is ready for the next guest.</p>
-            <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setShowInspect(null)} /><button onClick={() => { add({ type: "success", title: `Inspection requested — Room ${showInspect}` }); setStatus(showInspect, "Inspected"); setShowInspect(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Request</button></div>
-          </div>
-        </>
-      )}
-      {/* Issue modal */}
-      {showIssue && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowIssue(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Report Issue — Room {showIssue}</h3>
-            <textarea value={issueDesc} onChange={e => setIssueDesc(e.target.value)} placeholder="Describe the issue…" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
-            <div className="flex gap-3 mt-3"><BtnO label="Cancel" onClick={() => setShowIssue(null)} /><button disabled={!issueDesc.trim()} onClick={() => { add({ type: "warning", title: `Issue reported — Room ${showIssue}`, body: issueDesc }); setShowIssue(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Report</button></div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// MX-06 Preventive Schedule
-export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [view, setView] = useState<"list" | "calendar">("list");
-  const [showDone, setShowDone] = useState<string | null>(null);
-  const [showSkip, setShowSkip] = useState<string | null>(null);
-  const [showReschedule, setShowReschedule] = useState<string | null>(null);
-  const [meter, setMeter] = useState("");
-  const [skipReason, setSkipReason] = useState("");
-  const [newDate, setNewDate] = useState("");
-
-  const TASKS = [
-    { id: "PS-001", asset: "Central AC Unit", assetId: "AST-001", task: "Full service — filter, coil, refrigerant check", freqType: "time", freq: "Monthly", lastDone: "12 Mar 2025", nextDue: "12 Jun 2025", status: "Overdue", tech: "Emeka Nwosu", estMins: 120, meterLabel: "Runtime hours" },
-    { id: "PS-002", asset: "Diesel Generator 50kVA", assetId: "AST-004", task: "Oil change, filter, battery, coolant level", freqType: "usage", freq: "Every 250 runtime hours", lastDone: "15 May 2025", nextDue: "15 Jun 2025", status: "Due Soon", tech: "Emeka Nwosu", estMins: 90, meterLabel: "Runtime hours at completion" },
-    { id: "PS-003", asset: "Elevator #1", assetId: "AST-003", task: "Brake inspection, cable, safety systems", freqType: "time", freq: "Quarterly", lastDone: "01 Jun 2025", nextDue: "01 Sep 2025", status: "Ok", tech: "External Vendor", estMins: 240, meterLabel: "" },
-    { id: "PS-004", asset: "Pool Filtration System", assetId: "AST-007", task: "Backwash filter, clean pump basket, balance chemicals", freqType: "time", freq: "Monthly", lastDone: "20 Apr 2025", nextDue: "20 Jul 2025", status: "Ok", tech: "Chidi Ike", estMins: 60, meterLabel: "" },
-    { id: "PS-005", asset: "Fire Extinguishers (all 24)", assetId: "AST-005", task: "Pressure check, tag renewal, mounting inspect", freqType: "time", freq: "Annual", lastDone: "10 Jan 2025", nextDue: "10 Jan 2026", status: "Ok", tech: "External Vendor", estMins: 180, meterLabel: "" },
-    { id: "PS-006", asset: "Commercial Refrigerator", assetId: "AST-002", task: "Condenser coil clean, door seal check, temperature calibration", freqType: "time", freq: "Quarterly", lastDone: "10 May 2025", nextDue: "10 Aug 2025", status: "Ok", tech: "Chidi Ike", estMins: 60, meterLabel: "" },
-    { id: "PS-007", asset: "Toyota HiAce Shuttle", assetId: "AST-005", task: "Oil change, tyre rotation, brake inspection", freqType: "usage", freq: "Every 5,000 km", lastDone: "01 Apr 2025", nextDue: "01 Jul 2025", status: "Due Soon", tech: "External Vendor", estMins: 120, meterLabel: "Odometer reading (km)" },
-    { id: "PS-008", asset: "Commercial Washing Machine", assetId: "AST-006", task: "Drum clean, door seal, hose inspection", freqType: "time", freq: "Monthly", lastDone: "20 Feb 2025", nextDue: "20 May 2025", status: "Overdue", tech: "Chidi Ike", estMins: 45, meterLabel: "" },
-  ];
-
-  const [statuses, setStatuses] = useState<Record<string, string>>({});
-  const statusOf = (t: typeof TASKS[0]) => statuses[t.id] ?? t.status;
-
-  const stC: Record<string, { bg: string; text: string }> = { Ok: { bg: "#DCFCE7", text: "#166534" }, Overdue: { bg: "#FEE2E2", text: "#991B1B" }, "Due Soon": { bg: "#FEF3C7", text: "#92400E" }, Completed: { bg: "#EEF2FF", text: "#4338CA" }, Skipped: { bg: "#F3F4F6", text: "#374151" } };
-
-  const markDone = () => {
-    if (!meter.trim() && TASKS.find(t=>t.id===showDone)?.meterLabel) { add({ type: "warning", title: "Enter meter reading" }); return; }
-    setStatuses(p=>({...p,[showDone!]:"Completed"}));
-    add({ type: "success", title: `${showDone} marked complete`, body: meter ? `Meter: ${meter}` : undefined });
-    setShowDone(null); setMeter("");
-  };
-
-  const skipTask = () => {
-    if (!skipReason.trim()) { add({ type: "warning", title: "Skip reason is required" }); return; }
-    setStatuses(p=>({...p,[showSkip!]:"Skipped"}));
-    add({ type: "info", title: `${showSkip} skipped`, body: skipReason });
-    setShowSkip(null); setSkipReason("");
-  };
-
-  // Calendar view — show tasks on a 4-week grid
-  const WEEKS = [["Jun 2","Jun 9","Jun 16","Jun 23","Jun 30"]];
-  const calTasks = TASKS.filter(t => statusOf(t) !== "Completed" && statusOf(t) !== "Skipped");
-
-  return (
-    <div>
-      <PageHeader title="Preventive Maintenance Schedule" sub="Time-based and usage-based PM tasks" actions={<><div className="flex rounded-xl overflow-hidden border" style={{ borderColor: BORDER }}>{["list","calendar"].map(v=><button key={v} onClick={()=>setView(v as "list"|"calendar")} className="px-3 py-2 text-xs font-semibold capitalize" style={{ backgroundColor: view===v ? PRIMARY : "white", color: view===v ? "white" : MUTED }}>{v}</button>)}</div><BtnP label="New PM Task" icon={Plus} onClick={() => add({ type: "info", title: "New PM task" })} /></>} />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Overdue" value={String(TASKS.filter(t=>statusOf(t)==="Overdue").length)} sub="Past scheduled date" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Due Soon" value={String(TASKS.filter(t=>statusOf(t)==="Due Soon").length)} sub="Within 30 days" icon={Clock} accent={WARNING} />
-        <StatCard label="On Schedule" value={String(TASKS.filter(t=>statusOf(t)==="Ok").length)} sub="No action needed" icon={CheckCircle2} accent={SUCCESS} />
-        <StatCard label="Completed" value={String(Object.values(statuses).filter(s=>s==="Completed").length)} sub="This period" icon={CheckCircle2} accent={TEAL} />
-      </div>
-
-      {view === "list" ? (
-        <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["ID","Asset / Task","Frequency","Est. Duration","Last Done","Next Due","Technician","Status",""].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-            <tbody>
-              {TASKS.map(t => {
-                const st = statusOf(t);
-                return (
-                  <tr key={t.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER, backgroundColor: st==="Overdue" ? "#FFF8F8" : "white" }}>
-                    <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{t.id}</td>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium" style={{ color: TEXT }}>{t.asset}</div>
-                      <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{t.task}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-xs font-medium" style={{ color: TEXT }}>{t.freq}</div>
-                      <div className="text-xs" style={{ color: t.freqType==="usage" ? TEAL : MUTED }}>{t.freqType==="usage" ? "Usage-based" : "Time-based"}</div>
-                    </td>
-                    <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{t.estMins >= 60 ? `${Math.floor(t.estMins/60)}h ${t.estMins%60 ? t.estMins%60+"m" : ""}` : `${t.estMins}m`}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{t.lastDone}</td>
-                    <td className="px-4 py-3 text-xs font-semibold" style={{ color: st==="Overdue" ? ERROR : st==="Due Soon" ? ORANGE : TEXT }}>{t.nextDue}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{t.tech}</td>
-                    <td className="px-4 py-3"><Badge label={st} colors={stC[st] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1">
-                        {st !== "Completed" && st !== "Skipped" && <>
-                          <button onClick={() => { setShowDone(t.id); setMeter(""); }} className="text-xs px-2 py-1.5 rounded border font-medium whitespace-nowrap" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Mark Done</button>
-                          <button onClick={() => add({ type: "info", title: `Work order → ${t.asset}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>WO</button>
-                          <button onClick={() => { setShowReschedule(t.id); setNewDate(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Reschedule</button>
-                          <button onClick={() => { setShowSkip(t.id); setSkipReason(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Skip</button>
-                        </>}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        /* Calendar view */
-        <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold mb-4" style={{ color: TEXT }}>June / July 2025 — Due tasks</div>
-          <div className="overflow-x-auto">
-            <div className="grid gap-2" style={{ gridTemplateColumns: "120px repeat(5,1fr)" }}>
-              <div />
-              {["Week 1 (Jun 2–8)","Week 2 (Jun 9–15)","Week 3 (Jun 16–22)","Week 4 (Jun 23–29)","Week 5 (Jun 30+)"].map(w => (
-                <div key={w} className="text-xs text-center font-semibold pb-2 border-b" style={{ color: MUTED, borderColor: BORDER }}>{w}</div>
-              ))}
-              {calTasks.map(t => (
-                <React.Fragment key={t.id}>
-                  <div className="text-xs py-2 pr-2 font-medium" style={{ color: TEXT }}>{t.asset.split(" ").slice(0,2).join(" ")}</div>
-                  {[0,1,2,3,4].map(week => {
-                    const dueWeek = t.nextDue.includes("Jun") ? Math.ceil((parseInt(t.nextDue.split(" ")[1]||"30"))/7)-1 : 4;
-                    const isThis = dueWeek === week;
-                    const st = statusOf(t);
-                    return (
-                      <div key={week} className="py-2 flex items-center justify-center">
-                        {isThis ? (
-                          <div className="text-xs px-2 py-1 rounded-lg text-center font-semibold" style={{ backgroundColor: st==="Overdue"?"#FEE2E2":st==="Due Soon"?"#FEF3C7":"#EFF6FF", color: st==="Overdue"?ERROR:st==="Due Soon"?ORANGE:PRIMARY, minWidth: 60 }}>
-                            {t.nextDue}
-                          </div>
-                        ) : <div className="w-2 h-0.5 rounded" style={{ backgroundColor: "#E2E8F0" }} />}
-                      </div>
-                    );
-                  })}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mark Done modal */}
-      {showDone && (() => { const t = TASKS.find(x=>x.id===showDone)!; return (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowDone(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Mark Complete — {t.id}</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>{t.asset} · {t.task}</p>
-            <div className="space-y-3">
-              {t.meterLabel && <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>{t.meterLabel}</label><input value={meter} onChange={e=>setMeter(e.target.value)} placeholder={t.meterLabel} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>}
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Completion Notes (optional)</label><textarea rows={2} placeholder="Any observations or issues found…" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Completed By</label><select className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Emeka Nwosu</option><option>Chidi Ike</option><option>External Vendor</option></select></div>
-            </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowDone(null)} /><button onClick={markDone} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Confirm Completion</button></div>
-          </div>
-        </>
-      ); })()}
-
-      {/* Skip modal */}
-      {showSkip && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowSkip(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Skip PM Task — {showSkip}</h3>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason (required)</label><textarea value={skipReason} onChange={e=>setSkipReason(e.target.value)} placeholder="e.g. External vendor unavailable — rescheduled to next week" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowSkip(null)} /><button disabled={!skipReason.trim()} onClick={skipTask} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Skip Task</button></div>
-          </div>
-        </>
-      )}
-
-      {/* Reschedule modal */}
-      {showReschedule && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowReschedule(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Reschedule — {showReschedule}</h3>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New Due Date</label><input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowReschedule(null)} /><button disabled={!newDate} onClick={() => { add({ type: "info", title: `${showReschedule} rescheduled to ${newDate}` }); setShowReschedule(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Reschedule</button></div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// MX-07 Vendor Contacts
-export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [showCall, setShowCall] = useState<string | null>(null);
-  const [callNotes, setCallNotes] = useState("");
-
-  const VENDORS = [
-    { id: "VND-001", company: "Airecon Nigeria Ltd", cat: "HVAC / Refrigeration", contact: "Engr. Seun Adeyemi", phone: "+234 804 400 5000", email: "service@airecon.ng", address: "12 Industrial Road, Lagos", services: "AC installation, servicing, refrigerant supply", rateCard: "₦35,000/visit + parts", sla: "4h response, 24h resolution", contractExpiry: "Dec 2025", rating: 4.5, jobsDone: 12, avgResponse: "3h 20m" },
-    { id: "VND-002", company: "Mikano International", cat: "Generator / Power", contact: "Mr. Femi Ola", phone: "+234 802 200 3000", email: "service@mikano.ng", address: "5 Aba Johnson Cres, Abuja", services: "Generator sales, servicing, fuel supply, AMC", rateCard: "AMC ₦180,000/year", sla: "2h response (critical), 8h resolution", contractExpiry: "Jun 2026", rating: 4.8, jobsDone: 8, avgResponse: "1h 45m" },
-    { id: "VND-003", company: "TechFix Services", cat: "General Maintenance", contact: "Engr. Bayo Ike", phone: "+234 803 300 4000", email: "info@techfix.ng", address: "7 Murtala Way, Abuja", services: "Electrical, plumbing, civil, welding, general repairs", rateCard: "₦15,000/hour labour", sla: "8h response, 48h resolution", contractExpiry: "Mar 2026", rating: 3.9, jobsDone: 34, avgResponse: "6h 10m" },
-    { id: "VND-004", company: "Otis Nigeria", cat: "Elevator / Escalator", contact: "Mrs. Amara Eze", phone: "+234 801 100 2000", email: "nigeria@otis.com", address: "10 Marina Street, Lagos", services: "Elevator installation, AMC, emergency callout", rateCard: "AMC ₦620,000/year", sla: "1h emergency response", contractExpiry: "Sep 2026", rating: 4.7, jobsDone: 5, avgResponse: "55m" },
-    { id: "VND-005", company: "AquaTech Pool Services", cat: "Pool / Water", contact: "Mr. Chidi Aneke", phone: "+234 805 500 6000", email: "aquatech@pool.ng", address: "3 Recreation Drive, Abuja", services: "Pool maintenance, chemical balance, pump repair", rateCard: "₦45,000/month retainer", sla: "Same-day", contractExpiry: "Dec 2025", rating: 4.2, jobsDone: 18, avgResponse: "2h 30m" },
-    { id: "VND-006", company: "Toyota Nigeria Limited", cat: "Vehicles", contact: "Mrs. Kemi James", phone: "+234 806 600 7000", email: "fleet@toyotanigeria.ng", address: "Toyota House, Victoria Island", services: "Fleet servicing, warranty repairs, spare parts", rateCard: "Service rates per model", sla: "Scheduled appointments", contractExpiry: "Oct 2025", rating: 4.6, jobsDone: 7, avgResponse: "N/A" },
-  ];
-
-  const sel = selected ? VENDORS.find(v=>v.id===selected) : null;
-
-  const JOB_HISTORY: Record<string, Array<{ date: string; desc: string; amount: number; rating: number }>> = {
-    "VND-001": [{ date: "24 Jun 2025", desc: "AC service — Room 207 compressor", amount: 85000, rating: 5 },{ date: "10 May 2025", desc: "Refrigerant recharge — Main AC", amount: 45000, rating: 4 }],
-    "VND-002": [{ date: "15 May 2025", desc: "Generator oil change + filter", amount: 35000, rating: 5 }],
-    "VND-003": [{ date: "22 Jun 2025", desc: "Lobby electrical fault", amount: 28000, rating: 4 }],
-  };
-
-  return (
-    <div className="flex gap-5">
-      <div className="flex-1 min-w-0">
-        <PageHeader title="Vendor Contacts" sub="Suppliers and service contractors linked to maintenance" actions={<><BtnO label="Export" icon={Download} /><BtnP label="Add Vendor" icon={Plus} onClick={() => add({ type: "info", title: "Add new vendor" })} /></>} />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Total Vendors" value={String(VENDORS.length)} sub="Registered" icon={Truck} accent={PRIMARY} />
-          <StatCard label="Active Contracts" value={String(VENDORS.filter(v=>v.contractExpiry>"Jun 2025").length)} sub="In force" icon={CheckCircle2} accent={SUCCESS} />
-          <StatCard label="Avg Rating" value={`${(VENDORS.reduce((s,v)=>s+v.rating,0)/VENDORS.length).toFixed(1)}★`} sub="Across all vendors" icon={Star} accent={ORANGE} />
-          <StatCard label="Total Jobs" value={String(VENDORS.reduce((s,v)=>s+v.jobsDone,0))} sub="This year" icon={Wrench} accent={TEAL} />
-        </div>
-        <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["ID","Company / Category","Contact","Services","Rate Card","SLA","Contract Expiry","Rating","Jobs","Avg Response",""].map(h=><th key={h} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-            <tbody>
-              {VENDORS.map(v => (
-                <tr key={v.id} onClick={() => setSelected(selected===v.id?null:v.id)} className="border-t cursor-pointer transition-colors hover:bg-[#F8FAFC]" style={{ borderColor: BORDER, backgroundColor: selected===v.id ? "#EFF6FF" : "white" }}>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{v.id}</td>
-                  <td className="px-3 py-3">
-                    <div className="text-sm font-semibold" style={{ color: TEXT }}>{v.company}</div>
-                    <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{v.cat}</div>
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="text-xs font-medium" style={{ color: TEXT }}>{v.contact}</div>
-                    <div className="text-xs" style={{ color: MUTED }}>{v.phone}</div>
-                  </td>
-                  <td className="px-3 py-3 text-xs max-w-36" style={{ color: MUTED }}>{v.services.split(",")[0]}…</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{v.rateCard}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{v.sla}</td>
-                  <td className="px-3 py-3 text-xs font-semibold" style={{ color: v.contractExpiry < "Jul 2025" ? ERROR : v.contractExpiry < "Dec 2025" ? ORANGE : TEXT }}>{v.contractExpiry}</td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-1"><Star size={11} style={{ color: ORANGE }} /><span className="text-xs font-semibold" style={{ color: TEXT }}>{v.rating.toFixed(1)}</span></div>
-                  </td>
-                  <td className="px-3 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>{v.jobsDone}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{v.avgResponse}</td>
-                  <td className="px-3 py-3">
-                    <div className="flex gap-1" onClick={e=>e.stopPropagation()}>
-                      <button onClick={() => { setShowCall(v.id); setCallNotes(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Log Call</button>
-                      <button onClick={() => add({ type: "info", title: `Work order → ${v.company}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>WO</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Detail panel */}
-      {sel && (
-        <div className="w-80 flex-shrink-0">
-          <div className="bg-white rounded-xl border p-5 sticky top-4" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-1"><h3 className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</h3><button onClick={()=>setSelected(null)} style={{ color: SUBTLE }}><X size={16} /></button></div>
-            <div className="text-base font-bold mb-0.5" style={{ color: TEXT }}>{sel.company}</div>
-            <div className="text-xs mb-3" style={{ color: MUTED }}>{sel.cat}</div>
-            <div className="space-y-1.5 text-xs mb-4">
-              {[["Contact",sel.contact],["Phone",sel.phone],["Email",sel.email],["Address",sel.address],["Rate Card",sel.rateCard],["SLA",sel.sla],["Contract Expiry",sel.contractExpiry]].map(([k,v])=>(
-                <div key={k} className="flex gap-2"><span className="w-24 flex-shrink-0" style={{ color: MUTED }}>{k}</span><span className="font-medium break-words" style={{ color: TEXT }}>{v}</span></div>
-              ))}
-            </div>
-            <div className="mb-4">
-              <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Services</div>
-              <div className="text-xs" style={{ color: TEXT }}>{sel.services}</div>
-            </div>
-            {JOB_HISTORY[sel.id] && (
-              <div className="mb-4">
-                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Recent Jobs</div>
-                <div className="space-y-2">
-                  {JOB_HISTORY[sel.id].map((j,i) => (
-                    <div key={i} className="rounded-lg p-2.5 border" style={{ borderColor: BORDER }}>
-                      <div className="flex items-start justify-between"><span className="text-xs font-medium" style={{ color: TEXT }}>{j.desc}</span><span className="text-xs font-bold flex-shrink-0" style={{ color: PRIMARY, fontFamily: mono }}>₦{j.amount.toLocaleString()}</span></div>
-                      <div className="flex items-center gap-2 mt-1"><span className="text-xs" style={{ color: MUTED }}>{j.date}</span><span style={{ color: ORANGE }}>{"★".repeat(j.rating)}</span></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="space-y-2">
-              <button onClick={() => add({ type: "info", title: `Work order → ${sel.company}` })} className="w-full py-2.5 rounded-xl text-sm font-semibold border" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Create Work Order</button>
-              <button onClick={() => { setShowCall(sel.id); setCallNotes(""); }} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Log Call</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Log Call modal */}
-      {showCall && (() => { const v = VENDORS.find(x=>x.id===showCall)!; return (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowCall(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Log Call — {v.company}</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>{v.contact} · {v.phone}</p>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call Date</label><input type="date" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Outcome</label><select className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Resolved</option><option>Follow-up required</option><option>WO scheduled</option><option>Quote requested</option></select></div>
-              </div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call Notes</label><textarea value={callNotes} onChange={e=>setCallNotes(e.target.value)} rows={3} placeholder="Summary of what was discussed…" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-            </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowCall(null)} /><button onClick={() => { add({ type: "success", title: `Call logged — ${v.company}` }); setShowCall(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save Log</button></div>
-          </div>
-        </>
-      ); })()}
-    </div>
-  );
-}
-
-// RT-07 Guest Room Charges
-export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  type ChargeStatus = "Posted" | "Pending" | "Failed" | "Disputed" | "Reversed";
-
-  const CHARGES_INIT = [
-    { id: "CH-5041", folio: "FO-2848", room: "202", guest: "Emmanuel Adeyemi", cat: "Restaurant", desc: "Room Service RS-0041", amount: 8500, date: "2025-10-14 18:30", by: "Restaurant System", status: "Posted" as ChargeStatus, ref: "RS-0041", disputeNote: "" },
-    { id: "CH-5042", folio: "FO-2848", room: "202", guest: "Emmanuel Adeyemi", cat: "Minibar", desc: "Minibar — Water ×2, Juice ×1", amount: 3600, date: "2025-10-14 20:15", by: "System", status: "Posted" as ChargeStatus, ref: "", disputeNote: "" },
-    { id: "CH-5043", folio: "FO-2849", room: "501", guest: "Dr. Chukwuemeka Bello", cat: "Restaurant", desc: "Welcome champagne (comp upgrade)", amount: 15000, date: "2025-10-14 14:30", by: "Grace M.", status: "Posted" as ChargeStatus, ref: "", disputeNote: "" },
-    { id: "CH-5044", folio: "FO-2847", room: "304", guest: "Chukwuemeka Obi", cat: "Restaurant", desc: "Dinner for 2 — Table T04", amount: 22500, date: "2025-10-13 21:00", by: "Restaurant System", status: "Disputed" as ChargeStatus, ref: "DR003", disputeNote: "Guest claims amount differs from bill presented" },
-    { id: "CH-5045", folio: "FO-2851", room: "418", guest: "Fatima Ibrahim", cat: "Restaurant", desc: "Room Service RS-0039", amount: 5200, date: "2025-10-14 11:00", by: "Restaurant System", status: "Failed" as ChargeStatus, ref: "RS-0039", disputeNote: "" },
-    { id: "CH-5046", folio: "FO-2852", room: "311", guest: "Bello Abubakar", cat: "Spa", desc: "Spa session — 60 min massage", amount: 18000, date: "2025-10-14 16:00", by: "Spa System", status: "Pending" as ChargeStatus, ref: "", disputeNote: "" },
-    { id: "CH-5047", folio: "FO-2848", room: "202", guest: "Emmanuel Adeyemi", cat: "Laundry", desc: "Express laundry — 4 items", amount: 4500, date: "2025-10-14 09:00", by: "Housekeeping", status: "Reversed" as ChargeStatus, ref: "", disputeNote: "Double-posted in error" },
-  ];
-
-  const stColors: Record<ChargeStatus,{bg:string;text:string}> = {
-    "Posted":   { bg: "#DCFCE7", text: "#166534" },
-    "Pending":  { bg: "#F1F5F9", text: "#475569" },
-    "Failed":   { bg: "#FEE2E2", text: "#991B1B" },
-    "Disputed": { bg: "#FEF3C7", text: "#92400E" },
-    "Reversed": { bg: "#F3E8FF", text: "#6B21A8" },
-  };
-
-  const catColors: Record<string,{bg:string;text:string}> = {
-    Restaurant: { bg: "#EFF6FF", text: PRIMARY },
-    Minibar:    { bg: "#F0FDF4", text: "#166534" },
-    Spa:        { bg: "#FDF4FF", text: "#7E22CE" },
-    Laundry:    { bg: "#FFFBEB", text: "#92400E" },
-  };
-
-  const [charges, setCharges] = useState(CHARGES_INIT);
-  const [selected, setSelected] = useState<string|null>(null);
-  const [statusFilter, setStatusFilter] = useState<ChargeStatus|"All">("All");
-  const [showDispute, setShowDispute] = useState(false);
-  const [showPost, setShowPost] = useState(false);
-  const [disputeNote, setDisputeNote] = useState("");
-  const [postRoom, setPostRoom] = useState("202");
-  const [postAmt, setPostAmt] = useState("");
-  const [postDesc, setPostDesc] = useState("");
-  const [postCat, setPostCat] = useState("Restaurant");
-
-  const retry = (id: string) => {
-    setCharges(prev => prev.map(c => c.id === id ? { ...c, status: "Pending" } : c));
-    setTimeout(() => {
-      setCharges(prev => prev.map(c => c.id === id ? { ...c, status: "Posted" } : c));
-    }, 1200);
-    add({ type: "info", title: `Retrying charge ${id}…` });
-  };
-
-  const openDispute = (id: string) => { setSelected(id); setDisputeNote(""); setShowDispute(true); };
-
-  const confirmDispute = () => {
-    if (!selected || !disputeNote.trim()) return;
-    setCharges(prev => prev.map(c => c.id === selected ? { ...c, status: "Disputed", disputeNote } : c));
-    add({ type: "warning", title: `Charge ${selected} — dispute raised`, body: disputeNote });
-    setShowDispute(false);
-  };
-
-  const resolveDispute = (id: string, action: "Reversed"|"Posted") => {
-    setCharges(prev => prev.map(c => c.id === id ? { ...c, status: action } : c));
-    add({ type: "success", title: `Dispute ${action === "Reversed" ? "resolved — reversed" : "dismissed — charge reinstated"}` });
-    setSelected(null);
-  };
-
-  const filtered = statusFilter === "All" ? charges : charges.filter(c=>c.status===statusFilter);
-  const sel = charges.find(c=>c.id===selected);
-
-  const total = charges.filter(c=>c.status==="Posted").reduce((s,c)=>s+c.amount,0);
-
-  return (
-    <div className="flex gap-4">
-      <div className="flex-1 min-w-0">
-        <PageHeader title="Guest Room Charges" sub="F&B and ancillary charges posted to room folios — retry, dispute, reverse" actions={<BtnP label="Post Charge" icon={Plus} onClick={() => setShowPost(true)} />} />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Posted Today" value={`₦${total.toLocaleString()}`} sub="Revenue to folios" icon={DollarSign} accent={PRIMARY} />
-          <StatCard label="Failed" value={String(charges.filter(c=>c.status==="Failed").length)} sub="Require retry" icon={AlertTriangle} accent={ERROR} />
-          <StatCard label="Disputed" value={String(charges.filter(c=>c.status==="Disputed").length)} sub="Awaiting resolution" icon={AlertTriangle} accent={ORANGE} />
-          <StatCard label="Active Rooms" value={String(new Set(charges.filter(c=>!["Reversed"].includes(c.status)).map(c=>c.room)).size)} sub="With open charges" icon={BedDouble} accent={TEAL} />
-        </div>
-
-        <div className="flex items-center gap-2 mb-4 flex-wrap">
-          {(["All","Posted","Pending","Failed","Disputed","Reversed"] as (ChargeStatus|"All")[]).map(s => (
-            <button key={s} onClick={() => setStatusFilter(s)} className="text-xs px-3 py-1.5 rounded-xl border font-medium" style={{ backgroundColor: statusFilter===s ? PRIMARY : "white", color: statusFilter===s ? "white" : MUTED, borderColor: statusFilter===s ? PRIMARY : BORDER }}>{s}</button>
-          ))}
-        </div>
-
-        <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Charge ID","Folio","Room / Guest","Category","Description","Amount","Posted","Status",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-            <tbody>
-              {filtered.map(c => (
-                <tr key={c.id} onClick={() => setSelected(c.id)} className="border-t hover:bg-[#F8FAFC] cursor-pointer transition-colors" style={{ borderColor: BORDER, backgroundColor: selected===c.id ? "#EFF6FF" : c.status==="Failed" ? "#FFF8F8" : c.status==="Disputed" ? "#FFFBEB" : undefined }}>
-                  <td className="px-3 py-3 text-xs font-semibold" style={{ color: MUTED, fontFamily: mono }}>{c.id}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{c.folio}</td>
-                  <td className="px-3 py-3">
-                    <div className="text-sm font-bold" style={{ color: PRIMARY }}>{c.room}</div>
-                    <div className="text-xs" style={{ color: MUTED }}>{c.guest}</div>
-                  </td>
-                  <td className="px-3 py-3"><span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: catColors[c.cat]?.bg ?? "#F4F4F5", color: catColors[c.cat]?.text ?? MUTED }}>{c.cat}</span></td>
-                  <td className="px-3 py-3 text-sm max-w-44 truncate" style={{ color: TEXT }}>{c.desc}</td>
-                  <td className="px-3 py-3 text-sm font-bold" style={{ color: c.status==="Reversed" ? SUBTLE : PRIMARY, fontFamily: mono, textDecoration: c.status==="Reversed" ? "line-through" : "none" }}>₦{c.amount.toLocaleString()}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{c.date.slice(11)}</td>
-                  <td className="px-3 py-3"><Badge label={c.status} colors={stColors[c.status]} /></td>
-                  <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
-                    <div className="flex gap-1">
-                      {c.status === "Failed" && <button onClick={() => retry(c.id)} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Retry</button>}
-                      {c.status === "Posted" && <button onClick={() => openDispute(c.id)} className="text-xs px-2.5 py-1.5 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Dispute</button>}
-                      {c.status === "Disputed" && <><button onClick={() => resolveDispute(c.id, "Reversed")} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: ORANGE, borderColor: `${ORANGE}30` }}>Reverse</button><button onClick={() => resolveDispute(c.id, "Posted")} className="text-xs px-2.5 py-1.5 rounded border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Dismiss</button></>}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Detail panel */}
-      {sel && (
-        <div className="w-72 flex-shrink-0 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="flex items-start justify-between mb-4"><div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL }}>{sel.folio}</div></div><button onClick={() => setSelected(null)} style={{ color: MUTED }}>✕</button></div>
-          <div className="space-y-2 text-sm mb-4">
-            <div className="flex justify-between"><span style={{ color: MUTED }}>Room</span><span className="font-bold" style={{ color: PRIMARY }}>{sel.room}</span></div>
-            <div className="flex justify-between"><span style={{ color: MUTED }}>Guest</span><span style={{ color: TEXT }}>{sel.guest}</span></div>
-            <div className="flex justify-between"><span style={{ color: MUTED }}>Category</span><span style={{ color: MUTED }}>{sel.cat}</span></div>
-            <div className="flex justify-between items-start"><span style={{ color: MUTED }}>Description</span><span className="text-right max-w-32 text-xs" style={{ color: TEXT }}>{sel.desc}</span></div>
-            <div className="flex justify-between font-bold"><span style={{ color: MUTED }}>Amount</span><span style={{ color: PRIMARY, fontFamily: mono }}>₦{sel.amount.toLocaleString()}</span></div>
-            <div className="flex justify-between"><span style={{ color: MUTED }}>Date/Time</span><span className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{sel.date}</span></div>
-            <div className="flex justify-between"><span style={{ color: MUTED }}>Posted by</span><span style={{ color: TEXT }}>{sel.by}</span></div>
-            <div className="flex justify-between items-center"><span style={{ color: MUTED }}>Status</span><Badge label={sel.status} colors={stColors[sel.status]} /></div>
-            {sel.ref && <div className="flex justify-between"><span style={{ color: MUTED }}>Reference</span><span style={{ color: TEAL, fontFamily: mono }}>{sel.ref}</span></div>}
-          </div>
-          {sel.disputeNote && <div className="px-3 py-2 rounded-xl text-xs mb-4" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}><div className="font-semibold mb-0.5">Dispute note:</div>{sel.disputeNote}</div>}
-          <div className="space-y-2">
-            {sel.status === "Failed" && <button onClick={() => { retry(sel.id); setSelected(null); }} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Retry Posting</button>}
-            {sel.status === "Posted" && <button onClick={() => { openDispute(sel.id); }} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: ORANGE, borderColor: `${ORANGE}30` }}>Raise Dispute</button>}
-            {sel.status === "Disputed" && <>
-              <button onClick={() => resolveDispute(sel.id, "Reversed")} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ORANGE }}>Reverse Charge</button>
-              <button onClick={() => resolveDispute(sel.id, "Posted")} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Dismiss Dispute</button>
-            </>}
-          </div>
-        </div>
-      )}
-
-      {/* Dispute modal */}
-      {showDispute && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowDispute(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Raise Dispute</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>Charge {selected} — this will flag for manager review.</p>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Dispute Reason</label><textarea value={disputeNote} onChange={e=>setDisputeNote(e.target.value)} rows={3} placeholder="Explain the dispute…" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowDispute(false)} /><button onClick={confirmDispute} disabled={!disputeNote.trim()} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ORANGE }}>Submit Dispute</button></div>
-          </div>
-        </>
-      )}
-
-      {/* Post charge modal */}
-      {showPost && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowPost(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Post Room Charge</h3>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Room</label><input value={postRoom} onChange={e=>setPostRoom(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Category</label><select value={postCat} onChange={e=>setPostCat(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Restaurant</option><option>Minibar</option><option>Spa</option><option>Laundry</option><option>Telephone</option></select></div>
-              </div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Description</label><input value={postDesc} onChange={e=>setPostDesc(e.target.value)} placeholder="Charge description…" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Amount (₦)</label><input type="number" value={postAmt} onChange={e=>setPostAmt(e.target.value)} placeholder="0" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-            </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowPost(false)} /><button onClick={() => { add({ type: "success", title: `Charge posted to Room ${postRoom}`, body: `₦${Number(postAmt).toLocaleString()} — ${postDesc}` }); setShowPost(false); setPostAmt(""); setPostDesc(""); }} disabled={!postAmt||!postDesc} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Post to Folio</button></div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// IV-02 Products
-export function ProductsScreen({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const ITEMS = [
-    { sku:"LIN-001", name:"Bath Towels",          cat:"Linen",      unit:"pcs",   stock:148, par:200, reorder:80,  reorderQty:100, unitCost:2800, lastCost:2900, avgCost:2850, suppliers:["Lagos Linen Co."],   perishable:false, expiry:"",         barcode:"6001234567890", location:"Linen Store" },
-    { sku:"LIN-002", name:"Bed Sheets (King)",    cat:"Linen",      unit:"sets",  stock:88,  par:120, reorder:50,  reorderQty:60,  unitCost:4500, lastCost:4500, avgCost:4450, suppliers:["Lagos Linen Co."],   perishable:false, expiry:"",         barcode:"6001234567891", location:"Linen Store" },
-    { sku:"TOI-001", name:"Shower Gel 300ml",     cat:"Toiletries", unit:"btl",   stock:62,  par:500, reorder:100, reorderQty:200, unitCost:450,  lastCost:460,  avgCost:452,  suppliers:["Procter Nig."],      perishable:true,  expiry:"Jan 2026", barcode:"6001234567892", location:"Housekeeping" },
-    { sku:"TOI-002", name:"Shampoo 250ml",        cat:"Toiletries", unit:"btl",   stock:78,  par:500, reorder:100, reorderQty:200, unitCost:380,  lastCost:390,  avgCost:382,  suppliers:["Procter Nig."],      perishable:true,  expiry:"Feb 2026", barcode:"6001234567893", location:"Housekeeping" },
-    { sku:"FB-001",  name:"Mineral Water 50cl",   cat:"F&B",        unit:"btl",   stock:240, par:1000,reorder:300, reorderQty:500, unitCost:120,  lastCost:125,  avgCost:121,  suppliers:["Abuja Fresh Farms"], perishable:true,  expiry:"Dec 2025", barcode:"6001234567894", location:"F&B Store" },
-    { sku:"FB-002",  name:"Eggs (Crate)",         cat:"F&B",        unit:"crate", stock:22,  par:80,  reorder:25,  reorderQty:40,  unitCost:3800, lastCost:4000, avgCost:3850, suppliers:["Abuja Fresh Farms"], perishable:true,  expiry:"18 Oct",   barcode:"6001234567895", location:"Cold Room" },
-    { sku:"CLN-001", name:"Floor Cleaner 5L",     cat:"Cleaning",   unit:"jrn",   stock:18,  par:60,  reorder:20,  reorderQty:30,  unitCost:2200, lastCost:2200, avgCost:2180, suppliers:["Jumia Business"],    perishable:false, expiry:"",         barcode:"6001234567896", location:"Maintenance" },
-    { sku:"KIT-001", name:"Cooking Gas (12.5kg)", cat:"Kitchen",    unit:"cyl",   stock:3,   par:12,  reorder:4,   reorderQty:6,   unitCost:12500,lastCost:13000,avgCost:12600,suppliers:["Eko Gas Ltd"],       perishable:false, expiry:"",         barcode:"6001234567897", location:"Kitchen" },
-    { sku:"KIT-002", name:"Palm Oil (25L)",       cat:"Kitchen",    unit:"drum",  stock:14,  par:20,  reorder:6,   reorderQty:10,  unitCost:42000,lastCost:44000,avgCost:42500,suppliers:["Abuja Fresh Farms"], perishable:true,  expiry:"Mar 2026", barcode:"6001234567898", location:"Kitchen" },
-  ];
-
-  const MOVEMENT_HISTORY: Record<string, {date:string;type:string;qty:number;ref:string;by:string}[]> = {
-    "LIN-001": [
-      { date:"14 Oct 14:22",type:"Issue",      qty:-12, ref:"HK-TASK-0441",by:"Ada Okonkwo" },
-      { date:"13 Oct 22:00",type:"Issue",      qty:-8,  ref:"HK-SHIFT-PM", by:"HK Supervisor" },
-      { date:"10 Oct 09:00",type:"Receipt",    qty:100, ref:"PO-0430",      by:"Store Mgr" },
-    ],
-    "FB-002": [
-      { date:"14 Oct 11:30",type:"Issue",      qty:-5,  ref:"KITCHEN-DAILY",by:"Chef Emeka" },
-      { date:"13 Oct 11:15",type:"Issue",      qty:-6,  ref:"KITCHEN-DAILY",by:"Chef Emeka" },
-      { date:"12 Oct 08:00",type:"Receipt",    qty:20,  ref:"PO-0438",      by:"Store Mgr" },
-    ],
-  };
-
-  type TxnType = "Receipt"|"Issue"|"Transfer"|"Adjustment"|"Wastage"|"Return"|"Count";
-  const CATS = ["All Categories","Linen","Toiletries","F&B","Cleaning","Kitchen"];
-  const [catFilter, setCatFilter]   = useState("All Categories");
-  const [search, setSearch]         = useState("");
-  const [selected, setSelected]     = useState<string|null>(null);
-  const [showAdj, setShowAdj]       = useState<string|null>(null);
-  const [adjQty, setAdjQty]         = useState("");
-  const [adjReason, setAdjReason]   = useState("");
-  const [adjPin, setAdjPin]         = useState("");
-  const [items, setItems]           = useState(ITEMS);
-
-  const applyAdj = (sku: string) => {
-    if (adjPin !== "1234") { add({ type:"error", title:"Invalid Manager PIN" }); return; }
-    if (!adjReason.trim()) { add({ type:"error", title:"Reason required for adjustment" }); return; }
-    const qty = parseInt(adjQty);
-    if (isNaN(qty)) { add({ type:"error", title:"Invalid quantity" }); return; }
-    setItems(prev=>prev.map(p=>p.sku===sku?{...p,stock:Math.max(0,p.stock+qty)}:p));
-    add({ type:"success", title:`Adjustment applied — ${sku}`, body:`${qty>=0?"+":""}${qty} units · ${adjReason}` });
-    setShowAdj(null); setAdjQty(""); setAdjReason(""); setAdjPin("");
-  };
-
-  const filtered = items.filter(p =>
-    (catFilter==="All Categories"||p.cat===catFilter) &&
-    (p.name.toLowerCase().includes(search.toLowerCase())||p.sku.toLowerCase().includes(search.toLowerCase()))
-  );
-  const sel = items.find(p=>p.sku===selected);
-
-  const txnTypeColor: Record<string,{bg:string;text:string}> = {
-    Receipt:    { bg:"#DCFCE7", text:"#166534" },
-    Issue:      { bg:"#FEF3C7", text:"#92400E" },
-    Adjustment: { bg:"#EDE9FE", text:"#5B21B6" },
-  };
-
-  return (
-    <div className="flex gap-4">
-      <div className="flex-1 min-w-0">
-        <PageHeader title="Products & Items" sub="SKU · UoM · multi-location stock · cost history · expiry tracking" actions={
-          <div className="flex gap-2">
-            <BtnO label="Export" icon={Download} onClick={() => add({ type:"info", title:"Exporting product catalog" })} />
-            <BtnP label="Add Item" icon={Plus} onClick={() => add({ type:"info", title:"Add inventory item" })} />
-          </div>
-        } />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Total SKUs"      value={String(items.length)}                                                    sub="In catalog"          icon={Package}      accent={PRIMARY} />
-          <StatCard label="Below Reorder"   value={String(items.filter(p=>p.stock<=p.reorder).length)}                     sub="Need replenishment"  icon={AlertTriangle} accent={ERROR}   />
-          <StatCard label="Perishable"      value={String(items.filter(p=>p.perishable).length)}                           sub="With expiry tracking" icon={Clock}         accent={WARNING} />
-          <StatCard label="Total On-Hand ₦" value={`₦${(items.reduce((s,p)=>s+p.stock*p.unitCost,0)/1000).toFixed(0)}K`} sub="Inventory value"     icon={DollarSign}    accent={SUCCESS} />
-        </div>
-
-        <div className="flex items-center gap-3 mb-4">
-          <div className="relative flex-shrink-0"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search SKU, name…" className="pl-7 pr-3 py-1.5 text-xs rounded-xl border bg-white outline-none w-48" style={{ borderColor: BORDER }} /></div>
-          <div className="flex gap-1.5 flex-wrap">
-            {CATS.map(c=><button key={c} onClick={()=>setCatFilter(c)} className="text-xs px-2.5 py-1.5 rounded-xl border" style={{ backgroundColor:catFilter===c?PRIMARY:"white", color:catFilter===c?"white":MUTED, borderColor:catFilter===c?PRIMARY:BORDER }}>{c}</button>)}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <table className="w-full">
-            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["SKU","Name","Cat","UoM","Location","Stock","Par","Reorder","Unit Cost","Avg Cost","Expiry",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-            <tbody>
-              {filtered.map(p => {
-                const low   = p.stock <= p.reorder;
-                const pct   = Math.round((p.stock/p.par)*100);
-                const col   = p.stock===0?ERROR:low?WARNING:SUCCESS;
-                const expired = p.perishable && p.expiry && (p.expiry.includes("Oct") || p.expiry.includes("Nov 2025"));
-                return (
-                  <tr key={p.sku} onClick={()=>setSelected(p.sku)} className="border-t hover:bg-[#F8FAFC] cursor-pointer" style={{ borderColor: BORDER, backgroundColor: selected===p.sku?"#EFF6FF":undefined }}>
-                    <td className="px-3 py-3 text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{p.sku}</td>
-                    <td className="px-3 py-3 text-sm font-medium" style={{ color: TEXT }}>{p.name}</td>
-                    <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{p.cat}</td>
-                    <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{p.unit}</td>
-                    <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{p.location}</td>
-                    <td className="px-3 py-3">
-                      <div className="text-sm font-bold" style={{ color: col }}>{p.stock}</div>
-                      <div className="mt-0.5 h-1.5 w-14 rounded-full overflow-hidden" style={{ backgroundColor:"#F4F4F5" }}><div className="h-full rounded-full" style={{ width:`${Math.min(pct,100)}%`, backgroundColor: col }} /></div>
-                    </td>
-                    <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{p.par}</td>
-                    <td className="px-3 py-3 text-xs" style={{ color: low?WARNING:SUBTLE, fontFamily: mono }}>{p.reorder}</td>
-                    <td className="px-3 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{p.unitCost.toLocaleString()}</td>
-                    <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>₦{p.avgCost.toLocaleString()}</td>
-                    <td className="px-3 py-3 text-xs font-semibold" style={{ color: expired?ERROR:p.perishable?WARNING:SUBTLE }}>{p.expiry||"—"}</td>
-                    <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
-                      <div className="flex gap-1">
-                        <button onClick={()=>add({type:"info",title:`Edit ${p.sku}`})} className="text-xs px-2 py-1 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Edit</button>
-                        <button onClick={()=>setShowAdj(p.sku)} className="text-xs px-2 py-1 rounded border font-semibold" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Adjust</button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Detail panel */}
-      {sel && (
-        <div className="w-72 flex-shrink-0 space-y-4">
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-            <div className="flex items-start justify-between mb-4">
-              <div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.name}</div><div className="text-xs mt-0.5" style={{ color: PRIMARY, fontFamily: mono }}>{sel.sku}</div></div>
-              <button onClick={()=>setSelected(null)} style={{ color: MUTED }}>✕</button>
-            </div>
-            <div className="space-y-2 text-xs mb-4">
-              {([["Category",sel.cat],["Unit",sel.unit],["Location",sel.location],["Barcode",sel.barcode],["Supplier",sel.suppliers.join(", ")],["Unit Cost",`₦${sel.unitCost.toLocaleString()}`],["Last Cost",`₦${sel.lastCost.toLocaleString()}`],["Avg Cost",`₦${sel.avgCost.toLocaleString()}`],["Expiry",sel.expiry||"—"]] as [string,string][]).map(([k,v])=>(
-                <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span className="font-semibold text-right" style={{ color: TEXT }}>{v}</span></div>
-              ))}
-            </div>
-            {sel.perishable && <div className="px-3 py-2 rounded-xl text-xs font-semibold" style={{ backgroundColor:"#FEF3C7", color:"#92400E" }}>⚠ Perishable · Expiry: {sel.expiry}</div>}
-          </div>
-          {MOVEMENT_HISTORY[sel.sku] && (
-            <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Movement History</h4>
-              {MOVEMENT_HISTORY[sel.sku].map((m,i) => (
-                <div key={i} className="flex items-start gap-2 mb-2.5">
-                  <span className="text-xs px-1.5 py-0.5 rounded font-semibold mt-0.5 whitespace-nowrap" style={{ backgroundColor: txnTypeColor[m.type]?.bg||"#F4F4F5", color: txnTypeColor[m.type]?.text||TEXT }}>{m.type}</span>
-                  <div className="flex-1 text-xs"><div style={{ color: TEXT }}>{m.ref}</div><div style={{ color: SUBTLE }}>{m.date} · {m.by}</div></div>
-                  <span className="text-xs font-bold" style={{ color: m.qty<0?ERROR:SUCCESS, fontFamily: mono }}>{m.qty>0?"+":""}{m.qty}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Adjustment modal */}
-      {showAdj && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>{setShowAdj(null);setAdjQty("");setAdjReason("");setAdjPin("");}} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-80" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Stock Adjustment — {showAdj}</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>Manager PIN required. Use negative values for write-off.</p>
-            <div className="space-y-3">
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Qty Change (e.g. −3 or +10)</label><input type="number" value={adjQty} onChange={e=>setAdjQty(e.target.value)} placeholder="0" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Reason (required)</label><input value={adjReason} onChange={e=>setAdjReason(e.target.value)} placeholder="Breakage, correction, count…" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" maxLength={4} value={adjPin} onChange={e=>setAdjPin(e.target.value)} placeholder="••••" className="w-full px-3 py-2 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-            </div>
-            <div className="flex gap-3 mt-5">
-              <BtnO label="Cancel" onClick={()=>{setShowAdj(null);setAdjQty("");setAdjReason("");setAdjPin("");}} />
-              <button onClick={()=>applyAdj(showAdj)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL }}>Apply Adjustment</button>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-export function SuppliersScreen({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const SUPPLIERS = [
-    { id:"SUP-001", company:"Lagos Linen Co.",    cat:"Linen",      contact:"Funmi Adeyemi",  phone:"0803-001-1001", email:"info@lagoslinen.ng",    terms:"Net 30", leadDays:5,  rating:4.8, totalSpend:1240000, onTimePct:96, activePOs:1, outstanding:185000, active:true,  note:"Preferred supplier for bedding and towels" },
-    { id:"SUP-002", company:"Procter Nig.",       cat:"Toiletries", contact:"Tunde Okonkwo",  phone:"0801-002-2002", email:"sales@procter.ng",       terms:"Net 14", leadDays:3,  rating:4.5, totalSpend:620000,  onTimePct:91, activePOs:0, outstanding:78000,  active:true,  note:"Amenity kits, bath products" },
-    { id:"SUP-003", company:"Abuja Fresh Farms",  cat:"F&B",        contact:"Ngozi Obi",      phone:"0802-003-3003", email:"orders@abujafrm.ng",     terms:"COD",    leadDays:1,  rating:4.2, totalSpend:980000,  onTimePct:88, activePOs:2, outstanding:95400,  active:true,  note:"Daily produce — perishable items" },
-    { id:"SUP-004", company:"Jumia Business",     cat:"Cleaning",   contact:"Online Portal",  phone:"0700-800-0000", email:"biz@jumia.com.ng",       terms:"Prepaid",leadDays:2,  rating:3.9, totalSpend:340000,  onTimePct:82, activePOs:1, outstanding:78000,  active:true,  note:"Consumables via e-commerce" },
-    { id:"SUP-005", company:"Eko Gas Ltd",        cat:"Kitchen",    contact:"Bello Musa",     phone:"0805-004-4004", email:"bello@ekogas.ng",        terms:"COD",    leadDays:1,  rating:4.6, totalSpend:280000,  onTimePct:98, activePOs:0, outstanding:0,      active:true,  note:"LPG for kitchen and laundry" },
-    { id:"SUP-006", company:"GP Maintenance Ltd", cat:"Maintenance",contact:"Chidi Eze",      phone:"0806-005-5005", email:"chidi@gpmaint.ng",       terms:"Net 30", leadDays:7,  rating:4.0, totalSpend:580000,  onTimePct:85, activePOs:1, outstanding:220000, active:true,  note:"General maintenance contracts" },
-  ];
-
-  const PRICE_LIST: Record<string, {item:string;unit:string;price:number;lastUpdated:string}[]> = {
-    "SUP-001": [{ item:"Bath Towels",      unit:"pcs",  price:2900, lastUpdated:"Oct 2025" },{ item:"Bed Sheets King", unit:"sets", price:4500, lastUpdated:"Sep 2025" }],
-    "SUP-003": [{ item:"Eggs (Crate)",     unit:"crate",price:4000, lastUpdated:"Oct 2025" },{ item:"Palm Oil 25L",   unit:"drum", price:44000,lastUpdated:"Oct 2025" },{ item:"Mineral Water",  unit:"btl",  price:125,  lastUpdated:"Sep 2025" }],
-  };
-
-  const [selected, setSelected] = useState<string|null>(null);
-  const [tab, setTab]           = useState<"overview"|"pricelist"|"history">("overview");
-  const sel = SUPPLIERS.find(s=>s.id===selected);
-
-  const stars = (r: number) => "★".repeat(Math.round(r)) + "☆".repeat(5-Math.round(r));
-
-  return (
-    <div className="flex gap-4">
-      <div className="flex-1 min-w-0">
-        <PageHeader title="Suppliers" sub="Vendor directory · ratings · spend · lead times · outstanding balances" actions={
-          <div className="flex gap-2">
-            <BtnO label="Export" icon={Download} onClick={() => add({ type:"info", title:"Exporting supplier list" })} />
-            <BtnP label="Add Supplier" icon={Plus} onClick={() => add({ type:"info", title:"Add supplier" })} />
-          </div>
-        } />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Total Suppliers"   value={String(SUPPLIERS.length)}                                              sub="Registered vendors"    icon={Truck}         accent={PRIMARY} />
-          <StatCard label="Active POs"        value={String(SUPPLIERS.reduce((s,v)=>s+v.activePOs,0))}                     sub="Outstanding orders"    icon={FileText}      accent={TEAL}    />
-          <StatCard label="Outstanding AP"    value={`₦${SUPPLIERS.reduce((s,v)=>s+v.outstanding,0).toLocaleString()}`}   sub="Unpaid balances"       icon={AlertCircle}   accent={ERROR}   />
-          <StatCard label="Total Spend (YTD)" value={`₦${(SUPPLIERS.reduce((s,v)=>s+v.totalSpend,0)/1000).toFixed(0)}K`} sub="All vendors year-to-date" icon={DollarSign} accent={SUCCESS} />
-        </div>
-
-        <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <table className="w-full">
-            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Supplier","Category","Contact","Terms","Lead","Rating","On-Time","Spend","Outstanding","POs",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-            <tbody>
-              {SUPPLIERS.map(s => (
-                <tr key={s.id} onClick={()=>setSelected(s.id)} className="border-t hover:bg-[#F8FAFC] cursor-pointer" style={{ borderColor: BORDER, backgroundColor: selected===s.id?"#EFF6FF":undefined }}>
-                  <td className="px-3 py-3"><div className="text-sm font-semibold" style={{ color: TEXT }}>{s.company}</div><div className="text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{s.id}</div></td>
-                  <td className="px-3 py-3"><span className="text-xs px-2 py-0.5 rounded font-semibold" style={{ backgroundColor:"#EFF6FF", color: PRIMARY }}>{s.cat}</span></td>
-                  <td className="px-3 py-3"><div className="text-xs" style={{ color: TEXT }}>{s.contact}</div><div className="text-xs" style={{ color: SUBTLE }}>{s.phone}</div></td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{s.terms}</td>
-                  <td className="px-3 py-3 text-xs font-semibold" style={{ color: s.leadDays<=2?SUCCESS:s.leadDays<=5?WARNING:ORANGE, fontFamily: mono }}>{s.leadDays}d</td>
-                  <td className="px-3 py-3"><div className="text-xs" style={{ color: s.rating>=4.5?SUCCESS:s.rating>=4?WARNING:ERROR }}>{stars(s.rating)}</div><div className="text-xs font-semibold" style={{ color: MUTED }}>{s.rating}</div></td>
-                  <td className="px-3 py-3 text-xs font-semibold" style={{ color: s.onTimePct>=95?SUCCESS:s.onTimePct>=85?WARNING:ERROR }}>{s.onTimePct}%</td>
-                  <td className="px-3 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{(s.totalSpend/1000).toFixed(0)}K</td>
-                  <td className="px-3 py-3 text-xs font-semibold" style={{ color: s.outstanding>0?ERROR:SUBTLE, fontFamily: mono }}>{s.outstanding>0?`₦${s.outstanding.toLocaleString()}`:"—"}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: s.activePOs>0?PRIMARY:SUBTLE }}>{s.activePOs}</td>
-                  <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
-                    <button onClick={()=>add({type:"info",title:`Create PO — ${s.company}`})} className="text-xs px-2.5 py-1.5 rounded border font-semibold whitespace-nowrap" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Create PO</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Detail panel */}
-      {sel && (
-        <div className="w-72 flex-shrink-0 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="flex items-start justify-between mb-3">
-            <div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.company}</div><div className="text-xs mt-0.5" style={{ color: SUBTLE, fontFamily: mono }}>{sel.id}</div></div>
-            <button onClick={()=>setSelected(null)} style={{ color: MUTED }}>✕</button>
-          </div>
-          <div className="flex gap-1 p-1 rounded-xl bg-[#F8FAFC] border mb-4" style={{ borderColor: BORDER }}>
-            {(["overview","pricelist","history"] as const).map(t=>(
-              <button key={t} onClick={()=>setTab(t)} className="flex-1 py-1.5 rounded-xl text-xs font-semibold capitalize" style={{ backgroundColor: tab===t?"white":"transparent", color: tab===t?PRIMARY:MUTED, boxShadow: tab===t?"0 1px 2px rgba(0,0,0,0.06)":undefined }}>{t}</button>
-            ))}
-          </div>
-          {tab==="overview" && (
-            <div className="space-y-2 text-sm">
-              {([["Category",sel.cat],["Contact",sel.contact],["Phone",sel.phone],["Email",sel.email],["Terms",sel.terms],["Lead Time",`${sel.leadDays} days`],["Rating",`${sel.rating} / 5`],["On-Time %",`${sel.onTimePct}%`],["Total Spend",`₦${sel.totalSpend.toLocaleString()}`],["Outstanding",sel.outstanding>0?`₦${sel.outstanding.toLocaleString()}`:"₦0"],["Active POs",String(sel.activePOs)]] as [string,string][]).map(([k,v])=>(
-                <div key={k} className="flex justify-between text-xs"><span style={{ color: MUTED }}>{k}</span><span className="font-semibold" style={{ color: TEXT }}>{v}</span></div>
-              ))}
-              <div className="pt-2 text-xs italic" style={{ color: SUBTLE }}>{sel.note}</div>
-            </div>
-          )}
-          {tab==="pricelist" && (
-            <div>
-              {PRICE_LIST[sel.id] ? PRICE_LIST[sel.id].map((p,i) => (
-                <div key={i} className="flex items-center justify-between py-2 border-b text-xs" style={{ borderColor: BORDER }}>
-                  <div><div style={{ color: TEXT }}>{p.item}</div><div style={{ color: SUBTLE }}>per {p.unit} · {p.lastUpdated}</div></div>
-                  <div className="font-bold" style={{ color: PRIMARY, fontFamily: mono }}>₦{p.price.toLocaleString()}</div>
-                </div>
-              )) : <div className="text-xs text-center py-4" style={{ color: SUBTLE }}>No price list on file</div>}
-            </div>
-          )}
-          {tab==="history" && (
-            <div className="text-xs" style={{ color: MUTED }}>
-              <div className="py-2 border-b" style={{ borderColor: BORDER }}>
-                <div className="font-semibold" style={{ color: TEXT }}>PO-0451 · Mineral Water</div>
-                <div>₦60,000 · 10 Oct · Received</div>
-              </div>
-              <div className="py-2 border-b" style={{ borderColor: BORDER }}>
-                <div className="font-semibold" style={{ color: TEXT }}>PO-0438 · Eggs</div>
-                <div>₦80,000 · 01 Oct · Received</div>
-              </div>
-              <div className="py-2 text-center" style={{ color: SUBTLE }}>3 previous orders this quarter</div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  type TxnType = "Receipt"|"Issue"|"Transfer"|"Adjustment"|"Wastage"|"Return"|"Count";
-
-  const INIT_TXN = [
-    { id:"TXN-0291", date:"14 Oct 14:22", item:"Bath Towels",         sku:"LIN-001", type:"Issue" as TxnType,      qty:-12, from:"Linen Store",    to:"Room 202",         ref:"HK-TASK-0441",  unitCost:2800, value:33600,  by:"Ada Okonkwo",    reason:"" },
-    { id:"TXN-0290", date:"14 Oct 13:05", item:"Mineral Water 50cl",  sku:"FB-001",  type:"Receipt" as TxnType,    qty:500, from:"",               to:"F&B Store",        ref:"PO-0451",       unitCost:120,  value:60000,  by:"Store Mgr",      reason:"" },
-    { id:"TXN-0289", date:"14 Oct 11:30", item:"Eggs (Crate)",        sku:"FB-002",  type:"Issue" as TxnType,      qty:-5,  from:"Cold Room",       to:"Main Kitchen",     ref:"KITCHEN-DAILY", unitCost:3800, value:19000,  by:"Chef Emeka",     reason:"" },
-    { id:"TXN-0288", date:"14 Oct 09:15", item:"Floor Cleaner 5L",    sku:"CLN-001", type:"Adjustment" as TxnType, qty:-2,  from:"Maintenance",     to:"",                 ref:"BREAKAGE-ADJ",  unitCost:2200, value:4400,   by:"Mgr. Bello",     reason:"2 bottles broken during cleaning shift" },
-    { id:"TXN-0287", date:"13 Oct 22:00", item:"Shower Gel 300ml",    sku:"TOI-001", type:"Issue" as TxnType,      qty:-24, from:"Housekeeping",    to:"Room Restocking",  ref:"HK-SHIFT-PM",   unitCost:450,  value:10800,  by:"HK Supervisor",  reason:"" },
-    { id:"TXN-0286", date:"13 Oct 16:40", item:"Cooking Gas (12.5kg)",sku:"KIT-001", type:"Receipt" as TxnType,    qty:6,   from:"",               to:"Kitchen",          ref:"PO-0448",       unitCost:12500,value:75000,  by:"Store Mgr",      reason:"" },
-    { id:"TXN-0285", date:"13 Oct 10:20", item:"Shampoo 250ml",       sku:"TOI-002", type:"Return" as TxnType,     qty:8,   from:"Room Restocking", to:"Housekeeping",     ref:"HK-RETURN-003", unitCost:380,  value:3040,   by:"Ada Okonkwo",    reason:"Excess returned from floors" },
-    { id:"TXN-0284", date:"12 Oct 14:00", item:"Bath Towels",         sku:"LIN-001", type:"Transfer" as TxnType,   qty:20,  from:"Linen Store",     to:"Pool Towel Store", ref:"INTERNAL-TRF",  unitCost:2800, value:56000,  by:"HK Supervisor",  reason:"Pool restocking" },
-    { id:"TXN-0283", date:"12 Oct 09:00", item:"Palm Oil (25L)",      sku:"KIT-002", type:"Wastage" as TxnType,    qty:-1,  from:"Kitchen",         to:"",                 ref:"WASTE-OCT12",   unitCost:42000,value:42000,  by:"Chef Emeka",     reason:"Expired — past best-before date" },
-    { id:"TXN-0282", date:"11 Oct 18:00", item:"Eggs (Crate)",        sku:"FB-002",  type:"Count" as TxnType,      qty:0,   from:"Cold Room",       to:"",                 ref:"STOCKCOUNT-OCT",unitCost:3800, value:0,      by:"Mgr. Bello",     reason:"Periodic stock count — variance: 0" },
-  ];
-
-  const typeColor: Record<TxnType,{bg:string;text:string}> = {
-    Receipt:    { bg:"#DCFCE7", text:"#166534" },
-    Issue:      { bg:"#FEF3C7", text:"#92400E" },
-    Transfer:   { bg:"#DBEAFE", text:"#1E40AF" },
-    Adjustment: { bg:"#EDE9FE", text:"#5B21B6" },
-    Wastage:    { bg:"#FEE2E2", text:"#991B1B" },
-    Return:     { bg:"#F0FDF4", text:"#166534" },
-    Count:      { bg:"#F3F4F6", text:"#374151" },
-  };
-
-  const ALL_TYPES: (TxnType|"All")[] = ["All","Receipt","Issue","Transfer","Adjustment","Wastage","Return","Count"];
-
-  const [txns, setTxns]           = useState(INIT_TXN);
-  const [typeFilter, setTypeFilter] = useState<TxnType|"All">("All");
-  const [dateFilter, setDateFilter] = useState("");
-  const [showNew, setShowNew]     = useState(false);
-  const [showCount, setShowCount] = useState(false);
-
-  // New txn form
-  const [newType, setNewType]     = useState<TxnType>("Issue");
-  const [newItem, setNewItem]     = useState("");
-  const [newQty, setNewQty]       = useState("");
-  const [newFrom, setNewFrom]     = useState("");
-  const [newTo, setNewTo]         = useState("");
-  const [newRef, setNewRef]       = useState("");
-  const [newReason, setNewReason] = useState("");
-  const [newPin, setNewPin]       = useState("");
-
-  const needsPin   = newType==="Adjustment"||newType==="Wastage";
-  const needsReason = newType==="Adjustment"||newType==="Wastage"||newType==="Return";
-
-  const logTxn = () => {
-    if (needsPin && newPin!=="1234") { add({ type:"error", title:"Invalid Manager PIN" }); return; }
-    if (needsReason && !newReason.trim()) { add({ type:"error", title:"Reason required for this transaction type" }); return; }
-    const qty = parseInt(newQty)||0;
-    const id  = `TXN-${String(parseInt(txns[0].id.split("-")[1])+1).padStart(4,"0")}`;
-    setTxns(prev => [{ id, date:"14 Oct now", item:newItem||"—", sku:"—", type:newType, qty, from:newFrom, to:newTo, ref:newRef||id, unitCost:0, value:0, by:"Current User", reason:newReason },...prev]);
-    add({ type:"success", title:`Transaction logged — ${newType}`, body:`${qty>=0?"+":""}${qty} · ${newItem}` });
-    setShowNew(false); setNewItem(""); setNewQty(""); setNewFrom(""); setNewTo(""); setNewRef(""); setNewReason(""); setNewPin("");
-  };
-
-  // Stock count
-  const [countItems, setCountItems] = useState([
-    { sku:"LIN-001", name:"Bath Towels",        system:148, counted:0, done:false },
-    { sku:"TOI-001", name:"Shower Gel 300ml",   system:62,  counted:0, done:false },
-    { sku:"FB-001",  name:"Mineral Water 50cl", system:240, counted:0, done:false },
-    { sku:"KIT-001", name:"Cooking Gas",        system:3,   counted:0, done:false },
-  ]);
-
-  const filtered = txns.filter(t =>
-    (typeFilter==="All"||t.type===typeFilter) &&
-    (!dateFilter||t.date.includes(dateFilter))
-  );
-
-  return (
-    <div>
-      <PageHeader title="Stock Transactions" sub="Receipts · issues · transfers · adjustments · wastage · stock counts" actions={
-        <div className="flex gap-2">
-          <BtnO label="Stock Count" icon={ClipboardList} onClick={()=>setShowCount(true)} />
-          <BtnO label="Export" icon={Download} onClick={()=>add({type:"info",title:"Exporting transactions"})} />
-          <BtnP label="Log Movement" icon={Plus} onClick={()=>setShowNew(true)} />
-        </div>
-      } />
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Receipts Today"   value={String(txns.filter(t=>t.type==="Receipt"&&t.date.includes("14 Oct")).length)} sub="Items received"     icon={TrendingUp}    accent={SUCCESS} />
-        <StatCard label="Issues Today"     value={String(txns.filter(t=>t.type==="Issue"&&t.date.includes("14 Oct")).length)}   sub="Items consumed"     icon={TrendingDown}  accent={ORANGE}  />
-        <StatCard label="Adjustments"      value={String(txns.filter(t=>t.type==="Adjustment").length)}                         sub="Corrections (need reason)" icon={Edit3}   accent={WARNING} />
-        <StatCard label="Wastage Value"    value={`₦${txns.filter(t=>t.type==="Wastage").reduce((s,t)=>s+t.value,0).toLocaleString()}`} sub="Written-off" icon={Trash2}  accent={ERROR}   />
-      </div>
-
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        {ALL_TYPES.map(t=>(
-          <button key={t} onClick={()=>setTypeFilter(t)} className="text-xs px-3 py-1.5 rounded-xl border" style={{ backgroundColor: typeFilter===t?PRIMARY:"white", color: typeFilter===t?"white":MUTED, borderColor: typeFilter===t?PRIMARY:BORDER }}>{t}</button>
-        ))}
-        <input type="date" value={dateFilter} onChange={e=>setDateFilter(e.target.value)} className="ml-auto px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER }} />
-      </div>
-
-      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-        <table className="w-full">
-          <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Txn ID","Date","Item","SKU","Type","Qty","From","To","Ref","Unit Cost","Value","By",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-          <tbody>
-            {filtered.map(t => (
-              <tr key={t.id} className="border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER }}>
-                <td className="px-3 py-3 text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{t.id}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{t.date}</td>
-                <td className="px-3 py-3 text-sm font-medium" style={{ color: TEXT }}>{t.item}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{t.sku}</td>
-                <td className="px-3 py-3"><Badge label={t.type} colors={typeColor[t.type]} /></td>
-                <td className="px-3 py-3 text-sm font-bold" style={{ color: t.qty<0?ERROR:t.qty>0?SUCCESS:SUBTLE, fontFamily: mono }}>{t.qty!==0?(t.qty>0?"+":"")+t.qty:"—"}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{t.from||"—"}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{t.to||"—"}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{t.ref}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{t.unitCost?`₦${t.unitCost.toLocaleString()}`:"—"}</td>
-                <td className="px-3 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>{t.value?`₦${t.value.toLocaleString()}`:"—"}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{t.by}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: SUBTLE }}>{t.reason&&<span title={t.reason} className="cursor-help underline decoration-dotted">note</span>}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* New transaction modal */}
-      {showNew && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>setShowNew(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Log Stock Movement</h3>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div className="col-span-2"><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Movement Type</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {(["Receipt","Issue","Transfer","Adjustment","Wastage","Return"] as TxnType[]).map(t=>(
-                    <button key={t} onClick={()=>setNewType(t)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold" style={{ backgroundColor: newType===t?PRIMARY:"white", color: newType===t?"white":MUTED, borderColor: newType===t?PRIMARY:BORDER }}>{t}</button>
-                  ))}
-                </div>
-              </div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Item Name</label><input value={newItem} onChange={e=>setNewItem(e.target.value)} placeholder="Item name" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Quantity</label><input type="number" value={newQty} onChange={e=>setNewQty(e.target.value)} placeholder={newType==="Issue"||newType==="Wastage"?"−qty":"+qty"} className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>From Location</label><input value={newFrom} onChange={e=>setNewFrom(e.target.value)} placeholder="Store, supplier…" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>To Location</label><input value={newTo} onChange={e=>setNewTo(e.target.value)} placeholder="Kitchen, room…" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              <div className="col-span-2"><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Reference</label><input value={newRef} onChange={e=>setNewRef(e.target.value)} placeholder="PO number, work order…" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-              {needsReason && <div className="col-span-2"><label className="text-xs font-medium block mb-1.5" style={{ color: ERROR }}>Reason (required for {newType})</label><input value={newReason} onChange={e=>setNewReason(e.target.value)} placeholder="State reason clearly…" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: ERROR }} /></div>}
-              {needsPin && <div className="col-span-2"><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Manager PIN (required for {newType})</label><input type="password" maxLength={4} value={newPin} onChange={e=>setNewPin(e.target.value)} placeholder="••••" className="w-full px-3 py-2 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>}
-            </div>
-            <div className="flex gap-3">
-              <BtnO label="Cancel" onClick={()=>setShowNew(false)} />
-              <button onClick={logTxn} disabled={!newItem||!newQty} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Log Movement</button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Stock count modal */}
-      {showCount && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>setShowCount(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Stock Count Session</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>Enter physical counts. Variance = System − Counted.</p>
-            <div className="space-y-2 mb-4">
-              {countItems.map((ci,i) => {
-                const variance = ci.done ? ci.system - ci.counted : null;
-                return (
-                  <div key={ci.sku} className="flex items-center gap-3 px-3 py-2.5 rounded-xl border" style={{ borderColor: variance!=null&&variance!==0?WARNING:BORDER }}>
-                    <div className="flex-1 text-sm" style={{ color: TEXT }}>{ci.name}</div>
-                    <div className="text-xs text-right" style={{ color: MUTED }}><div>System: {ci.system}</div>{ci.done&&<div style={{ color: variance!==0?WARNING:SUCCESS }}>Var: {variance!==0?variance:"✓"}</div>}</div>
-                    <input type="number" value={ci.counted||""} onChange={e=>setCountItems(prev=>prev.map((x,j)=>j===i?{...x,counted:parseInt(e.target.value)||0}:x))} placeholder="Count" className="w-20 px-2 py-1.5 rounded-lg border text-sm outline-none text-center" style={{ borderColor: BORDER, fontFamily: mono }} />
-                    <button onClick={()=>setCountItems(prev=>prev.map((x,j)=>j===i?{...x,done:true}:x))} disabled={ci.done} className="text-xs px-2 py-1.5 rounded-lg border font-semibold disabled:opacity-40" style={{ color: SUCCESS, borderColor:`${SUCCESS}30` }}>✓</button>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex items-center justify-between px-1 mb-4 text-xs">
-              <span style={{ color: MUTED }}>{countItems.filter(c=>c.done).length}/{countItems.length} items counted</span>
-              {countItems.filter(c=>c.done&&c.system!==c.counted).length>0 && <span className="font-semibold" style={{ color: WARNING }}>{countItems.filter(c=>c.done&&c.system!==c.counted).length} variances found</span>}
-            </div>
-            <div className="flex gap-3">
-              <BtnO label="Cancel" onClick={()=>setShowCount(false)} />
-              <button onClick={()=>{ add({ type:"success", title:"Stock count saved — variance report generated" }); setShowCount(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save Count & Report</button>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  type POStatus = "Draft"|"Pending Approval"|"Approved"|"Sent"|"Partially Received"|"Received"|"Cancelled";
-
-  const INIT_POS = [
-    { id:"PO-0451", supplier:"Abuja Fresh Farms",  raisedBy:"Store Mgr",    date:"10 Oct", expected:"12 Oct", status:"Received" as POStatus,           total:60000,  receivedPct:100, approver:"Mgr. Bello",
-      lines: [{ item:"Mineral Water 50cl", sku:"FB-001", ordered:500, received:500, unitCost:120,  total:60000 }] },
-    { id:"PO-0450", supplier:"Lagos Linen Co.",    raisedBy:"HK Supervisor", date:"08 Oct", expected:"13 Oct", status:"Received" as POStatus,           total:185000, receivedPct:100, approver:"Mgr. Bello",
-      lines: [{ item:"Bath Towels", sku:"LIN-001", ordered:100, received:100, unitCost:2900, total:290000 }] },
-    { id:"PO-0449", supplier:"Jumia Business",     raisedBy:"Store Mgr",    date:"05 Oct", expected:"07 Oct", status:"Partially Received" as POStatus,  total:78000,  receivedPct:60,  approver:"Mgr. Bello",
-      lines: [{ item:"Floor Cleaner 5L", sku:"CLN-001", ordered:30, received:18, unitCost:2200, total:39600 },{ item:"Disinfectant Spray", sku:"CLN-002", ordered:50, received:30, unitCost:1800, total:54000 }] },
-    { id:"PO-0452", supplier:"Procter Nig.",       raisedBy:"HK Supervisor", date:"14 Oct", expected:"17 Oct", status:"Approved" as POStatus,           total:89600,  receivedPct:0,   approver:"Mgr. Bello",
-      lines: [{ item:"Shower Gel 300ml", sku:"TOI-001", ordered:200, received:0, unitCost:460, total:92000 },{ item:"Shampoo 250ml", sku:"TOI-002", ordered:200, received:0, unitCost:390, total:78000 }] },
-    { id:"PO-0453", supplier:"Eko Gas Ltd",        raisedBy:"Chef Emeka",   date:"14 Oct", expected:"15 Oct", status:"Sent" as POStatus,                total:75000,  receivedPct:0,   approver:"",
-      lines: [{ item:"Cooking Gas 12.5kg", sku:"KIT-001", ordered:6, received:0, unitCost:12500, total:75000 }] },
-    { id:"PO-0454", supplier:"Abuja Fresh Farms",  raisedBy:"Chef Emeka",   date:"14 Oct", expected:"14 Oct", status:"Pending Approval" as POStatus,    total:152000, receivedPct:0,   approver:"",
-      lines: [{ item:"Eggs (Crate)", sku:"FB-002", ordered:40, received:0, unitCost:4000, total:160000 },{ item:"Palm Oil 25L", sku:"KIT-002", ordered:0, received:0, unitCost:44000, total:0 }] },
-    { id:"PO-0455", supplier:"GP Maintenance Ltd", raisedBy:"Maintenance",  date:"12 Oct", expected:"19 Oct", status:"Draft" as POStatus,               total:220000, receivedPct:0,   approver:"",
-      lines: [{ item:"Maintenance Contract Q4", sku:"SVC-001", ordered:1, received:0, unitCost:220000, total:220000 }] },
-  ];
-
-  const stColors: Record<POStatus,{bg:string;text:string}> = {
-    "Draft":              { bg:"#F1F5F9", text:"#475569" },
-    "Pending Approval":   { bg:"#DBEAFE", text:"#1E40AF" },
-    "Approved":           { bg:"#DCFCE7", text:"#166534" },
-    "Sent":               { bg:"#FEF3C7", text:"#92400E" },
-    "Partially Received": { bg:"#EDE9FE", text:"#5B21B6" },
-    "Received":           { bg:"#F0FDF4", text:"#166534" },
-    "Cancelled":          { bg:"#FEE2E2", text:"#991B1B" },
-  };
-
-  const [pos, setPos]           = useState(INIT_POS);
-  const [selected, setSelected] = useState<string|null>(null);
-  const [statusFilter, setFilter] = useState<POStatus|"All">("All");
-  const [showApprove, setShowApprove] = useState<string|null>(null);
-  const [approvePin, setApprovePin]   = useState("");
-  const [showGRN, setShowGRN]         = useState<string|null>(null);
-  const [grnQtys, setGrnQtys]         = useState<Record<string,number>>({});
-
-  const approve = (id: string) => {
-    if (approvePin!=="1234") { add({ type:"error", title:"Invalid PIN" }); return; }
-    setPos(prev=>prev.map(p=>p.id===id?{...p,status:"Approved" as POStatus,approver:"Mgr. Bello"}:p));
-    add({ type:"success", title:`${id} approved` }); setShowApprove(null); setApprovePin("");
-  };
-
-  const receiveGRN = (id: string) => {
-    setPos(prev=>prev.map(po => {
-      if (po.id!==id) return po;
-      const updLines = po.lines.map(l=>({ ...l, received: l.received+(grnQtys[l.sku]||0) }));
-      const totalReceived = updLines.reduce((s,l)=>s+l.received,0);
-      const totalOrdered  = updLines.reduce((s,l)=>s+l.ordered,0);
-      const newStatus: POStatus = totalReceived>=totalOrdered?"Received":totalReceived>0?"Partially Received":"Sent";
-      return { ...po, lines:updLines, receivedPct:Math.round((totalReceived/totalOrdered)*100), status:newStatus };
-    }));
-    add({ type:"success", title:`GRN recorded — ${id}`, body:"Stock quantities updated" });
-    setShowGRN(null); setGrnQtys({});
-  };
-
-  const filtered = statusFilter==="All" ? pos : pos.filter(p=>p.status===statusFilter);
-  const sel      = pos.find(p=>p.id===selected);
-
-  return (
-    <div className="flex gap-4">
-      <div className="flex-1 min-w-0">
-        <PageHeader title="Purchase Orders" sub="Full approval workflow · partial receipts · GRN · invoice match" actions={
-          <div className="flex gap-2">
-            <BtnO label="Export" icon={Download} onClick={()=>add({type:"info",title:"Exporting POs"})} />
-            <BtnP label="Create PO" icon={Plus} onClick={()=>add({type:"info",title:"Create purchase order"})} />
-          </div>
-        } />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Total POs"        value={String(pos.length)}                                                        sub="This period"        icon={FileText}      accent={PRIMARY} />
-          <StatCard label="Pending Approval" value={String(pos.filter(p=>p.status==="Pending Approval").length)}                sub="Awaiting sign-off"  icon={AlertTriangle} accent={WARNING} />
-          <StatCard label="In Transit"       value={String(pos.filter(p=>p.status==="Sent"||p.status==="Approved").length)}    sub="Sent / approved"    icon={Truck}         accent={TEAL}    />
-          <StatCard label="Total Committed"  value={`₦${pos.filter(p=>!["Received","Cancelled"].includes(p.status)).reduce((s,p)=>s+p.total,0).toLocaleString()}`} sub="Open orders" icon={DollarSign} accent={ORANGE} />
-        </div>
-
-        <div className="flex items-center gap-2 mb-4 flex-wrap">
-          {(["All","Draft","Pending Approval","Approved","Sent","Partially Received","Received","Cancelled"] as (POStatus|"All")[]).map(s=>(
-            <button key={s} onClick={()=>setFilter(s)} className="text-xs px-3 py-1.5 rounded-xl border whitespace-nowrap" style={{ backgroundColor:statusFilter===s?PRIMARY:"white", color:statusFilter===s?"white":MUTED, borderColor:statusFilter===s?PRIMARY:BORDER }}>{s}</button>
-          ))}
-        </div>
-
-        <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <table className="w-full">
-            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["PO #","Supplier","Raised By","Date","Expected","Status","Total","Received",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-            <tbody>
-              {filtered.map(po => (
-                <tr key={po.id} onClick={()=>setSelected(po.id)} className="border-t hover:bg-[#F8FAFC] cursor-pointer" style={{ borderColor: BORDER, backgroundColor: selected===po.id?"#EFF6FF":undefined }}>
-                  <td className="px-3 py-3 text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{po.id}</td>
-                  <td className="px-3 py-3 text-sm font-medium" style={{ color: TEXT }}>{po.supplier}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{po.raisedBy}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{po.date}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{po.expected}</td>
-                  <td className="px-3 py-3"><Badge label={po.status} colors={stColors[po.status]} /></td>
-                  <td className="px-3 py-3 text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{po.total.toLocaleString()}</td>
-                  <td className="px-3 py-3">
-                    <div className="text-xs font-semibold mb-0.5" style={{ color: po.receivedPct===100?SUCCESS:po.receivedPct>0?WARNING:MUTED }}>{po.receivedPct}%</div>
-                    <div className="h-1.5 w-16 rounded-full overflow-hidden" style={{ backgroundColor:"#F4F4F5" }}><div className="h-full rounded-full" style={{ width:`${po.receivedPct}%`, backgroundColor: po.receivedPct===100?SUCCESS:WARNING }} /></div>
-                  </td>
-                  <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
-                    <div className="flex gap-1">
-                      {po.status==="Pending Approval" && <button onClick={()=>setShowApprove(po.id)} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: SUCCESS, borderColor:`${SUCCESS}30` }}>Approve</button>}
-                      {po.status==="Approved" && <button onClick={()=>{ setPos(prev=>prev.map(p=>p.id===po.id?{...p,status:"Sent" as POStatus}:p)); add({type:"success",title:`${po.id} sent to supplier`}); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: PRIMARY, borderColor:`${PRIMARY}30` }}>Send</button>}
-                      {(po.status==="Sent"||po.status==="Partially Received") && <button onClick={()=>{ setSelected(po.id); setShowGRN(po.id); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Receive</button>}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Detail panel */}
-      {sel && (
-        <div className="w-72 flex-shrink-0 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="flex items-start justify-between mb-4">
-            <div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL }}>{sel.supplier}</div></div>
-            <button onClick={()=>setSelected(null)} style={{ color: MUTED }}>✕</button>
-          </div>
-          <div className="space-y-1.5 text-xs mb-4">
-            {([["Raised By",sel.raisedBy],["Date",sel.date],["Expected",sel.expected],["Approver",sel.approver||"—"],["Status",sel.status],["Received",`${sel.receivedPct}%`]] as [string,string][]).map(([k,v])=>(
-              <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span className="font-semibold" style={{ color: TEXT }}>{v}</span></div>
-            ))}
-          </div>
-          <div className="border rounded-xl overflow-hidden mb-4" style={{ borderColor: BORDER }}>
-            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ backgroundColor:"#F9FAFB", color: MUTED }}>Line Items</div>
-            {sel.lines.map((l,i) => {
-              const outstanding = l.ordered - l.received;
-              return (
-                <div key={i} className="px-3 py-2.5 border-t text-xs" style={{ borderColor: BORDER }}>
-                  <div className="font-semibold mb-1" style={{ color: TEXT }}>{l.item}</div>
-                  <div className="flex justify-between" style={{ color: MUTED }}>
-                    <span>Ordered: {l.ordered}</span>
-                    <span style={{ color: l.received===l.ordered?SUCCESS:WARNING }}>Received: {l.received}</span>
-                    <span style={{ color: outstanding>0?ERROR:SUBTLE }}>O/S: {outstanding}</span>
-                  </div>
-                  <div className="flex justify-between mt-1"><span style={{ color: MUTED }}>Unit: ₦{l.unitCost.toLocaleString()}</span><span className="font-semibold" style={{ color: PRIMARY }}>₦{l.total.toLocaleString()}</span></div>
-                </div>
-              );
-            })}
-            <div className="px-3 py-2.5 border-t flex justify-between text-sm font-bold" style={{ borderColor: BORDER, backgroundColor:"#F9FAFB" }}>
-              <span style={{ color: TEXT }}>Total</span>
-              <span style={{ color: PRIMARY, fontFamily: mono }}>₦{sel.total.toLocaleString()}</span>
-            </div>
-          </div>
-          <Badge label={sel.status} colors={stColors[sel.status]} />
-        </div>
-      )}
-
-      {/* Approve modal */}
-      {showApprove && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>{setShowApprove(null);setApprovePin("");}} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-80" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Approve {showApprove}</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>Manager PIN required to approve purchase orders.</p>
-            <input type="password" maxLength={4} value={approvePin} onChange={e=>setApprovePin(e.target.value)} placeholder="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest mb-4" style={{ borderColor: BORDER, fontFamily: mono }} />
-            <div className="flex gap-3">
-              <BtnO label="Cancel" onClick={()=>{setShowApprove(null);setApprovePin("");}} />
-              <button onClick={()=>approve(showApprove)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Approve PO</button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* GRN modal */}
-      {showGRN && sel && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>{setShowGRN(null);setGrnQtys({});}} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Goods Received — {showGRN}</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>Enter quantities received. Partial receipts are supported — stock will update immediately.</p>
-            <div className="space-y-3 mb-4">
-              {sel.lines.map(l => {
-                const outstanding = l.ordered - l.received;
-                return (
-                  <div key={l.sku} className="px-3 py-3 rounded-xl border" style={{ borderColor: BORDER }}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm font-semibold" style={{ color: TEXT }}>{l.item}</div>
-                      <div className="text-xs" style={{ color: MUTED }}>O/S: <span className="font-bold" style={{ color: outstanding>0?PRIMARY:SUBTLE }}>{outstanding}</span></div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs" style={{ color: MUTED }}>Receive qty:</span>
-                      <input type="number" value={grnQtys[l.sku]||""} onChange={e=>setGrnQtys(prev=>({...prev,[l.sku]:Math.min(parseInt(e.target.value)||0,outstanding)}))} max={outstanding} placeholder={`0 – ${outstanding}`} className="flex-1 px-2.5 py-1.5 rounded-lg border text-sm outline-none text-center" style={{ borderColor: BORDER, fontFamily: mono }} />
-                    </div>
-                    {(grnQtys[l.sku]||0) > 0 && <div className="mt-1.5 text-xs" style={{ color: SUCCESS }}>+₦{((grnQtys[l.sku]||0)*l.unitCost).toLocaleString()} added to stock</div>}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex gap-3">
-              <BtnO label="Cancel" onClick={()=>{setShowGRN(null);setGrnQtys({});}} />
-              <button onClick={()=>receiveGRN(showGRN)} disabled={Object.values(grnQtys).every(v=>v===0)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>Record Receipt & Update Stock</button>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+// GuestRoomCharges, ProductsScreen, SuppliersScreen, StockTransactions, PurchaseOrders → InventoryProcurementScreens.tsx
+export { GuestRoomCharges, ProductsScreen, SuppliersScreen, StockTransactions, PurchaseOrders } from "./InventoryProcurementScreens";
 
 // RP-05 Inventory Reports
 // InventoryReports → ReportsScreens.tsx

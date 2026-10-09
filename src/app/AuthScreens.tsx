@@ -19,15 +19,20 @@ const sans = "'Inter', system-ui, sans-serif";
 
 type LoginDestination = "hms" | "admin-console" | "org-portal";
 
-const DEMO_ACCOUNTS: Record<string, { role: string; dest: LoginDestination; title: string }> = {
-  "admin@platform.com":        { role: "PLT", dest: "admin-console", title: "Platform Owner" },
-  "owner@grandpalms.ng":       { role: "ORG", dest: "org-portal",    title: "Org Super Admin" },
-  "manager@grandpalms.ng":     { role: "MGT", dest: "hms",           title: "Hotel Manager" },
-  "frontdesk@grandpalms.ng":   { role: "FD",  dest: "hms",           title: "Front Desk" },
-  "housekeeper@grandpalms.ng": { role: "HK",  dest: "hms",           title: "Housekeeping" },
-  "maintenance@grandpalms.ng": { role: "MX",  dest: "hms",           title: "Maintenance" },
-  "finance@grandpalms.ng":     { role: "FIN", dest: "hms",           title: "Finance" },
-  "restaurant@grandpalms.ng":  { role: "RT",  dest: "hms",           title: "Restaurant" },
+const DEMO_ACCOUNTS: Record<string, { role: string; dest: LoginDestination; title: string; name: string }> = {
+  "admin@platform.com":        { role: "PLT", dest: "admin-console", title: "Platform Owner",    name: "System Admin"     },
+  "owner@grandpalms.ng":       { role: "ORG", dest: "org-portal",    title: "Org Super Admin",   name: "Grand Palms Owner"},
+  "manager@grandpalms.ng":     { role: "MGT", dest: "hms",           title: "Hotel Manager",     name: "Adaeze Okonkwo"   },
+  "frontdesk@grandpalms.ng":   { role: "FD",  dest: "hms",           title: "Front Desk",        name: "Chioma Nwosu"     },
+  "housekeeper@grandpalms.ng": { role: "HK",  dest: "hms",           title: "Housekeeping",      name: "Fatima Musa"      },
+  "maintenance@grandpalms.ng": { role: "MX",  dest: "hms",           title: "Maintenance",       name: "Emeka Obi"        },
+  "finance@grandpalms.ng":     { role: "FIN", dest: "hms",           title: "Finance",           name: "Ngozi Eze"        },
+  "restaurant@grandpalms.ng":  { role: "RT",  dest: "hms",           title: "Restaurant",        name: "Biodun Adeyemi"   },
+  // Driver accounts — each driver logs in with their own credentials
+  "uche.obi@grandpalms.ng":    { role: "DRV", dest: "hms",           title: "Driver",            name: "Uche Obi"         },
+  "emeka.eze@grandpalms.ng":   { role: "DRV", dest: "hms",           title: "Driver",            name: "Emeka Eze"        },
+  "musa.danladi@grandpalms.ng":{ role: "DRV", dest: "hms",           title: "Driver",            name: "Musa Danladi"     },
+  "blessing.okafor@grandpalms.ng":{ role:"DRV",dest: "hms",          title: "Driver",            name: "Blessing Okafor"  },
 };
 
 const MAX = 5;
@@ -44,7 +49,7 @@ function LiveClock() {
 }
 
 // ─── Login Screen ─────────────────────────────────────────────────────────────
-export function LoginScreen({ onLogin }: { onLogin: (role: string, dest: LoginDestination) => void }) {
+export function LoginScreen({ onLogin }: { onLogin: (role: string, dest: LoginDestination, staffName: string) => void }) {
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw]     = useState(false);
@@ -82,10 +87,10 @@ export function LoginScreen({ onLogin }: { onLogin: (role: string, dest: LoginDe
       return;
     }
     setLoading(false);
-    onLogin(account.role, account.dest);
+    onLogin(account.role, account.dest, account.name);
   };
 
-  const handleOffline = () => onLogin("MGT", "hms");
+  const handleOffline = () => onLogin("MGT", "hms", "Adaeze Okonkwo");
 
   return (
     <div className="flex min-h-screen overflow-hidden relative" style={{ fontFamily: sans }}>
@@ -106,8 +111,7 @@ export function LoginScreen({ onLogin }: { onLogin: (role: string, dest: LoginDe
         {/* Logo */}
         <div className="flex items-center gap-3">
           <div>
-            <div className="font-bold text-white text-2xl leading-none tracking-tight">Nexura</div>
-            <div className="text-xs mt-0.5" style={{ color: TEAL }}>Hospitality Management Platform</div>
+            <div className="font-bold text-white leading-none" style={{ fontSize: "2.75rem", letterSpacing: "-0.04em" }}>Nexura</div>
           </div>
         </div>
 
@@ -145,7 +149,7 @@ export function LoginScreen({ onLogin }: { onLogin: (role: string, dest: LoginDe
 
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center mb-7 justify-center">
-            <span className="font-bold text-white text-2xl tracking-tight">Nexura</span>
+            <span className="font-bold text-white" style={{ fontSize: "2rem", letterSpacing: "-0.04em" }}>Nexura</span>
           </div>
 
           {/* Main card */}
