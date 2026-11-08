@@ -1,0 +1,10 @@
+{
+  "description": "Create stunning premium designs effortlessly using uploaded files as guidelines, perfect for designers and businesses seeking professional results.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

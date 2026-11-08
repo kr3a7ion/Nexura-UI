@@ -89,10 +89,10 @@ function PlaceholderScreen({ title, desc, icon: Icon }: { title: string; desc: s
 }
 
 // ─── Nav type ─────────────────────────────────────────────────────────────────
-type NavFn = (s: Screen, label: string) => void;
+type NavFn = (s: Screen, label: string, param?: string) => void;
 
 // ─── Router ───────────────────────────────────────────────────────────────────
-function Router({ screen, add, role, nav, staffName }: { screen: Screen; add: (t: Omit<Toast, "id">) => void; role: Role; nav: NavFn; staffName: string }) {
+function Router({ screen, add, role, nav, staffName, navParam }: { screen: Screen; add: (t: Omit<Toast, "id">) => void; role: Role; nav: NavFn; staffName: string; navParam: string }) {
   // Dashboard — MGT sees full hotel overview; every other role sees their own focused view
   if (screen === "dashboard-mgmt" || screen === "dashboard-role") {
     if (role === "MGT") return <DashboardMgmt add={add} nav={nav} />;
@@ -100,7 +100,7 @@ function Router({ screen, add, role, nav, staffName }: { screen: Screen; add: (t
   }
   // Reservations
   if (screen === "reservation-grid") return <ReservationGrid add={add} nav={nav} />;
-  if (screen === "new-reservation") return <NewReservation add={add} nav={nav} />;
+  if (screen === "new-reservation") return <NewReservation add={add} nav={nav} initialGuestName={navParam} />;
   if (screen === "reservation-search") return <ReservationSearch add={add} nav={nav} />;
   if (screen === "reservation-detail") return <ReservationDetail add={add} nav={nav} resId={navParam} />;
   if (screen === "group-bookings") return <GroupBookings add={add} />;
@@ -111,17 +111,17 @@ function Router({ screen, add, role, nav, staffName }: { screen: Screen; add: (t
   if (screen === "rate-calendar") return <RateCalendar add={add} />;
   if (screen === "availability-board") return <AvailabilityBoard add={add} nav={nav} />;
   // Front Desk
-  if (screen === "check-in") return <CheckInWizard add={add} />;
-  if (screen === "check-out") return <CheckOut add={add} />;
+  if (screen === "check-in") return <CheckInWizard add={add} initialReservationId={navParam} />;
+  if (screen === "check-out") return <CheckOut add={add} initialReservationId={navParam} />;
   if (screen === "in-house-guests") return <InHouseGuests add={add} nav={nav} />;
   if (screen === "guest-profiles") return <GuestProfiles add={add} nav={nav} />;
-  if (screen === "guest-profile-detail") return <GuestProfileDetail add={add} />;
+  if (screen === "guest-profile-detail") return <GuestProfileDetail add={add} nav={nav} guestId={navParam} />;
   if (screen === "folio") return <FolioScreen add={add} nav={nav} />;
   if (screen === "finance-folio") return <FinanceFolioManagement add={add} nav={nav} />;
   if (screen === "arrivals") return <ArrivalsScreen add={add} nav={nav} />;
   if (screen === "departures") return <DeparturesScreen add={add} nav={nav} />;
   if (screen === "room-assignment") return <RoomAssignmentBoard add={add} nav={nav} />;
-  if (screen === "walk-in") return <WalkInReg add={add} />;
+  if (screen === "walk-in") return <WalkInReg add={add} nav={nav} />;
   if (screen === "key-card") return <KeyCardMgmt add={add} />;
   if (screen === "room-access") return <RoomAccessMgmt add={add} nav={nav} />;
   if (screen === "key-card-log") return <KeyCardLog add={add} />;
@@ -759,7 +759,7 @@ function HMSApp({ initialRole, staffName, onLogout }: { initialRole: Role; staff
                 </button>
               </div>
             )}
-            <Router screen={screen} add={add} role={role} nav={nav} staffName={staffName} />
+            <Router screen={screen} add={add} role={role} nav={nav} staffName={staffName} navParam={navParam} />
           </div>
         </main>
       </div>

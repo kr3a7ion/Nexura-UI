@@ -25,6 +25,7 @@ import {
 import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
+  PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
   HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
@@ -237,8 +238,6 @@ export function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: num
     </div>
   );
 }
-export { DashboardMgmt, DashboardRole } from "./DashboardScreens";
-
 export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
   const TODAY = new Date(2026, 7, 1);
   const [offset, setOffset] = useState(0);
@@ -485,7 +484,7 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
   );
 }
 
-export function NewReservation({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
+export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void; initialGuestName?: string }) {
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmed, setConfirmed] = useState(false);
@@ -501,7 +500,7 @@ export function NewReservation({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
     source: "Phone",
     ratePlan: "Standard Rate", nightlyRate: "55000",
     manualRateVal: "",
-    guestName: "", phone: "", email: "",
+    guestName: initialGuestName, phone: "", email: "",
     nationality: "Nigerian", company: "", vip: false,
     idType: "Passport", idNum: "",
     specialNotes: "",
@@ -1433,18 +1432,19 @@ export function NewReservation({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
     </div>
   );
 }
-export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  type ChargeRow = { date: string; cat: string; desc: string; qty: number; unit: number; amount: number; by: string; tax: number; reversed: boolean };
+export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toast, "id">) => void; initialReservationId?: string }) {
+  type ChargeRow = { date: string; cat: string; desc: string; qty: number; unit: number; amount: number; by: string; tax: number; reversed: boolean; movedTo?: string };
 
   const ALL_GUESTS = [
     // Due today
     { id: "BK-2848", guest: "Emmanuel Adeyemi",  av: "EA", room: "202", type: "Deluxe",   nights: 2, checkin: "23 Jun", checkout: "25 Jun", deposit: 55000, vip: false, phone: "+234 802 333 4444", visits: 3,  dueToday: true  },
     { id: "BK-2846", guest: "Adaeze Okonkwo",    av: "AO", room: "101", type: "Deluxe",   nights: 3, checkin: "22 Jun", checkout: "25 Jun", deposit: 55000, vip: true,  phone: "+234 803 111 2222", visits: 5,  dueToday: true  },
-    { id: "BK-2850", guest: "Ibrahim Sule",       av: "IS", room: "304", type: "Standard", nights: 1, checkin: "24 Jun", checkout: "25 Jun", deposit: 35000, vip: false, phone: "+234 805 555 6666", visits: 1,  dueToday: true  },
+    { id: "BK-2850", guest: "Chukwuemeka Obi",    av: "CO", room: "304", type: "Standard", nights: 1, checkin: "24 Jun", checkout: "25 Jun", deposit: 35000, vip: false, phone: "+234 805 555 6666", visits: 1,  dueToday: true  },
+    { id: "BK-2852", guest: "Fatima Al-Hassan",   av: "FA", room: "410", type: "Deluxe",   nights: 5, checkin: "20 Jun", checkout: "25 Jun", deposit: 55000, vip: false, phone: "+234 807 444 2211", visits: 2,  dueToday: true  },
     // In-house (early checkout candidates)
     { id: "BK-2843", guest: "Fatima Musa",        av: "FM", room: "203", type: "Suite",    nights: 5, checkin: "22 Jun", checkout: "27 Jun", deposit: 80000, vip: true,  phone: "+234 802 777 8888", visits: 8,  dueToday: false },
     { id: "BK-2845", guest: "Ibrahim Lawal",      av: "IL", room: "302", type: "Deluxe",   nights: 3, checkin: "23 Jun", checkout: "26 Jun", deposit: 55000, vip: false, phone: "+234 806 222 3333", visits: 2,  dueToday: false },
-    { id: "BK-2851", guest: "Dr. Emeka Bello",   av: "EB", room: "501", type: "Suite",    nights: 4, checkin: "24 Jun", checkout: "28 Jun", deposit: 80000, vip: true,  phone: "+234 803 999 1111", visits: 12, dueToday: false },
+    { id: "BK-2851", guest: "Dr. Chukwuemeka Bello", av: "CB", room: "501", type: "Suite", nights: 4, checkin: "24 Jun", checkout: "28 Jun", deposit: 80000, vip: true, phone: "+234 803 999 1111", visits: 12, dueToday: false },
   ];
 
   const BASE_CHARGES: Record<string, ChargeRow[]> = {
@@ -1462,6 +1462,10 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       { date: "24 Jun", cat: "Room",       desc: "Standard Room 304 × 1 night",  qty: 1, unit: 35000, amount: 35000,  by: "System",   tax: 2625,  reversed: false },
       { date: "24 Jun", cat: "Bar",        desc: "Minibar consumption",           qty: 1, unit: 4500,  amount: 4500,   by: "System",   tax: 338,   reversed: false },
     ],
+    "BK-2852": [
+      { date: "20 Jun", cat: "Room",       desc: "Deluxe Room 410 × 5 nights",    qty: 5, unit: 55000, amount: 275000, by: "System",   tax: 20625, reversed: false },
+      { date: "24 Jun", cat: "Restaurant", desc: "Dinner and room service",        qty: 1, unit: 18500, amount: 18500,  by: "F&B",      tax: 1388,  reversed: false },
+    ],
     "BK-2843": [
       { date: "22 Jun", cat: "Room",       desc: "Suite Room 203 × 5 nights",    qty: 5, unit: 85000, amount: 425000, by: "System",   tax: 31875, reversed: false },
       { date: "23 Jun", cat: "Restaurant", desc: "In-room dining × 3 meals",     qty: 3, unit: 12000, amount: 36000,  by: "F&B",      tax: 2700,  reversed: false },
@@ -1478,14 +1482,15 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   };
 
   const [selectedId, setSelectedId]         = useState("BK-2848");
-  const g = ALL_GUESTS.find(d => d.id === selectedId) ?? ALL_GUESTS[0];
-
   const [chargesMap, setChargesMap]         = useState<Record<string, ChargeRow[]>>(BASE_CHARGES);
   const [checkedOutIds, setCheckedOutIds]   = useState<string[]>([]);
   const [payMethod, setPayMethod]           = useState("Cash");
   const [cashAmt, setCashAmt]               = useState("");
   const [cardAmt, setCardAmt]               = useState("");
+  const [cardRef, setCardRef]               = useState("");
   const [bankRef, setBankRef]               = useState("");
+  const [corporateAccount, setCorporateAccount] = useState("Bello & Associates Ltd.");
+  const [corporateRef, setCorporateRef]      = useState("");
   const [voidLine, setVoidLine]             = useState<number | null>(null);
   const [voidReason, setVoidReason]         = useState("");
   const [showDiscount, setShowDiscount]     = useState(false);
@@ -1499,9 +1504,49 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const [lateChargeAmt, setLateChargeAmt]   = useState("");
   const [accessRevoked, setAccessRevoked]   = useState<Record<string, boolean>>({});
   const [keyReturned, setKeyReturned]       = useState<Record<string, boolean>>({});
-  const [feedbackSent, setFeedbackSent]     = useState<Record<string, boolean>>({});
+  const [feedbackStatus, setFeedbackStatus] = useState<Record<string, "sent" | "skipped">>({});
   const [guestSearch, setGuestSearch]       = useState("");
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
+  const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
+  const [earlyDepartureReason, setEarlyDepartureReason] = useState("");
+  const [showSplitFolio, setShowSplitFolio] = useState(false);
+  const [splitLines, setSplitLines] = useState<number[]>([]);
+  const [splitTarget, setSplitTarget] = useState("Guest Folio B");
+  const [splitReference, setSplitReference] = useState("");
+  const [showTransferCharge, setShowTransferCharge] = useState(false);
+  const [transferLine, setTransferLine] = useState<number | null>(null);
+  const [transferTarget, setTransferTarget] = useState("Guest Folio");
+  const [transferReference, setTransferReference] = useState("");
+  const [transferReason, setTransferReason] = useState("");
+  const [showExtendStay, setShowExtendStay] = useState(false);
+  const [extensionNights, setExtensionNights] = useState("1");
+  const [extensionReason, setExtensionReason] = useState("");
+  const [extensionMap, setExtensionMap] = useState<Record<string, number>>({});
+  const [checkoutOverrides, setCheckoutOverrides] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    const [reservationId, context] = initialReservationId.split("|");
+    if (reservationId && ALL_GUESTS.some(d => d.id === reservationId)) {
+      setSelectedId(reservationId);
+      if (context === "revoked") setAccessRevoked(state => ({ ...state, [reservationId]: true }));
+    }
+  }, [initialReservationId]);
+
+  const addDaysLabel = (label: string, days: number) => {
+    const [day, mon] = label.split(" ");
+    const months: Record<string, number> = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+    const date = new Date(2025, months[mon] ?? 0, Number(day));
+    date.setDate(date.getDate() + days);
+    return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  };
+  const baseGuest = ALL_GUESTS.find(d => d.id === selectedId) ?? ALL_GUESTS[0];
+  const addedNights = extensionMap[selectedId] ?? 0;
+  const g = {
+    ...baseGuest,
+    nights: baseGuest.nights + addedNights,
+    checkout: checkoutOverrides[selectedId] ?? baseGuest.checkout,
+    dueToday: addedNights > 0 ? false : baseGuest.dueToday,
+  };
   const charges    = chargesMap[selectedId] ?? [];
   const setCharges = (fn: (p: ChargeRow[]) => ChargeRow[]) =>
     setChargesMap(m => ({ ...m, [selectedId]: fn(m[selectedId] ?? []) }));
@@ -1510,12 +1555,14 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const gDiscount    = discountMap[selectedId] ?? 0;
   const gAccess      = accessRevoked[selectedId] ?? false;
   const gKey         = keyReturned[selectedId]   ?? false;
-  const gFeedback    = feedbackSent[selectedId]  ?? false;
+  const gFeedback    = feedbackStatus[selectedId];
 
-  const subtotal     = charges.filter(c => !c.reversed).reduce((s, c) => s + c.amount, 0);
-  const taxTotal     = charges.filter(c => !c.reversed).reduce((s, c) => s + c.tax, 0);
+  const activeCharges = charges.filter(c => !c.reversed && !c.movedTo);
+  const subtotal     = activeCharges.reduce((s, c) => s + c.amount, 0);
+  const taxTotal     = activeCharges.reduce((s, c) => s + c.tax, 0);
   const grand        = subtotal + taxTotal;
   const balance      = Math.max(0, grand - g.deposit - gDiscount);
+  const discountNum  = parseInt(discountAmt || "0") || 0;
   const cashNum      = parseInt(cashAmt.replace(/,/g, "")) || 0;
   const cardNum      = parseInt(cardAmt.replace(/,/g, "")) || 0;
   const totalReceived =
@@ -1523,12 +1570,27 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
     payMethod === "POS / Card" ? cardNum :
     payMethod === "Cash + POS" ? cashNum + cardNum : balance;
   const changeAmt    = Math.max(0, totalReceived - balance);
+  const paymentEvidenceOk =
+    payMethod === "Cash" ? cashNum >= balance :
+    payMethod === "POS / Card" ? cardNum >= balance && !!cardRef.trim() :
+    payMethod === "Cash + POS" ? cashNum > 0 && cardNum > 0 && cashNum + cardNum >= balance && !!cardRef.trim() :
+    payMethod === "Bank Transfer" ? !!bankRef.trim() :
+    payMethod === "Corporate Account" ? !!corporateAccount && !!corporateRef.trim() :
+    false;
   const balanceCovered =
     balance === 0 ||
-    payMethod === "Corporate Account" ||
-    (payMethod === "Bank Transfer" && !!bankRef.trim()) ||
-    totalReceived >= balance;
+    paymentEvidenceOk;
   const canCheckOut  = balanceCovered && gAccess && gKey && !isCheckedOut;
+  const releaseConfirmed = g.dueToday || !!earlyDepartureReason.trim();
+  const splitTotal = splitLines.reduce((sum, index) => {
+    const charge = charges[index];
+    return charge && !charge.reversed && !charge.movedTo ? sum + charge.amount + charge.tax : sum;
+  }, 0);
+  const extensionCount = Math.max(1, parseInt(extensionNights) || 1);
+  const nightlyRate = g.type === "Suite" ? 85000 : g.type === "Deluxe" ? 55000 : 35000;
+  const extensionSubtotal = nightlyRate * extensionCount;
+  const extensionTax = Math.round(extensionSubtotal * 0.075);
+  const extensionCheckout = addDaysLabel(g.checkout, extensionCount);
 
   const catColor: Record<string, string> = { Room: PRIMARY, Restaurant: TEAL, Bar: ORANGE, Laundry: MUTED, "Late Charge": ERROR };
 
@@ -1550,7 +1612,7 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-Out · 25 Jun 2025</p>
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-Out · {g.checkout}</p>
           <h1 className="text-2xl font-bold mt-0.5" style={{ color: TEXT }}>Guest Check-Out</h1>
         </div>
       </div>
@@ -1585,13 +1647,14 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               </button>
             ))}
           </div>
-          <button onClick={() => {
-            setCheckedOutIds(p => p.filter(id => id !== selectedId));
-            const remaining = ALL_GUESTS.filter(d => !checkedOutIds.includes(d.id) && d.id !== selectedId && d.dueToday);
-            if (remaining.length > 0) setSelectedId(remaining[0].id);
-          }} className="text-sm px-6 py-2.5 rounded-xl font-bold text-white" style={{ backgroundColor: PRIMARY }}>
-            Next Guest
-          </button>
+          {ALL_GUESTS.some(d => !checkedOutIds.includes(d.id)) && (
+            <button onClick={() => {
+              const remaining = ALL_GUESTS.filter(d => !checkedOutIds.includes(d.id));
+              if (remaining.length > 0) setSelectedId(remaining[0].id);
+            }} className="text-sm px-6 py-2.5 rounded-xl font-bold text-white" style={{ backgroundColor: PRIMARY }}>
+              Next Guest
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -1599,24 +1662,33 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
   // ── MAIN CHECKOUT VIEW ──────────────────────────────────────────────────
   const q = guestSearch.toLowerCase();
-  const filteredDue = ALL_GUESTS.filter(d => d.dueToday && (!q || d.guest.toLowerCase().includes(q) || d.room.includes(q)));
-  const filteredIH  = ALL_GUESTS.filter(d => !d.dueToday && (!q || d.guest.toLowerCase().includes(q) || d.room.includes(q)));
+  const filteredDue = ALL_GUESTS.filter(d => d.dueToday && !(extensionMap[d.id] > 0) && (!q || d.guest.toLowerCase().includes(q) || d.room.includes(q)));
+  const filteredIH  = ALL_GUESTS.filter(d => (!d.dueToday || extensionMap[d.id] > 0) && (!q || d.guest.toLowerCase().includes(q) || d.room.includes(q)));
 
   const GuestRow = ({ d }: { d: typeof ALL_GUESTS[0] }) => {
     const active = d.id === selectedId;
     const done   = checkedOutIds.includes(d.id);
+    const displayedCheckout = checkoutOverrides[d.id] ?? d.checkout;
     return (
-      <button onClick={() => { setSelectedId(d.id); setPayMethod("Cash"); setCashAmt(""); setCardAmt(""); setBankRef(""); }}
+      <button onClick={() => {
+        setSelectedId(d.id); setPayMethod("Cash"); setCashAmt(""); setCardAmt(""); setCardRef(""); setBankRef(""); setCorporateRef("");
+        setEarlyDepartureReason(""); setShowReleaseConfirm(false); setShowRevokeConfirm(false);
+        setShowSplitFolio(false); setSplitLines([]); setShowTransferCharge(false); setTransferLine(null); setShowExtendStay(false);
+      }}
         className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl mb-0.5 text-left transition-all relative"
         style={{ backgroundColor: done ? `${SUCCESS}10` : active ? PRIMARY : "transparent" }}>
         {done && <div className="absolute top-1.5 right-2 w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ backgroundColor: SUCCESS }}><CheckCircle size={9} color="white" weight="bold" /></div>}
-        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-          style={{ backgroundColor: done ? SUCCESS : d.vip ? ORANGE : (active ? "rgba(255,255,255,0.3)" : PRIMARY) }}>{d.av}</div>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: done ? SUCCESS : d.vip ? ORANGE : (active ? "rgba(255,255,255,0.3)" : PRIMARY) }}>
+          <User size={13} color="white" weight="bold" />
+        </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold truncate leading-tight" style={{ color: active ? "white" : done ? SUCCESS : TEXT }}>{d.guest}</p>
-          <p className="text-xs truncate leading-tight" style={{ color: active ? "rgba(255,255,255,0.6)" : CK_MUT }}>Rm {d.room} · {d.checkout}</p>
+          <p className="text-xs truncate leading-tight" style={{ color: active ? "rgba(255,255,255,0.6)" : CK_MUT }}>Rm {d.room} · {displayedCheckout}</p>
         </div>
-        {d.vip && !done && <span className="text-xs font-bold flex-shrink-0" style={{ color: active ? "rgba(255,255,255,0.65)" : ORANGE, fontSize: 9 }}>VIP</span>}
+        {!d.dueToday && !done
+          ? <span className="text-xs font-bold flex-shrink-0" style={{ color: active ? "rgba(255,255,255,0.65)" : TEAL, fontSize: 9 }}>EARLY</span>
+          : d.vip && !done && <span className="text-xs font-bold flex-shrink-0" style={{ color: active ? "rgba(255,255,255,0.65)" : ORANGE, fontSize: 9 }}>VIP</span>}
       </button>
     );
   };
@@ -1625,14 +1697,14 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-Out & Settlement · 25 Jun 2025</p>
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-Out & Settlement · Business date 25 Jun 2025</p>
           <h1 className="text-2xl font-bold mt-0.5" style={{ color: TEXT }}>Guest Check-Out</h1>
         </div>
       </div>
 
-      <div className="flex gap-5 items-start">
+      <div className="flex flex-col xl:flex-row gap-5 items-start">
         {/* ── GUEST LIST PANEL ── */}
-        <div className="flex-shrink-0 rounded-2xl overflow-hidden shadow-sm" style={{ width: 232, backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
+        <div className="w-full xl:w-64 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
           <div className="px-4 py-3.5" style={{ backgroundColor: PRIMARY }}>
             <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>In-House</p>
             <p className="text-sm font-bold text-white mt-0.5">{ALL_GUESTS.length} guests · 25 Jun</p>
@@ -1645,7 +1717,7 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               {guestSearch && <button onClick={() => setGuestSearch("")} style={{ color: CK_MUT }}><XCircle size={12} /></button>}
             </div>
           </div>
-          <div className="p-2.5 overflow-y-auto" style={{ maxHeight: 520 }}>
+          <div className="p-2.5 overflow-y-auto" style={{ maxHeight: 420 }}>
             {filteredDue.length > 0 && (
               <>
                 <div className="flex items-center justify-between px-2 mb-1.5">
@@ -1673,8 +1745,8 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         {/* ── MAIN CONTENT ── */}
         <div className="flex-1 min-w-0">
           {/* KPI row */}
-          <div className="grid grid-cols-4 gap-3 mb-5">
-            <StatCard label="Charges" value={`₦${grand.toLocaleString()}`} sub={`${charges.filter(c => !c.reversed).length} items incl. tax`} icon={FileText} accent={PRIMARY} />
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
+            <StatCard label="Charges" value={`₦${grand.toLocaleString()}`} sub={`${activeCharges.length} active items incl. tax`} icon={FileText} accent={PRIMARY} />
             <StatCard label="Deposit Paid" value={`₦${g.deposit.toLocaleString()}`} sub="At check-in" icon={CheckCircle} accent={SUCCESS} />
             <StatCard label="Balance Due" value={`₦${balance.toLocaleString()}`} sub="After deposit" icon={CurrencyDollar} accent={balance > 0 ? ERROR : SUCCESS} />
             <StatCard label="Stays" value={String(g.visits)} sub={g.visits === 1 ? "First visit" : "Returning guest"} icon={Users} accent={TEAL} />
@@ -1684,7 +1756,7 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         {/* ── FOLIO ── */}
         <div className="lg:col-span-3 space-y-4">
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
-            <div className="flex items-center justify-between px-5 py-4" style={{ backgroundColor: PRIMARY }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4" style={{ backgroundColor: PRIMARY }}>
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Folio · {g.id}</p>
                 <p className="text-sm font-bold text-white mt-0.5">{g.guest} · Room {g.room} · {g.checkin}–{g.checkout}</p>
@@ -1692,6 +1764,8 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               <div className="flex gap-2 flex-wrap justify-end">
                 <button onClick={() => setShowDiscount(true)} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: ORANGE, backgroundColor: `${ORANGE}20` }}>Apply Discount</button>
                 <button onClick={() => setShowLateCharge(true)} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>+ Late Charge</button>
+                <button onClick={() => { setSplitLines([]); setSplitTarget("Guest Folio B"); setSplitReference(""); setShowSplitFolio(true); }} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Split Folio</button>
+                <button onClick={() => { setTransferLine(null); setTransferTarget("Guest Folio"); setTransferReference(""); setTransferReason(""); setShowTransferCharge(true); }} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Transfer</button>
                 <button onClick={() => add({ type: "info", title: "Folio sent to printer" })} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Print</button>
                 <button onClick={() => add({ type: "info", title: "Folio emailed", body: g.guest })} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Email</button>
               </div>
@@ -1708,19 +1782,22 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 </thead>
                 <tbody>
                   {charges.map((c, i) => (
-                    <tr key={i} className="border-t transition-colors hover:bg-white" style={{ borderColor: CK_BD, opacity: c.reversed ? 0.45 : 1 }}>
+                    <tr key={i} className="border-t transition-colors hover:bg-white" style={{ borderColor: CK_BD, opacity: c.reversed || c.movedTo ? 0.5 : 1 }}>
                       <td className="px-3 py-3 text-xs" style={{ color: CK_MUT, fontFamily: mono }}>{c.date}</td>
                       <td className="px-3 py-3"><span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: (catColor[c.cat] ?? MUTED) + "18", color: catColor[c.cat] ?? MUTED }}>{c.cat}</span></td>
-                      <td className="px-3 py-3 text-sm max-w-40" style={{ color: c.reversed ? CK_MUT : TEXT }}>{c.reversed ? <span className="line-through">{c.desc}</span> : c.desc}</td>
+                      <td className="px-3 py-3 text-sm max-w-40" style={{ color: c.reversed || c.movedTo ? CK_MUT : TEXT }}>
+                        {c.reversed ? <span className="line-through">{c.desc}</span> : c.desc}
+                        {c.movedTo && <span className="block text-xs font-semibold mt-0.5" style={{ color: TEAL }}>Moved → {c.movedTo}</span>}
+                      </td>
                       <td className="px-3 py-3 text-xs text-center" style={{ color: CK_MUT }}>{c.qty}</td>
                       <td className="px-3 py-3 text-xs" style={{ color: CK_MUT, fontFamily: mono }}>₦{c.unit.toLocaleString()}</td>
                       <td className="px-3 py-3 text-sm font-bold" style={{ color: c.reversed ? CK_MUT : TEXT, fontFamily: mono }}>₦{c.amount.toLocaleString()}</td>
                       <td className="px-3 py-3 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>₦{c.tax.toLocaleString()}</td>
                       <td className="px-3 py-3 text-xs" style={{ color: SUBTLE }}>{c.by}</td>
                       <td className="px-3 py-3">
-                        {!c.reversed
+                        {!c.reversed && !c.movedTo
                           ? <button onClick={() => { setVoidLine(i); setVoidReason(""); }} className="text-xs px-2 py-1 rounded-lg border font-semibold" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Void</button>
-                          : <span className="text-xs px-1.5 py-0.5 rounded font-bold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Voided</span>}
+                          : <span className="text-xs px-1.5 py-0.5 rounded font-bold" style={{ backgroundColor: c.movedTo ? "#CCFBF1" : "#FEE2E2", color: c.movedTo ? TEAL : ERROR }}>{c.movedTo ? "Moved" : "Voided"}</span>}
                       </td>
                     </tr>
                   ))}
@@ -1762,7 +1839,7 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                   </div>
                 </div>
                 {!gAccess
-                  ? <button onClick={() => { setAccessRevoked(p => ({ ...p, [selectedId]: true })); add({ type: "success", title: "Access revoked", body: `Room ${g.room} credentials deactivated` }); }}
+                  ? <button onClick={() => setShowRevokeConfirm(true)}
                       className="text-xs px-3 py-1.5 rounded-lg font-bold text-white flex-shrink-0" style={{ backgroundColor: ERROR }}>Revoke Now</button>
                   : <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-bold flex-shrink-0" style={{ backgroundColor: "#D1FAE5", color: SUCCESS }}><CheckCircle size={11} weight="bold" />Revoked</span>}
               </div>
@@ -1786,15 +1863,18 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 <p className="text-xs mb-3" style={{ color: CK_MUT }}>Send a post-stay feedback request to the guest.</p>
                 {!gFeedback ? (
                   <div className="flex gap-2">
-                    <button onClick={() => { setFeedbackSent(p => ({ ...p, [selectedId]: true })); add({ type: "success", title: "Feedback sent via WhatsApp", body: g.guest }); }}
+                    <button onClick={() => { setFeedbackStatus(p => ({ ...p, [selectedId]: "sent" })); add({ type: "success", title: "Feedback sent via WhatsApp", body: g.guest }); }}
                       className="text-xs px-3 py-1.5 rounded-lg border font-bold" style={{ color: TEAL, borderColor: `${TEAL}40` }}>WhatsApp</button>
-                    <button onClick={() => { setFeedbackSent(p => ({ ...p, [selectedId]: true })); add({ type: "success", title: "Feedback sent via Email", body: g.guest }); }}
+                    <button onClick={() => { setFeedbackStatus(p => ({ ...p, [selectedId]: "sent" })); add({ type: "success", title: "Feedback sent via Email", body: g.guest }); }}
                       className="text-xs px-3 py-1.5 rounded-lg border font-bold" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Email</button>
-                    <button onClick={() => setFeedbackSent(p => ({ ...p, [selectedId]: true }))}
+                    <button onClick={() => setFeedbackStatus(p => ({ ...p, [selectedId]: "skipped" }))}
                       className="text-xs px-3 py-1.5 rounded-lg border font-bold" style={{ color: CK_MUT, borderColor: CK_DSH }}>Skip</button>
                   </div>
                 ) : (
-                  <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: SUCCESS }}><CheckCircle size={12} weight="bold" />Feedback request sent</span>
+                  <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: gFeedback === "sent" ? SUCCESS : CK_MUT }}>
+                    {gFeedback === "sent" ? <CheckCircle size={12} weight="bold" /> : <MinusCircle size={12} weight="bold" />}
+                    {gFeedback === "sent" ? "Feedback request sent" : "Feedback request skipped"}
+                  </span>
                 )}
               </div>
             </div>
@@ -1838,17 +1918,25 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                   {(payMethod === "Cash" || payMethod === "Cash + POS") && (
                     <div className="mb-3">
                       <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Cash Received (₦)</label>
-                      <input value={cashAmt} onChange={e => setCashAmt(e.target.value)} placeholder={balance.toLocaleString()}
+                      <input type="number" value={cashAmt} onChange={e => setCashAmt(e.target.value)} placeholder={balance.toLocaleString()}
                         className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                         style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT, fontFamily: mono }} />
                     </div>
                   )}
                   {(payMethod === "POS / Card" || payMethod === "Cash + POS") && (
-                    <div className="mb-3">
-                      <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Card Amount (₦)</label>
-                      <input value={cardAmt} onChange={e => setCardAmt(e.target.value)} placeholder={balance.toLocaleString()}
-                        className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-                        style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT, fontFamily: mono }} />
+                    <div className="mb-3 space-y-3">
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Card Amount (₦)</label>
+                        <input type="number" value={cardAmt} onChange={e => setCardAmt(e.target.value)} placeholder={balance.toLocaleString()}
+                          className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                          style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT, fontFamily: mono }} />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>POS Transaction Reference *</label>
+                        <input value={cardRef} onChange={e => setCardRef(e.target.value)} placeholder="POS-2025-XXXXXX"
+                          className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                          style={{ border: `1.5px solid ${cardRef ? CK_DSH : ERROR}`, backgroundColor: "white", color: TEXT, fontFamily: mono }} />
+                      </div>
                     </div>
                   )}
                   {payMethod === "Bank Transfer" && (
@@ -1860,9 +1948,21 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                     </div>
                   )}
                   {payMethod === "Corporate Account" && (
-                    <div className="mb-4 px-3 py-3 rounded-xl text-xs" style={{ backgroundColor: `${PRIMARY}08`, border: `1.5px dashed ${CK_DSH}` }}>
-                      <p className="font-bold mb-0.5" style={{ color: TEXT }}>Corporate billing activated</p>
-                      <p style={{ color: CK_MUT }}>Invoice will be sent to the corporate account on file.</p>
+                    <div className="mb-4 space-y-3">
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Corporate Account</label>
+                        <select value={corporateAccount} onChange={e => setCorporateAccount(e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none"
+                          style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
+                          {["Bello & Associates Ltd.", "Lagos Corp Group", "Federal Ministry of Works"].map(o => <option key={o}>{o}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Purchase Order / Authorization *</label>
+                        <input value={corporateRef} onChange={e => setCorporateRef(e.target.value)} placeholder="PO-2025-XXXX"
+                          className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                          style={{ border: `1.5px solid ${corporateRef ? CK_DSH : ERROR}`, backgroundColor: "white", color: TEXT, fontFamily: mono }} />
+                      </div>
                     </div>
                   )}
 
@@ -1894,11 +1994,14 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 ))}
               </div>
 
+              {!g.dueToday && (
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-4 text-xs" style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", color: "#92400E" }}>
+                  <Warning size={14} className="flex-shrink-0 mt-0.5" />
+                  <span><strong>Early departure:</strong> review unused-night policy and record a reason before releasing the room.</span>
+                </div>
+              )}
               <button disabled={!canCheckOut}
-                onClick={() => {
-                  setCheckedOutIds(p => [...p, selectedId]);
-                  add({ type: "success", title: "Check-out complete", body: `Room ${g.room} → Cleaning · Access revoked · Folio closed` });
-                }}
+                onClick={() => { setEarlyDepartureReason(""); setShowReleaseConfirm(true); }}
                 className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white disabled:opacity-30 hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: canCheckOut ? SUCCESS : PRIMARY }}>
                 {canCheckOut ? <CheckCircle size={15} weight="bold" /> : <CurrencyDollar size={15} weight="bold" />}
@@ -1915,8 +2018,10 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <Notch />
             <div className="p-5">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                  style={{ backgroundColor: g.vip ? ORANGE : PRIMARY }}>{g.av}</div>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: g.vip ? ORANGE : PRIMARY }}>
+                  <User size={19} color="white" weight="bold" />
+                </div>
                 <div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-sm font-bold" style={{ color: TEXT }}>{g.guest}</span>
@@ -1928,7 +2033,7 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               <div className="space-y-2 text-xs">
                 {([
                   ["Check-in",  `${g.checkin} 14:00`],
-                  ["Check-out", `${g.checkout} 11:00`],
+                  ["Check-out", `${g.checkout} ${PROPERTY_PROFILE.checkOutTime}`],
                   ["Nights",    `${g.nights} night${g.nights !== 1 ? "s" : ""}`],
                   ["Phone",     g.phone],
                   ["Visits",    `${g.visits}${g.visits === 1 ? "st" : g.visits === 2 ? "nd" : g.visits === 3 ? "rd" : "th"} visit`],
@@ -1939,16 +2044,274 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                   </div>
                 ))}
               </div>
-              <button onClick={() => add({ type: "info", title: "Extend Stay", body: `Opening extension dialog for ${g.guest}` })}
-                className="w-full mt-4 py-2.5 rounded-xl text-xs font-bold border transition-all hover:shadow-sm"
+              <button disabled={gAccess} onClick={() => { setExtensionNights("1"); setExtensionReason(""); setShowExtendStay(true); }}
+                className="w-full mt-4 py-2.5 rounded-xl text-xs font-bold border transition-all hover:shadow-sm disabled:opacity-40"
                 style={{ borderColor: CK_DSH, color: CK_MUT }}>
-                Extend Stay
+                {gAccess ? "Access Revoked — Cannot Extend" : "Extend Stay"}
               </button>
             </div>
           </div>
         </div>
         </div>{/* /flex-1 main content */}
       </div>{/* /flex gap-5 */}
+
+      {showSplitFolio && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowSplitFolio(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-2xl overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
+            <div className="px-6 py-4" style={{ backgroundColor: PRIMARY }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Folio Allocation</p>
+              <p className="text-base font-bold text-white mt-0.5">Split Folio · {g.guest}</p>
+            </div>
+            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: CK_MUT }}>Select charges to move</p>
+                <div className="space-y-2">
+                  {charges.map((charge, index) => {
+                    if (charge.reversed || charge.movedTo) return null;
+                    const selected = splitLines.includes(index);
+                    return (
+                      <button key={index} onClick={() => setSplitLines(lines => selected ? lines.filter(i => i !== index) : [...lines, index])}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl text-left"
+                        style={{ border: `1.5px solid ${selected ? PRIMARY : CK_DSH}`, backgroundColor: selected ? `${PRIMARY}08` : "white" }}>
+                        <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0" style={{ border: `2px solid ${selected ? PRIMARY : CK_DSH}`, backgroundColor: selected ? PRIMARY : "white" }}>
+                          {selected && <CheckCircle size={12} color="white" weight="bold" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate" style={{ color: TEXT }}>{charge.desc}</p>
+                          <p className="text-xs" style={{ color: CK_MUT }}>{charge.cat} · {charge.date}</p>
+                        </div>
+                        <p className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{(charge.amount + charge.tax).toLocaleString()}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Destination</label>
+                  <select value={splitTarget} onChange={e => setSplitTarget(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
+                    {["Guest Folio B", "Company Master Folio", "Shared Guest Folio"].map(option => <option key={option}>{option}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Reference / Bill To *</label>
+                  <input value={splitReference} onChange={e => setSplitReference(e.target.value)} placeholder="Guest, company, or folio reference"
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${splitReference.trim() ? CK_DSH : ERROR}` }} />
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: CK_BG, border: `1px solid ${CK_BD}` }}>
+                <span className="text-sm font-semibold" style={{ color: CK_MUT }}>{splitLines.length} charge{splitLines.length === 1 ? "" : "s"} selected</span>
+                <span className="text-base font-black" style={{ color: PRIMARY, fontFamily: mono }}>₦{splitTotal.toLocaleString()}</span>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setShowSplitFolio(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
+                <button disabled={splitLines.length === 0 || !splitReference.trim()} onClick={() => {
+                  const destination = `${splitTarget} · ${splitReference.trim()}`;
+                  setCharges(rows => rows.map((row, index) => splitLines.includes(index) ? { ...row, movedTo: destination } : row));
+                  add({ type: "success", title: "Folio split complete", body: `${splitLines.length} charge${splitLines.length === 1 ? "" : "s"} · ₦${splitTotal.toLocaleString()} moved to ${splitReference.trim()}` });
+                  setShowSplitFolio(false); setSplitLines([]); setSplitReference("");
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Create Split Folio</button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showTransferCharge && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowTransferCharge(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
+            <div className="px-6 py-4" style={{ backgroundColor: TEAL }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.65 }}>Audited Folio Transfer</p>
+              <p className="text-base font-bold text-white mt-0.5">Transfer Charge</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Charge *</label>
+                <select value={transferLine ?? ""} onChange={e => setTransferLine(e.target.value === "" ? null : Number(e.target.value))}
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
+                  <option value="">Select a charge</option>
+                  {charges.map((charge, index) => !charge.reversed && !charge.movedTo ? <option key={index} value={index}>{charge.desc} · ₦{(charge.amount + charge.tax).toLocaleString()}</option> : null)}
+                </select>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Transfer To</label>
+                  <select value={transferTarget} onChange={e => setTransferTarget(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
+                    {["Guest Folio", "Company Folio", "Group Master Folio"].map(option => <option key={option}>{option}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Folio / Company Reference *</label>
+                  <input value={transferReference} onChange={e => setTransferReference(e.target.value)} placeholder="FO-XXXX or company"
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${transferReference.trim() ? CK_DSH : ERROR}`, fontFamily: mono }} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Transfer Reason *</label>
+                <textarea value={transferReason} onChange={e => setTransferReason(e.target.value)} rows={2} placeholder="Why is this charge being transferred?"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${CK_DSH}` }} />
+              </div>
+              {transferLine !== null && charges[transferLine] && (
+                <div className="flex justify-between p-3 rounded-xl text-sm" style={{ backgroundColor: CK_BG, border: `1px solid ${CK_BD}` }}>
+                  <span style={{ color: CK_MUT }}>Transfer total incl. tax</span>
+                  <span className="font-black" style={{ color: TEAL, fontFamily: mono }}>₦{(charges[transferLine].amount + charges[transferLine].tax).toLocaleString()}</span>
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button onClick={() => setShowTransferCharge(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
+                <button disabled={transferLine === null || !transferReference.trim() || !transferReason.trim()} onClick={() => {
+                  if (transferLine === null) return;
+                  const destination = `${transferTarget} · ${transferReference.trim()}`;
+                  const charge = charges[transferLine];
+                  setCharges(rows => rows.map((row, index) => index === transferLine ? { ...row, movedTo: destination } : row));
+                  add({ type: "success", title: "Charge transferred", body: `${charge.desc} → ${transferReference.trim()} · ${transferReason.trim()}` });
+                  setShowTransferCharge(false); setTransferLine(null); setTransferReference(""); setTransferReason("");
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: TEAL }}>Confirm Transfer</button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showExtendStay && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowExtendStay(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
+            <div className="px-6 py-4" style={{ backgroundColor: PRIMARY }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Stay Management</p>
+              <p className="text-base font-bold text-white mt-0.5">Extend Stay · Room {g.room}</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold" style={{ backgroundColor: "#F0FDF4", color: "#065F46", border: "1px solid #BBF7D0" }}>
+                <CheckCircle size={14} weight="fill" />Room {g.room} is available through {extensionCheckout}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl" style={{ backgroundColor: CK_BG, border: `1px solid ${CK_BD}` }}>
+                  <p className="text-xs font-bold uppercase tracking-wider" style={{ color: CK_MUT }}>Current checkout</p>
+                  <p className="text-sm font-bold mt-1" style={{ color: TEXT }}>{g.checkout} · {PROPERTY_PROFILE.checkOutTime}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Additional Nights</label>
+                  <select value={extensionNights} onChange={e => setExtensionNights(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
+                    {["1", "2", "3", "4", "5", "7"].map(count => <option key={count} value={count}>{count} night{count === "1" ? "" : "s"}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Extension Reason *</label>
+                <textarea value={extensionReason} onChange={e => setExtensionReason(e.target.value)} rows={2} placeholder="Guest request, flight change, business extension…"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${CK_DSH}` }} />
+              </div>
+              <div className="rounded-xl p-4 space-y-2 text-sm" style={{ backgroundColor: CK_BG, border: `1px solid ${CK_BD}` }}>
+                <div className="flex justify-between"><span style={{ color: CK_MUT }}>{extensionCount} night{extensionCount === 1 ? "" : "s"} × ₦{nightlyRate.toLocaleString()}</span><span style={{ fontFamily: mono }}>₦{extensionSubtotal.toLocaleString()}</span></div>
+                <div className="flex justify-between"><span style={{ color: CK_MUT }}>VAT 7.5%</span><span style={{ fontFamily: mono }}>₦{extensionTax.toLocaleString()}</span></div>
+                <div className="flex justify-between font-black border-t pt-2" style={{ borderColor: CK_DSH, color: TEXT }}><span>Added to folio</span><span style={{ fontFamily: mono }}>₦{(extensionSubtotal + extensionTax).toLocaleString()}</span></div>
+                <div className="flex justify-between font-bold"><span style={{ color: CK_MUT }}>New checkout</span><span style={{ color: SUCCESS }}>{extensionCheckout} · {PROPERTY_PROFILE.checkOutTime}</span></div>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setShowExtendStay(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
+                <button disabled={!extensionReason.trim()} onClick={() => {
+                  setCharges(rows => [...rows, {
+                    date: g.checkout,
+                    cat: "Room",
+                    desc: `${g.type} Room ${g.room} · Stay extension × ${extensionCount} night${extensionCount === 1 ? "" : "s"}`,
+                    qty: extensionCount,
+                    unit: nightlyRate,
+                    amount: extensionSubtotal,
+                    by: "Front Desk",
+                    tax: extensionTax,
+                    reversed: false,
+                  }]);
+                  setExtensionMap(map => ({ ...map, [selectedId]: (map[selectedId] ?? 0) + extensionCount }));
+                  setCheckoutOverrides(map => ({ ...map, [selectedId]: extensionCheckout }));
+                  setShowExtendStay(false);
+                  add({ type: "success", title: "Stay extended", body: `Room ${g.room} · New checkout ${extensionCheckout} ${PROPERTY_PROFILE.checkOutTime} · Access validity extended` });
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Confirm Extension</button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showRevokeConfirm && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowRevokeConfirm(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-md overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
+            <div className="px-6 py-4" style={{ backgroundColor: ERROR }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.65 }}>Access Provider Confirmation</p>
+              <p className="text-base font-bold text-white mt-0.5">Revoke Room {g.room} Credentials</p>
+            </div>
+            <div className="p-6">
+              <div className="flex items-start gap-3 p-3 rounded-xl mb-4" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>
+                <Lock size={18} weight="bold" className="flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-bold">Immediate TTLock revocation</p>
+                  <p className="text-xs mt-1 leading-relaxed">The active key card and PIN will stop working within 30 seconds. If the provider is offline, revocation is queued and the room must not be released until sync is confirmed.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setShowRevokeConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
+                <button onClick={() => {
+                  setAccessRevoked(p => ({ ...p, [selectedId]: true }));
+                  setShowRevokeConfirm(false);
+                  add({ type: "success", title: "Access revoked", body: `Room ${g.room} · TTLock confirmed immediate revocation` });
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: ERROR }}>Confirm Revoke</button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showReleaseConfirm && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onClick={() => setShowReleaseConfirm(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
+            <div className="px-6 py-4" style={{ backgroundColor: PRIMARY }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Final Confirmation</p>
+              <p className="text-base font-bold text-white mt-0.5">Release Room {g.room} to Housekeeping</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  ["Guest", g.guest],
+                  ["Final balance", `₦${balance.toLocaleString()}`],
+                  ["Settlement", balance === 0 ? "No payment due" : payMethod],
+                  ["Access", "Revoked · TTLock"],
+                ].map(([label, value]) => (
+                  <div key={label} className="p-3 rounded-xl" style={{ backgroundColor: CK_BG, border: `1px solid ${CK_BD}` }}>
+                    <p className="text-xs font-bold uppercase tracking-wider" style={{ color: CK_MUT }}>{label}</p>
+                    <p className="text-sm font-semibold mt-1" style={{ color: TEXT }}>{value}</p>
+                  </div>
+                ))}
+              </div>
+              {!g.dueToday && (
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Early Departure Reason *</label>
+                  <textarea value={earlyDepartureReason} onChange={e => setEarlyDepartureReason(e.target.value)} rows={3}
+                    placeholder="Record the guest's reason and confirm unused-night charges were reviewed…"
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
+                    style={{ border: `1.5px solid ${earlyDepartureReason.trim() ? CK_DSH : ERROR}` }} />
+                  <p className="text-xs mt-1.5" style={{ color: CK_MUT }}>This reason is added to the reservation audit trail.</p>
+                </div>
+              )}
+              <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#F0FDF4", color: "#065F46" }}>
+                <CheckCircle size={14} weight="fill" className="flex-shrink-0 mt-0.5" />
+                Folio will close, room status will change to Cleaning, and housekeeping will be notified.
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setShowReleaseConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
+                <button disabled={!releaseConfirmed} onClick={() => {
+                  setCheckedOutIds(p => p.includes(selectedId) ? p : [...p, selectedId]);
+                  setShowReleaseConfirm(false);
+                  add({ type: "success", title: "Check-out complete", body: `Room ${g.room} → Cleaning · Folio closed · Housekeeping notified` });
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: SUCCESS }}>Confirm & Release</button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ── VOID MODAL ── */}
       {voidLine !== null && (
@@ -2004,8 +2367,9 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <div className="px-6 py-4 space-y-3">
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Discount Amount (₦) *</label>
-                <input value={discountAmt} onChange={e => setDiscountAmt(e.target.value)} placeholder="0"
+                <input type="number" value={discountAmt} onChange={e => setDiscountAmt(e.target.value)} placeholder="0"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${CK_DSH}`, fontFamily: mono }} />
+                {discountNum > balance && <p className="text-xs font-semibold mt-1.5" style={{ color: ERROR }}>Discount cannot exceed the ₦{balance.toLocaleString()} outstanding balance.</p>}
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Reason *</label>
@@ -2013,7 +2377,7 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
                   style={{ border: `1.5px solid ${CK_DSH}` }} placeholder="Guest complaint, loyalty benefit, etc." />
               </div>
-              {parseInt(discountAmt || "0") > 5000 && (
+              {discountNum > 5000 && (
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Manager PIN * (required for amounts above ₦5,000)</label>
                   <input type="password" value={managerPin} onChange={e => setManagerPin(e.target.value)} placeholder="••••••"
@@ -2025,9 +2389,9 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 <button onClick={() => { setShowDiscount(false); setDiscountAmt(""); setDiscountReason(""); setManagerPin(""); }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
                 <button
-                  disabled={!discountReason || !discountAmt || (parseInt(discountAmt || "0") > 5000 && !managerPin)}
+                  disabled={!discountReason || discountNum <= 0 || discountNum > balance || (discountNum > 5000 && managerPin.length < 4)}
                   onClick={() => {
-                    const amt = parseInt(discountAmt) || 0;
+                    const amt = discountNum;
                     setDiscountMap(m => ({ ...m, [selectedId]: (m[selectedId] ?? 0) + amt }));
                     add({ type: "success", title: `Discount applied: ₦${amt.toLocaleString()}`, body: discountReason });
                     setShowDiscount(false); setDiscountAmt(""); setDiscountReason(""); setManagerPin("");
@@ -2065,14 +2429,14 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Amount (₦) *</label>
-                <input value={lateChargeAmt} onChange={e => setLateChargeAmt(e.target.value)} placeholder="0"
+                <input type="number" value={lateChargeAmt} onChange={e => setLateChargeAmt(e.target.value)} placeholder="0"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                   style={{ border: `1.5px solid ${CK_DSH}`, fontFamily: mono }} />
               </div>
               <div className="flex gap-3 pt-1">
                 <button onClick={() => { setShowLateCharge(false); setLateChargeDesc(""); setLateChargeAmt(""); }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
-                <button disabled={!lateChargeDesc || !lateChargeAmt}
+                <button disabled={!lateChargeDesc || (parseInt(lateChargeAmt) || 0) <= 0}
                   onClick={() => {
                     const amt = parseInt(lateChargeAmt) || 0;
                     const tax = Math.round(amt * 0.075);
@@ -2091,41 +2455,69 @@ export function CheckOut({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   );
 }
 
-export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
+export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [ihSearch, setIhSearch] = useState("");
   const [ihFilter, setIhFilter] = useState("All");
   const [moreMenu, setMoreMenu] = useState<string | null>(null);
-  const IH_GUESTS = [
-    { room: "101", guest: "Adaeze Okonkwo", av: "AO", checkin: "22 Jun", checkout: "25 Jun", nights: 3, nightsLeft: 1, vip: true, balance: 0, dnd: false, requests: 0, complaints: 0, type: "Deluxe" },
-    { room: "202", guest: "Emmanuel Adeyemi", av: "EA", checkin: "23 Jun", checkout: "26 Jun", nights: 3, nightsLeft: 2, vip: false, balance: 45000, dnd: false, requests: 1, complaints: 0, type: "Deluxe" },
-    { room: "203", guest: "Fatima Musa", av: "FM", checkin: "21 Jun", checkout: "24 Jun", nights: 3, nightsLeft: 0, vip: true, balance: 0, dnd: true, requests: 0, complaints: 0, type: "Suite" },
-    { room: "304", guest: "Chukwuemeka Obi", av: "CO", checkin: "24 Jun", checkout: "28 Jun", nights: 4, nightsLeft: 4, vip: false, balance: 120000, dnd: false, requests: 2, complaints: 1, type: "Standard" },
-    { room: "302", guest: "Ibrahim Lawal", av: "IL", checkin: "23 Jun", checkout: "25 Jun", nights: 2, nightsLeft: 1, vip: false, balance: 0, dnd: false, requests: 0, complaints: 0, type: "Deluxe" },
-    { room: "501", guest: "Dr. Chukwuemeka Bello", av: "CB", checkin: "24 Jun", checkout: "27 Jun", nights: 3, nightsLeft: 3, vip: true, balance: 0, dnd: false, requests: 1, complaints: 0, type: "Suite" },
-  ];
-  const filtered = IH_GUESTS.filter(g => {
+  const [guests, setGuests] = useState([
+    { id: "BK-2846", room: "101", guest: "Adaeze Okonkwo", av: "AO", checkin: "22 Jun", checkout: "25 Jun", nights: 3, nightsLeft: 1, vip: true, balance: 0, dnd: false, requests: 0, complaints: 0, type: "Deluxe" },
+    { id: "BK-2848", room: "202", guest: "Emmanuel Adeyemi", av: "EA", checkin: "23 Jun", checkout: "26 Jun", nights: 3, nightsLeft: 2, vip: false, balance: 45000, dnd: false, requests: 1, complaints: 0, type: "Deluxe" },
+    { id: "BK-2843", room: "203", guest: "Fatima Musa", av: "FM", checkin: "21 Jun", checkout: "24 Jun", nights: 3, nightsLeft: 0, vip: true, balance: 0, dnd: true, requests: 0, complaints: 0, type: "Suite" },
+    { id: "BK-2850", room: "304", guest: "Chukwuemeka Obi", av: "CO", checkin: "24 Jun", checkout: "28 Jun", nights: 4, nightsLeft: 4, vip: false, balance: 120000, dnd: false, requests: 2, complaints: 1, type: "Standard" },
+    { id: "BK-2845", room: "302", guest: "Ibrahim Lawal", av: "IL", checkin: "23 Jun", checkout: "25 Jun", nights: 2, nightsLeft: 1, vip: false, balance: 0, dnd: false, requests: 0, complaints: 0, type: "Deluxe" },
+    { id: "BK-2851", room: "501", guest: "Dr. Chukwuemeka Bello", av: "CB", checkin: "24 Jun", checkout: "27 Jun", nights: 3, nightsLeft: 3, vip: true, balance: 0, dnd: false, requests: 1, complaints: 0, type: "Suite" },
+  ]);
+  type InHouseGuest = typeof guests[number];
+  type GuestAction = "message" | "charge" | "extend" | "move" | "revoke";
+  const [guestAction, setGuestAction] = useState<{ type: GuestAction; guestId: string } | null>(null);
+  const [messageChannel, setMessageChannel] = useState("WhatsApp");
+  const [messageText, setMessageText] = useState("");
+  const [chargeForm, setChargeForm] = useState({ category: "Restaurant", description: "", amount: "" });
+  const [extendNights, setExtendNights] = useState("1");
+  const [extendReason, setExtendReason] = useState("");
+  const [moveRoom, setMoveRoom] = useState("");
+  const [moveReason, setMoveReason] = useState("");
+  const [revokeReason, setRevokeReason] = useState("");
+  const [revokedAccess, setRevokedAccess] = useState<string[]>([]);
+  const filtered = guests.filter(g => {
     const ms = !ihSearch || g.guest.toLowerCase().includes(ihSearch.toLowerCase()) || g.room.includes(ihSearch);
-    const mf = ihFilter === "All" ? true : ihFilter === "VIP" ? g.vip : ihFilter === "Balance" ? g.balance > 0 : ihFilter === "DND" ? g.dnd : g.nightsLeft === 0;
+    const mf = ihFilter === "All" ? true : ihFilter === "VIP" ? g.vip : ihFilter === "Outstanding" ? g.balance > 0 : ihFilter === "DND" ? g.dnd : ihFilter === "Attention" ? g.requests > 0 || g.complaints > 0 : g.nightsLeft === 0;
     return ms && mf;
   });
   const typeColors: Record<string, string> = { Suite: PRIMARY, Deluxe: TEAL, Standard: MUTED };
+  const actionGuest = guests.find(g => g.id === guestAction?.guestId);
+  const addDaysLabel = (label: string, days: number) => {
+    const [day, mon] = label.split(" ");
+    const months: Record<string, number> = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+    const date = new Date(2025, months[mon] ?? 0, Number(day));
+    date.setDate(date.getDate() + days);
+    return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  };
+  const openAction = (type: GuestAction, guest: InHouseGuest) => {
+    setMoreMenu(null);
+    setGuestAction({ type, guestId: guest.id });
+    setMessageChannel("WhatsApp"); setMessageText("");
+    setChargeForm({ category: "Restaurant", description: "", amount: "" });
+    setExtendNights("1"); setExtendReason("");
+    setMoveRoom(""); setMoveReason(""); setRevokeReason("");
+  };
   return (
     <div>
-      <PageHeader title="In-House Guests" sub={`${IH_GUESTS.length} guests currently checked in`} actions={<><BtnO label="Export" icon={DownloadSimple} /><BtnP label="Post Charge" icon={Plus} onClick={() => nav && nav("folio", "Folio Management")} /></>} />
+      <PageHeader title="In-House Guests" sub={`${guests.length} guests currently checked in`} actions={<><BtnO label="Export" icon={DownloadSimple} onClick={() => add({ type: "success", title: "In-house guest list exported" })} /><BtnP label="Open Folios" icon={FileText} onClick={() => nav && nav("finance-folio", "Folio Management")} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="In-House" value={String(IH_GUESTS.length)} sub="Currently checked in" icon={Users} accent={PRIMARY} />
-        <StatCard label="VIP Guests" value={String(IH_GUESTS.filter(g => g.vip).length)} sub="Priority service" icon={Star} accent={ORANGE} />
-        <StatCard label="Outstanding" value={`₦${IH_GUESTS.reduce((s,g)=>s+g.balance,0).toLocaleString()}`} sub={`${IH_GUESTS.filter(g=>g.balance>0).length} open folios`} icon={CurrencyDollar} accent={ERROR} />
-        <StatCard label="Depart Today" value={String(IH_GUESTS.filter(g=>g.nightsLeft===0).length)} sub="Expected by 11:00" icon={ArrowRight} accent={TEAL} />
+        <StatCard label="In-House" value={String(guests.length)} sub="Currently checked in" icon={Users} accent={PRIMARY} />
+        <StatCard label="VIP Guests" value={String(guests.filter(g => g.vip).length)} sub="Priority service" icon={Star} accent={ORANGE} />
+        <StatCard label="Outstanding" value={`₦${guests.reduce((s,g)=>s+g.balance,0).toLocaleString()}`} sub={`${guests.filter(g=>g.balance>0).length} open folios`} icon={CurrencyDollar} accent={ERROR} />
+        <StatCard label="Needs Attention" value={String(guests.filter(g=>g.requests>0 || g.complaints>0 || g.nightsLeft===0).length)} sub="Requests, complaints, departures" icon={WarningCircle} accent={WARNING} />
       </div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative"><MagnifyingGlass size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} weight="bold" /><input value={ihSearch} onChange={e => setIhSearch(e.target.value)} placeholder="Search guest or room…" className="pl-7 pr-3 py-1.5 text-xs rounded-xl border bg-white outline-none w-52" style={{ borderColor: BORDER }} /></div>
-        {["All", "VIP", "Balance", "DND", "Departing"].map(f => <button key={f} onClick={() => setIhFilter(f)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold transition-all" style={{ backgroundColor: ihFilter===f ? PRIMARY : "white", color: ihFilter===f ? "white" : MUTED, borderColor: ihFilter===f ? PRIMARY : BORDER }}>{f}</button>)}
-        <span className="ml-auto text-xs" style={{ color: SUBTLE }}>{filtered.length} of {IH_GUESTS.length}</span>
+        <div className="relative w-full sm:w-64"><MagnifyingGlass size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} weight="bold" /><input value={ihSearch} onChange={e => setIhSearch(e.target.value)} placeholder="Search guest or room…" className="w-full pl-7 pr-8 py-2 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER }} />{ihSearch && <button onClick={() => setIhSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }}><XCircle size={13} /></button>}</div>
+        {["All", "VIP", "Outstanding", "DND", "Attention", "Departing"].map(f => <button key={f} onClick={() => setIhFilter(f)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold transition-all" style={{ backgroundColor: ihFilter===f ? PRIMARY : "white", color: ihFilter===f ? "white" : MUTED, borderColor: ihFilter===f ? PRIMARY : BORDER }}>{f}</button>)}
+        <span className="ml-auto text-xs" style={{ color: SUBTLE }}>{filtered.length} of {guests.length}</span>
       </div>
       {filtered.length === 0 ? <EmptyState icon={Users} message="No guests match your filters" /> : (
-        <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <table className="w-full">
+        <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
+          <table className="w-full min-w-[1050px]">
             <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Room", "Guest", "Check-in", "Check-out", "Nights Left", "Balance", "Flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(g => (
@@ -2138,7 +2530,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}>{g.av}</div>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: g.vip ? ORANGE : PRIMARY }}><User size={14} weight="bold" /></div>
                       <div>
                         <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{g.guest}</span>{g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE }} weight="bold" />}</div>
                         <div className="text-xs" style={{ color: MUTED }}>Floor {Math.floor(Number(g.room)/100)}</div>
@@ -2158,19 +2550,23 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                       {g.dnd && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#F3F4F6", color: MUTED }}>DND</span>}
                       {g.requests > 0 && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>{g.requests} req</span>}
                       {g.complaints > 0 && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>{g.complaints} complaint</span>}
+                      {revokedAccess.includes(g.id) && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Access revoked</span>}
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 relative">
-                      <button onClick={() => nav && nav("folio", "Folio")} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold hover:bg-[#F4F4F5] transition-colors" style={{ color: PRIMARY, borderColor: BORDER }}>Folio</button>
-                      <button onClick={() => nav && nav("check-out", "Check-Out")} className="text-xs px-2.5 py-1.5 rounded-lg font-semibold text-white transition-colors hover:opacity-90" style={{ backgroundColor: TEAL }}>Check Out</button>
+                      <button onClick={() => nav && nav("check-out", "Guest Folio", revokedAccess.includes(g.id) ? `${g.id}|revoked` : g.id)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold hover:bg-[#F4F4F5] transition-colors" style={{ color: PRIMARY, borderColor: BORDER }}>Folio</button>
+                      <button onClick={() => nav && nav("check-out", "Check-Out", revokedAccess.includes(g.id) ? `${g.id}|revoked` : g.id)} className="text-xs px-2.5 py-1.5 rounded-lg font-semibold text-white transition-colors hover:opacity-90" style={{ backgroundColor: TEAL }}>Check Out</button>
                       <div className="relative">
                         <button onClick={() => setMoreMenu(moreMenu === g.room ? null : g.room)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#F4F4F5] transition-colors" style={{ color: SUBTLE }}><DotsThree size={13} weight="bold" /></button>
                         {moreMenu === g.room && (
                           <div className="absolute right-0 top-8 z-20 bg-white rounded-xl border shadow-lg py-1 min-w-36" style={{ borderColor: BORDER }}>
-                            {[["Message Guest", "guest-messaging"],["Post Charge","folio"],["Extend Stay","folio"],["Move Room","room-assignment"]].map(([l,s]) => (
-                              <button key={l} onClick={() => { setMoreMenu(null); nav && nav(s, l); }} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>{l}</button>
-                            ))}
+                            <button onClick={() => { setMoreMenu(null); nav && nav("guest-profile-detail", g.guest, g.id); }} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>View Profile</button>
+                            <button onClick={() => openAction("message", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Message Guest</button>
+                            <button onClick={() => openAction("charge", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Post Charge</button>
+                            <button onClick={() => openAction("extend", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Extend Stay</button>
+                            <button onClick={() => openAction("move", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Move Room</button>
+                            <button disabled={revokedAccess.includes(g.id)} onClick={() => openAction("revoke", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#FEF2F2] transition-colors disabled:opacity-40" style={{ color: ERROR }}>{revokedAccess.includes(g.id) ? "Access Already Revoked" : "Revoke Room Access"}</button>
                           </div>
                         )}
                       </div>
@@ -2182,14 +2578,170 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
           </table>
         </div>
       )}
+      {guestAction && actionGuest && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setGuestAction(null)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${BORDER}` }}>
+            <div className="px-6 py-4" style={{ backgroundColor: guestAction.type === "revoke" ? ERROR : PRIMARY }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>
+                {guestAction.type === "message" ? "Guest Communication" : guestAction.type === "charge" ? "Folio" : guestAction.type === "extend" ? "Stay Management" : guestAction.type === "move" ? "Room Assignment" : "Emergency Security Action"}
+              </p>
+              <p className="text-base font-bold text-white mt-0.5">
+                {guestAction.type === "message" ? "Message Guest" : guestAction.type === "charge" ? "Post Charge" : guestAction.type === "extend" ? "Extend Stay" : guestAction.type === "move" ? "Move Room" : "Revoke Room Access"}
+              </p>
+              <p className="text-xs text-white mt-1" style={{ opacity: 0.7 }}>{actionGuest.guest} · Room {actionGuest.room} · {actionGuest.id}</p>
+            </div>
+            <div className="p-6 space-y-4">
+              {guestAction.type === "message" && (
+                <>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Channel</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {["WhatsApp", "SMS", "Guest Portal"].map(channel => <button key={channel} onClick={() => setMessageChannel(channel)} className="py-2.5 rounded-xl text-xs font-bold border" style={{ borderColor: messageChannel === channel ? PRIMARY : BORDER, backgroundColor: messageChannel === channel ? PRIMARY : "white", color: messageChannel === channel ? "white" : MUTED }}>{channel}</button>)}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Message *</label>
+                    <textarea value={messageText} onChange={e => setMessageText(e.target.value)} rows={4} placeholder="Type a message for the guest…" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} />
+                  </div>
+                </>
+              )}
+
+              {guestAction.type === "charge" && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Category</label>
+                      <select value={chargeForm.category} onChange={e => setChargeForm(form => ({ ...form, category: e.target.value }))} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${BORDER}`, backgroundColor: "white", color: TEXT }}>
+                        {["Restaurant", "Bar", "Laundry", "Minibar", "Telephone", "Other"].map(category => <option key={category}>{category}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Amount (₦) *</label>
+                      <input type="number" value={chargeForm.amount} onChange={e => setChargeForm(form => ({ ...form, amount: e.target.value }))} placeholder="0" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}`, fontFamily: mono }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Description *</label>
+                    <input value={chargeForm.description} onChange={e => setChargeForm(form => ({ ...form, description: e.target.value }))} placeholder="e.g. Room service order #RS-055" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}` }} />
+                  </div>
+                  {(parseInt(chargeForm.amount) || 0) > 0 && (
+                    <div className="flex justify-between p-3 rounded-xl text-sm" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>
+                      <span>Charge + VAT 7.5%</span>
+                      <span className="font-black" style={{ fontFamily: mono }}>₦{Math.round((parseInt(chargeForm.amount) || 0) * 1.075).toLocaleString()}</span>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {guestAction.type === "extend" && (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold" style={{ backgroundColor: "#F0FDF4", color: "#065F46", border: "1px solid #BBF7D0" }}>
+                    <CheckCircle size={14} weight="fill" />Room {actionGuest.room} is available for the selected extension.
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: `1px solid ${BORDER}` }}>
+                      <p className="text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>Current checkout</p>
+                      <p className="text-sm font-bold mt-1" style={{ color: TEXT }}>{actionGuest.checkout} · {PROPERTY_PROFILE.checkOutTime}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Additional Nights</label>
+                      <select value={extendNights} onChange={e => setExtendNights(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${BORDER}`, backgroundColor: "white", color: TEXT }}>
+                        {["1", "2", "3", "4", "5", "7"].map(nights => <option key={nights} value={nights}>{nights} night{nights === "1" ? "" : "s"}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason *</label>
+                    <textarea value={extendReason} onChange={e => setExtendReason(e.target.value)} rows={2} placeholder="Guest request, flight change, business extension…" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} />
+                  </div>
+                  <div className="flex justify-between p-3 rounded-xl text-sm" style={{ backgroundColor: "#F8FAFC", border: `1px solid ${BORDER}` }}>
+                    <span style={{ color: MUTED }}>New checkout</span>
+                    <span className="font-bold" style={{ color: SUCCESS }}>{addDaysLabel(actionGuest.checkout, parseInt(extendNights) || 1)} · {PROPERTY_PROFILE.checkOutTime}</span>
+                  </div>
+                </>
+              )}
+
+              {guestAction.type === "move" && (
+                <>
+                  <div className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: `1px solid ${BORDER}` }}>
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-black text-white" style={{ backgroundColor: typeColors[actionGuest.type] ?? PRIMARY }}>{actionGuest.room}</div>
+                    <div><p className="text-sm font-bold" style={{ color: TEXT }}>Current room</p><p className="text-xs" style={{ color: MUTED }}>{actionGuest.type} · Floor {Math.floor(Number(actionGuest.room) / 100)}</p></div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New Inspected Room *</label>
+                    <select value={moveRoom} onChange={e => setMoveRoom(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${moveRoom ? BORDER : ERROR}`, backgroundColor: "white", color: TEXT }}>
+                      <option value="">Select available room</option>
+                      {["102 · Standard", "104 · Standard", "201 · Deluxe", "301 · Suite", "402 · Deluxe", "502 · Suite"].map(room => <option key={room}>{room}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Move Reason *</label>
+                    <textarea value={moveReason} onChange={e => setMoveReason(e.target.value)} rows={2} placeholder="Maintenance issue, guest request, service recovery…" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} />
+                  </div>
+                  <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E", border: "1px solid #FDE68A" }}>
+                    <Warning size={14} className="flex-shrink-0" />Room access will be reissued for the new room and housekeeping will be notified about both rooms.
+                  </div>
+                </>
+              )}
+
+              {guestAction.type === "revoke" && (
+                <>
+                  <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>
+                    <Lock size={18} weight="bold" className="flex-shrink-0" />
+                    <div><p className="text-sm font-bold">Emergency access revocation</p><p className="text-xs mt-1 leading-relaxed">All key cards and PINs for Room {actionGuest.room} will be revoked through TTLock. Management and logged-in Front Desk staff will be notified.</p></div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Revocation Reason *</label>
+                    <select value={revokeReason} onChange={e => setRevokeReason(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${revokeReason ? BORDER : ERROR}`, backgroundColor: "white", color: TEXT }}>
+                      <option value="">Select reason</option>
+                      {["Guest safety concern", "Lost or stolen credential", "Security incident", "Management instruction", "Room move", "Other"].map(reason => <option key={reason}>{reason}</option>)}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              <div className="flex gap-3 pt-1">
+                <button onClick={() => setGuestAction(null)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button>
+                {guestAction.type === "message" && <button disabled={!messageText.trim()} onClick={() => { add({ type: "success", title: `Message sent via ${messageChannel}`, body: `${actionGuest.guest} · Room ${actionGuest.room}` }); setGuestAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Send Message</button>}
+                {guestAction.type === "charge" && <button disabled={!chargeForm.description.trim() || (parseInt(chargeForm.amount) || 0) <= 0} onClick={() => {
+                  const total = Math.round((parseInt(chargeForm.amount) || 0) * 1.075);
+                  setGuests(list => list.map(guest => guest.id === actionGuest.id ? { ...guest, balance: guest.balance + total } : guest));
+                  add({ type: "success", title: "Charge posted", body: `${actionGuest.guest} · ${chargeForm.category} · ₦${total.toLocaleString()} incl. VAT` }); setGuestAction(null);
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Post Charge</button>}
+                {guestAction.type === "extend" && <button disabled={!extendReason.trim()} onClick={() => {
+                  const extra = parseInt(extendNights) || 1;
+                  const checkout = addDaysLabel(actionGuest.checkout, extra);
+                  setGuests(list => list.map(guest => guest.id === actionGuest.id ? { ...guest, checkout, nights: guest.nights + extra, nightsLeft: guest.nightsLeft + extra } : guest));
+                  add({ type: "success", title: "Stay extended", body: `${actionGuest.guest} · New checkout ${checkout} ${PROPERTY_PROFILE.checkOutTime}` }); setGuestAction(null);
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Confirm Extension</button>}
+                {guestAction.type === "move" && <button disabled={!moveRoom || !moveReason.trim()} onClick={() => {
+                  const [room, type] = moveRoom.split(" · ");
+                  const oldRoom = actionGuest.room;
+                  setGuests(list => list.map(guest => guest.id === actionGuest.id ? { ...guest, room, type } : guest));
+                  add({ type: "success", title: "Room move complete", body: `${actionGuest.guest} · ${oldRoom} → ${room} · New access issued` }); setGuestAction(null);
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Confirm Move</button>}
+                {guestAction.type === "revoke" && <button disabled={!revokeReason} onClick={() => {
+                  setRevokedAccess(ids => ids.includes(actionGuest.id) ? ids : [...ids, actionGuest.id]);
+                  add({ type: "error", title: `Emergency revoke — Room ${actionGuest.room}`, body: `${revokeReason} · Management and Front Desk notified` }); setGuestAction(null);
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ERROR }}>Confirm Revoke</button>}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
+export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [search, setSearch] = useState("");
   const [filterTab, setFilterTab] = useState("All");
-  const ALL_GUESTS = [
+  const [showNew, setShowNew] = useState(false);
+  const [showMerge, setShowMerge] = useState(false);
+  const [newGuest, setNewGuest] = useState({ name: "", phone: "", email: "", nationality: "Nigerian" });
+  const [mergeForm, setMergeForm] = useState({ primaryId: "", duplicateId: "", reason: "" });
+  const [guests, setGuests] = useState([
     { name: "Adaeze Okonkwo", av: "AO", id: "G-001", phone: "+234 801 111 2222", email: "a.okonkwo@corp.ng", nationality: "Nigerian", stays: 8, lastStay: "24 Jun", lifetimeValue: 520000, vip: true, vipTier: "Gold", tag: "Regular", activeStay: true, balance: 0, blacklist: false, allergy: "Seafood" },
     { name: "Dr. Chukwuemeka Bello", av: "CB", id: "G-002", phone: "+234 803 555 6666", email: "c.bello@example.com", nationality: "Nigerian", stays: 15, lastStay: "24 Jun", lifetimeValue: 2400000, vip: true, vipTier: "Platinum", tag: "VIP", activeStay: true, balance: 0, blacklist: false, allergy: "" },
     { name: "Emmanuel Adeyemi", av: "EA", id: "G-003", phone: "+234 802 333 4444", email: "e.adeyemi@email.com", nationality: "Nigerian", stays: 3, lastStay: "23 Jun", lifetimeValue: 185000, vip: false, vipTier: "", tag: "", activeStay: true, balance: 45000, blacklist: false, allergy: "" },
@@ -2199,43 +2751,85 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
     { name: "Ngozi Adeyemi", av: "NA", id: "G-007", phone: "+234 807 654 3210", email: "n.adeyemi@email.com", nationality: "Nigerian", stays: 4, lastStay: "18 Jun", lifetimeValue: 210000, vip: false, vipTier: "", tag: "", activeStay: false, balance: 0, blacklist: false, allergy: "" },
     { name: "Chidi Eze", av: "CE", id: "G-008", phone: "+234 806 222 3333", email: "c.eze@example.com", nationality: "Nigerian", stays: 6, lastStay: "15 Jun", lifetimeValue: 480000, vip: true, vipTier: "Gold", tag: "VIP", activeStay: false, balance: 0, blacklist: false, allergy: "" },
     { name: "Amara Nwachukwu", av: "AN", id: "G-009", phone: "+234 811 444 5555", email: "a.nwachukwu@corp.ng", nationality: "Nigerian", stays: 0, lastStay: "—", lifetimeValue: 0, vip: false, vipTier: "", tag: "", activeStay: false, balance: 0, blacklist: true, allergy: "" },
-  ];
-  const filtered = ALL_GUESTS.filter(g => {
-    if (search && !g.name.toLowerCase().includes(search.toLowerCase()) && !g.id.includes(search) && !g.phone.includes(search)) return false;
+  ]);
+  const filtered = guests.filter(g => {
+    const query = search.trim().toLowerCase();
+    if (query && ![g.name, g.id, g.phone, g.email, g.nationality].some(value => value.toLowerCase().includes(query))) return false;
     if (filterTab === "VIP") return g.vip;
     if (filterTab === "Active Stay") return g.activeStay;
     if (filterTab === "Has Balance") return g.balance > 0;
-    if (filterTab === "Blacklist") return g.blacklist;
+    if (filterTab === "Blacklisted") return g.blacklist;
     return true;
   });
+  const createGuest = () => {
+    if (!newGuest.name.trim() || (!newGuest.phone.trim() && !newGuest.email.trim())) {
+      add({ type: "error", title: "Guest details incomplete", body: "Enter a name and at least a phone number or email address." });
+      return;
+    }
+    const nextNumber = Math.max(0, ...guests.map(g => Number(g.id.replace(/\D/g, "")) || 0)) + 1;
+    const guest = {
+      name: newGuest.name.trim(), av: "", id: `G-${String(nextNumber).padStart(3, "0")}`,
+      phone: newGuest.phone.trim() || "Not provided", email: newGuest.email.trim() || "Not provided",
+      nationality: newGuest.nationality.trim() || "Not provided", stays: 0, lastStay: "—",
+      lifetimeValue: 0, vip: false, vipTier: "", tag: "", activeStay: false, balance: 0,
+      blacklist: false, allergy: "",
+    };
+    setGuests(list => [guest, ...list]);
+    setSearch("");
+    setFilterTab("All");
+    setNewGuest({ name: "", phone: "", email: "", nationality: "Nigerian" });
+    setShowNew(false);
+    add({ type: "success", title: "Guest profile created", body: `${guest.name} · ${guest.id}` });
+  };
+  const mergeGuests = () => {
+    const primary = guests.find(g => g.id === mergeForm.primaryId);
+    const duplicate = guests.find(g => g.id === mergeForm.duplicateId);
+    if (!primary || !duplicate || primary.id === duplicate.id || !mergeForm.reason.trim()) {
+      add({ type: "error", title: "Merge details incomplete", body: "Choose two different profiles and record a merge reason." });
+      return;
+    }
+    setGuests(list => list.filter(g => g.id !== duplicate.id).map(g => g.id === primary.id ? {
+      ...g,
+      stays: g.stays + duplicate.stays,
+      lifetimeValue: g.lifetimeValue + duplicate.lifetimeValue,
+      balance: g.balance + duplicate.balance,
+      activeStay: g.activeStay || duplicate.activeStay,
+      vip: g.vip || duplicate.vip,
+      blacklist: g.blacklist || duplicate.blacklist,
+      allergy: g.allergy || duplicate.allergy,
+      tag: g.tag || duplicate.tag,
+    } : g));
+    setMergeForm({ primaryId: "", duplicateId: "", reason: "" });
+    setShowMerge(false);
+    add({ type: "success", title: "Duplicate profiles merged", body: `${duplicate.name} was consolidated into ${primary.name}.` });
+  };
   const tierColor = (t: string) => t === "Platinum" ? { bg: "#F5F3FF", text: "#7C3AED" } : t === "Gold" ? { bg: "#FEF3C7", text: "#92400E" } : { bg: "#EFF6FF", text: PRIMARY };
   return (
     <div>
-      <PageHeader title="Guest Profiles" sub={`${filtered.length} of ${ALL_GUESTS.length} profiles`} actions={<><BtnO label="Merge Duplicates" icon={Stack} /><BtnP label="New Profile" icon={Plus} /></>} />
+      <PageHeader title="Guest Profiles" sub={`${filtered.length} of ${guests.length} profiles`} actions={<><BtnO label="Merge Duplicates" icon={Stack} onClick={() => setShowMerge(true)} /><BtnP label="New Profile" icon={Plus} onClick={() => setShowNew(true)} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Total Profiles" value={String(ALL_GUESTS.length)} sub="Registered guests" icon={Users} accent={PRIMARY} />
-        <StatCard label="VIP Members" value={String(ALL_GUESTS.filter(g=>g.vip).length)} sub="Loyalty & VIP tier" icon={Star} accent={ORANGE} />
-        <StatCard label="Active Stay" value={String(ALL_GUESTS.filter(g=>g.activeStay).length)} sub="Currently in-house" icon={Bed} accent={TEAL} />
-        <StatCard label="With Balance" value={String(ALL_GUESTS.filter(g=>g.balance>0).length)} sub="Open folios" icon={CurrencyDollar} accent={ERROR} />
+        <StatCard label="Total Profiles" value={String(guests.length)} sub="Registered guests" icon={Users} accent={PRIMARY} />
+        <StatCard label="VIP Members" value={String(guests.filter(g=>g.vip).length)} sub="Loyalty & VIP tier" icon={Star} accent={ORANGE} />
+        <StatCard label="Active Stay" value={String(guests.filter(g=>g.activeStay).length)} sub="Currently in-house" icon={Bed} accent={TEAL} />
+        <StatCard label="With Balance" value={String(guests.filter(g=>g.balance>0).length)} sub="Open folios" icon={CurrencyDollar} accent={ERROR} />
       </div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative"><MagnifyingGlass size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} weight="bold" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Name, phone, or ID…" className="pl-7 pr-3 py-1.5 text-xs rounded-xl border bg-white outline-none w-52" style={{ borderColor: BORDER }} /></div>
-        {["All", "VIP", "Active Stay", "Has Balance", "Blacklist"].map(f => (
+        <div className="relative w-full sm:w-72"><MagnifyingGlass size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} weight="bold" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, contact, ID, nationality…" className="pl-9 pr-9 py-2 text-xs rounded-xl border bg-white outline-none w-full" style={{ borderColor: BORDER }} />{search && <button aria-label="Clear search" onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2" style={{ color: MUTED }}><XCircle size={16} /></button>}</div>
+        {["All", "Active Stay", "Blacklisted", "VIP", "Has Balance"].map(f => (
           <button key={f} onClick={() => setFilterTab(f)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold transition-all"
             style={{ borderColor: filterTab === f ? PRIMARY : BORDER, backgroundColor: filterTab === f ? PRIMARY : "white", color: filterTab === f ? "white" : MUTED }}>{f}</button>
         ))}
-        {search && <button onClick={() => setSearch("")} className="text-xs" style={{ color: MUTED }}>Clear</button>}
       </div>
-      {filtered.length === 0 ? <EmptyState icon={Users} message={`No guests match "${search || filterTab}"`} /> : (
-        <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <table className="w-full">
+      {filtered.length === 0 ? <EmptyState icon={User} message={`No guest profiles match ${search ? `"${search}"` : `the ${filterTab} filter`}.`} cta="Clear filters" onCta={() => { setSearch(""); setFilterTab("All"); }} /> : (
+        <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
+          <table className="w-full min-w-[920px]">
             <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Guest", "Contact", "Stays / Last Stay", "Lifetime Value", "Tier / Flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(g => (
-                <tr key={g.id} className="border-t hover:bg-[#F8FAFC] transition-colors cursor-pointer" style={{ borderColor: BORDER }} onClick={() => nav && nav("guest-profile-detail", g.name)}>
+                <tr key={g.id} className="border-t hover:bg-[#F8FAFC] transition-colors cursor-pointer" style={{ borderColor: BORDER }} onClick={() => nav && nav("guest-profile-detail", g.name, g.id)}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: g.vip ? ORANGE : PRIMARY }}>{g.av}</div>
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: g.vip ? "#FFF7ED" : "#EFF6FF", color: g.vip ? ORANGE : PRIMARY }}><User size={18} weight="fill" /></div>
                       <div>
                         <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: g.blacklist ? ERROR : TEXT }}>{g.name}</span>{g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE }} weight="bold" />}</div>
                         <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{g.id}</div>
@@ -2244,7 +2838,8 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-xs" style={{ color: TEXT }}>{g.phone}</div>
-                    <div className="text-xs" style={{ color: MUTED }}>{g.nationality}</div>
+                    <div className="text-xs truncate max-w-[190px]" style={{ color: MUTED }}>{g.email}</div>
+                    <div className="text-xs" style={{ color: SUBTLE }}>{g.nationality}</div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-sm font-semibold" style={{ color: TEXT }}>{g.stays} stay{g.stays !== 1 ? "s" : ""}</div>
@@ -2264,14 +2859,39 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => nav && nav("guest-profile-detail", g.name)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold hover:bg-[#F4F4F5] transition-colors" style={{ color: PRIMARY, borderColor: BORDER }}>View</button>
-                      <button onClick={() => nav && nav("new-reservation", "New Reservation")} className="text-xs px-2.5 py-1.5 rounded-lg font-semibold text-white transition-colors hover:opacity-90" style={{ backgroundColor: PRIMARY }}>Reserve</button>
+                      <button onClick={() => nav && nav("guest-profile-detail", g.name, g.id)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold hover:bg-[#F4F4F5] transition-colors" style={{ color: PRIMARY, borderColor: BORDER }}>View</button>
+                      <button onClick={() => nav && nav("new-reservation", "New Reservation", g.name)} className="text-xs px-2.5 py-1.5 rounded-lg font-semibold text-white transition-colors hover:opacity-90" style={{ backgroundColor: PRIMARY }}>Reserve</button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {showNew && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onMouseDown={() => setShowNew(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl" onMouseDown={e => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}><div><h3 className="font-bold" style={{ color: TEXT }}>Create Guest Profile</h3><p className="text-xs mt-0.5" style={{ color: MUTED }}>Add a searchable identity before creating a stay.</p></div><button aria-label="Close" onClick={() => setShowNew(false)}><XCircle size={21} style={{ color: MUTED }} /></button></div>
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[["Full name *", "name", "e.g. Amina Yusuf"], ["Phone", "phone", "+234…"], ["Email", "email", "guest@example.com"], ["Nationality", "nationality", "Nationality"]].map(([label, key, placeholder]) => <label key={key} className="text-xs font-semibold" style={{ color: MUTED }}>{label}<input value={newGuest[key as keyof typeof newGuest]} onChange={e => setNewGuest(p => ({ ...p, [key]: e.target.value }))} placeholder={placeholder} className="w-full mt-1.5 px-3 py-2.5 rounded-xl border text-sm outline-none font-normal" style={{ borderColor: BORDER, color: TEXT }} /></label>)}
+              <p className="sm:col-span-2 text-xs" style={{ color: MUTED }}>A phone number or email address is required to reduce duplicate profiles.</p>
+            </div>
+            <div className="px-5 py-4 border-t flex justify-end gap-2" style={{ borderColor: BORDER }}><button onClick={() => setShowNew(false)} className="px-4 py-2 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button><button onClick={createGuest} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Create Profile</button></div>
+          </div>
+        </div>
+      )}
+      {showMerge && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onMouseDown={() => setShowMerge(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl" onMouseDown={e => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}><div><h3 className="font-bold" style={{ color: TEXT }}>Merge Duplicate Profiles</h3><p className="text-xs mt-0.5" style={{ color: MUTED }}>Choose the profile that should remain on record.</p></div><button aria-label="Close" onClick={() => setShowMerge(false)}><XCircle size={21} style={{ color: MUTED }} /></button></div>
+            <div className="p-5 space-y-4">
+              <div className="p-3 rounded-xl flex gap-2 text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}><Warning size={17} className="flex-shrink-0" /><span>Stays, balances, flags, and lifetime value from the duplicate will be consolidated into the primary profile. This action cannot be undone.</span></div>
+              {[["Primary profile (keep) *", "primaryId"], ["Duplicate profile (remove) *", "duplicateId"]].map(([label, key]) => <label key={key} className="block text-xs font-semibold" style={{ color: MUTED }}>{label}<select value={mergeForm[key as "primaryId" | "duplicateId"]} onChange={e => setMergeForm(p => ({ ...p, [key]: e.target.value }))} className="w-full mt-1.5 px-3 py-2.5 rounded-xl border text-sm bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}><option value="">Select guest profile</option>{guests.filter(g => key === "primaryId" ? g.id !== mergeForm.duplicateId : g.id !== mergeForm.primaryId).map(g => <option key={g.id} value={g.id}>{g.name} · {g.id} · {g.phone}</option>)}</select></label>)}
+              <label className="block text-xs font-semibold" style={{ color: MUTED }}>Merge reason *<textarea value={mergeForm.reason} onChange={e => setMergeForm(p => ({ ...p, reason: e.target.value }))} rows={3} placeholder="How was the duplicate verified?" className="w-full mt-1.5 px-3 py-2.5 rounded-xl border text-sm outline-none resize-none font-normal" style={{ borderColor: BORDER, color: TEXT }} /></label>
+            </div>
+            <div className="px-5 py-4 border-t flex justify-end gap-2" style={{ borderColor: BORDER }}><button onClick={() => setShowMerge(false)} className="px-4 py-2 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button><button onClick={mergeGuests} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Confirm Merge</button></div>
+          </div>
         </div>
       )}
     </div>
@@ -2530,14 +3150,3 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
     </div>
   );
 }
-
-export { HKBoard, WorkOrders, InternalChat, POSTerminal, TableManagement, StaffDirectory, DailySummary, StockDashboard, RoomTypeManagement, RateCalendar, AvailabilityBoard } from "./OperationsScreens";
-
-// BranchOverview → MultibranchSettingsScreens.tsx
-export { BranchOverview } from "./MultibranchSettingsScreens";
-
-// OccupancyReports → ReportsScreens.tsx
-export { OccupancyReports } from "./ReportsScreens";
-
-// SystemHealth → ITAdminScreens.tsx
-export { SystemHealth } from "./ITAdminScreens";

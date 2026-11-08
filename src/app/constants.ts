@@ -49,6 +49,14 @@ export const MUTED = "#64748B";
 export const SUBTLE = "#94A3B8";
 export const BG = "#F0F4F8";
 
+export const PROPERTY_PROFILE = {
+  name: "Grand Palms Hotel",
+  city: "Abuja",
+  quietHours: "22:00–07:00",
+  checkInTime: "14:00",
+  checkOutTime: "11:00",
+};
+
 // ─── Color Maps ──────────────────────────────────────────────────────────────
 export const resStC: Record<string, { bg: string; text: string }> = {
   Confirmed: { bg: "#CCFBF1", text: "#0F766E" }, "Checked In": { bg: "#DCFCE7", text: "#166534" },

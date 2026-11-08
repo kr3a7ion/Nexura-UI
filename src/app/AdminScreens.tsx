@@ -11,7 +11,7 @@ import {
   MinusCircle, PlusCircle, ShoppingCart, MapPin, Mail,
   UserCheck, BookOpen,
   ArrowDownToLine, ArrowUpFromLine, XCircle, Archive, Info,
-  DollarSign, BedDouble,
+  DollarSign, BedDouble, Zap, GripVertical,
 } from "lucide-react";
 import {
   BarChart, Bar,
@@ -1743,7 +1743,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
 }
 
 // FD-03 Room Assignment Board
-export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
+export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const UNASSIGNED_ARRIVALS = [
     { id: "BK-2851", guest: "Emmanuel Adeyemi", av: "EA", type: "Standard", eta: "12:00", vip: false, nights: 1 },
     { id: "BK-2852", guest: "Fatima Al-Hassan", av: "FA", type: "Deluxe", eta: "16:00", vip: true, nights: 4 },
@@ -1765,57 +1765,119 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
   const [selGuest, setSelGuest] = useState<string | null>(null);
   const [assigned, setAssigned] = useState<Record<string, string>>({});
   const [floorFilter, setFloorFilter] = useState("All");
-  const [conflictRoom, setConflictRoom] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [search, setSearch] = useState("");
+  const [pendingAssignment, setPendingAssignment] = useState<{ guestId: string; roomId: string } | null>(null);
+  const [detailRoom, setDetailRoom] = useState<string | null>(null);
   const floors = ["All", "1", "2", "3", "5"];
   const hkDot: Record<string, string> = { Inspected: SUCCESS, Clean: "#22C55E", "In Progress": WARNING, Dirty: ORANGE, Maintenance: ERROR, Occupied: MUTED, DND: "#6B7280" };
+  const isReady = (room: typeof ALL_ROOMS[0]) => room.status === "Available" && ["Clean", "Inspected"].includes(room.hkSt);
+  const roomForGuest = (guestId: string) => Object.keys(assigned).find(roomId => assigned[roomId] === guestId);
   const doAssign = (guestId: string, roomId: string) => {
     const g = UNASSIGNED_ARRIVALS.find(a => a.id === guestId);
-    setAssigned(prev => ({ ...prev, [roomId]: guestId }));
-    add({ type: "success", title: "Room assigned", body: `${g?.guest} → Room ${roomId}` });
+    const previousRoom = roomForGuest(guestId);
+    const displacedGuest = assigned[roomId];
+    setAssigned(prev => {
+      const next = { ...prev };
+      if (previousRoom) delete next[previousRoom];
+      next[roomId] = guestId;
+      if (displacedGuest && previousRoom) next[previousRoom] = displacedGuest;
+      return next;
+    });
+    add({
+      type: "success",
+      title: displacedGuest && previousRoom ? "Room assignments swapped" : previousRoom ? "Room reassigned" : "Room assigned",
+      body: `${g?.guest} → Room ${roomId}${previousRoom ? ` (from ${previousRoom})` : ""}`,
+    });
     setSelGuest(null);
+    setPendingAssignment(null);
   };
   const handleRoomClick = (r: typeof ALL_ROOMS[0]) => {
-    if (!selGuest) return;
-    const conflict = r.status === "Occupied" ? "Room is occupied" : r.status === "Maintenance" ? "Room under maintenance" : r.hkSt === "In Progress" ? "Room is being cleaned" : r.id in assigned ? "Already assigned" : null;
-    if (conflict) { setConflictRoom(r.id); add({ type: "error", title: `Cannot assign — ${conflict}`, body: `Room ${r.id}` }); setTimeout(() => setConflictRoom(null), 2000); return; }
-    doAssign(selGuest, r.id);
+    if (!selGuest) { setDetailRoom(r.id); return; }
+    const currentRoom = roomForGuest(selGuest);
+    const isSwap = Boolean(assigned[r.id] && currentRoom);
+    if (!isReady(r) && !isSwap) {
+      const reason = r.status === "Reserved" ? "reserved for another booking" : r.status === "Occupied" ? "occupied" : r.status === "Maintenance" ? "under maintenance" : `not ready (${r.hkSt})`;
+      add({ type: "error", title: "Room unavailable", body: `Room ${r.id} is ${reason}. Only available Clean or Inspected rooms can be assigned.` });
+      return;
+    }
+    setPendingAssignment({ guestId: selGuest, roomId: r.id });
   };
-  const visibleRooms = floorFilter === "All" ? ALL_ROOMS : ALL_ROOMS.filter(r => String(r.floor) === floorFilter);
-  const grouped = floors.filter(f => f !== "All").reduce((acc, f) => { acc[f] = visibleRooms.filter(r => String(r.floor) === f); return acc; }, {} as Record<string, typeof ALL_ROOMS>);
+  const autoAssign = () => {
+    const next = { ...assigned };
+    const unassigned = UNASSIGNED_ARRIVALS.filter(arrival => !Object.values(next).includes(arrival.id));
+    const readyRooms = ALL_ROOMS.filter(room => isReady(room) && !next[room.id]);
+    let assignedCount = 0;
+    unassigned.forEach(arrival => {
+      const exact = readyRooms.find(room => room.type === arrival.type && !next[room.id]);
+      const upgrade = readyRooms.find(room => room.type === "Suite" && !next[room.id]);
+      const room = exact ?? upgrade;
+      if (room) { next[room.id] = arrival.id; assignedCount += 1; }
+    });
+    setAssigned(next);
+    setSelGuest(null);
+    add({
+      type: assignedCount === unassigned.length ? "success" : "info",
+      title: assignedCount ? `${assignedCount} arrival${assignedCount === 1 ? "" : "s"} auto-assigned` : "No compatible rooms available",
+      body: assignedCount < unassigned.length ? `${unassigned.length - assignedCount} arrival${unassigned.length - assignedCount === 1 ? "" : "s"} still need a ready room.` : "Booked room types were matched first; Suite upgrades were used when needed.",
+    });
+  };
+  const filteredRooms = ALL_ROOMS.filter(room =>
+    (floorFilter === "All" || String(room.floor) === floorFilter) &&
+    (typeFilter === "All" || room.type === typeFilter)
+  );
+  const visibleArrivals = UNASSIGNED_ARRIVALS.filter(arrival =>
+    !search.trim() || `${arrival.guest} ${arrival.id} ${arrival.type}`.toLowerCase().includes(search.trim().toLowerCase())
+  );
+  const grouped = floors.filter(f => f !== "All").reduce((acc, f) => { acc[f] = filteredRooms.filter(r => String(r.floor) === f); return acc; }, {} as Record<string, typeof ALL_ROOMS>);
   const totalAssigned = UNASSIGNED_ARRIVALS.length - UNASSIGNED_ARRIVALS.filter(a => !Object.values(assigned).includes(a.id)).length;
+  const pendingGuest = UNASSIGNED_ARRIVALS.find(arrival => arrival.id === pendingAssignment?.guestId);
+  const pendingRoom = ALL_ROOMS.find(room => room.id === pendingAssignment?.roomId);
+  const inspectedRoom = ALL_ROOMS.find(room => room.id === detailRoom);
   return (
     <div>
-      <PageHeader title="Room Assignment Board" sub="Click a guest to select, then click an available room to assign" actions={<BtnP label="Auto-Assign All" icon={Zap} onClick={() => { UNASSIGNED_ARRIVALS.forEach((a,i) => { const avail = ALL_ROOMS.filter(r => r.status === "Available" && !(r.id in assigned)); if (avail[i]) setAssigned(prev => ({ ...prev, [avail[i].id]: a.id })); }); add({ type: "success", title: "Auto-assigned all unassigned arrivals" }); }} />} />
+      <PageHeader title="Room Assignment Board" sub="Select or drag an arrival to a ready room; review upgrades before confirming" actions={<BtnP label="Auto-Assign Ready Rooms" icon={Zap} onClick={autoAssign} />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Unassigned" value={String(UNASSIGNED_ARRIVALS.filter(a => !Object.values(assigned).includes(a.id)).length)} sub="Need room" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Available Rooms" value={String(ALL_ROOMS.filter(r => r.status === "Available" && !(r.id in assigned)).length)} sub="Ready to assign" icon={BedDouble} accent={SUCCESS} />
+        <StatCard label="Ready Rooms" value={String(ALL_ROOMS.filter(r => isReady(r) && !(r.id in assigned)).length)} sub="Clean or inspected" icon={BedDouble} accent={SUCCESS} />
         <StatCard label="Total Arrivals" value={String(UNASSIGNED_ARRIVALS.length + 3)} sub="Expected today" icon={CalendarCheck} accent={PRIMARY} />
         <StatCard label="Assigned Today" value={String(totalAssigned + 3)} sub="Ready for check-in" icon={CheckCircle2} accent={TEAL} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
         {/* Left: unassigned arrivals */}
         <div className="lg:col-span-2">
-          <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Unassigned Arrivals — click to select</div>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Today’s arrivals</div>
+            <span className="text-xs" style={{ color: MUTED }}>{totalAssigned}/{UNASSIGNED_ARRIVALS.length} assigned</span>
+          </div>
+          <div className="relative mb-3"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search guest, booking, or type…" className="w-full rounded-xl border bg-white py-2.5 pl-9 pr-9 text-sm outline-none" style={{ borderColor: BORDER }} />{search && <button aria-label="Clear search" onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2"><X size={15} style={{ color: MUTED }} /></button>}</div>
           <div className="space-y-3">
-            {UNASSIGNED_ARRIVALS.map(a => {
+            {visibleArrivals.map(a => {
               const isAssigned = Object.values(assigned).includes(a.id);
+              const assignedRoom = roomForGuest(a.id);
               const isSel = selGuest === a.id;
               return (
-                <div key={a.id} onClick={() => !isAssigned && setSelGuest(isSel ? null : a.id)}
-                  className="bg-white rounded-xl border overflow-hidden cursor-pointer hover:shadow-md transition-all"
-                  style={{ borderColor: isSel ? PRIMARY : isAssigned ? SUCCESS : BORDER, borderWidth: isSel || isAssigned ? 2 : 1, opacity: isAssigned ? 0.55 : 1 }}>
+                <div key={a.id} draggable onDragStart={event => { event.dataTransfer.setData("text/guest-id", a.id); setSelGuest(a.id); }} onClick={() => setSelGuest(isSel ? null : a.id)}
+                  className="bg-white rounded-xl border overflow-hidden cursor-grab hover:shadow-md transition-all"
+                  style={{ borderColor: isSel ? PRIMARY : isAssigned ? SUCCESS : BORDER, borderWidth: isSel || isAssigned ? 2 : 1 }}>
                   <div className="flex items-center gap-3 p-4">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ backgroundColor: a.vip ? ORANGE : PRIMARY }}>{a.av}</div>
+                    <GripVertical size={16} style={{ color: SUBTLE }} />
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: a.vip ? "#FFF7ED" : "#EFF6FF", color: a.vip ? ORANGE : PRIMARY }}><User size={19} /></div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{a.guest}</span>{a.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE }} />}</div>
-                      <div className="text-xs" style={{ color: MUTED }}>{a.type} · ETA {a.eta} · {a.nights}n</div>
+                      <div className="text-xs" style={{ color: MUTED }}>{a.id} · {a.type} · ETA {a.eta} · {a.nights}n</div>
                     </div>
-                    {isAssigned ? <CheckCircle2 size={16} style={{ color: SUCCESS }} /> : isSel ? <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: PRIMARY }}><div className="w-2 h-2 rounded-full bg-white" /></div> : <div className="w-5 h-5 rounded-full border-2" style={{ borderColor: BORDER }} />}
+                    {isAssigned ? <Badge label={`Room ${assignedRoom}`} colors={{ bg: "#DCFCE7", text: "#166534" }} /> : isSel ? <Badge label="Selected" colors={{ bg: "#DBEAFE", text: PRIMARY }} /> : null}
                   </div>
-                  {isSel && <div className="px-4 pb-3 text-xs font-semibold" style={{ color: PRIMARY }}>→ Now click an available room on the right to assign</div>}
+                  <div className="px-4 pb-3 flex items-center gap-2">
+                    <button onClick={event => { event.stopPropagation(); nav?.("reservation-detail", a.id, a.id); }} className="text-xs font-semibold" style={{ color: PRIMARY }}>View booking</button>
+                    {isAssigned && <button onClick={event => { event.stopPropagation(); setAssigned(prev => { const next = { ...prev }; if (assignedRoom) delete next[assignedRoom]; return next; }); setSelGuest(null); add({ type: "info", title: "Assignment removed", body: `${a.guest} is unassigned.` }); }} className="text-xs font-semibold" style={{ color: ERROR }}>Remove</button>}
+                    {isSel && <span className="ml-auto text-xs font-semibold" style={{ color: PRIMARY }}>{isAssigned ? "Choose another room to reassign" : "Choose or drop onto a room"}</span>}
+                  </div>
                 </div>
               );
             })}
+            {visibleArrivals.length === 0 && <EmptyState icon={Search} message="No arrivals match your search." />}
             {UNASSIGNED_ARRIVALS.every(a => Object.values(assigned).includes(a.id)) && (
               <div className="py-8 text-center rounded-xl border" style={{ borderColor: BORDER }}><CheckCircle2 size={24} className="mx-auto mb-2" style={{ color: SUCCESS }} /><p className="text-sm font-semibold" style={{ color: SUCCESS }}>All arrivals assigned</p></div>
             )}
@@ -1823,9 +1885,10 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
         </div>
         {/* Right: room grid by floor */}
         <div className="lg:col-span-3">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="text-xs font-semibold uppercase tracking-wider flex-1" style={{ color: MUTED }}>Rooms by Floor{selGuest ? " — click available room to assign" : ""}</div>
-            {floors.map(f => <button key={f} onClick={() => setFloorFilter(f)} className="text-xs px-2.5 py-1 rounded-lg border font-semibold transition-all" style={{ backgroundColor: floorFilter===f ? PRIMARY : "white", color: floorFilter===f ? "white" : MUTED, borderColor: floorFilter===f ? PRIMARY : BORDER }}>Fl {f}</button>)}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <div className="text-xs font-semibold uppercase tracking-wider mr-auto" style={{ color: MUTED }}>Rooms by floor</div>
+            <select value={typeFilter} onChange={event => setTypeFilter(event.target.value)} className="text-xs px-2.5 py-1.5 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: MUTED }}><option>All</option><option>Standard</option><option>Deluxe</option><option>Suite</option></select>
+            {floors.map(f => <button key={f} onClick={() => setFloorFilter(f)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold transition-all" style={{ backgroundColor: floorFilter===f ? PRIMARY : "white", color: floorFilter===f ? "white" : MUTED, borderColor: floorFilter===f ? PRIMARY : BORDER }}>{f === "All" ? "All floors" : `Floor ${f}`}</button>)}
           </div>
           {Object.entries(grouped).filter(([,rooms]) => rooms.length > 0).map(([floor, rooms]) => (
             <div key={floor} className="mb-4">
@@ -1834,21 +1897,24 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
                 {rooms.map(r => {
                   const isNewAssigned = r.id in assigned;
                   const assignedGuest = isNewAssigned ? UNASSIGNED_ARRIVALS.find(a => a.id === assigned[r.id])?.guest : null;
-                  const isAvail = r.status === "Available" && !isNewAssigned;
-                  const isConflict = conflictRoom === r.id;
-                  const canClick = selGuest && !Object.values(assigned).includes(selGuest ?? "");
+                  const ready = isReady(r) && !isNewAssigned;
+                  const selectedArrival = UNASSIGNED_ARRIVALS.find(arrival => arrival.id === selGuest);
+                  const isRecommended = ready && selectedArrival?.type === r.type;
                   return (
                     <div key={r.id}
-                      onClick={() => canClick && handleRoomClick(r)}
+                      onDragOver={event => { if (ready || isNewAssigned) event.preventDefault(); }}
+                      onDrop={event => { event.preventDefault(); const guestId = event.dataTransfer.getData("text/guest-id"); if (guestId) { setSelGuest(guestId); const currentRoom = roomForGuest(guestId); if (isReady(r) || (assigned[r.id] && currentRoom)) setPendingAssignment({ guestId, roomId: r.id }); else add({ type: "error", title: "Room unavailable", body: `Room ${r.id} must be Available and Clean or Inspected.` }); } }}
+                      onClick={() => handleRoomClick(r)}
                       className="bg-white rounded-xl border overflow-hidden transition-all"
-                      style={{ borderColor: isConflict ? ERROR : isNewAssigned ? SUCCESS : isAvail && selGuest ? PRIMARY : BORDER, borderWidth: isNewAssigned || (isAvail && selGuest) || isConflict ? 2 : 1, cursor: canClick ? "pointer" : "default" }}>
-                      <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: isConflict ? "#FEF2F2" : isNewAssigned ? "#D1FAE5" : isAvail ? "#EFF6FF" : roomStC[r.status]?.bg ?? "#F8FAFC" }}>
-                        <span className="text-base font-black" style={{ color: isNewAssigned ? SUCCESS : isConflict ? ERROR : isAvail ? PRIMARY : roomStC[r.status]?.text ?? TEXT }}>{r.id}</span>
-                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: hkDot[r.hkSt] ?? SUBTLE }} title={r.hkSt} />
+                      style={{ borderColor: isRecommended && selGuest ? PRIMARY : isNewAssigned ? SUCCESS : BORDER, borderWidth: isRecommended && selGuest || isNewAssigned ? 2 : 1, cursor: "pointer" }}>
+                      <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: isNewAssigned ? "#D1FAE5" : ready ? "#EFF6FF" : roomStC[r.status]?.bg ?? "#F8FAFC" }}>
+                        <span className="text-base font-black" style={{ color: isNewAssigned ? SUCCESS : ready ? PRIMARY : roomStC[r.status]?.text ?? TEXT }}>{r.id}</span>
+                        <button aria-label={`View room ${r.id} details`} onClick={event => { event.stopPropagation(); setDetailRoom(r.id); }} className="p-1 rounded-lg hover:bg-white"><Eye size={14} style={{ color: MUTED }} /></button>
                       </div>
                       <div className="px-3 py-2">
-                        <div className="text-xs font-medium" style={{ color: TEXT }}>{r.type}</div>
-                        <div className="text-xs" style={{ color: MUTED }}>{isNewAssigned ? assignedGuest?.split(" ")[0] : r.guest ? r.guest.split(" ")[0] : r.status}</div>
+                        <div className="flex items-center justify-between gap-1"><span className="text-xs font-medium" style={{ color: TEXT }}>{r.type}</span><span className="flex items-center gap-1 text-xs" style={{ color: MUTED }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: hkDot[r.hkSt] ?? SUBTLE }} />{r.hkSt}</span></div>
+                        <div className="text-xs mt-1" style={{ color: MUTED }}>{isNewAssigned ? assignedGuest : r.guest ?? r.status}</div>
+                        {isRecommended && selGuest && <div className="text-xs font-semibold mt-1" style={{ color: PRIMARY }}>Recommended match</div>}
                       </div>
                     </div>
                   );
@@ -1856,19 +1922,77 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
               </div>
             </div>
           ))}
+          {Object.values(grouped).every(rooms => rooms.length === 0) && <EmptyState icon={BedDouble} message="No rooms match the selected floor and type filters." cta="Clear filters" onCta={() => { setFloorFilter("All"); setTypeFilter("All"); }} />}
           <div className="flex items-center gap-4 mt-3 pt-3 border-t flex-wrap" style={{ borderColor: BORDER }}>
-            {[["HK: Inspected", SUCCESS], ["HK: Clean", "#22C55E"], ["HK: In Progress", WARNING], ["HK: Maintenance", ERROR]].map(([l, c]) => (
+            {[["Inspected — assignable", SUCCESS], ["Clean — assignable", "#22C55E"], ["In progress — blocked", WARNING], ["Maintenance — blocked", ERROR]].map(([l, c]) => (
               <div key={l} className="flex items-center gap-1.5 text-xs" style={{ color: MUTED }}><div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c }} />{l}</div>
             ))}
           </div>
         </div>
       </div>
+      {pendingAssignment && pendingGuest && pendingRoom && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onMouseDown={() => setPendingAssignment(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl" onMouseDown={event => event.stopPropagation()}>
+            <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}><div><h3 className="font-bold" style={{ color: TEXT }}>{assigned[pendingRoom.id] ? "Confirm room swap" : roomForGuest(pendingGuest.id) ? "Confirm reassignment" : "Confirm room assignment"}</h3><p className="text-xs mt-0.5" style={{ color: MUTED }}>{pendingGuest.id} · {pendingGuest.guest}</p></div><button aria-label="Close" onClick={() => setPendingAssignment(null)}><X size={20} style={{ color: MUTED }} /></button></div>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: "#F8FAFC" }}><div><p className="text-xs" style={{ color: MUTED }}>Booked type</p><p className="text-sm font-bold" style={{ color: TEXT }}>{pendingGuest.type}</p></div><ChevronRight size={18} style={{ color: SUBTLE }} /><div className="text-right"><p className="text-xs" style={{ color: MUTED }}>Assigned room</p><p className="text-sm font-bold" style={{ color: PRIMARY }}>{pendingRoom.id} · {pendingRoom.type}</p></div></div>
+              {pendingGuest.type !== pendingRoom.type && <div className="p-3 rounded-xl flex gap-2 text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}><AlertTriangle size={16} className="flex-shrink-0" /><span>This changes the booked room type from {pendingGuest.type} to {pendingRoom.type}. Confirm the upgrade or room-type change with the guest and verify the rate.</span></div>}
+              {assigned[pendingRoom.id] && <div className="p-3 rounded-xl text-xs" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>Room {pendingRoom.id} is assigned to {UNASSIGNED_ARRIVALS.find(arrival => arrival.id === assigned[pendingRoom.id])?.guest}. The two room assignments will be swapped.</div>}
+            </div>
+            <div className="px-5 py-4 border-t flex justify-end gap-2" style={{ borderColor: BORDER }}><button onClick={() => setPendingAssignment(null)} className="px-4 py-2 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button><button onClick={() => doAssign(pendingGuest.id, pendingRoom.id)} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Confirm Assignment</button></div>
+          </div>
+        </div>
+      )}
+      {inspectedRoom && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onMouseDown={() => setDetailRoom(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl" onMouseDown={event => event.stopPropagation()}>
+            <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}><div><h3 className="font-bold" style={{ color: TEXT }}>Room {inspectedRoom.id}</h3><p className="text-xs mt-0.5" style={{ color: MUTED }}>Floor {inspectedRoom.floor} · {inspectedRoom.type}</p></div><button aria-label="Close" onClick={() => setDetailRoom(null)}><X size={20} style={{ color: MUTED }} /></button></div>
+            <div className="p-5 space-y-3">{[["Room status", inspectedRoom.status], ["Housekeeping", inspectedRoom.hkSt], ["Current guest", inspectedRoom.guest ?? "None"], ["Assignment", assigned[inspectedRoom.id] ? UNASSIGNED_ARRIVALS.find(arrival => arrival.id === assigned[inspectedRoom.id])?.guest ?? "Assigned" : "None"]].map(([label, value]) => <div key={label} className="flex justify-between gap-4 text-sm"><span style={{ color: MUTED }}>{label}</span><span className="font-semibold text-right" style={{ color: TEXT }}>{value}</span></div>)}</div>
+            <div className="px-5 py-4 border-t flex justify-end" style={{ borderColor: BORDER }}><button onClick={() => setDetailRoom(null)} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Done</button></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export function GuestProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => void }) {
+export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; guestId?: string }) {
   const [tab, setTab] = useState("Profile");
+  const GUESTS: Record<string, { name: string; phone: string; email: string; nationality: string; stays: number; value: number; tier: string }> = {
+    "G-001": { name: "Adaeze Okonkwo", phone: "+234 801 111 2222", email: "a.okonkwo@corp.ng", nationality: "Nigerian", stays: 8, value: 520000, tier: "Gold" },
+    "G-002": { name: "Dr. Chukwuemeka Bello", phone: "+234 803 555 6666", email: "c.bello@example.com", nationality: "Nigerian", stays: 15, value: 2400000, tier: "Platinum" },
+    "G-003": { name: "Emmanuel Adeyemi", phone: "+234 802 333 4444", email: "e.adeyemi@email.com", nationality: "Nigerian", stays: 3, value: 185000, tier: "" },
+    "G-004": { name: "Ibrahim Lawal", phone: "+234 805 999 0000", email: "i.lawal@corp.ng", nationality: "Nigerian", stays: 5, value: 340000, tier: "" },
+    "G-005": { name: "Fatima Al-Hassan", phone: "+234 804 777 8888", email: "f.alhassan@mail.com", nationality: "Nigerian", stays: 1, value: 55000, tier: "" },
+    "G-006": { name: "Tunde Bakare", phone: "+234 809 123 4567", email: "t.bakare@corp.ng", nationality: "Nigerian", stays: 2, value: 92000, tier: "" },
+    "G-007": { name: "Ngozi Adeyemi", phone: "+234 807 654 3210", email: "n.adeyemi@email.com", nationality: "Nigerian", stays: 4, value: 210000, tier: "" },
+    "G-008": { name: "Chidi Eze", phone: "+234 806 222 3333", email: "c.eze@example.com", nationality: "Nigerian", stays: 6, value: 480000, tier: "Gold" },
+    "G-009": { name: "Amara Nwachukwu", phone: "+234 811 444 5555", email: "a.nwachukwu@corp.ng", nationality: "Nigerian", stays: 0, value: 0, tier: "" },
+  };
+  const profileId = GUESTS[guestId] ? guestId : "G-002";
+  const [guest, setGuest] = useState({ ...GUESTS[profileId], address: "", company: "" });
+  const [showEdit, setShowEdit] = useState(false);
+  const [editForm, setEditForm] = useState(guest);
+  const saveProfile = () => {
+    const name = editForm.name.trim();
+    const phone = editForm.phone.trim();
+    const email = editForm.email.trim();
+    if (!name || (!phone && !email)) {
+      add({ type: "error", title: "Profile details incomplete", body: "Enter the guest’s name and at least a phone number or email address." });
+      return;
+    }
+    setGuest({
+      ...editForm,
+      name,
+      phone: phone || "Not provided",
+      email: email || "Not provided",
+      nationality: editForm.nationality.trim() || "Not provided",
+      address: editForm.address.trim(),
+      company: editForm.company.trim(),
+    });
+    setShowEdit(false);
+    add({ type: "success", title: "Guest profile updated", body: `${name} · ${profileId}` });
+  };
   const TABS = ["Profile", "Stay History", "Preferences", "Folio History", "Requests & Complaints", "Notes"];
   const STAYS = [
     { id: "BK-2849", dates: "24–27 Jun 2025", room: "Suite 501", nights: 3, total: 273375, status: "Confirmed" },
@@ -1888,39 +2012,38 @@ export function GuestProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
   ];
   return (
     <div>
-      <div className="flex items-start gap-4 mb-5 p-5 bg-white rounded-xl border" style={{ borderColor: BORDER }}>
-        <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}>CB</div>
+      <button onClick={() => nav?.("guest-profiles", "Guest Profiles")} className="inline-flex items-center gap-1.5 mb-3 text-sm font-semibold hover:opacity-75" style={{ color: PRIMARY }}><ChevronLeft size={17} />Back to Guest Profiles</button>
+      <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-5 p-5 bg-white rounded-xl border" style={{ borderColor: BORDER }}>
+        <div className="w-16 h-16 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}><User size={28} /></div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="text-lg font-bold" style={{ color: TEXT }}>Dr. Chukwuemeka Bello</span>
-            <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: "#F5F3FF", color: "#7C3AED" }}>Platinum</span>
-            <Star size={14} fill={ORANGE} style={{ color: ORANGE }} />
-            <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#CCFBF1", color: "#0F766E" }}>VIP Guest</span>
+            <span className="text-lg font-bold" style={{ color: TEXT }}>{guest.name}</span>
+            {guest.tier && <><span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: "#F5F3FF", color: "#7C3AED" }}>{guest.tier}</span><Star size={14} fill={ORANGE} style={{ color: ORANGE }} /><span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#CCFBF1", color: "#0F766E" }}>VIP Guest</span></>}
           </div>
           <div className="flex items-center gap-4 flex-wrap text-xs" style={{ color: MUTED }}>
-            <span style={{ fontFamily: mono }}>G-002</span>
-            <span>15 stays</span>
-            <span>₦2,400,000 lifetime value</span>
+            <span style={{ fontFamily: mono }}>{profileId}</span>
+            <span>{guest.stays} stays</span>
+            <span>₦{guest.value.toLocaleString()} lifetime value</span>
             <span>Member since March 2020</span>
           </div>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
-          <BtnO label="Create Reservation" icon={Plus} />
-          <BtnP label="Edit Profile" icon={Edit3} />
+        <div className="flex gap-2 flex-shrink-0 flex-wrap">
+          <BtnO label="Create Reservation" icon={Plus} onClick={() => nav?.("new-reservation", "New Reservation", guest.name)} />
+          <BtnP label="Edit Profile" icon={Edit3} onClick={() => { setEditForm({ ...guest }); setShowEdit(true); }} />
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         <div className="space-y-4">
           <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
             <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick Stats</div>
-            {[["Total Stays", "15"], ["Nights Stayed", "38"], ["Avg Stay", "2.5 nights"], ["Lifetime Value", "₦2.4M"], ["Last Stay", "24 Jun 2025"]].map(([k,v]) => (
+            {[["Total Stays", String(guest.stays)], ["Lifetime Value", `₦${guest.value.toLocaleString()}`], ["Profile ID", profileId], ["Nationality", guest.nationality]].map(([k,v]) => (
               <div key={k} className="flex justify-between py-1.5 border-b last:border-0" style={{ borderColor: BORDER }}><span className="text-xs" style={{ color: MUTED }}>{k}</span><span className="text-xs font-semibold" style={{ color: TEXT }}>{v}</span></div>
             ))}
           </div>
           <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
             <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Flags</div>
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between"><span className="text-xs" style={{ color: MUTED }}>VIP</span><Badge label="Platinum" colors={{ bg: "#F5F3FF", text: "#7C3AED" }} /></div>
+              <div className="flex items-center justify-between"><span className="text-xs" style={{ color: MUTED }}>VIP</span>{guest.tier ? <Badge label={guest.tier} colors={{ bg: "#F5F3FF", text: "#7C3AED" }} /> : <span className="text-xs font-semibold" style={{ color: MUTED }}>Standard</span>}</div>
               <div className="flex items-center justify-between"><span className="text-xs" style={{ color: MUTED }}>Blacklist</span><span className="text-xs font-semibold" style={{ color: SUCCESS }}>Clear</span></div>
               <div className="flex items-center justify-between"><span className="text-xs" style={{ color: MUTED }}>Allergy</span><span className="text-xs font-semibold" style={{ color: ORANGE }}>No shellfish</span></div>
               <div className="flex items-center justify-between"><span className="text-xs" style={{ color: MUTED }}>Marketing</span><span className="text-xs font-semibold" style={{ color: SUCCESS }}>Opted in</span></div>
@@ -1935,7 +2058,7 @@ export function GuestProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
             {tab === "Profile" && (
               <div className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
-                  {[["Full Name", "Dr. Chukwuemeka Bello"], ["Phone", "+234 803 555 6666"], ["Email", "c.bello@example.com"], ["Nationality", "Nigerian"], ["Address", "12 Murtala Mohammed Way, Abuja"], ["Company", "Bello & Associates Ltd."]].map(([k,v]) => (
+                  {[["Full Name", guest.name], ["Phone", guest.phone], ["Email", guest.email], ["Nationality", guest.nationality], ["Address", guest.address || "Not recorded"], ["Company", guest.company || "Not recorded"]].map(([k,v]) => (
                     <div key={k} className="p-3 rounded-xl" style={{ backgroundColor: "#F9FAFB" }}><div className="text-xs" style={{ color: MUTED }}>{k}</div><div className="text-sm font-medium mt-0.5" style={{ color: TEXT }}>{v}</div></div>
                   ))}
                 </div>
@@ -2070,6 +2193,40 @@ export function GuestProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
           </div>
         </div>
       </div>
+      {showEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onMouseDown={() => setShowEdit(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl" onMouseDown={event => event.stopPropagation()}>
+            <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
+              <div><h3 className="font-bold" style={{ color: TEXT }}>Edit Guest Profile</h3><p className="text-xs mt-0.5" style={{ color: MUTED }}>{profileId} · Contact and loyalty details</p></div>
+              <button aria-label="Close edit profile" onClick={() => setShowEdit(false)}><X size={20} style={{ color: MUTED }} /></button>
+            </div>
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {([
+                ["Full name *", "name", "Guest’s full name"],
+                ["Phone", "phone", "+234…"],
+                ["Email", "email", "guest@example.com"],
+                ["Nationality", "nationality", "Nationality"],
+                ["Address", "address", "Residential address"],
+                ["Company", "company", "Company or organisation"],
+              ] as const).map(([label, key, placeholder]) => (
+                <label key={key} className="text-xs font-semibold" style={{ color: MUTED }}>{label}
+                  <input value={editForm[key]} onChange={event => setEditForm(previous => ({ ...previous, [key]: event.target.value }))} placeholder={placeholder} className="w-full mt-1.5 px-3 py-2.5 rounded-xl border text-sm outline-none font-normal" style={{ borderColor: BORDER, color: TEXT }} />
+                </label>
+              ))}
+              <label className="text-xs font-semibold sm:col-span-2" style={{ color: MUTED }}>VIP tier
+                <select value={editForm.tier} onChange={event => setEditForm(previous => ({ ...previous, tier: event.target.value }))} className="w-full mt-1.5 px-3 py-2.5 rounded-xl border text-sm outline-none bg-white font-normal" style={{ borderColor: BORDER, color: TEXT }}>
+                  <option value="">Standard guest</option><option value="Gold">Gold</option><option value="Platinum">Platinum</option>
+                </select>
+              </label>
+              <p className="text-xs sm:col-span-2" style={{ color: MUTED }}>A phone number or email address is required so staff can identify and contact the guest.</p>
+            </div>
+            <div className="px-5 py-4 border-t flex justify-end gap-2" style={{ borderColor: BORDER }}>
+              <button onClick={() => setShowEdit(false)} className="px-4 py-2 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button>
+              <button onClick={saveProfile} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

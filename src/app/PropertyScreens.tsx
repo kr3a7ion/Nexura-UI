@@ -38,11 +38,22 @@ import {
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
 
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
-export function WalkInReg({ add }: { add: (t: Omit<Toast, "id">) => void }) {
+export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [step, setStep] = useState(1);
   const [selRoom, setSelRoom] = useState<{ id: string; type: string; rate: number } | null>(null);
   const [rateOverride, setRateOverride] = useState("");
   const [showOverride, setShowOverride] = useState(false);
+  const [overrideReason, setOverrideReason] = useState("");
+  const [managerPin, setManagerPin] = useState("");
+  const [overrideApproved, setOverrideApproved] = useState(false);
+  const [bookingId, setBookingId] = useState("");
+  const initialForm = {
+    firstName: "", lastName: "", phone: "", email: "", nationality: "Nigerian", address: "",
+    idType: "International Passport", idNumber: "", checkin: "2026-08-04", checkout: "2026-08-05",
+    adults: "1", children: "0", deposit: "", paymentMethod: "Cash", paymentRef: "", specialRequests: "",
+  };
+  const [form, setForm] = useState(initialForm);
+  const updateForm = (key: keyof typeof initialForm, value: string) => setForm(previous => ({ ...previous, [key]: value }));
   const AVAIL_ROOMS = [
     { id: "102", type: "Standard", floor: 1, rate: 35000, hkSt: "Inspected" },
     { id: "104", type: "Standard", floor: 1, rate: 35000, hkSt: "Clean" },
@@ -50,12 +61,34 @@ export function WalkInReg({ add }: { add: (t: Omit<Toast, "id">) => void }) {
     { id: "301", type: "Suite", floor: 3, rate: 91125, hkSt: "Inspected" },
     { id: "501", type: "Suite", floor: 5, rate: 91125, hkSt: "Inspected" },
   ];
-  const effectiveRate = rateOverride ? parseInt(rateOverride.replace(/,/g, "")) || selRoom?.rate : selRoom?.rate;
-  const nights = 1;
-  const subtotal = (effectiveRate ?? 35000) * nights;
+  const requestedRate = parseInt(rateOverride.replace(/,/g, ""), 10) || 0;
+  const effectiveRate = showOverride && overrideApproved && requestedRate > 0 ? requestedRate : selRoom?.rate;
+  const nights = form.checkin && form.checkout ? Math.max(0, Math.round((new Date(form.checkout).getTime() - new Date(form.checkin).getTime()) / 86400000)) : 0;
+  const subtotal = (effectiveRate ?? 0) * nights;
   const vat = Math.round(subtotal * 0.075);
   const total = subtotal + vat;
-  const deposit = subtotal;
+  const deposit = form.deposit ? parseInt(form.deposit.replace(/,/g, ""), 10) || 0 : subtotal;
+  const guestName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
+  const approveOverride = () => {
+    if (!requestedRate || !overrideReason.trim()) { add({ type: "error", title: "Override details required", body: "Enter a valid nightly rate and a reason." }); return; }
+    if (managerPin !== "1234") { add({ type: "error", title: "Invalid manager PIN" }); return; }
+    setOverrideApproved(true);
+    add({ type: "success", title: "Rate override approved", body: `₦${requestedRate.toLocaleString()} per night` });
+  };
+  const registerWalkIn = () => {
+    if (!selRoom) { add({ type: "error", title: "Select a room first" }); return; }
+    if (!form.firstName.trim() || !form.lastName.trim() || (!form.phone.trim() && !form.email.trim())) { add({ type: "error", title: "Guest details incomplete", body: "Enter first and last name plus a phone number or email." }); return; }
+    if (!form.idNumber.trim()) { add({ type: "error", title: "Identification required", body: "Record the guest’s ID number before check-in." }); return; }
+    if (nights < 1) { add({ type: "error", title: "Invalid stay dates", body: "Check-out must be after check-in." }); return; }
+    if ((parseInt(form.adults, 10) || 0) < 1 || (parseInt(form.children, 10) || 0) < 0) { add({ type: "error", title: "Invalid guest count", body: "At least one adult is required." }); return; }
+    if (deposit < 0 || deposit > total) { add({ type: "error", title: "Invalid deposit", body: "Deposit cannot exceed the stay total." }); return; }
+    if (form.paymentMethod !== "Cash" && deposit > 0 && !form.paymentRef.trim()) { add({ type: "error", title: "Payment reference required", body: `Enter the ${form.paymentMethod} transaction reference.` }); return; }
+    if (showOverride && requestedRate > 0 && !overrideApproved) { add({ type: "error", title: "Rate override not approved", body: "Approve the override with a manager PIN or hide the override." }); return; }
+    const id = `BK-${2860 + Math.floor(Math.random() * 90)}`;
+    setBookingId(id);
+    setStep(2);
+    add({ type: "success", title: "Walk-in registered and checked in", body: `${id} · ${guestName} · Room ${selRoom.id}` });
+  };
   return (
     <div>
       <PageHeader title="Walk-In Registration" sub="Register a new guest and check in simultaneously" />
@@ -66,7 +99,7 @@ export function WalkInReg({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Available Rooms</h3>
               <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 mb-3">
                 {AVAIL_ROOMS.map(r => (
-                  <button key={r.id} onClick={() => setSelRoom({ id: r.id, type: r.type, rate: r.rate })}
+                  <button key={r.id} onClick={() => { setSelRoom({ id: r.id, type: r.type, rate: r.rate }); setOverrideApproved(false); }}
                     className="text-left rounded-xl border overflow-hidden transition-all hover:shadow-md"
                     style={{ borderColor: selRoom?.id === r.id ? PRIMARY : BORDER, borderWidth: selRoom?.id === r.id ? 2 : 1 }}>
                     <div className="px-3 py-2" style={{ backgroundColor: selRoom?.id === r.id ? "#EFF6FF" : "#F9FAFB" }}>
@@ -89,23 +122,27 @@ export function WalkInReg({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
               <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Guest Information</h3>
               <div className="grid grid-cols-2 gap-3">
-                <Inp label="First Name" placeholder="Chukwuemeka" />
-                <Inp label="Last Name" placeholder="Okafor" />
-                <Inp label="Phone" placeholder="+234 801 234 5678" />
-                <Inp label="Email" placeholder="guest@email.com" />
-                <Sel label="Nationality" options={["Nigerian", "Ghanaian", "Kenyan", "South African", "British", "American", "Other"]} />
-                <Inp label="Address" placeholder="12 Murtala Mohammed Way, Abuja" />
-                <Sel label="ID Type" options={["International Passport", "National ID", "Driver's License", "Voter's Card"]} />
-                <Inp label="ID Number" placeholder="A12345678" />
+                <Inp label="First Name *" value={form.firstName} onChange={event => updateForm("firstName", event.target.value)} placeholder="Chukwuemeka" />
+                <Inp label="Last Name *" value={form.lastName} onChange={event => updateForm("lastName", event.target.value)} placeholder="Okafor" />
+                <Inp label="Phone" value={form.phone} onChange={event => updateForm("phone", event.target.value)} placeholder="+234 801 234 5678" />
+                <Inp label="Email" value={form.email} onChange={event => updateForm("email", event.target.value)} placeholder="guest@email.com" />
+                <Sel label="Nationality" value={form.nationality} onChange={event => updateForm("nationality", event.target.value)} options={["Nigerian", "Ghanaian", "Kenyan", "South African", "British", "American", "Other"]} />
+                <Inp label="Address" value={form.address} onChange={event => updateForm("address", event.target.value)} placeholder="12 Murtala Mohammed Way, Abuja" />
+                <Sel label="ID Type *" value={form.idType} onChange={event => updateForm("idType", event.target.value)} options={["International Passport", "National ID", "Driver's License", "Voter's Card"]} />
+                <Inp label="ID Number *" value={form.idNumber} onChange={event => updateForm("idNumber", event.target.value)} placeholder="A12345678" />
               </div>
             </div>
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
               <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Stay & Payment</h3>
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <Inp label="Check-in Date" type="date" defaultValue="2025-06-24" />
-                <Inp label="Check-out Date" type="date" defaultValue="2025-06-25" />
-                <Inp label="Deposit (₦)" defaultValue={deposit.toLocaleString()} />
-                <Sel label="Payment Method" options={["Cash", "POS / Card", "Bank Transfer"]} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <Inp label="Check-in Date *" type="date" value={form.checkin} onChange={event => updateForm("checkin", event.target.value)} />
+                <Inp label="Check-out Date *" type="date" value={form.checkout} onChange={event => updateForm("checkout", event.target.value)} />
+                <Inp label="Adults" type="number" value={form.adults} onChange={event => updateForm("adults", event.target.value)} />
+                <Inp label="Children" type="number" value={form.children} onChange={event => updateForm("children", event.target.value)} />
+                <Inp label="Deposit (₦)" value={form.deposit} onChange={event => updateForm("deposit", event.target.value)} placeholder={subtotal.toLocaleString()} />
+                <Sel label="Payment Method" value={form.paymentMethod} onChange={event => updateForm("paymentMethod", event.target.value)} options={["Cash", "POS / Card", "Bank Transfer"]} />
+                {form.paymentMethod !== "Cash" && <div className="sm:col-span-2"><Inp label="Payment Reference *" value={form.paymentRef} onChange={event => updateForm("paymentRef", event.target.value)} placeholder="Transaction or terminal reference" /></div>}
+                <div className="sm:col-span-2"><Inp label="Special Requests" value={form.specialRequests} onChange={event => updateForm("specialRequests", event.target.value)} placeholder="Accessibility, dietary, transfer, or room preferences…" /></div>
               </div>
               <div className="border-t pt-3" style={{ borderColor: BORDER }}>
                 <button onClick={() => setShowOverride(!showOverride)} className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: showOverride ? ORANGE : MUTED }}>
@@ -115,21 +152,23 @@ export function WalkInReg({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                   <div className="mt-3 p-3 rounded-lg border" style={{ borderColor: ORANGE, backgroundColor: "#FFF7ED" }}>
                     <div className="text-xs font-semibold mb-2" style={{ color: ORANGE }}>Override requires manager PIN authorisation</div>
                     <div className="flex items-center gap-3">
-                      <div className="flex-1"><Inp label="Override Rate (₦/night)" placeholder={String(selRoom?.rate ?? 35000)} /></div>
-                      <div className="flex-1"><Inp label="Manager PIN" type="password" placeholder="••••" /></div>
+                      <div className="flex-1"><Inp label="Override Rate (₦/night)" value={rateOverride} onChange={event => { setRateOverride(event.target.value); setOverrideApproved(false); }} placeholder={String(selRoom?.rate ?? 35000)} /></div>
+                      <div className="flex-1"><Inp label="Manager PIN" type="password" value={managerPin} onChange={event => { setManagerPin(event.target.value); setOverrideApproved(false); }} placeholder="••••" /></div>
                     </div>
+                    <div className="mt-3"><Inp label="Override Reason *" value={overrideReason} onChange={event => { setOverrideReason(event.target.value); setOverrideApproved(false); }} placeholder="Corporate agreement, service recovery, approved discount…" /></div>
+                    <button onClick={approveOverride} className="mt-3 px-3 py-2 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: overrideApproved ? SUCCESS : ORANGE }}>{overrideApproved ? "Override Approved" : "Approve Override"}</button>
                   </div>
                 )}
               </div>
             </div>
-            <button onClick={() => { if (!selRoom) { add({ type: "error", title: "Select a room first" }); return; } setStep(2); add({ type: "success", title: "Walk-in registered", body: `BK-2860 created · Room ${selRoom.id}` }); }} className="w-full py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all" style={{ backgroundColor: PRIMARY }}>
+            <button onClick={registerWalkIn} className="w-full py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all" style={{ backgroundColor: PRIMARY }}>
               <CheckCircle2 size={16} />Register & Check In
             </button>
           </div>
           <div className="bg-white rounded-xl border p-5 h-fit" style={{ borderColor: BORDER }}>
             <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Booking Summary</h3>
             <div className="space-y-2.5 text-sm">
-              {[["Guest", "—"], ["Room", selRoom ? `${selRoom.id} · ${selRoom.type}` : "Not selected"], ["Check-in", "24 Jun 2025"], ["Check-out", "25 Jun 2025"], ["Nights", String(nights)]].map(([k,v]) => (
+              {[["Guest", guestName || "Not entered"], ["Room", selRoom ? `${selRoom.id} · ${selRoom.type}` : "Not selected"], ["Check-in", form.checkin || "Not selected"], ["Check-out", form.checkout || "Not selected"], ["Guests", `${form.adults || "0"} adult${form.adults === "1" ? "" : "s"} · ${form.children || "0"} children`], ["Nights", nights > 0 ? String(nights) : "Invalid dates"]].map(([k,v]) => (
                 <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span className="font-medium" style={{ color: TEXT }}>{v}</span></div>
               ))}
               <div className="border-t my-2" style={{ borderColor: BORDER }} />
@@ -141,6 +180,7 @@ export function WalkInReg({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 <span style={{ color: PRIMARY, fontFamily: mono }}>₦{total.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-xs"><span style={{ color: MUTED }}>Deposit</span><span className="font-semibold" style={{ color: SUCCESS, fontFamily: mono }}>₦{deposit.toLocaleString()}</span></div>
+              <div className="flex justify-between text-xs"><span style={{ color: MUTED }}>Payment</span><span className="font-semibold" style={{ color: TEXT }}>{form.paymentMethod}</span></div>
             </div>
             {selRoom && (
               <div className="mt-4 pt-4 border-t" style={{ borderColor: BORDER }}>
@@ -157,13 +197,13 @@ export function WalkInReg({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <div className="bg-white rounded-xl border p-12 text-center max-w-lg mx-auto" style={{ borderColor: BORDER }}>
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "#D1FAE5" }}><CheckCircle2 size={32} style={{ color: SUCCESS }} /></div>
           <h2 className="text-lg font-bold mb-1" style={{ color: TEXT }}>Guest Registered & Checked In</h2>
-          <p className="text-sm mb-1" style={{ color: MUTED }}>Chukwuemeka Okafor · Room {selRoom?.id ?? "102"}</p>
-          <p className="text-sm mb-1" style={{ color: MUTED, fontFamily: mono }}>Booking: BK-2860 created</p>
-          <p className="text-sm mb-6" style={{ color: TEAL }}>Deposit: ₦{deposit.toLocaleString()} Cash received. Folio opened.</p>
+          <p className="text-sm mb-1" style={{ color: MUTED }}>{guestName} · Room {selRoom?.id ?? "—"} · {nights} night{nights === 1 ? "" : "s"}</p>
+          <p className="text-sm mb-1" style={{ color: MUTED, fontFamily: mono }}>Booking: {bookingId} created</p>
+          <p className="text-sm mb-6" style={{ color: TEAL }}>Deposit: ₦{deposit.toLocaleString()} via {form.paymentMethod}. Folio opened.</p>
           <div className="flex justify-center gap-3 flex-wrap">
-            <BtnO label="Print Receipt" icon={FileText} />
-            <BtnO label="Activate Room Access" icon={Lock} />
-            <BtnP label="New Walk-In" icon={Plus} onClick={() => { setStep(1); setSelRoom(null); setRateOverride(""); setShowOverride(false); }} />
+            <BtnO label="Print Receipt" icon={FileText} onClick={() => add({ type: "success", title: "Deposit receipt sent to printer", body: `${bookingId} · ${guestName}` })} />
+            <BtnO label="Activate Room Access" icon={Lock} onClick={() => nav?.("room-access", "Room Access Management", selRoom?.id)} />
+            <BtnP label="New Walk-In" icon={Plus} onClick={() => { setStep(1); setSelRoom(null); setRateOverride(""); setShowOverride(false); setOverrideReason(""); setManagerPin(""); setOverrideApproved(false); setBookingId(""); setForm(initialForm); }} />
           </div>
         </div>
       )}
