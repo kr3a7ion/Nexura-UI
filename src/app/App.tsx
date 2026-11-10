@@ -21,7 +21,7 @@ import {
   mono, sans, display, NAV_BG, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE, BG,
   NOTIFS, BRANCHES,
 } from "./constants";
-import { LoginScreen, ForgotPasswordScreen, ForceChangePasswordScreen } from "./AuthScreens";
+import { LoginScreen, ForceChangePasswordScreen } from "./AuthScreens";
 import { MFAChallengeScreen, MFAEnrolmentScreen, BranchSelectionScreen, GuestAccessScreen } from "./AuthFlowScreens";
 import AdminConsole from "./PlatformAdminConsole";
 import OrgPortal from "./OrgPortalScreens";
@@ -248,6 +248,14 @@ export default function App() {
   const [platformMfaEnrolled, setPlatformMfaEnrolled] = useState(false);
   const [pendingDestination, setPendingDestination] = useState<"hms" | "admin-console" | "org-portal">("hms");
   const [pendingHasMultipleBranches, setPendingHasMultipleBranches] = useState(false);
+  // Owners and platform admins sign in at #/owner or #/platform; everyone else uses the hotel terminal login.
+  const isCloudHash = () => /^#\/(owner|platform)/.test(window.location.hash);
+  const [cloudLogin, setCloudLogin] = useState(isCloudHash);
+  useEffect(() => {
+    const onHash = () => setCloudLogin(isCloudHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
   const handleLogin = (role: string, dest: "hms" | "admin-console" | "org-portal", name: string) => {
     setLoggedRole(role as Role);
@@ -265,7 +273,7 @@ export default function App() {
 
   const handleLogout = () => setAuthState("login");
 
-  if (authState === "login") return <LoginScreen onLogin={handleLogin} onOpenFieldApp={() => setAuthState("field-app")} />;
+  if (authState === "login") return <LoginScreen key={cloudLogin ? "cloud" : "staff"} kind={cloudLogin ? "cloud" : "staff"} onLogin={a => handleLogin(a.role, a.destination, a.name)} onOpenFieldApp={cloudLogin ? undefined : () => setAuthState("field-app")} />;
   if (authState === "field-app") return <FieldApp onExit={() => setAuthState("login")} />;
   if (authState === "mfa-enrolment") return <MFAEnrolmentScreen onBack={() => setAuthState("login")} onComplete={() => { setPlatformMfaEnrolled(true); setAuthState("mfa"); }} />;
   if (authState === "mfa") return <MFAChallengeScreen onBack={() => setAuthState("login")} onComplete={() => setAuthState(pendingHasMultipleBranches ? "branch-select" : pendingDestination)} />;
