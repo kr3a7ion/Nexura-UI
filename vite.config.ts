@@ -22,24 +22,27 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
+        onlyExplicitManualChunks: true,
         manualChunks(id) {
           const moduleId = id.replaceAll('\\', '/')
 
+          if (moduleId.includes('commonjsHelpers.js')) return 'vendor-react'
+
           if (moduleId.includes('/node_modules/')) {
-            if (moduleId.includes('/recharts/') || moduleId.includes('/d3-')) return 'vendor-charts'
+            if (moduleId.includes('/react-dom/') || moduleId.includes('/scheduler/')) return 'vendor-react-dom'
+            if (moduleId.includes('/react/')) return 'vendor-react'
+            if (moduleId.includes('/recharts/') || moduleId.includes('/react-smooth/')) return 'vendor-recharts'
+            if (moduleId.includes('/d3-')) return 'vendor-d3'
             if (moduleId.includes('/@phosphor-icons/') || moduleId.includes('/lucide-react/')) return 'vendor-icons'
-            if (
-              moduleId.includes('/react/') ||
-              moduleId.includes('/react-dom/') ||
-              moduleId.includes('/scheduler/')
-            ) {
-              return 'vendor-react'
-            }
-            return 'vendor'
           }
 
           const screenModule = moduleId.match(/\/src\/app\/([^/]+Screens|UIKit|AdminScreens)\.tsx$/)
           if (screenModule) return `screen-${screenModule[1].toLowerCase()}`
+
+          const standaloneScreen = moduleId.match(
+            /\/src\/app\/(GuestPortal|FieldApp|PrintTemplates|PlatformAdminConsole|OrgPortalExtensions|PlatformAdminExtensions)\.tsx$/,
+          )
+          if (standaloneScreen) return `screen-${standaloneScreen[1].toLowerCase()}`
         },
       },
     },

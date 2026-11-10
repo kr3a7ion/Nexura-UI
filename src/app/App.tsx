@@ -27,6 +27,7 @@ import OrgPortal from "./OrgPortalScreens";
 import { PrintTemplates } from "./PrintTemplates";
 import { FieldApp } from "./FieldApp";
 import { GuestPortal } from "./GuestPortal";
+import { BrandLockup } from "./brand/Brand";
 
 type AuthState = "login" | "field-app" | "mfa" | "mfa-enrolment" | "branch-select" | "guest-access" | "hms" | "admin-console" | "org-portal" | "force-change-password";
 
@@ -234,18 +235,20 @@ export default function App() {
   const [loggedRole, setLoggedRole] = useState<Role>("MGT");
   const [staffName, setStaffName]   = useState("Adaeze Okonkwo");
   const [firstLoginDone, setFirstLoginDone] = useState(false);
+  const [platformMfaEnrolled, setPlatformMfaEnrolled] = useState(false);
   const [pendingDestination, setPendingDestination] = useState<"hms" | "admin-console" | "org-portal">("hms");
+  const [pendingHasMultipleBranches, setPendingHasMultipleBranches] = useState(false);
 
   const handleLogin = (role: string, dest: "hms" | "admin-console" | "org-portal", name: string) => {
     setLoggedRole(role as Role);
     setStaffName(name);
     setPendingDestination(dest);
-    if (role === "PLT" && !firstLoginDone) { setAuthState("mfa-enrolment"); return; }
-    setAuthState("mfa");
-    return;
+    const ownerFlow = role === "PLT" || role === "ORG";
+    setPendingHasMultipleBranches(ownerFlow);
+    if (role === "PLT" && !platformMfaEnrolled) { setAuthState("mfa-enrolment"); return; }
+    if (ownerFlow) { setAuthState("mfa"); return; }
     if (dest === "admin-console") { setAuthState("admin-console"); return; }
     if (dest === "org-portal") { setAuthState("org-portal"); return; }
-    // FD first login → force password change (demonstrates that flow)
     if (role === "FD" && !firstLoginDone) { setFirstLoginDone(true); setAuthState("force-change-password"); return; }
     setAuthState("hms");
   };
@@ -254,8 +257,8 @@ export default function App() {
 
   if (authState === "login") return <div><LoginScreen onLogin={handleLogin} /><button onClick={() => setAuthState("field-app")} className="fixed z-50 bottom-5 left-1/2 -translate-x-1/2 min-h-14 px-5 rounded-xl border bg-white text-sm font-semibold flex items-center gap-2" style={{ borderColor: BORDER, color: TEXT }}><Phone size={18} />Field App (Staff)</button></div>;
   if (authState === "field-app") return <FieldApp onExit={() => setAuthState("login")} />;
-  if (authState === "mfa-enrolment") return <MFAEnrolmentScreen onBack={() => setAuthState("login")} onComplete={() => { setFirstLoginDone(true); setAuthState("mfa"); }} />;
-  if (authState === "mfa") return <MFAChallengeScreen onBack={() => setAuthState("login")} onComplete={() => setAuthState("branch-select")} />;
+  if (authState === "mfa-enrolment") return <MFAEnrolmentScreen onBack={() => setAuthState("login")} onComplete={() => { setPlatformMfaEnrolled(true); setAuthState("mfa"); }} />;
+  if (authState === "mfa") return <MFAChallengeScreen onBack={() => setAuthState("login")} onComplete={() => setAuthState(pendingHasMultipleBranches ? "branch-select" : pendingDestination)} />;
   if (authState === "branch-select") return <BranchSelectionScreen onBack={() => setAuthState("mfa")} onSelect={() => setAuthState(pendingDestination)} />;
   if (authState === "guest-access") return <GuestPortal qrLanding={window.location.hash.includes("/qr")} onExit={() => { window.location.hash = ""; setAuthState("login"); }} />;
   if (authState === "admin-console") return <AdminConsole onLogout={handleLogout} />;
@@ -404,19 +407,7 @@ function HMSApp({ initialRole, staffName, onLogout }: { initialRole: Role; staff
 
         {/* Brand area */}
         <div className="flex items-center gap-3 px-4 flex-shrink-0" style={{ height: 64, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, #1BA39C 0%, #0D7A74 100%)", boxShadow: "0 4px 12px rgba(27,163,156,0.4)" }}>
-            {/* Nexura N logomark */}
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M5 19V5l14 14V5" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-white leading-none truncate tracking-wide" style={{ fontFamily: display, letterSpacing: "0.02em" }}>Nexura</div>
-              <div className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.4)" }}>Hotel Management</div>
-            </div>
-          )}
+          <div className="min-w-0 flex-1 overflow-hidden"><BrandLockup size={32} tone="dark" /></div>
           {!collapsed && (
             <button onClick={() => setCollapsed(true)} className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 transition-colors" style={{ color: "rgba(255,255,255,0.35)" }}
               onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)") }
