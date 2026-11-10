@@ -12,6 +12,7 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
+import { OrgBranchDirectory, OrgUsers } from "./OrgPortalExtensions";
 
 const PRIMARY = "#18181B";
 const TEAL = "#0EA5E9";
@@ -78,7 +79,7 @@ function Stat({ label, value, sub, delta, deltaPositive, color }: { label: strin
 }
 
 export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<"overview" | "comparison" | "reports" | "sync" | "settings">("overview");
+  const [tab, setTab] = useState<"overview" | "comparison" | "reports" | "sync" | "settings" | "directory" | "org-users">("overview");
   const [userMenu, setUserMenu] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const totalRev = BRANCHES.reduce((s, b) => s + b.rev, 0);
@@ -93,6 +94,8 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
     { id: "reports", label: "Reports", icon: TrendingUp },
     { id: "sync", label: "Sync Status", icon: RefreshCw },
     { id: "settings", label: "Settings", icon: Settings },
+    { id: "directory", label: "Branch Directory", icon: Building2 },
+    { id: "org-users", label: "Org Users", icon: Users },
   ] as const;
 
   return (
@@ -377,6 +380,8 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
             </div>
           </div>
         )}
+        {tab === "directory" && <OrgBranchDirectory />}
+        {tab === "org-users" && <OrgUsers />}
       </main>
 
       {/* Toast */}

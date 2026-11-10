@@ -21,10 +21,14 @@ import {
   NOTIFS, BRANCHES,
 } from "./constants";
 import { LoginScreen, ForgotPasswordScreen, ForceChangePasswordScreen } from "./AuthScreens";
+import { MFAChallengeScreen, MFAEnrolmentScreen, BranchSelectionScreen, GuestAccessScreen } from "./AuthFlowScreens";
 import AdminConsole from "./PlatformAdminConsole";
 import OrgPortal from "./OrgPortalScreens";
+import { PrintTemplates } from "./PrintTemplates";
+import { FieldApp } from "./FieldApp";
+import { GuestPortal } from "./GuestPortal";
 
-type AuthState = "login" | "hms" | "admin-console" | "org-portal" | "force-change-password";
+type AuthState = "login" | "field-app" | "mfa" | "mfa-enrolment" | "branch-select" | "guest-access" | "hms" | "admin-console" | "org-portal" | "force-change-password";
 
 // ─── Screen components & primitives ──────────────────────────────────────────
 import {
@@ -72,7 +76,7 @@ const NAV: Array<{ icon: React.ElementType; label: string; screen?: Screen; badg
   { icon: Buildings, label: "Multi-Branch", children: [{ label: "Branch Overview", screen: "branch-overview" }, { label: "Branch Comparison", screen: "branch-comparison" }, { label: "Central Sync Status", screen: "sync-status" }] },
   { icon: ChartBar, label: "Reports", children: [{ label: "Occupancy Reports", screen: "rp-occupancy" }, { label: "Revenue Reports", screen: "rp-revenue" }, { label: "Department Reports", screen: "rp-department" }, { label: "Guest Analytics", screen: "rp-guest" }, { label: "Inventory Reports", screen: "rp-inventory" }, { label: "Staff Reports", screen: "rp-staff" }] },
   { icon: Shield, label: "IT Admin", children: [{ label: "User Management", screen: "user-management" }, { label: "System Health", screen: "system-health" }, { label: "Schema & App Updates", screen: "schema-update" }, { label: "Device Management", screen: "device-management" }, { label: "Backup & Restore", screen: "backup-restore" }, { label: "Audit Log", screen: "audit-log" }, { label: "Error Log", screen: "error-log" }] },
-  { icon: GearSix, label: "GearSix", children: [{ label: "Hotel Configuration", screen: "hotel-config" }, { label: "Sync GearSix", screen: "settings-sync" }, { label: "Door Lock GearSix", screen: "door-lock-settings" }, { label: "Print GearSix", screen: "print-settings" }, { label: "My Preferences", screen: "my-preferences" }] },
+  { icon: GearSix, label: "Settings", children: [{ label: "Hotel Configuration", screen: "hotel-config" }, { label: "Sync Settings", screen: "settings-sync" }, { label: "Door Lock Settings", screen: "door-lock-settings" }, { label: "Print Settings", screen: "print-settings" }, { label: "Print Templates", screen: "print-templates" as Screen }, { label: "My Preferences", screen: "my-preferences" }] },
   { icon: Car, label: "Fleet", children: [{ label: "Dispatch Board", screen: "dispatch-board" }, { label: "New Trip Request", screen: "new-trip" }, { label: "Trip Detail", screen: "trip-detail" }, { label: "Driver Roster", screen: "driver-roster" }, { label: "Driver Access Log", screen: "driver-access-log" }, { label: "Fleet Costing", screen: "fleet-costing" }, { label: "Vehicle Register", screen: "vehicle-register" }, { label: "Fuel Log", screen: "fuel-log" }] },
 ];
 
@@ -200,12 +204,13 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "backup-restore") return <BackupRestore add={add} />;
   if (screen === "audit-log") return <AuditLog add={add} />;
   if (screen === "error-log") return <ErrorLog add={add} />;
-  // GearSix
+  // Settings
   if (screen === "hotel-config") return <HotelConfig add={add} />;
   if (screen === "door-lock-settings") return <DoorLockSettings add={add} />;
   if (screen === "my-preferences") return <MyPreferences add={add} />;
   if (screen === "settings-sync") return <SyncSettings add={add} />;
   if (screen === "print-settings") return <PrintSettings add={add} />;
+  if ((screen as string) === "print-templates") return <PrintTemplates />;
   // Fleet
   if (screen === "dispatch-board") return <DispatchBoard add={add} nav={nav} />;
   if (screen === "trip-detail") return <TripDetail add={add} />;
@@ -225,14 +230,19 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
 // ─── App Root ─────────────────────────────────────────────────────────────────
 // ─── App Root — manages auth layer routing ────────────────────────────────────
 export default function App() {
-  const [authState, setAuthState] = useState<AuthState>("login");
+  const [authState, setAuthState] = useState<AuthState>(window.location.hash.startsWith("#guest-access") ? "guest-access" : "login");
   const [loggedRole, setLoggedRole] = useState<Role>("MGT");
   const [staffName, setStaffName]   = useState("Adaeze Okonkwo");
   const [firstLoginDone, setFirstLoginDone] = useState(false);
+  const [pendingDestination, setPendingDestination] = useState<"hms" | "admin-console" | "org-portal">("hms");
 
   const handleLogin = (role: string, dest: "hms" | "admin-console" | "org-portal", name: string) => {
     setLoggedRole(role as Role);
     setStaffName(name);
+    setPendingDestination(dest);
+    if (role === "PLT" && !firstLoginDone) { setAuthState("mfa-enrolment"); return; }
+    setAuthState("mfa");
+    return;
     if (dest === "admin-console") { setAuthState("admin-console"); return; }
     if (dest === "org-portal") { setAuthState("org-portal"); return; }
     // FD first login → force password change (demonstrates that flow)
@@ -242,7 +252,12 @@ export default function App() {
 
   const handleLogout = () => setAuthState("login");
 
-  if (authState === "login") return <LoginScreen onLogin={handleLogin} />;
+  if (authState === "login") return <div><LoginScreen onLogin={handleLogin} /><button onClick={() => setAuthState("field-app")} className="fixed z-50 bottom-5 left-1/2 -translate-x-1/2 min-h-14 px-5 rounded-xl border bg-white text-sm font-semibold flex items-center gap-2" style={{ borderColor: BORDER, color: TEXT }}><Phone size={18} />Field App (Staff)</button></div>;
+  if (authState === "field-app") return <FieldApp onExit={() => setAuthState("login")} />;
+  if (authState === "mfa-enrolment") return <MFAEnrolmentScreen onBack={() => setAuthState("login")} onComplete={() => { setFirstLoginDone(true); setAuthState("mfa"); }} />;
+  if (authState === "mfa") return <MFAChallengeScreen onBack={() => setAuthState("login")} onComplete={() => setAuthState("branch-select")} />;
+  if (authState === "branch-select") return <BranchSelectionScreen onBack={() => setAuthState("mfa")} onSelect={() => setAuthState(pendingDestination)} />;
+  if (authState === "guest-access") return <GuestPortal qrLanding={window.location.hash.includes("/qr")} onExit={() => { window.location.hash = ""; setAuthState("login"); }} />;
   if (authState === "admin-console") return <AdminConsole onLogout={handleLogout} />;
   if (authState === "org-portal") return <OrgPortal onLogout={handleLogout} />;
   if (authState === "force-change-password") return <ForceChangePasswordScreen onComplete={() => setAuthState("hms")} />;
@@ -325,7 +340,7 @@ const NAV_SECTIONS = [
   },
   {
     label: "Configuration",
-    items: ["GearSix"],
+    items: ["Settings"],
   },
 ];
 

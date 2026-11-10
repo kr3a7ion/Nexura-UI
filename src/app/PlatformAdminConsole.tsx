@@ -8,6 +8,7 @@ import {
   RefreshCw, Shield, DollarSign, ChevronDown, X, Eye, Edit3,
   Server, Zap, Download, TrendingUp, Clock, Globe, Activity,
 } from "lucide-react";
+import { BranchProvisioning, FleetRelease, SupportTools } from "./PlatformAdminExtensions";
 
 const PRIMARY = "#18181B";
 const TEAL = "#0EA5E9";
@@ -71,7 +72,7 @@ function Stat({ label, value, sub, color }: { label: string; value: string; sub?
 }
 
 export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
-  const [tab, setTab] = useState<"orgs" | "branches" | "billing" | "updates" | "audit">("orgs");
+  const [tab, setTab] = useState<"orgs" | "branches" | "billing" | "updates" | "audit" | "provisioning" | "fleet-release" | "support">("orgs");
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -93,6 +94,9 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
     { id: "billing", label: "Billing", icon: DollarSign },
     { id: "updates", label: "Updates", icon: RefreshCw },
     { id: "audit", label: "Audit Log", icon: Shield },
+    { id: "provisioning", label: "Branch Provisioning", icon: Building2 },
+    { id: "fleet-release", label: "Fleet & Release", icon: RefreshCw },
+    { id: "support", label: "Support Tools", icon: Activity },
   ] as const;
 
   return (
@@ -110,6 +114,8 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium" style={{ color: SUCCESS, border: `1px solid ${SUCCESS}` }}><Shield size={12} />MFA enforced</span>
+          <span className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium" style={{ color: TEAL, border: `1px solid ${TEAL}` }}><Globe size={12} />IP allowlist active</span>
           <button className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10">
             <Bell size={16} color="white" />
             <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-red-500 text-white flex items-center justify-center" style={{ fontSize: 8 }}>3</span>
@@ -391,6 +397,9 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
             </table>
           </div>
         )}
+        {tab === "provisioning" && <BranchProvisioning />}
+        {tab === "fleet-release" && <FleetRelease />}
+        {tab === "support" && <SupportTools />}
       </main>
 
       {/* Create Org Modal */}
