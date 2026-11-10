@@ -29,12 +29,20 @@ export default defineConfig({
           if (moduleId.includes('commonjsHelpers.js')) return 'vendor-react'
 
           if (moduleId.includes('/node_modules/')) {
+            if (moduleId.includes('/@phosphor-icons/') || moduleId.includes('/lucide-react/')) return 'vendor-icons'
             if (moduleId.includes('/react-dom/') || moduleId.includes('/scheduler/')) return 'vendor-react-dom'
             if (moduleId.includes('/react/')) return 'vendor-react'
             if (moduleId.includes('/recharts/') || moduleId.includes('/react-smooth/')) return 'vendor-recharts'
             if (moduleId.includes('/d3-')) return 'vendor-d3'
-            if (moduleId.includes('/@phosphor-icons/') || moduleId.includes('/lucide-react/')) return 'vendor-icons'
           }
+
+          if (moduleId.endsWith('/src/app/constants.ts')) return 'shared-constants'
+
+          if (
+            moduleId.endsWith('/src/app/AuthScreens.tsx') ||
+            moduleId.endsWith('/src/app/brand/Brand.tsx') ||
+            moduleId.endsWith('/src/app/mock/staffLogin.ts')
+          ) return 'screen-authscreens'
 
           const screenModule = moduleId.match(/\/src\/app\/([^/]+Screens|UIKit|AdminScreens)\.tsx$/)
           if (screenModule) return `screen-${screenModule[1].toLowerCase()}`
