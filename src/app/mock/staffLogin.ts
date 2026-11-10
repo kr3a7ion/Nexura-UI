@@ -12,14 +12,14 @@ export type StaffCredential = {
 };
 
 export const STAFF_LOGIN_ACCOUNTS: StaffCredential[] = [
-  { staffId: "FD-014", name: "Chioma Nwosu", role: "FD", roleName: "Front Desk", auth: "pin", hint: "PIN 123456", secret: "123456", destination: "hms", branches: 1 },
-  { staffId: "HK-022", name: "Fatima Musa", role: "HK", roleName: "Housekeeping", auth: "pin", hint: "PIN 123456", secret: "123456", destination: "hms", branches: 1 },
-  { staffId: "MX-008", name: "Emeka Obi", role: "MX", roleName: "Maintenance", auth: "pin", hint: "PIN 123456", secret: "123456", destination: "hms", branches: 1 },
-  { staffId: "RT-019", name: "Biodun Adeyemi", role: "RT", roleName: "Restaurant", auth: "pin", hint: "PIN 123456", secret: "123456", destination: "hms", branches: 1 },
-  { staffId: "RSV-006", name: "Amina Yusuf", role: "RSV", roleName: "Reservations", auth: "pin", hint: "PIN 123456", secret: "123456", destination: "hms", branches: 1 },
-  { staffId: "MGT-003", name: "Adaeze Okonkwo", role: "MGT", roleName: "Hotel Manager", auth: "password", hint: "Password demo123", secret: "demo123", destination: "hms", branches: 2 },
-  { staffId: "FIN-011", name: "Ngozi Eze", role: "FIN", roleName: "Finance", auth: "password", hint: "Password demo123", secret: "demo123", destination: "hms", branches: 2 },
-  { staffId: "IT-002", name: "Tunde Afolabi", role: "IT", roleName: "IT Administrator", auth: "password", hint: "Password demo123", secret: "demo123", destination: "hms", branches: 3 },
+  { staffId: "1014", name: "Chioma Nwosu", role: "FD", roleName: "Front Desk", auth: "pin", hint: "PIN 123456", secret: "123456", destination: "hms", branches: 1 },
+  { staffId: "1022", name: "Fatima Musa", role: "HK", roleName: "Housekeeping", auth: "pin", hint: "PIN 123456", secret: "123456", destination: "hms", branches: 1 },
+  { staffId: "1008", name: "Emeka Obi", role: "MX", roleName: "Maintenance", auth: "pin", hint: "PIN 123456", secret: "123456", destination: "hms", branches: 1 },
+  { staffId: "1019", name: "Biodun Adeyemi", role: "RT", roleName: "Restaurant", auth: "pin", hint: "PIN 123456", secret: "123456", destination: "hms", branches: 1 },
+  { staffId: "1006", name: "Amina Yusuf", role: "RSV", roleName: "Reservations", auth: "pin", hint: "PIN 123456", secret: "123456", destination: "hms", branches: 1 },
+  { staffId: "1003", name: "Adaeze Okonkwo", role: "MGT", roleName: "Hotel Manager", auth: "password", hint: "Password demo123", secret: "demo123", destination: "hms", branches: 2 },
+  { staffId: "1011", name: "Ngozi Eze", role: "FIN", roleName: "Finance", auth: "password", hint: "Password demo123", secret: "demo123", destination: "hms", branches: 2 },
+  { staffId: "1002", name: "Tunde Afolabi", role: "IT", roleName: "IT Administrator", auth: "password", hint: "Password demo123", secret: "demo123", destination: "hms", branches: 3 },
 ];
 
 export const OWNER_LOGIN_ACCOUNTS = [

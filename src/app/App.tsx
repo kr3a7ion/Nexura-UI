@@ -255,7 +255,7 @@ export default function App() {
 
   const handleLogout = () => setAuthState("login");
 
-  if (authState === "login") return <div><LoginScreen onLogin={handleLogin} /><button onClick={() => setAuthState("field-app")} className="fixed z-50 bottom-5 left-1/2 -translate-x-1/2 min-h-14 px-5 rounded-xl border bg-white text-sm font-semibold flex items-center gap-2" style={{ borderColor: BORDER, color: TEXT }}><Phone size={18} />Field App (Staff)</button></div>;
+  if (authState === "login") return <LoginScreen onLogin={handleLogin} onOpenFieldApp={() => setAuthState("field-app")} />;
   if (authState === "field-app") return <FieldApp onExit={() => setAuthState("login")} />;
   if (authState === "mfa-enrolment") return <MFAEnrolmentScreen onBack={() => setAuthState("login")} onComplete={() => { setPlatformMfaEnrolled(true); setAuthState("mfa"); }} />;
   if (authState === "mfa") return <MFAChallengeScreen onBack={() => setAuthState("login")} onComplete={() => setAuthState(pendingHasMultipleBranches ? "branch-select" : pendingDestination)} />;

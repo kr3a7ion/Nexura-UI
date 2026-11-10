@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { NAV_BG, TEAL, TEXT, MUTED, display } from "../constants";
 
 export const BRAND = {
@@ -8,15 +9,16 @@ export const BRAND = {
 
 export function BrandMark({ size = 40 }: { size?: number }) {
   const radius = Math.round(size * 0.26);
+  const gradientId = `nexura-mark-${useId().replace(/:/g, "")}`;
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" role="img" aria-label="Nexura">
       <defs>
-        <linearGradient id="nexura-mark-gradient" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+        <linearGradient id={gradientId} x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor={TEAL} />
           <stop offset="1" stopColor={NAV_BG} />
         </linearGradient>
       </defs>
-      <rect width="64" height="64" rx={radius} fill="url(#nexura-mark-gradient)" />
+      <rect width="64" height="64" rx={radius} fill={`url(#${gradientId})`} />
       <circle cx="22" cy="22" r="8.5" fill="none" stroke="white" strokeWidth="5" />
       <path d="M27.8 28.2 43 43.4V35h7v15H35v-7h7.2L27 27.8" fill="none" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="49.5" cy="16" r="3.5" fill="white" />
