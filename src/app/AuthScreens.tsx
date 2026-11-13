@@ -167,7 +167,7 @@ export function LoginScreen({ kind, onLogin, onOpenFieldApp }: { kind: LoginKind
       <form onSubmit={submit} noValidate className="space-y-[18px]">
         <div>
           <label htmlFor="login-username" className="mb-2 block text-[13px] font-medium" style={{ color: TEXT }}>Username</label>
-          <input id="login-username" value={username} onChange={e => { setUsername(e.target.value); setError(""); }} autoComplete="username" autoCapitalize="none" spellCheck={false} autoFocus className="h-12 w-full rounded-[10px] border border-[#E2E8F0] bg-white px-3.5 text-[15px] outline-none focus:border-[#1BA39C] focus:ring-1 focus:ring-[#1BA39C]" style={{ color: TEXT }} />
+          <input aria-label="Username" id="login-username" value={username} onChange={e => { setUsername(e.target.value); setError(""); }} autoComplete="username" autoCapitalize="none" spellCheck={false} autoFocus className="h-12 w-full rounded-[10px] border border-[#E2E8F0] bg-white px-3.5 text-[15px] outline-none focus:border-[#1BA39C] focus:ring-1 focus:ring-[#1BA39C]" style={{ color: TEXT }} />
         </div>
         <PasswordField id="login-password" label="Password" value={password} onChange={v => { setPassword(v); setError(""); }} invalid={!!error && !!key} />
         {locked

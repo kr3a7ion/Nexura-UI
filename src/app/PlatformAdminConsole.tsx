@@ -178,7 +178,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
-                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search organizations…"
+                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search organizations…" aria-label="Search organizations"
                       className="pl-7 pr-3 py-1.5 text-xs rounded-lg border bg-white outline-none w-48" style={{ borderColor: BORDER }} />
                   </div>
                   <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white" style={{ backgroundColor: PRIMARY }}>
@@ -230,7 +230,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
                 <div className="mt-4 bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold" style={{ color: TEXT }}>{org.name} — Branch Details</h3>
-                    <button onClick={() => setSelectedOrg(null)} style={{ color: SUBTLE }}><X size={16} /></button>
+                    <button aria-label="Close" onClick={() => setSelectedOrg(null)} style={{ color: SUBTLE }}><X size={16} /></button>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                     {orgBranches.map(b => (
@@ -409,7 +409,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6" style={{ border: `1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-base font-semibold" style={{ color: TEXT }}>New Organization</h3>
-              <button onClick={() => setShowCreate(false)} style={{ color: SUBTLE }}><X size={18} /></button>
+              <button aria-label="Close" onClick={() => setShowCreate(false)} style={{ color: SUBTLE }}><X size={18} /></button>
             </div>
             <div className="space-y-4">
               {[["Organization Name", "Grand Meridian Hotels"], ["Contact Name", "Full name of the owner/GM"], ["Contact Email", "owner@example.ng"], ["Phone Number", "+234 8XX XXX XXXX"]].map(([label, placeholder]) => (
@@ -420,7 +420,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
               ))}
               <div>
                 <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Subscription Plan</label>
-                <select className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
+                <select aria-label="Subscription Plan" className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
                   <option>Starter — ₦15,000–₦25,000/month · 5–15 rooms</option>
                   <option>Growth — ₦35,000–₦60,000/month · 15–50 rooms</option>
                   <option>Business — ₦80,000–₦150,000/month · 50+ rooms</option>
@@ -428,7 +428,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
               </div>
               <div>
                 <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Number of Branches</label>
-                <input type="number" defaultValue="1" min="1" className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }} />
+                <input aria-label="Number of Branches" type="number" defaultValue="1" min="1" className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }} />
               </div>
             </div>
             <div className="flex gap-3 mt-6">

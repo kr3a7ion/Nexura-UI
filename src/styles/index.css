@@ -7,3 +7,6 @@
    - sentence case: labels are never forced to capitals */
 .text-xs { font-size: 12px; line-height: 1.35; }
 .uppercase { text-transform: none; letter-spacing: 0; }
+
+/* Click targets: buttons without an explicit height are at least 32px tall inside the suite. */
+[data-suite-content] button:not([class*=" h-"]):not([class^="h-"]):not([class*="min-h-"]):not([role="switch"]):not([role="checkbox"]) { min-height: 32px; }

@@ -55,7 +55,7 @@ function PinInput({ onConfirm }: { onConfirm: (pin: string) => void }) {
   const [v, setV] = useState("");
   return (
     <div className="flex gap-2 items-center">
-      <input type="password" maxLength={4} value={v} onChange={e => setV(e.target.value)} placeholder="Manager PIN" className="w-28 px-2 py-1.5 border rounded-lg text-xs outline-none" style={{ borderColor: BORDER, fontFamily: mono }} />
+      <input type="password" maxLength={4} value={v} onChange={e => setV(e.target.value)} placeholder="Manager PIN" aria-label="Manager PIN" className="w-28 px-2 py-1.5 border rounded-lg text-xs outline-none" style={{ borderColor: BORDER, fontFamily: mono }} />
       <button onClick={() => { if (v === "1234") onConfirm(v); else setV(""); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Confirm</button>
     </div>
   );
@@ -88,7 +88,7 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
     !q || u.name.toLowerCase().includes(q.toLowerCase()) || u.email.toLowerCase().includes(q.toLowerCase())
   );
 
-  const doAction = (uid: string, action: typeof pinTarget extends null ? never : typeof pinTarget["action"]) => {
+  const doAction = (uid: string, action: NonNullable<typeof pinTarget>["action"]) => {
     setPinTarget({ uid, action });
   };
 
@@ -176,7 +176,7 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
       <div className="flex gap-2 mb-4">
         <div className="flex-1 relative">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name or email…" className="w-full pl-8 pr-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER }} />
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name or email…" aria-label="Search by name or email" className="w-full pl-8 pr-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER }} />
         </div>
       </div>
 
@@ -579,7 +579,7 @@ export function DeviceManagement({ add }: { add: (t: Omit<Toast, "id">) => void 
           <div className="px-4 py-3 border-b flex gap-2" style={{ borderColor: BORDER }}>
             <div className="flex-1 relative">
               <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
-              <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search device or assignment…" className="w-full pl-8 pr-3 py-1.5 border rounded-lg text-xs outline-none" style={{ borderColor: BORDER }} />
+              <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search device or assignment…" aria-label="Search device or assignment" className="w-full pl-8 pr-3 py-1.5 border rounded-lg text-xs outline-none" style={{ borderColor: BORDER }} />
             </div>
           </div>
           <table className="w-full">
@@ -801,7 +801,7 @@ export function AuditLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       <div className="flex gap-2 mb-4">
         <div className="flex-1 relative">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Filter by actor, action, entity, or ID…" className="w-full pl-8 pr-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER }} />
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Filter by actor, action, entity, or ID…" aria-label="Filter by actor, action, entity, or ID" className="w-full pl-8 pr-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER }} />
         </div>
       </div>
 

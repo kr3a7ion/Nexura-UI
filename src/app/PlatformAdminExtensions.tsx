@@ -17,7 +17,7 @@ import {
 type LoadState = "loading" | "ready" | "error";
 
 function AuditNotice({ text, onClose }: { text: string; onClose: () => void }) {
-  return <div className="mb-4 flex items-start gap-3 p-3 rounded-xl border" style={{ borderColor: TEAL, backgroundColor: BG, color: TEXT }}><ShieldCheck size={18} style={{ color: TEAL }} /><div className="flex-1 text-sm"><strong>Audited action recorded.</strong> {text}</div><button onClick={onClose}><X size={16} style={{ color: MUTED }} /></button></div>;
+  return <div className="mb-4 flex items-start gap-3 p-3 rounded-xl border" style={{ borderColor: TEAL, backgroundColor: BG, color: TEXT }}><ShieldCheck size={18} style={{ color: TEAL }} /><div className="flex-1 text-sm"><strong>Audited action recorded.</strong> {text}</div><button aria-label="Close" onClick={onClose}><X size={16} style={{ color: MUTED }} /></button></div>;
 }
 
 function LoadingRows() {
@@ -101,7 +101,7 @@ export function SupportTools() {
       {notice && <AuditNotice text={notice} onClose={() => setNotice("")} />}
       <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-5">
         <aside className="bg-white rounded-xl border overflow-hidden h-fit" style={{ borderColor: BORDER }}>
-          <div className="p-3 border-b" style={{ borderColor: BORDER }}><div className="relative"><MagnifyingGlass size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search properties…" className="w-full pl-9 pr-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div></div>
+          <div className="p-3 border-b" style={{ borderColor: BORDER }}><div className="relative"><MagnifyingGlass size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search properties…" aria-label="Search properties" className="w-full pl-9 pr-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div></div>
           {state === "loading" && <LoadingRows />}
           {state === "error" && <EmptyState icon={Wrench} message="Diagnostics could not be loaded." cta="Try again" onCta={() => setState("ready")} />}
           {state === "ready" && properties.length === 0 && <EmptyState icon={Wrench} message="No properties match your search." cta="Clear" onCta={() => setSearch("")} />}
