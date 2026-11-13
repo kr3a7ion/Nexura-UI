@@ -284,11 +284,12 @@ export default function App() {
 
   if (authState === "login") return <LoginScreen key={cloudLogin ? "cloud" : "staff"} kind={cloudLogin ? "cloud" : "staff"} onLogin={handleLogin} onOpenFieldApp={cloudLogin ? undefined : () => setAuthState("field-app")} />;
   if (authState === "field-app") return <FieldApp onExit={() => setAuthState("login")} />;
+  // shortcut: the mock owner portal has no per-hotel view yet, so the chosen hotel is not passed on; wire it when the portal reads real data.
   if (authState === "choose-hotel" && account) return <ChooseHotelScreen account={account} onContinue={() => setAuthState("org-portal")} onSignOut={handleLogout} />;
   if (authState === "guest-access") return <GuestPortal qrLanding={window.location.hash.includes("/qr")} onExit={() => { window.location.hash = ""; setAuthState("login"); }} />;
   if (authState === "admin-console") return <>{lock}<AdminConsole onLogout={handleLogout} /></>;
   if (authState === "org-portal") return <>{lock}<OrgPortal onLogout={handleLogout} /></>;
-  if (authState === "force-change-password") return <ForceChangePasswordScreen temporaryPassword={account?.password ?? ""} onComplete={() => setAuthState("hms")} />;
+  if (authState === "force-change-password") return <ForceChangePasswordScreen temporaryPassword={account?.password ?? ""} onComplete={password => { setAccount(current => current && { ...current, password }); setAuthState("hms"); }} />;
 
   return <>{lock}<HMSApp initialRole={loggedRole} staffName={staffName} onLogout={handleLogout} onOpenPortal={portal => setAuthState(portal)} /></>;
 }

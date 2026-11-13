@@ -180,7 +180,7 @@ export function LoginScreen({ kind, onLogin, onOpenFieldApp }: { kind: LoginKind
   );
 }
 
-export function ForceChangePasswordScreen({ kind = "staff", temporaryPassword, onComplete }: { kind?: LoginKind; temporaryPassword: string; onComplete: () => void }) {
+export function ForceChangePasswordScreen({ kind = "staff", temporaryPassword, onComplete }: { kind?: LoginKind; temporaryPassword: string; onComplete: (password: string) => void }) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const requirements = [
@@ -192,7 +192,7 @@ export function ForceChangePasswordScreen({ kind = "staff", temporaryPassword, o
   const ready = requirements.every(item => item.ok);
   return (
     <AuthLayout kind={kind} title="Choose your own password" sub="Your manager gave you a temporary password. Replace it with one only you know.">
-      <form onSubmit={e => { e.preventDefault(); if (ready) onComplete(); }} noValidate className="space-y-[18px]">
+      <form onSubmit={e => { e.preventDefault(); if (ready) onComplete(password); }} noValidate className="space-y-[18px]">
         <PasswordField id="new-password" label="New password" value={password} onChange={setPassword} autoFocus autoComplete="new-password" />
         <PasswordField id="confirm-password" label="Confirm new password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
         <ul className="space-y-2">
