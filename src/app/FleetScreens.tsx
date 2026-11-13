@@ -1517,7 +1517,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             {label}
             {tab==="shifts" && proposals.filter(p=>p.status==="pending").length>0 && (
               <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full font-bold align-middle"
-                style={{ backgroundColor:activeTab==="shifts"?"rgba(255,255,255,0.3)":"#F59E0B", color:"white", fontSize:9 }}>
+                style={{ backgroundColor:activeTab==="shifts"?"rgba(255,255,255,0.3)":"#F59E0B", color:"white", fontSize: 12 }}>
                 {proposals.filter(p=>p.status==="pending").length}
               </span>
             )}
@@ -1570,7 +1570,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                         <td className="px-3 py-2.5">
                           <div className="flex flex-col gap-0.5">
                             <span className="px-2 py-0.5 rounded-full text-xs font-semibold w-fit" style={{ backgroundColor:SHIFT_PILL[d.hrShift].bg, color:SHIFT_PILL[d.hrShift].text }}>{d.hrShift}</span>
-                            {d.shiftOverride && <span className="text-xs" style={{ color:ORANGE, fontSize:10 }}>⚡ override</span>}
+                            {d.shiftOverride && <span className="text-xs" style={{ color:ORANGE, fontSize: 12 }}>⚡ override</span>}
                           </div>
                         </td>
                         <td className="px-3 py-2.5"><span className="px-2 py-0.5 rounded-full text-xs font-semibold capitalize" style={{ backgroundColor:sp.bg, color:sp.text }}>{d.status}</span></td>
@@ -1684,7 +1684,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                   <th className="px-4 py-2.5 text-left text-xs font-semibold" style={{ color:MUTED, minWidth:150 }}>Driver</th>
                   {ROSTER_DAYS.map(day => (
                     <th key={day} className="px-2 py-2.5 text-center text-xs font-semibold" style={{ color:day==="Mon 13"?PRIMARY:MUTED, minWidth:88 }}>
-                      {day}{day==="Mon 13" && <span className="ml-1 font-normal" style={{ color:TEAL, fontSize:10 }}>today</span>}
+                      {day}{day==="Mon 13" && <span className="ml-1 font-normal" style={{ color:TEAL, fontSize: 12 }}>today</span>}
                     </th>
                   ))}
                 </tr>
@@ -1699,7 +1699,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                         </div>
                         <div>
                           <div className="text-xs font-semibold" style={{ color:TEXT }}>{d.name}</div>
-                          <div className="text-xs" style={{ color:SUBTLE, fontSize:10 }}>{d.id}</div>
+                          <div className="text-xs" style={{ color:SUBTLE, fontSize: 12 }}>{d.id}</div>
                         </div>
                       </div>
                     </td>
@@ -1716,11 +1716,11 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                             style={{ backgroundColor:pill.bg, color:pill.text }}>
                             {shift}
                             {pending && (
-                              <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-white" style={{ backgroundColor:"#F59E0B", fontSize:8 }}>!</span>
+                              <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-white" style={{ backgroundColor:"#F59E0B", fontSize: 12 }}>!</span>
                             )}
                           </button>
                           {pending && (
-                            <div className="text-xs mt-0.5" style={{ color:"#92400E", fontSize:9 }}>→ {pending.proposedShift}</div>
+                            <div className="text-xs mt-0.5" style={{ color:"#92400E", fontSize: 12 }}>→ {pending.proposedShift}</div>
                           )}
                         </td>
                       );
@@ -1839,8 +1839,8 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={REV_VS_COST.map(r=>({...r,rev:+(r.rev/1000000).toFixed(2),cost:+(r.cost/1000000).toFixed(2)}))} margin={{ left:-20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="month" tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} tickFormatter={v=>`₦${v}M`} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} tickFormatter={v=>`₦${v}M`} />
               <Tooltip contentStyle={{ fontSize:12, borderRadius:8 }} formatter={(v:number)=>[`₦${v}M`]} />
               <Bar dataKey="rev"  name="Revenue" fill={SUCCESS} radius={[3,3,0,0]} barSize={14} />
               <Bar dataKey="cost" name="Cost"    fill={ERROR}   radius={[3,3,0,0]} barSize={14} />
@@ -1853,8 +1853,8 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             <AreaChart data={FUEL_TREND} margin={{ left:-20 }}>
               <defs><linearGradient id="fuelGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={ORANGE} stopOpacity={0.15}/><stop offset="95%" stopColor={ORANGE} stopOpacity={0}/></linearGradient></defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="month" tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} tickFormatter={v=>`₦${(v/1000).toFixed(0)}K`} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} tickFormatter={v=>`₦${(v/1000).toFixed(0)}K`} />
               <Tooltip contentStyle={{ fontSize:12, borderRadius:8 }} formatter={(v:number)=>[`₦${v.toLocaleString()}`]} />
               <Area type="monotone" dataKey="cost" stroke={ORANGE} strokeWidth={2} fill="url(#fuelGrad)" name="Fuel" />
             </AreaChart>
@@ -2545,7 +2545,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                       <div className="flex flex-col items-center">
                         <div className="w-2.5 h-2.5 rounded-full border-2 transition-all"
                           style={{ backgroundColor: phase.active ? TEAL : "white", borderColor: phase.active ? TEAL : BORDER }} />
-                        <div className="text-xs mt-0.5 whitespace-nowrap" style={{ color: phase.active ? TEAL : MUTED, fontSize: 9, fontWeight: phase.active ? 700 : 400 }}>
+                        <div className="text-xs mt-0.5 whitespace-nowrap" style={{ color: phase.active ? TEAL : MUTED, fontSize: 12, fontWeight: phase.active ? 700 : 400 }}>
                           {phase.label}
                         </div>
                       </div>

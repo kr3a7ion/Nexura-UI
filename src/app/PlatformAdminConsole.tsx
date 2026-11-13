@@ -118,7 +118,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
           <span className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium" style={{ color: TEAL, border: `1px solid ${TEAL}` }}><Globe size={12} />IP allowlist active</span>
           <button className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10">
             <Bell size={16} color="white" />
-            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-red-500 text-white flex items-center justify-center" style={{ fontSize: 8 }}>3</span>
+            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-red-500 text-white flex items-center justify-center" style={{ fontSize: 12 }}>3</span>
           </button>
           <div className="relative">
             <button onClick={() => setUserMenu(p => !p)} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10">

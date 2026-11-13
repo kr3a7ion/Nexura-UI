@@ -133,11 +133,11 @@ export default function FrontOfficeHome({ nav }: { nav: Nav }) {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left">
-              <thead><tr style={{ backgroundColor: BG }}>{["Guest", "Room type", "ETA", "Deposit", "Room ready", "Actions"].map(label => <th key={label} className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: MUTED }}>{label}</th>)}</tr></thead>
+              <thead><tr style={{ backgroundColor: BG }}>{["Guest", "Room type", "ETA", "Deposit", "Room ready", "Actions"].map(label => <th key={label} className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{label}</th>)}</tr></thead>
               <tbody>
                 {FRONT_OFFICE_QUEUE.map(item => (
                   <tr key={item.id} className="border-t hover:bg-slate-50" style={{ borderColor: BORDER }}>
-                    <td className="px-4 py-3"><button onClick={() => nav("reservation-detail", "Reservation Detail", item.id)} className="text-left"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.guest}</div><div className="mt-0.5 text-[10px]" style={{ color: SUBTLE, fontFamily: mono }}>{item.id} · {item.city}</div></button></td>
+                    <td className="px-4 py-3"><button onClick={() => nav("reservation-detail", "Reservation Detail", item.id)} className="text-left"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.guest}</div><div className="mt-0.5 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{item.id} · {item.city}</div></button></td>
                     <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.roomType}</td>
                     <td className="px-4 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>{item.eta}</td>
                     <td className="px-4 py-3"><Badge label={item.depositStatus} colors={depositColors[item.depositStatus]} /></td>
@@ -178,7 +178,7 @@ export default function FrontOfficeHome({ nav }: { nav: Nav }) {
           {department.screens.flatMap(group => group.items.map(item => ({ ...item, group: group.label }))).map(item => (
             <button key={`${item.group}-${item.screen}`} onClick={() => nav(item.screen, item.label)} className="group flex min-h-20 items-center gap-3 rounded-xl border bg-white p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm" style={{ borderColor: BORDER }}>
               <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ backgroundColor: `${accent}12`, color: accent }}><DoorOpen size={19} /></div>
-              <div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold" style={{ color: TEXT }}>{item.label}</div><div className="mt-1 text-[10px] uppercase tracking-wider" style={{ color: SUBTLE }}>{item.group}</div></div>
+              <div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold" style={{ color: TEXT }}>{item.label}</div><div className="mt-1 text-xs uppercase tracking-wider" style={{ color: SUBTLE }}>{item.group}</div></div>
               <ArrowRight size={13} className="flex-none transition-transform group-hover:translate-x-0.5" style={{ color: accent }} />
             </button>
           ))}

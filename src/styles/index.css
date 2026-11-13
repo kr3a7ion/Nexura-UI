@@ -1,3 +1,9 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+/* Brand rules applied app-wide (unlayered, so they win over utility classes):
+   - no text under 12px: the root is 14px, which made text-xs 10.5px
+   - sentence case: labels are never forced to capitals */
+.text-xs { font-size: 12px; line-height: 1.35; }
+.uppercase { text-transform: none; letter-spacing: 0; }

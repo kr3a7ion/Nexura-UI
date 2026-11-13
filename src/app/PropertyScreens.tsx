@@ -300,8 +300,8 @@ export function DiningReservations({ add }: { add: (t: Omit<Toast, "id">) => voi
                 <div key={c.slot} className="flex-1 flex flex-col items-center gap-1">
                   {c.covers > 0 && <div className="rounded-t" style={{ width: "100%", height: `${(c.covers/maxCovers)*90}px`, backgroundColor: c.covers >= 8 ? ORANGE : c.covers >= 4 ? PRIMARY : TEAL, minHeight: c.covers > 0 ? 16 : 0 }} />}
                   {c.covers === 0 && <div style={{ flex: 1 }} />}
-                  <span className="text-xs" style={{ color: MUTED, fontSize: 9 }}>{c.slot}</span>
-                  {c.covers > 0 && <span className="text-xs font-bold" style={{ color: TEXT, fontSize: 10 }}>{c.covers}</span>}
+                  <span className="text-xs" style={{ color: MUTED, fontSize: 12 }}>{c.slot}</span>
+                  {c.covers > 0 && <span className="text-xs font-bold" style={{ color: TEXT, fontSize: 12 }}>{c.covers}</span>}
                 </div>
               ))}
             </div>
@@ -1410,7 +1410,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                     <div key={t} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold"
                       style={{ backgroundColor: "white", border: `1.5px solid ${inUse ? TEAL + "40" : PASS_BORDER}`, color: inUse ? TEAL : PASS_MUTED }}>
                       {t}
-                      {inUse && <span className="font-normal opacity-60" style={{ fontSize: 9 }}>in use</span>}
+                      {inUse && <span className="font-normal opacity-60" style={{ fontSize: 12 }}>in use</span>}
                       {!inUse && inConfig && (
                         <button onClick={() => { setGroupTypes(prev => prev.filter(x => x !== t)); if (filterType === t) setFilterType("All"); }}
                           className="ml-1 opacity-50 hover:opacity-100 transition-opacity" title={`Remove "${t}"`}>
@@ -1448,15 +1448,15 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ border: `1.5px solid ${PASS_BORDER}` }}>
             {/* Header row */}
             <div className="flex items-center px-4 py-2.5" style={{ backgroundColor: "#F1F5F9", borderBottom: `1.5px solid ${PASS_BORDER}` }}>
-              <div className="flex-1 font-bold" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>GROUP</div>
+              <div className="flex-1 font-bold" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>GROUP</div>
               {!selectedId && (
                 <>
-                  <div className="w-36 font-bold flex-shrink-0" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>ORGANIZER</div>
-                  <div className="w-28 font-bold flex-shrink-0" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>DATES</div>
-                  <div className="w-16 font-bold flex-shrink-0 text-center" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>ROOMS</div>
-                  <div className="w-24 font-bold flex-shrink-0" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>PICK-UP</div>
-                  <div className="w-24 font-bold flex-shrink-0 text-right" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>VALUE</div>
-                  <div className="w-24 font-bold flex-shrink-0 text-right" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>STATUS</div>
+                  <div className="w-36 font-bold flex-shrink-0" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>ORGANIZER</div>
+                  <div className="w-28 font-bold flex-shrink-0" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>DATES</div>
+                  <div className="w-16 font-bold flex-shrink-0 text-center" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>ROOMS</div>
+                  <div className="w-24 font-bold flex-shrink-0" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>PICK-UP</div>
+                  <div className="w-24 font-bold flex-shrink-0 text-right" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>VALUE</div>
+                  <div className="w-24 font-bold flex-shrink-0 text-right" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>STATUS</div>
                 </>
               )}
             </div>
@@ -1473,10 +1473,10 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   style={{ borderBottom: `1px solid ${PASS_DASH}`, backgroundColor: isSelected ? `${TEAL}08` : "white", borderLeft: `3px solid ${isSelected ? TEAL : "transparent"}` }}>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                      <span className="font-bold" style={{ fontSize: 10, color: PASS_MUTED, fontFamily: mono }}>{g.id}</span>
-                      <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 9, backgroundColor: `${TEAL}15`, color: TEAL }}>{g.type}</span>
-                      {cd > 0 && cd <= 5 && <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 9, backgroundColor: "#FEF9C3", color: "#92400E" }}>⚠ {cd}d cut-off</span>}
-                      {cd <= 0 && <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 9, backgroundColor: "#FEE2E2", color: ERROR }}>Cut-off passed</span>}
+                      <span className="font-bold" style={{ fontSize: 12, color: PASS_MUTED, fontFamily: mono }}>{g.id}</span>
+                      <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 12, backgroundColor: `${TEAL}15`, color: TEAL }}>{g.type}</span>
+                      {cd > 0 && cd <= 5 && <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 12, backgroundColor: "#FEF9C3", color: "#92400E" }}>⚠ {cd}d cut-off</span>}
+                      {cd <= 0 && <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 12, backgroundColor: "#FEE2E2", color: ERROR }}>Cut-off passed</span>}
                     </div>
                     <p className="font-semibold text-sm truncate" style={{ color: TEXT }}>{g.name}</p>
                     {selectedId && <p className="text-xs mt-0.5 truncate" style={{ color: PASS_MUTED }}>{g.organizer}</p>}
@@ -1497,7 +1497,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                       <div className="w-24 flex-shrink-0 pl-2">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs font-bold" style={{ color: pct >= 80 ? SUCCESS : pct >= 50 ? ORANGE : ERROR, fontFamily: mono }}>{pct}%</span>
-                          <span className="text-xs" style={{ color: PASS_MUTED, fontSize: 9 }}>{g.rooming.length}/{totalBlocked(g)}</span>
+                          <span className="text-xs" style={{ color: PASS_MUTED, fontSize: 12 }}>{g.rooming.length}/{totalBlocked(g)}</span>
                         </div>
                         <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: PASS_DASH }}>
                           <div className="h-1.5 rounded-full" style={{ width: `${pct}%`, backgroundColor: pct >= 80 ? SUCCESS : pct >= 50 ? ORANGE : ERROR }} />
@@ -1577,7 +1577,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                             ? <CheckCircle2 size={12} color="white" />
                             : <span className="w-2 h-2 rounded-full block" style={{ backgroundColor: i === stage ? "white" : PASS_MUTED }} />}
                         </div>
-                        <p className="text-center font-bold" style={{ fontSize: 8, color: i <= stage ? TEAL : PASS_MUTED, letterSpacing: "0.06em" }}>{s.toUpperCase()}</p>
+                        <p className="text-center font-bold" style={{ fontSize: 12, color: i <= stage ? TEAL : PASS_MUTED, letterSpacing: "0.06em" }}>{s.toUpperCase()}</p>
                       </div>
                       {i < STATUS_PIPELINE.length - 1 && (
                         <div className="flex-1 h-0.5 mx-1 mb-3.5" style={{ backgroundColor: i < stage ? TEAL : PASS_DASH }} />
@@ -1742,7 +1742,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                                 <Icon size={15} style={{ color: TEAL }} />
                               </div>
                               <div className="min-w-0">
-                                <p className="font-bold uppercase" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.06em" }}>{label}</p>
+                                <p className="font-bold uppercase" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.06em" }}>{label}</p>
                                 <p className="font-semibold text-sm mt-0.5 truncate" style={{ color: TEXT }}>{value}</p>
                               </div>
                             </div>
@@ -1823,7 +1823,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                       <thead>
                         <tr style={{ backgroundColor: "white", borderBottom: `1px solid ${PASS_BORDER}` }}>
                           {["#", "GUEST", "TYPE", "ROOM", "STATUS", ""].map(h => (
-                            <th key={h} className={`px-4 py-2.5 font-bold ${h === "" ? "text-right" : "text-left"}`} style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>{h}</th>
+                            <th key={h} className={`px-4 py-2.5 font-bold ${h === "" ? "text-right" : "text-left"}`} style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -1835,7 +1835,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                           const rsc   = guest ? roomingStatusColor(guest.status) : null;
                           return (
                             <tr key={idx} style={{ borderBottom: `1px solid ${PASS_DASH}`, backgroundColor: idx % 2 === 0 ? "white" : "#FAFAF8" }}>
-                              <td className="px-4 py-3 font-bold" style={{ color: PASS_MUTED, fontFamily: mono, fontSize: 11 }}>{String(idx + 1).padStart(2, "0")}</td>
+                              <td className="px-4 py-3 font-bold" style={{ color: PASS_MUTED, fontFamily: mono, fontSize: 12 }}>{String(idx + 1).padStart(2, "0")}</td>
                               <td className="px-4 py-3">
                                 {guest ? (
                                   <div className="flex items-center gap-2">
@@ -1912,9 +1912,9 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                     <table className="w-full text-sm">
                       <thead>
                         <tr style={{ backgroundColor: "white", borderBottom: `1px solid ${PASS_BORDER}` }}>
-                          <th className="px-5 py-2.5 text-left font-bold" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>DESCRIPTION</th>
-                          <th className="px-5 py-2.5 text-left font-bold" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>DATE</th>
-                          <th className="px-5 py-2.5 text-right font-bold" style={{ fontSize: 9, color: PASS_MUTED, letterSpacing: "0.08em" }}>AMOUNT</th>
+                          <th className="px-5 py-2.5 text-left font-bold" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>DESCRIPTION</th>
+                          <th className="px-5 py-2.5 text-left font-bold" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>DATE</th>
+                          <th className="px-5 py-2.5 text-right font-bold" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>AMOUNT</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2372,14 +2372,14 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       {/* ── Waitlist table ───────────────────────────────────────────────── */}
       <div className="rounded-2xl overflow-hidden shadow-sm" style={{ border:`1.5px solid ${PASS_BORDER}` }}>
         <div className="flex items-center px-4 py-2.5" style={{ backgroundColor:"#F1F5F9", borderBottom:`1.5px solid ${PASS_BORDER}` }}>
-          <div className="w-10 font-bold" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>#</div>
+          <div className="w-10 font-bold" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>#</div>
           <div className="w-6 flex-shrink-0" />
-          <div className="flex-1 font-bold" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>GUEST</div>
-          <div className="w-24 font-bold flex-shrink-0" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>ROOM TYPE</div>
-          <div className="w-28 font-bold flex-shrink-0" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>DATES</div>
-          <div className="w-20 font-bold flex-shrink-0" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>WAITING</div>
-          <div className="w-20 font-bold flex-shrink-0" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>SOURCE</div>
-          <div className="font-bold flex-shrink-0" style={{ fontSize:9, color:PASS_MUTED, letterSpacing:"0.08em" }}>ACTIONS</div>
+          <div className="flex-1 font-bold" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>GUEST</div>
+          <div className="w-24 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>ROOM TYPE</div>
+          <div className="w-28 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>DATES</div>
+          <div className="w-20 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>WAITING</div>
+          <div className="w-20 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>SOURCE</div>
+          <div className="font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>ACTIONS</div>
         </div>
 
         {sorted.map((e) => {

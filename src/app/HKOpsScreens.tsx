@@ -100,7 +100,7 @@ export function InspectionLog({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
                         {l.checks.map((c, i) => (
                           <div key={i} className="flex items-center gap-2 text-xs">
-                            <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.pass ? "#DCFCE7" : "#FEE2E2" }}><span style={{ color: c.pass ? SUCCESS : ERROR, fontSize: 10 }}>{c.pass ? "✓" : "✕"}</span></div>
+                            <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.pass ? "#DCFCE7" : "#FEE2E2" }}><span style={{ color: c.pass ? SUCCESS : ERROR, fontSize: 12 }}>{c.pass ? "✓" : "✕"}</span></div>
                             <span style={{ color: c.pass ? MUTED : ERROR, fontWeight: c.pass ? 400 : 600 }}>{c.item}</span>
                           </div>
                         ))}

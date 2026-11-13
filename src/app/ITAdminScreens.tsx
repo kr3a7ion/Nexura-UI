@@ -317,18 +317,18 @@ export function SystemHealth({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <ResponsiveContainer width="100%" height={120}>
             <LineChart data={LATENCY_DATA} margin={{ left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="t" tick={{ fontSize: 10, fill: MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: MUTED }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} formatter={(v: number) => [`${v}ms`]} />
+              <XAxis dataKey="t" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} formatter={(v: number) => [`${v}ms`]} />
               <Line type="monotone" dataKey="ms" stroke={PRIMARY} strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
           <div className="text-sm font-semibold mt-3 mb-2" style={{ color: TEXT }}>Errors / 10 min</div>
           <ResponsiveContainer width="100%" height={80}>
             <AreaChart data={ERR_DATA} margin={{ left: -20 }}>
-              <XAxis dataKey="t" tick={{ fontSize: 10, fill: MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: MUTED }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+              <XAxis dataKey="t" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
               <Area type="monotone" dataKey="n" stroke={ERROR} fill={`${ERROR}20`} strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>

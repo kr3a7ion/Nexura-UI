@@ -4,7 +4,8 @@ import {
 } from "@phosphor-icons/react";
 import type { Role, Screen } from "../constants";
 import { BG, BORDER, MUTED, PRIMARY, SUBTLE, SUCCESS, TEAL, TEXT, display, mono } from "../constants";
-import { Badge, EmptyState, PageHeader } from "../UIKit";
+import { Badge, EmptyState, PageHeader, StatCard } from "../UIKit";
+import { DEPARTMENT_HOME } from "../mock/departmentHome";
 import type { Department, DepartmentId } from "./departments";
 
 const META: Record<DepartmentId, { description: string; live: string }> = {
@@ -74,9 +75,9 @@ export function SuiteHome({
         actions={
           <div className="flex items-center gap-2 rounded-full border bg-white px-3 py-2 text-xs font-semibold" style={{ borderColor: BORDER, color: MUTED }}>
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: SUCCESS }} />
-            Local server connected
+            Running on this hotel's server
             <span style={{ color: SUBTLE }}>·</span>
-            <span style={{ color: offline ? MUTED : TEAL }}>{offline ? "Internet offline" : "Internet online"}</span>
+            <span style={{ color: offline ? "#92400E" : MUTED }}>{offline ? "Changes will sync later" : "All changes synced"}</span>
           </div>
         }
       />
@@ -135,7 +136,7 @@ export function SuiteHome({
             {recent.map((department, index) => {
               const item = department.screens[0]?.items[0];
               const Icon = department.icon;
-              return item && <button key={department.id} onClick={() => onOpenScreen(item.screen, item.label)} className="flex min-h-[68px] w-full items-center gap-3 px-4 text-left hover:bg-slate-50" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}><div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: `${department.accent}12`, color: department.accent }}><Icon size={17} /></div><div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold" style={{ color: TEXT }}>{item.label}</div><div className="mt-0.5 text-xs" style={{ color: MUTED }}>{department.name}</div></div><span className="text-[10px]" style={{ color: SUBTLE, fontFamily: mono }}>Today</span></button>;
+              return item && <button key={department.id} onClick={() => onOpenScreen(item.screen, item.label)} className="flex min-h-[68px] w-full items-center gap-3 px-4 text-left hover:bg-slate-50" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}><div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: `${department.accent}12`, color: department.accent }}><Icon size={17} /></div><div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold" style={{ color: TEXT }}>{item.label}</div><div className="mt-0.5 text-xs" style={{ color: MUTED }}>{department.name}</div></div><span className="text-xs" style={{ color: SUBTLE, fontFamily: mono }}>Today</span></button>;
             })}
           </div>
         </section>
@@ -154,14 +155,31 @@ export function SuiteHome({
   );
 }
 
-export function DepartmentHome({ department }: { department: Department }) {
+export function DepartmentHome({ department, nav }: { department: Department; nav: (screen: Screen, label: string) => void }) {
   const Icon = department.icon;
+  const home = DEPARTMENT_HOME[department.id];
   return (
     <div>
-      <PageHeader title={department.name} sub="Department workspace" actions={<Badge label="Connected to local server" colors={{ bg: "#ECFDF5", text: SUCCESS }} />} />
-      <div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
-        <EmptyState icon={Icon} message="Department home" />
-      </div>
+      <PageHeader title={department.name} sub={home?.sub ?? "Department workspace"} />
+      {home && (
+        <section className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {home.stats.map(stat => <StatCard key={stat.label} {...stat} icon={Icon} accent={department.accent} />)}
+        </section>
+      )}
+      {department.screens.map(group => (
+        <section key={group.label} className="mb-5">
+          <h2 className="mb-3 text-sm font-bold" style={{ color: TEXT, fontFamily: display }}>{group.label.charAt(0) + group.label.slice(1).toLowerCase()}</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {group.items.map(item => (
+              <button key={item.screen} onClick={() => nav(item.screen, item.label)} className="flex min-h-[64px] items-center gap-3 rounded-2xl border bg-white p-4 text-left transition hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#1BA39C]" style={{ borderColor: BORDER }}>
+                <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl" style={{ backgroundColor: `${department.accent}14`, color: department.accent }}><Icon size={18} weight="duotone" /></span>
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold" style={{ color: TEXT }}>{item.label}</span>
+                <ArrowRight size={16} style={{ color: SUBTLE }} />
+              </button>
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
