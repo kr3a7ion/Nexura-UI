@@ -505,7 +505,7 @@ export function HotelConfig({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{f.rooms}</div>
               <div className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: "#F1F5F9", color: MUTED }}>{f.wing}</div>
               <div className="text-xs" style={{ color: SUBTLE }}>{f.notes}</div>
-              <button className="text-xs" style={{ color: PRIMARY }}><Edit3 size={12} /></button>
+              <button aria-label="Edit" className="text-xs" style={{ color: PRIMARY }}><Edit3 size={12} /></button>
             </div>
           ))}
           <div className="mt-3"><BtnO label="Add Floor / Wing" icon={Plus} onClick={() => add({ type: "info", title: "Add floor" })} /></div>
@@ -856,7 +856,7 @@ export function MyPreferences({ add }: { add: (t: Omit<Toast, "id">) => void }) 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <SectionCard title="Change Password">
             <div className="relative mb-3">
-              <input type={showPw ? "text" : "password"} placeholder="Current password" className="w-full px-3 py-2 border rounded-xl text-xs outline-none pr-8" style={{ borderColor: BORDER }} />
+              <input type={showPw ? "text" : "password"} placeholder="Current password" aria-label="Current password" className="w-full px-3 py-2 border rounded-xl text-xs outline-none pr-8" style={{ borderColor: BORDER }} />
               <button onClick={() => setShowPw(p => !p)} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: MUTED }}>{showPw ? <EyeOff size={13} /> : <Eye size={13} />}</button>
             </div>
             <Inp type="password" placeholder="New password" />

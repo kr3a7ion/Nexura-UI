@@ -1,6 +1,6 @@
 // Lean shell: sidebar, header, notification panel, Router, App root.
 // All screen components live in Screens.tsx. All data/constants in constants.ts.
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { Component, type ReactNode, useState, useCallback, useEffect, useMemo } from "react";
 import { lazy, Suspense } from "react";
 import {
   SquaresFour, CalendarDots, Key, Bed, Wrench,
@@ -94,7 +94,8 @@ function PlaceholderScreen({ title, desc, icon: Icon }: { title: string; desc: s
 }
 
 // ─── Nav type ─────────────────────────────────────────────────────────────────
-type NavFn = (s: Screen, label: string, param?: string) => void;
+// Screens pass plain strings; the shell narrows them when it navigates.
+type NavFn = (s: string, label: string, param?: string) => void;
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 function Router({ screen, add, role, nav, staffName, navParam }: { screen: Screen; add: (t: Omit<Toast, "id">) => void; role: Role; nav: NavFn; staffName: string; navParam: string }) {
@@ -240,6 +241,23 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
 
 // ─── App Root ─────────────────────────────────────────────────────────────────
 const IDLE_LOCK_MS = 15 * 60 * 1000;
+
+// A bug in one screen must not blank the whole suite: keep the shell and offer a way out.
+class ScreenErrorBoundary extends Component<{ children: ReactNode; onHome: () => void }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(error: unknown) { console.error("Screen failed to render", error); }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <div role="alert" className="mx-auto mt-16 max-w-md rounded-2xl border bg-white p-8 text-center" style={{ borderColor: BORDER }}>
+        <h1 className="text-lg font-bold" style={{ color: TEXT }}>This screen could not open</h1>
+        <p className="mt-2 text-sm" style={{ color: MUTED }}>Nothing was lost. Go back to Suite Home and try again. If it keeps happening, tell your IT administrator which screen it was.</p>
+        <button onClick={this.props.onHome} className="mt-5 h-11 rounded-[10px] px-5 text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Back to Suite Home</button>
+      </div>
+    );
+  }
+}
 
 // ─── App Root — manages auth layer routing ────────────────────────────────────
 export default function App() {
@@ -453,7 +471,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
       <aside className="relative z-20 flex h-full flex-shrink-0 flex-col overflow-hidden transition-all duration-200" style={{ width: collapsed ? 64 : 256, backgroundColor: NAV_BG, borderRight: "1px solid rgba(255,255,255,0.07)" }}>
         <div className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-white/10 px-4">
           <div className="min-w-0 flex-1 overflow-hidden"><BrandLockup size={32} tone="dark" /></div>
-          {!collapsed && <button onClick={() => setCollapsed(true)} className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-white/40 hover:bg-white/10"><CaretLeft size={13} weight="bold" /></button>}
+          {!collapsed && <button aria-label="Previous" onClick={() => setCollapsed(true)} className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-white/40 hover:bg-white/10"><CaretLeft size={13} weight="bold" /></button>}
         </div>
 
         <nav className="flex-1 overflow-y-auto py-3" style={{ scrollbarWidth: "none" }}>
@@ -539,16 +557,18 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
           <div className="flex flex-shrink-0 items-center gap-2 overflow-x-auto border-b bg-white px-6 py-2" style={{ borderColor: BORDER }}><span className="mr-2 text-xs font-bold uppercase tracking-wider" style={{ color: SUBTLE }}>Flow</span>{currentFlow.map((step, index) => { const active = index === activeFlowIndex; const complete = activeFlowIndex > index; return <button key={`${step.screen}-${index}`} onClick={() => nav(step.screen, step.label)} className="flex items-center gap-2 whitespace-nowrap text-xs font-semibold" style={{ color: active ? currentDepartment?.accent : complete ? SUCCESS : MUTED }}><span className="flex h-6 w-6 items-center justify-center rounded-full text-xs" style={{ backgroundColor: active ? `${currentDepartment?.accent}18` : complete ? "#ECFDF5" : BG }}>{complete ? <CheckCircle size={13} weight="fill" /> : index + 1}</span>{step.label}{index < currentFlow.length - 1 && <CaretRight size={11} style={{ color: BORDER }} />}</button>; })}</div>
         )}
 
-        <main className="flex-1 overflow-y-auto p-4 pb-8 md:p-6" style={{ scrollbarWidth: "none", backgroundColor: BG }}>
+        <main data-suite-content className="flex-1 overflow-y-auto p-4 pb-8 md:p-6" style={{ scrollbarWidth: "none", backgroundColor: BG }}>
           <div className="mx-auto max-w-screen-2xl">
             {offline && <div className="mb-5 flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium" style={{ backgroundColor: "#FEF3C7", color: "#92400E", borderColor: "#FDE68A" }}><WifiSlash size={15} weight="bold" /><span>Working offline. Everything you do is saved on this hotel's server and will sync later.</span><button onClick={() => setOffline(false)} className="ml-auto rounded-lg px-2.5 py-1 text-xs font-medium text-white" style={{ backgroundColor: WARNING }}>Go Online</button></div>}
+            <ScreenErrorBoundary key={screen} onHome={() => nav("suite-home", "Suite Home")}>
             {screen === "suite-home" ? (
               <SuiteHome staffName={staffName} role={role} departments={allowedDepartments} offline={offline} pinned={pinned.filter(id => allowedDepartments.some(department => department.id === id))} onTogglePin={togglePin} onOpenDepartment={openDepartment} onOpenScreen={(nextScreen, label) => nav(nextScreen, label)} onOpenPortal={onOpenPortal} />
             ) : (screen as string).startsWith("dept-") && !["dept-front-office", "dept-access-security", "dept-housekeeping", "dept-maintenance", "dept-restaurant-pos", "dept-finance", "dept-inventory", "dept-hr", "dept-communications", "dept-fleet"].includes(screen as string) && currentDepartment ? (
               <DepartmentHome department={currentDepartment} nav={(nextScreen, label) => nav(nextScreen, label)} />
             ) : (
-              <Router screen={screen as Screen} add={add} role={role} nav={(nextScreen, label, param) => nav(nextScreen, label, param)} staffName={staffName} navParam={navParam} />
+              <Router screen={screen as Screen} add={add} role={role} nav={(nextScreen, label, param) => nav(nextScreen as SuiteScreen, label, param)} staffName={staffName} navParam={navParam} />
             )}
+            </ScreenErrorBoundary>
           </div>
         </main>
       </div>
@@ -558,7 +578,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
         <CommandList><CommandEmpty>No matching screen.</CommandEmpty><CommandGroup heading="Departments">{allowedDepartments.map(department => { const Icon = department.icon; return <CommandItem key={department.id} value={`${department.name} department`} onSelect={() => openDepartment(department)}><Icon style={{ color: department.accent }} />{department.name}</CommandItem>; })}</CommandGroup><CommandGroup heading="Screens">{searchableScreens.map(item => <CommandItem key={item.screen} value={`${item.label} ${item.department.name}`} onSelect={() => nav(item.screen, item.label)}><item.department.icon style={{ color: item.department.accent }} /><span>{item.label}</span><span className="ml-auto text-xs" style={{ color: SUBTLE }}>{item.department.name}</span></CommandItem>)}</CommandGroup></CommandList>
       </CommandDialog>
 
-      {notifOpen && <><div className="fixed inset-0 z-30 bg-black/40" onClick={() => setNotifOpen(false)} /><div className="fixed right-0 top-0 z-40 flex h-full w-full max-w-[400px] flex-col bg-white shadow-2xl" style={{ borderLeft: `1px solid ${BORDER}` }}><div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><h2 className="text-sm font-semibold" style={{ color: TEXT, fontFamily: display }}>Notifications</h2><button onClick={() => setNotifOpen(false)} className="flex h-8 w-8 items-center justify-center" style={{ color: SUBTLE }}><XCircle size={16} /></button></div><div className="flex border-b" style={{ borderColor: BORDER }}>{["All", "Urgent", "Operational", "System", "Door Lock"].map(tab => <button key={tab} onClick={() => setNotifFilter(tab)} className="flex-1 py-2.5 text-xs font-medium" style={{ color: notifFilter === tab ? PRIMARY : MUTED, borderBottom: notifFilter === tab ? `2px solid ${PRIMARY}` : "2px solid transparent" }}>{tab}</button>)}</div><div className="flex-1 overflow-y-auto">{filteredNotifications.length === 0 && <EmptyState icon={Bell} message="No notifications in this category." />}{filteredNotifications.map(notification => { const Icon = notification.icon; return <div key={notification.id} className="flex gap-3 border-b px-5 py-4" style={{ borderBottomColor: BORDER, borderLeft: `3px solid ${notification.color}` }}><div className="flex h-10 w-10 flex-none items-center justify-center rounded-full" style={{ backgroundColor: `${notification.color}18` }}><Icon size={16} style={{ color: notification.color }} /></div><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><span className="text-xs font-semibold" style={{ color: TEXT }}>{notification.title}</span>{notification.unread && <span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />}</div><p className="mt-0.5 line-clamp-2 text-xs" style={{ color: MUTED }}>{notification.body}</p><span className="mt-1 inline-block text-xs" style={{ color: SUBTLE }}>{notification.time} ago</span></div></div>; })}</div></div></>}
+      {notifOpen && <><div className="fixed inset-0 z-30 bg-black/40" onClick={() => setNotifOpen(false)} /><div className="fixed right-0 top-0 z-40 flex h-full w-full max-w-[400px] flex-col bg-white shadow-2xl" style={{ borderLeft: `1px solid ${BORDER}` }}><div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><h2 className="text-sm font-semibold" style={{ color: TEXT, fontFamily: display }}>Notifications</h2><button aria-label="Close" onClick={() => setNotifOpen(false)} className="flex h-8 w-8 items-center justify-center" style={{ color: SUBTLE }}><XCircle size={16} /></button></div><div className="flex border-b" style={{ borderColor: BORDER }}>{["All", "Urgent", "Operational", "System", "Door Lock"].map(tab => <button key={tab} onClick={() => setNotifFilter(tab)} className="flex-1 py-2.5 text-xs font-medium" style={{ color: notifFilter === tab ? PRIMARY : MUTED, borderBottom: notifFilter === tab ? `2px solid ${PRIMARY}` : "2px solid transparent" }}>{tab}</button>)}</div><div className="flex-1 overflow-y-auto">{filteredNotifications.length === 0 && <EmptyState icon={Bell} message="No notifications in this category." />}{filteredNotifications.map(notification => { const Icon = notification.icon; return <div key={notification.id} className="flex gap-3 border-b px-5 py-4" style={{ borderBottomColor: BORDER, borderLeft: `3px solid ${notification.color}` }}><div className="flex h-10 w-10 flex-none items-center justify-center rounded-full" style={{ backgroundColor: `${notification.color}18` }}><Icon size={16} style={{ color: notification.color }} /></div><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><span className="text-xs font-semibold" style={{ color: TEXT }}>{notification.title}</span>{notification.unread && <span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />}</div><p className="mt-0.5 line-clamp-2 text-xs" style={{ color: MUTED }}>{notification.body}</p><span className="mt-1 inline-block text-xs" style={{ color: SUBTLE }}>{notification.time} ago</span></div></div>; })}</div></div></>}
 
       <ToastC toasts={toasts} dismiss={dismiss} />
       {showSessionExpired && <SessionExpiredModal offline={offline} onStay={() => { setShowSessionExpired(false); add({ type: "success", title: "Session extended", body: "Token refreshed — 12 hours remaining" }); }} onSignOut={() => { setShowSessionExpired(false); onLogout(); }} />}

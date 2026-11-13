@@ -1132,10 +1132,10 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         </RoleCard>
         <RoleCard title="Device Status">
           {DEVICES.slice(0, 5).map(d => (
-            <div key={d.id} className="flex items-center gap-4 px-5 py-3.5 border-b" style={{ borderColor: BORDER }}>
+            <div key={d.name} className="flex items-center gap-4 px-5 py-3.5 border-b" style={{ borderColor: BORDER }}>
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-semibold" style={{ color: TEXT }}>{d.name}</div>
-                <div className="text-xs" style={{ color: MUTED }}>{d.type} · {d.class}</div>
+                <div className="text-xs" style={{ color: MUTED }}>{d.type} · {d.dept}</div>
               </div>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
                 style={{ backgroundColor: d.status === "Active" ? "#DCFCE7" : d.status === "Offline" ? "#FEE2E2" : "#F3F4F6", color: d.status === "Active" ? "#166534" : d.status === "Offline" ? "#991B1B" : "#374151" }}>

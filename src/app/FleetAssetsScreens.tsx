@@ -201,7 +201,7 @@ export function VehicleRegister({ add, nav }: { add: (t: Omit<Toast,"id">) => vo
             </div>
             <div className="mb-4">
               <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Reason / Note</div>
-              <input value={statusReason} onChange={e => setStatusReason(e.target.value)} placeholder="e.g. Engine overhaul scheduled" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
+              <input value={statusReason} onChange={e => setStatusReason(e.target.value)} placeholder="e.g. Engine overhaul scheduled" aria-label="e.g. Engine overhaul scheduled" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
             </div>
             <div className="flex gap-2">
               <button onClick={applyStatusChange} className="flex-1 py-2 rounded-xl text-xs font-bold text-white" style={{ backgroundColor:PRIMARY }}>Apply</button>
@@ -242,7 +242,7 @@ export function VehicleRegister({ add, nav }: { add: (t: Omit<Toast,"id">) => vo
       <div className="flex gap-2 mb-4 flex-wrap">
         <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl border" style={{ borderColor:BORDER, backgroundColor:"white" }}>
           <Search size={13} style={{ color:MUTED }} />
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search plate, make, model…" className="text-xs outline-none" style={{ color:TEXT, width:160 }} />
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search plate, make, model…" aria-label="Search plate, make, model" className="text-xs outline-none" style={{ color:TEXT, width:160 }} />
         </div>
         {[["Status","filterStatus",["all","active","maintenance","off-road","decommissioned"]],["Ownership","filterOwnership",["all","owned","leased","contractor"]],["Documents","filterDocState",["all","valid","expiring-soon","expired"]]].map(([label, key, opts]) => (
           <select key={key as string} value={key==="filterStatus"?filterStatus:key==="filterOwnership"?filterOwnership:filterDocState} onChange={e=>key==="filterStatus"?setFilterStatus(e.target.value):key==="filterOwnership"?setFilterOwnership(e.target.value):setFilterDocState(e.target.value)} className="px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
@@ -649,7 +649,7 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             </div>
             <div>
               <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Litres *</div>
-              <input type="number" placeholder="e.g. 45" value={form.litres} onChange={e=>setForm(f=>({...f,litres:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:errors.litres?ERROR:BORDER }} />
+              <input type="number" placeholder="e.g. 45" aria-label="e.g. 45" value={form.litres} onChange={e=>setForm(f=>({...f,litres:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:errors.litres?ERROR:BORDER }} />
               {errors.litres && <div className="text-xs mt-0.5" style={{ color:ERROR }}>{errors.litres}</div>}
             </div>
             <div>
@@ -667,7 +667,7 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             </div>
             <div>
               <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Station</div>
-              <input placeholder="e.g. MRS Wuse II" value={form.station} onChange={e=>setForm(f=>({...f,station:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
+              <input placeholder="e.g. MRS Wuse II" aria-label="e.g. MRS Wuse II" value={form.station} onChange={e=>setForm(f=>({...f,station:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
             </div>
             <div>
               <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Payment Method</div>
@@ -677,7 +677,7 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             </div>
             <div>
               <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Receipt Reference</div>
-              <input placeholder="e.g. MRS-20250820-041" value={form.receiptRef} onChange={e=>setForm(f=>({...f,receiptRef:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
+              <input placeholder="e.g. MRS-20250820-041" aria-label="e.g. MRS-20250820-041" value={form.receiptRef} onChange={e=>setForm(f=>({...f,receiptRef:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
             </div>
           </div>
           <div className="flex gap-2">
@@ -973,7 +973,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
             </div>
             <div>
               <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Estimated Litres Needed *</div>
-              <input type="number" placeholder="e.g. 200" value={reqForm.estimatedLitres} onChange={e=>setReqForm(f=>({...f,estimatedLitres:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
+              <input type="number" placeholder="e.g. 200" aria-label="e.g. 200" value={reqForm.estimatedLitres} onChange={e=>setReqForm(f=>({...f,estimatedLitres:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
             </div>
             <div>
               <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Urgency</div>
@@ -985,7 +985,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
             </div>
             <div className="col-span-2 lg:col-span-3">
               <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Observations &amp; Reason *</div>
-              <textarea rows={2} placeholder="Describe current fuel level condition, runtime hours since last fill, and reason for request…" value={reqForm.reason} onChange={e=>setReqForm(f=>({...f,reason:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none resize-none" style={{ borderColor:BORDER }} />
+              <textarea rows={2} placeholder="Describe current fuel level condition, runtime hours since last fill, and reason for request…" aria-label="Describe current fuel level condition, runtime hours since last fill, and reason for request" value={reqForm.reason} onChange={e=>setReqForm(f=>({...f,reason:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none resize-none" style={{ borderColor:BORDER }} />
             </div>
           </div>
           <div className="flex gap-2">
@@ -1125,9 +1125,9 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Generator</div>
               <select className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>{GENERATORS.map(g=><option key={g.id}>{g.name}</option>)}</select></div>
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Date & Time</div><input type="datetime-local" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
-            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Litres</div><input type="number" placeholder="e.g. 200" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
+            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Litres</div><input type="number" placeholder="e.g. 200" aria-label="e.g. 200" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Unit Price (₦/L)</div><input type="number" defaultValue="1180" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
-            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Runtime Hours at Fill *</div><input type="number" placeholder="e.g. 14280" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
+            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Runtime Hours at Fill *</div><input type="number" placeholder="e.g. 14280" aria-label="e.g. 14280" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Supplier</div><select className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}><option>Emadeb Energy</option><option>Ardova Direct</option><option>NNPCL</option><option>Other</option></select></div>
           </div>
           <div className="flex gap-2">

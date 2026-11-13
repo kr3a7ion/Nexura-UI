@@ -198,7 +198,7 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
           <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Effective Permissions</div>
           <div className="mb-3">
             <label className="text-xs block mb-1.5" style={{ color: MUTED }}>Preview for user</label>
-            <select value={previewUser} onChange={e=>setPreviewUser(e.target.value)} className="w-full px-2 py-1.5 rounded-xl border text-xs outline-none bg-white" style={{ borderColor: BORDER }}>
+            <select aria-label="Preview for user" value={previewUser} onChange={e=>setPreviewUser(e.target.value)} className="w-full px-2 py-1.5 rounded-xl border text-xs outline-none bg-white" style={{ borderColor: BORDER }}>
               {["Ada Okonkwo","John Abubakar","Emeka Nwosu","Bello Musa"].map(u=><option key={u}>{u}</option>)}
             </select>
           </div>
@@ -367,14 +367,14 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-96" style={{ border:`1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Manual Attendance Entry</h3>
             <div className="space-y-3">
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Staff Member</label><input value={manName} onChange={e=>setManName(e.target.value)} placeholder="Name" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Staff Member</label><input value={manName} onChange={e=>setManName(e.target.value)} placeholder="Name" aria-label="Name" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Status</label>
                 <div className="flex gap-2 flex-wrap">
                   {(["Present","Late","Absent","Leave"] as AttStatus[]).map(s=><button key={s} onClick={()=>setManStatus(s)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold" style={{ backgroundColor:manStatus===s?PRIMARY:"white", color:manStatus===s?"white":MUTED, borderColor:manStatus===s?PRIMARY:BORDER }}>{s}</button>)}
                 </div>
               </div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Reason / Approver Note</label><input value={manReason} onChange={e=>setManReason(e.target.value)} placeholder="State reason…" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" maxLength={4} value={manPin} onChange={e=>setManPin(e.target.value)} placeholder="••••" className="w-full px-3 py-2 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
+              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Reason / Approver Note</label><input value={manReason} onChange={e=>setManReason(e.target.value)} placeholder="State reason…" aria-label="State reason" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" maxLength={4} value={manPin} onChange={e=>setManPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
             </div>
             <div className="flex gap-3 mt-5">
               <BtnO label="Cancel" onClick={()=>setShowManual(false)} />
@@ -532,7 +532,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="text-xs font-semibold" style={{ color:ERROR }}>Rejection reason for {p.driverName}:</span>
                       <input autoFocus value={rejectReason} onChange={e => setRejectReason(e.target.value)}
-                        placeholder="Enter reason…"
+                        placeholder="Enter reason…" aria-label="Enter reason"
                         className="flex-1 min-w-[200px] px-3 py-1.5 border rounded-lg text-xs outline-none"
                         style={{ borderColor:ERROR }}
                         onKeyDown={e => e.key==="Enter" && confirmReject()}
@@ -690,7 +690,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
 // CentralSyncStatus → MultibranchSettingsScreens.tsx
 export { CentralSyncStatus } from "./MultibranchSettingsScreens";
 
-export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
+export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [q, setQ] = useState("");
   const [statusF, setStatusF] = useState("All");
   const [sourceF, setSourceF] = useState("All");
@@ -826,7 +826,7 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
             <div className="lg:col-span-2 relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
               <input value={q} onChange={e => setQ(e.target.value)}
-                placeholder="Guest name, reservation ID, room number…"
+                placeholder="Guest name, reservation ID, room number…" aria-label="Guest name, reservation ID, room number"
                 className="pl-9 pr-4 py-2.5 w-full border rounded-lg text-sm outline-none transition-colors"
                 style={{ borderColor: q ? PRIMARY : BORDER, boxShadow: q ? `0 0 0 2px ${PRIMARY}15` : undefined }} />
             </div>
@@ -845,15 +845,15 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
               <div>
                 <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Check-In From</label>
-                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateFrom ? TEAL : BORDER }} />
+                <input aria-label="Check-In From" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateFrom ? TEAL : BORDER }} />
               </div>
               <div>
                 <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Check-In To</label>
-                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateTo ? TEAL : BORDER }} />
+                <input aria-label="Check-In To" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateTo ? TEAL : BORDER }} />
               </div>
               <div>
                 <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Room Type</label>
-                <select value={typeF} onChange={e => setTypeF(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: typeF !== "All" ? TEAL : BORDER }}>
+                <select aria-label="Room Type" value={typeF} onChange={e => setTypeF(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: typeF !== "All" ? TEAL : BORDER }}>
                   {["All","Standard","Deluxe","Suite"].map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
@@ -1588,13 +1588,13 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
               <h2 className="text-sm font-bold" style={{ color:TEXT }}>Extend Stay</h2>
-              <button onClick={()=>setShowExtend(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
+              <button aria-label="Close" onClick={()=>setShowExtend(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
             </div>
             <div className="px-5 py-4 space-y-3">
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Current check-out</label>
                 <p className="text-sm font-bold" style={{ color:TEXT }}>{res.checkout} at 11:00</p></div>
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>New check-out date</label>
-                <input type="date" value={newCheckout} onChange={e=>setNewCheckout(e.target.value)}
+                <input aria-label="New check-out date" type="date" value={newCheckout} onChange={e=>setNewCheckout(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
             </div>
             <div className="flex gap-3 px-5 pb-5">
@@ -1612,16 +1612,16 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
               <h2 className="text-sm font-bold" style={{ color:TEXT }}>Change Rate</h2>
-              <button onClick={()=>setShowChangeRate(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
+              <button aria-label="Close" onClick={()=>setShowChangeRate(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
             </div>
             <div className="px-5 py-4 space-y-3">
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Rate Plan</label>
-                <select value={newRatePlan} onChange={e=>setNewRatePlan(e.target.value)}
+                <select aria-label="Rate Plan" value={newRatePlan} onChange={e=>setNewRatePlan(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
                   {["Standard Rate","Corporate Rate","Weekend Special","Advance Purchase","Loyalty Rate"].map(p=><option key={p}>{p}</option>)}
                 </select></div>
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Nightly rate (₦)</label>
-                <input type="number" value={newRate} onChange={e=>setNewRate(e.target.value)}
+                <input aria-label="Nightly rate (₦)" type="number" value={newRate} onChange={e=>setNewRate(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
             </div>
             <div className="flex gap-3 px-5 pb-5">
@@ -1639,19 +1639,19 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
               <h2 className="text-sm font-bold" style={{ color:TEXT }}>Post Charge</h2>
-              <button onClick={()=>setShowPostCharge(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
+              <button aria-label="Close" onClick={()=>setShowPostCharge(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
             </div>
             <div className="px-5 py-4 space-y-3">
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Department</label>
-                <select value={chargeDept} onChange={e=>setChargeDept(e.target.value)}
+                <select aria-label="Department" value={chargeDept} onChange={e=>setChargeDept(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
                   {["Rooms","F&B","Housekeeping","Spa","Transport","Other"].map(d=><option key={d}>{d}</option>)}
                 </select></div>
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Description</label>
-                <input value={chargeDesc} onChange={e=>setChargeDesc(e.target.value)} placeholder="e.g. Room Service — Dinner"
+                <input value={chargeDesc} onChange={e=>setChargeDesc(e.target.value)} placeholder="e.g. Room Service — Dinner" aria-label="e.g. Room Service — Dinner"
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Amount (₦)</label>
-                <input type="number" value={chargeAmt} onChange={e=>setChargeAmt(e.target.value)}
+                <input aria-label="Amount (₦)" type="number" value={chargeAmt} onChange={e=>setChargeAmt(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
             </div>
             <div className="flex gap-3 px-5 pb-5">
@@ -1675,16 +1675,16 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
               <h2 className="text-sm font-bold" style={{ color:TEXT }}>Add Service Request</h2>
-              <button onClick={()=>setShowAddReq(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
+              <button aria-label="Close" onClick={()=>setShowAddReq(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
             </div>
             <div className="px-5 py-4 space-y-3">
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Category</label>
-                <select value={reqCat} onChange={e=>setReqCat(e.target.value)}
+                <select aria-label="Category" value={reqCat} onChange={e=>setReqCat(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
                   {["Housekeeping","Amenity","Restaurant","Room Preference","Maintenance","Transport","Other"].map(c=><option key={c}>{c}</option>)}
                 </select></div>
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Request detail</label>
-                <textarea value={reqDetail} onChange={e=>setReqDetail(e.target.value)} rows={3} placeholder="Describe the request…"
+                <textarea value={reqDetail} onChange={e=>setReqDetail(e.target.value)} rows={3} placeholder="Describe the request…" aria-label="Describe the request"
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
             </div>
             <div className="flex gap-3 px-5 pb-5">
@@ -1710,7 +1710,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                 <h2 className="text-sm font-bold" style={{ color:TEXT }}>Message Guest</h2>
                 <p className="text-xs mt-0.5" style={{ color:MUTED }}>{res.guest}</p>
               </div>
-              <button onClick={()=>setShowMessage(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
+              <button aria-label="Close" onClick={()=>setShowMessage(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
             </div>
             <div className="px-5 py-4 space-y-3">
               <div className="flex gap-2">
@@ -1723,7 +1723,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                 ))}
               </div>
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Message</label>
-                <textarea value={msgText} onChange={e=>setMsgText(e.target.value)} rows={4}
+                <textarea aria-label="Message" value={msgText} onChange={e=>setMsgText(e.target.value)} rows={4}
                   placeholder={`Hi ${res.guest.split(" ")[0]}, …`}
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
             </div>
@@ -1850,7 +1850,7 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
             <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Today’s arrivals</div>
             <span className="text-xs" style={{ color: MUTED }}>{totalAssigned}/{UNASSIGNED_ARRIVALS.length} assigned</span>
           </div>
-          <div className="relative mb-3"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search guest, booking, or type…" className="w-full rounded-xl border bg-white py-2.5 pl-9 pr-9 text-sm outline-none" style={{ borderColor: BORDER }} />{search && <button aria-label="Clear search" onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2"><X size={15} style={{ color: MUTED }} /></button>}</div>
+          <div className="relative mb-3"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search guest, booking, or type…" aria-label="Search guest, booking, or type" className="w-full rounded-xl border bg-white py-2.5 pl-9 pr-9 text-sm outline-none" style={{ borderColor: BORDER }} />{search && <button aria-label="Clear search" onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2"><X size={15} style={{ color: MUTED }} /></button>}</div>
           <div className="space-y-3">
             {visibleArrivals.map(a => {
               const isAssigned = Object.values(assigned).includes(a.id);
@@ -2360,7 +2360,7 @@ export function CashDrawerReconciliation({ add }: { add: (t: Omit<Toast, "id">) 
                 {DENOMS.map(d => (
                   <div key={d.value} className="flex items-center gap-3">
                     <span className="w-16 text-sm font-semibold" style={{ color: TEXT }}>{d.label}</span>
-                    <input type="number" min="0" placeholder="0" value={counts[d.value]} onChange={e=>setCounts(p=>({...p,[d.value]:e.target.value}))} className="flex-1 px-2.5 py-2 rounded-lg border text-sm outline-none text-center" style={{ borderColor: BORDER }} />
+                    <input type="number" min="0" placeholder="0" aria-label="0" value={counts[d.value]} onChange={e=>setCounts(p=>({...p,[d.value]:e.target.value}))} className="flex-1 px-2.5 py-2 rounded-lg border text-sm outline-none text-center" style={{ borderColor: BORDER }} />
                     <span className="w-24 text-sm text-right font-semibold" style={{ color: MUTED, fontFamily: mono }}>= ₦{((parseInt(counts[d.value]||"0",10)||0)*d.value).toLocaleString()}</span>
                   </div>
                 ))}
@@ -2387,12 +2387,12 @@ export function CashDrawerReconciliation({ add }: { add: (t: Omit<Toast, "id">) 
               {variance !== 0 && (
                 <div className="mb-3">
                   <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Variance Reason <span style={{ color: ERROR }}>*</span></label>
-                  <textarea value={varReason} onChange={e=>setVarReason(e.target.value)} rows={2} placeholder="Explain the variance…" className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: variance !== 0 && !varReason.trim() ? ERROR : BORDER }} />
+                  <textarea value={varReason} onChange={e=>setVarReason(e.target.value)} rows={2} placeholder="Explain the variance…" aria-label="Explain the variance" className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: variance !== 0 && !varReason.trim() ? ERROR : BORDER }} />
                 </div>
               )}
               <div className="mb-4">
                 <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label>
-                <input type="password" maxLength={4} value={managerPin} onChange={e=>setManagerPin(e.target.value)} placeholder="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} />
+                <input type="password" maxLength={4} value={managerPin} onChange={e=>setManagerPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} />
               </div>
               {phase === "done" ? (
                 <div className="py-3 text-center text-sm font-semibold rounded-xl" style={{ backgroundColor: "#DCFCE7", color: "#166534" }}>Shift closed ✓</div>
@@ -2636,8 +2636,8 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Rollback Night Audit</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>This will reverse the date roll and unfreeze revenue. This action is fully audited.</p>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason <span style={{ color: ERROR }}>*</span></label><textarea value={rollbackReason} onChange={e=>setRollbackReason(e.target.value)} rows={2} placeholder="State the reason for rollback…" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN <span style={{ color: ERROR }}>*</span></label><input type="password" maxLength={4} value={rollbackPin} onChange={e=>setRollbackPin(e.target.value)} placeholder="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason <span style={{ color: ERROR }}>*</span></label><textarea value={rollbackReason} onChange={e=>setRollbackReason(e.target.value)} rows={2} placeholder="State the reason for rollback…" aria-label="State the reason for rollback" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN <span style={{ color: ERROR }}>*</span></label><input type="password" maxLength={4} value={rollbackPin} onChange={e=>setRollbackPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
             </div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowRollback(false)} /><button onClick={() => { if (rollbackPin !== "1234" || !rollbackReason.trim()) { add({ type: "error", title: "Invalid PIN or missing reason" }); return; } setAuditStatus("idle"); setStepStatuses(Object.fromEntries(STEPS_DEF.map(s=>[s.id,"pending"]))); setShowRollback(false); add({ type: "warning", title: "Night audit rolled back", body: rollbackReason }); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Confirm Rollback</button></div>
           </div>
@@ -2771,7 +2771,7 @@ export function TaxConfiguration({ add }: { add: (t: Omit<Toast, "id">) => void 
                   <div className="text-xs" style={{ color: MUTED }}>{ex.condition}</div>
                   <div className="flex gap-1 mt-2">{ex.exempts.map(e=><span key={e} className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>{e} exempt</span>)}</div>
                 </div>
-                <button onClick={() => add({ type: "info", title: `Edit exemption — ${ex.rule}` })} className="flex-shrink-0 text-xs px-2.5 py-1.5 rounded border" style={{ color: MUTED, borderColor: BORDER }}><Edit3 size={12} /></button>
+                <button aria-label="Edit" onClick={() => add({ type: "info", title: `Edit exemption — ${ex.rule}` })} className="flex-shrink-0 text-xs px-2.5 py-1.5 rounded border" style={{ color: MUTED, borderColor: BORDER }}><Edit3 size={12} /></button>
               </div>
             ))}
           </div>
@@ -2924,7 +2924,7 @@ export function RefundProcessing({ add }: { add: (t: Omit<Toast, "id">) => void 
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Approve Refund {selected}</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>Refundable: ₦{refunds.find(r=>r.id===selected)?.refundable.toLocaleString()}. Manager PIN required.</p>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" maxLength={4} value={approverPin} onChange={e=>setApproverPin(e.target.value)} placeholder="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
+            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" maxLength={4} value={approverPin} onChange={e=>setApproverPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowApprove(false)} /><button onClick={() => approve(selected)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Approve</button></div>
           </div>
         </>
@@ -3065,16 +3065,16 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
                 {/* Partial amount */}
                 {voidType === "partial" && (
                   <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reversal Amount (₦)</label>
-                  <input type="number" max={selectedCharge.amount} value={partialAmt} onChange={e=>setPartialAmt(e.target.value)} placeholder={`Max ₦${selectedCharge.amount.toLocaleString()}`} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                  <input aria-label="Reversal Amount (₦)" type="number" max={selectedCharge.amount} value={partialAmt} onChange={e=>setPartialAmt(e.target.value)} placeholder={`Max ₦${selectedCharge.amount.toLocaleString()}`} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
                 )}
 
                 {/* Reason */}
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason</label>
-                <select value={reason} onChange={e=>setReason(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none mb-2" style={{ borderColor: BORDER }}>
+                <select aria-label="Reason" value={reason} onChange={e=>setReason(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none mb-2" style={{ borderColor: BORDER }}>
                   <option value="">Select reason…</option>
                   {VOID_REASONS.map(r=><option key={r}>{r}</option>)}
                 </select>
-                <input value={reasonFree} onChange={e=>setReasonFree(e.target.value)} placeholder="Additional notes…" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <input value={reasonFree} onChange={e=>setReasonFree(e.target.value)} placeholder="Additional notes…" aria-label="Additional notes" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
 
                 {/* Balance preview */}
                 <div className="px-4 py-3 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: `1px solid ${BORDER}` }}>
@@ -3090,7 +3090,7 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
 
                 {/* Manager PIN */}
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label>
-                <input type="password" maxLength={4} value={managerPin} onChange={e=>setManagerPin(e.target.value)} placeholder="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
+                <input type="password" maxLength={4} value={managerPin} onChange={e=>setManagerPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
 
                 <button onClick={submit} disabled={!canSubmit} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Apply {voidType === "full" ? "Full Void" : "Partial Reversal"}</button>
               </div>
@@ -3181,10 +3181,10 @@ export function AccountingExport({ add }: { add: (t: Omit<Toast, "id">) => void 
               <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: MUTED }}>Export Settings</h3>
               <div className="space-y-3">
                 <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Period</label>
-                  <input value={period} onChange={e=>setPeriod(e.target.value)} className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} />
+                  <input aria-label="Period" value={period} onChange={e=>setPeriod(e.target.value)} className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} />
                 </div>
                 <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Export Format</label>
-                  <select value={format} onChange={e=>setFormat(e.target.value)} className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-white" style={{ borderColor: BORDER }}>
+                  <select aria-label="Export Format" value={format} onChange={e=>setFormat(e.target.value)} className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-white" style={{ borderColor: BORDER }}>
                     {["Sage 50","QuickBooks IIF","CSV (Generic)","Excel","IFRS XML"].map(f=><option key={f}>{f}</option>)}
                   </select>
                 </div>
@@ -3407,7 +3407,7 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <button onClick={() => setSelected(null)} style={{ color: MUTED }}>✕</button>
           </div>
           <div className="space-y-2 text-sm mb-4">
-            {([["Invoice",sel.invRef],["Guest",sel.guest],["Type",sel.type],["Reason",sel.reason],["Issued",sel.issuedDate],sel.applied?["Applied",sel.applied]:null,sel.approver?["Approver",sel.approver]:null,["Notes",sel.notes]] as ([string,string]|null)[]).filter(Boolean).map(([k,v]) => (
+            {([["Invoice",sel.invRef],["Guest",sel.guest],["Type",sel.type],["Reason",sel.reason],["Issued",sel.issuedDate],sel.applied?["Applied",sel.applied]:null,sel.approver?["Approver",sel.approver]:null,["Notes",sel.notes]] as ([string,string]|null)[]).filter((row): row is [string,string] => row !== null).map(([k,v]) => (
               <div key={k}><div className="text-xs" style={{ color: MUTED }}>{k}</div><div className="text-sm font-medium mt-0.5" style={{ color: TEXT }}>{v}</div></div>
             ))}
           </div>
@@ -3423,8 +3423,8 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Issue Credit Note — {`CN-2025-${String(nextNum).padStart(4,"0")}`}</h3>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Invoice Reference</label><input value={newInvRef} onChange={e=>setNewInvRef(e.target.value)} placeholder="INV-2025-XXXX" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-                <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Guest / Company</label><input value={newGuest} onChange={e=>setNewGuest(e.target.value)} placeholder="Name" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Invoice Reference</label><input value={newInvRef} onChange={e=>setNewInvRef(e.target.value)} placeholder="INV-2025-XXXX" aria-label="INV-2025-XXXX" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
+                <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Guest / Company</label><input value={newGuest} onChange={e=>setNewGuest(e.target.value)} placeholder="Name" aria-label="Name" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Type</label>
@@ -3432,14 +3432,14 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                     {(["Full","Partial"] as const).map(t => <button key={t} onClick={() => setNewType(t)} className="flex-1 py-2 rounded-xl border text-xs font-semibold" style={{ backgroundColor: newType===t?PRIMARY:"white", color: newType===t?"white":MUTED, borderColor: newType===t?PRIMARY:BORDER }}>{t}</button>)}
                   </div>
                 </div>
-                <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Amount (₦)</label><input type="number" value={newAmt} onChange={e=>setNewAmt(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
+                <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Amount (₦)</label><input type="number" value={newAmt} onChange={e=>setNewAmt(e.target.value)} placeholder="0.00" aria-label="0.00" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
               </div>
               <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Reason</label>
-                <select value={newReason} onChange={e=>setNewReason(e.target.value)} className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-white" style={{ borderColor: BORDER }}>
+                <select aria-label="Reason" value={newReason} onChange={e=>setNewReason(e.target.value)} className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-white" style={{ borderColor: BORDER }}>
                   {REASONS.map(r=><option key={r}>{r}</option>)}
                 </select>
               </div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Notes</label><textarea value={newNotes} onChange={e=>setNewNotes(e.target.value)} rows={2} placeholder="Additional context…" className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Notes</label><textarea value={newNotes} onChange={e=>setNewNotes(e.target.value)} rows={2} placeholder="Additional context…" aria-label="Additional context" className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
             </div>
             <div className="flex gap-3 mt-5">
               <BtnO label="Cancel" onClick={() => setShowNew(false)} />
@@ -3456,7 +3456,7 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-80" style={{ border:`1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Approve {showApprove}</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>Manager PIN required to approve credit notes.</p>
-            <input type="password" maxLength={4} value={approvePin} onChange={e=>setApprovePin(e.target.value)} placeholder="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest mb-4" style={{ borderColor: BORDER, fontFamily: mono }} />
+            <input type="password" maxLength={4} value={approvePin} onChange={e=>setApprovePin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest mb-4" style={{ borderColor: BORDER, fontFamily: mono }} />
             <div className="flex gap-3">
               <BtnO label="Cancel" onClick={() => { setShowApprove(null); setApprovePin(""); }} />
               <button onClick={() => approveCN(showApprove)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Approve</button>
@@ -3587,7 +3587,7 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
                 <div className="text-sm font-bold" style={{ color:TEXT }}>{selected.id}</div>
                 <div className="text-xs" style={{ color:MUTED }}>{selected.guest} · Room {selected.room}</div>
               </div>
-              <button onClick={()=>setSelected(null)}><X size={15} style={{ color:SUBTLE }} /></button>
+              <button aria-label="Close" onClick={()=>setSelected(null)}><X size={15} style={{ color:SUBTLE }} /></button>
             </div>
 
             <div className="flex gap-2 flex-wrap">
@@ -3615,7 +3615,7 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
             {/* Internal note */}
             <div>
               <label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Internal Note</label>
-              <textarea value={noteText} onChange={e=>setNoteText(e.target.value)} rows={2} placeholder="Add note visible only to staff…" className="w-full px-3 py-2 rounded-xl border text-xs outline-none resize-none" style={{ borderColor:BORDER, color:TEXT }} />
+              <textarea value={noteText} onChange={e=>setNoteText(e.target.value)} rows={2} placeholder="Add note visible only to staff…" aria-label="Add note visible only to staff" className="w-full px-3 py-2 rounded-xl border text-xs outline-none resize-none" style={{ borderColor:BORDER, color:TEXT }} />
               <button onClick={()=>{ add({type:"info",title:"Note added"}); setNoteText(""); }} className="mt-1 text-xs px-3 py-1.5 rounded-xl border font-semibold" style={{ color:PRIMARY, borderColor:`${PRIMARY}30` }}>Save Note</button>
             </div>
 
@@ -3638,12 +3638,12 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
             <p className="text-xs mb-4" style={{ color:MUTED }}>Amount will be posted as a credit to Room {selected.room} folio and deducted from the guest's bill.</p>
             <div className="space-y-3">
               <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Compensation Type</label>
-                <select className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
+                <select aria-label="Compensation Type" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
                   {["Room Rate Discount","F&B Credit","Service Waiver","Full Night Comp","Other Credit"].map(t=><option key={t}>{t}</option>)}
                 </select>
               </div>
               <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Amount (₦)</label>
-                <input type="number" value={compAmt} onChange={e=>setCompAmt(e.target.value)} placeholder="0" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT, fontFamily:mono }} />
+                <input type="number" value={compAmt} onChange={e=>setCompAmt(e.target.value)} placeholder="0" aria-label="0" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT, fontFamily:mono }} />
               </div>
             </div>
             <div className="flex gap-3 mt-4">

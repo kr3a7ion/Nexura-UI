@@ -158,7 +158,7 @@ export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }
               ))}
             </div>
             <div className="pt-4 border-t" style={{ borderColor: "#F4F4F5" }}>
-              <textarea value={note} onChange={e=>setNote(e.target.value)} className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none resize-none mb-2" rows={2} placeholder="Add note or update…" style={{ borderColor: BORDER }} />
+              <textarea value={note} onChange={e=>setNote(e.target.value)} className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none resize-none mb-2" rows={2} placeholder="Add note or update…" aria-label="Add note or update" style={{ borderColor: BORDER }} />
               <BtnP label="Post Update" icon={Send} onClick={postNote} />
             </div>
           </div>
@@ -208,7 +208,7 @@ export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }
             <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Close Work Order</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>Document the resolution before closing. This is required and will appear on the audit trail.</p>
             <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Resolution Notes</label>
-            <textarea value={resolution} onChange={e=>setResolution(e.target.value)} placeholder="Describe what was found and what was done to resolve the issue…" rows={4} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+            <textarea value={resolution} onChange={e=>setResolution(e.target.value)} placeholder="Describe what was found and what was done to resolve the issue…" aria-label="Describe what was found and what was done to resolve the issue" rows={4} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowClose(false)} /><button disabled={!resolution.trim()} onClick={closeWO} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>Close Order</button></div>
           </div>
         </>
@@ -254,7 +254,7 @@ export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) 
           <StatCard label="Degraded" value={String(REGISTER.filter(a=>a.status==="Degraded").length)} sub="Needs attention" icon={Activity} accent={ORANGE} />
         </div>
         <div className="flex items-center gap-3 mb-4 flex-wrap">
-          <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search asset name or ID…" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-52" style={{ borderColor: BORDER }} /></div>
+          <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search asset name or ID…" aria-label="Search asset name or ID" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-52" style={{ borderColor: BORDER }} /></div>
           <div className="flex gap-1.5 flex-wrap">{CATS.map(c => <button key={c} onClick={() => setCatFilter(c)} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ backgroundColor: catFilter===c ? PRIMARY : "white", color: catFilter===c ? "white" : MUTED, borderColor: catFilter===c ? PRIMARY : BORDER }}>{c}</button>)}</div>
         </div>
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
@@ -292,7 +292,7 @@ export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) 
       {sel && (
         <div className="w-80 flex-shrink-0 space-y-4">
           <div className="bg-white rounded-xl border p-5 sticky top-4" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-4"><h3 className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</h3><button onClick={()=>setSelected(null)} style={{ color: SUBTLE }}><X size={16} /></button></div>
+            <div className="flex items-center justify-between mb-4"><h3 className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</h3><button aria-label="Close" onClick={()=>setSelected(null)} style={{ color: SUBTLE }}><X size={16} /></button></div>
             <div className="text-base font-bold mb-1" style={{ color: TEXT }}>{sel.name}</div>
             <div className="flex gap-1.5 mb-4"><span className="text-xs px-2 py-0.5 rounded font-semibold" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>{sel.cat}</span><span className="text-xs font-semibold" style={{ color: sel.criticality==="Critical"?ERROR:sel.criticality==="High"?ORANGE:MUTED }}>{sel.criticality}</span></div>
             <div className="space-y-2 text-xs mb-4">
@@ -447,8 +447,8 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
             <p className="text-xs mb-4" style={{ color: MUTED }}>{t.asset} · {t.task}</p>
             <div className="space-y-3">
               {t.meterLabel && <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>{t.meterLabel}</label><input value={meter} onChange={e=>setMeter(e.target.value)} placeholder={t.meterLabel} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>}
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Completion Notes (optional)</label><textarea rows={2} placeholder="Any observations or issues found…" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Completed By</label><select className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Emeka Nwosu</option><option>Chidi Ike</option><option>External Vendor</option></select></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Completion Notes (optional)</label><textarea rows={2} placeholder="Any observations or issues found…" aria-label="Any observations or issues found" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Completed By</label><select aria-label="Completed By" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Emeka Nwosu</option><option>Chidi Ike</option><option>External Vendor</option></select></div>
             </div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowDone(null)} /><button onClick={markDone} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Confirm Completion</button></div>
           </div>
@@ -461,7 +461,7 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowSkip(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Skip PM Task — {showSkip}</h3>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason (required)</label><textarea value={skipReason} onChange={e=>setSkipReason(e.target.value)} placeholder="e.g. External vendor unavailable — rescheduled to next week" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason (required)</label><textarea value={skipReason} onChange={e=>setSkipReason(e.target.value)} placeholder="e.g. External vendor unavailable — rescheduled to next week" aria-label="e.g. External vendor unavailable — rescheduled to next week" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowSkip(null)} /><button disabled={!skipReason.trim()} onClick={skipTask} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Skip Task</button></div>
           </div>
         </>
@@ -473,7 +473,7 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowReschedule(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Reschedule — {showReschedule}</h3>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New Due Date</label><input type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New Due Date</label><input aria-label="New Due Date" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowReschedule(null)} /><button disabled={!newDate} onClick={() => { add({ type: "info", title: `${showReschedule} rescheduled to ${newDate}` }); setShowReschedule(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Reschedule</button></div>
           </div>
         </>
@@ -556,7 +556,7 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
       {sel && (
         <div className="w-80 flex-shrink-0">
           <div className="bg-white rounded-xl border p-5 sticky top-4" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-1"><h3 className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</h3><button onClick={()=>setSelected(null)} style={{ color: SUBTLE }}><X size={16} /></button></div>
+            <div className="flex items-center justify-between mb-1"><h3 className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</h3><button aria-label="Close" onClick={()=>setSelected(null)} style={{ color: SUBTLE }}><X size={16} /></button></div>
             <div className="text-base font-bold mb-0.5" style={{ color: TEXT }}>{sel.company}</div>
             <div className="text-xs mb-3" style={{ color: MUTED }}>{sel.cat}</div>
             <div className="space-y-1.5 text-xs mb-4">
@@ -598,10 +598,10 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
             <p className="text-xs mb-4" style={{ color: MUTED }}>{v.contact} · {v.phone}</p>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call Date</label><input type="date" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Outcome</label><select className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Resolved</option><option>Follow-up required</option><option>WO scheduled</option><option>Quote requested</option></select></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call Date</label><input aria-label="Call Date" type="date" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Outcome</label><select aria-label="Outcome" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Resolved</option><option>Follow-up required</option><option>WO scheduled</option><option>Quote requested</option></select></div>
               </div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call Notes</label><textarea value={callNotes} onChange={e=>setCallNotes(e.target.value)} rows={3} placeholder="Summary of what was discussed…" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call Notes</label><textarea value={callNotes} onChange={e=>setCallNotes(e.target.value)} rows={3} placeholder="Summary of what was discussed…" aria-label="Summary of what was discussed" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
             </div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowCall(null)} /><button onClick={() => { add({ type: "success", title: `Call logged — ${v.company}` }); setShowCall(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save Log</button></div>
           </div>

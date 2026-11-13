@@ -116,7 +116,7 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
           <div className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full" style={{ backgroundColor: "rgba(34,197,94,0.12)", color: "#22C55E" }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#22C55E" }} />portal.yourplatform.com
           </div>
-          <button className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10">
+          <button aria-label="Notifications" className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10">
             <Bell size={16} color="white" />
           </button>
           <div className="relative">

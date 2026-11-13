@@ -379,18 +379,18 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
             <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor:BORDER }}>
               <div className="text-sm font-bold" style={{ color:ERROR }}>Cancel Trip {cancelTarget}</div>
-              <button onClick={()=>setCancelTarget(null)} className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor:"#F1F5F9", color:MUTED }}><XCircle size={14}/></button>
+              <button aria-label="Close" onClick={()=>setCancelTarget(null)} className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor:"#F1F5F9", color:MUTED }}><XCircle size={14}/></button>
             </div>
             <div className="p-5 space-y-3">
               <div>
                 <label className="text-xs font-semibold mb-1 block" style={{ color:TEXT }}>Cancellation reason</label>
-                <select value={cancelReason} onChange={e=>setCancelReason(e.target.value as CancelReason)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
+                <select aria-label="Cancellation reason" value={cancelReason} onChange={e=>setCancelReason(e.target.value as CancelReason)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
                   {(["Guest cancelled","Guest no-show","Flight changed","No vehicle available","No driver available","Vehicle breakdown","Duplicate request","Other"] as CancelReason[]).map(r=><option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs font-semibold mb-1 block" style={{ color:TEXT }}>Additional note (optional)</label>
-                <textarea rows={2} value={cancelNote} onChange={e=>setCancelNote(e.target.value)} placeholder="Any additional context…" className="w-full px-3 py-2 border rounded-xl text-xs outline-none resize-none" style={{ borderColor:BORDER }} />
+                <textarea rows={2} value={cancelNote} onChange={e=>setCancelNote(e.target.value)} placeholder="Any additional context…" aria-label="Any additional context" className="w-full px-3 py-2 border rounded-xl text-xs outline-none resize-none" style={{ borderColor:BORDER }} />
               </div>
             </div>
             <div className="flex gap-2 px-5 py-4 border-t" style={{ borderColor:BORDER }}>
@@ -523,7 +523,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
             <div className="bg-white rounded-xl border p-3" style={{ borderColor:PRIMARY, boxShadow:`0 0 0 2px ${PRIMARY}18` }}>
               <div className="flex items-center justify-between mb-1">
                 <div className="text-xs font-bold" style={{ color:PRIMARY }}>Assign {selectedTripObj.id}</div>
-                <button onClick={()=>setSelectedTrip(null)} className="text-xs" style={{ color:MUTED }}><XCircle size={13}/></button>
+                <button aria-label="Close" onClick={()=>setSelectedTrip(null)} className="text-xs" style={{ color:MUTED }}><XCircle size={13}/></button>
               </div>
               <div className="text-xs mb-3 truncate" style={{ color:MUTED }}>
                 {selectedTripObj.guest ?? `${selectedTripObj.dept} · ${selectedTripObj.requestedBy}`} → {selectedTripObj.dropoff} @ {selectedTripObj.scheduledTime}
@@ -909,7 +909,7 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
             <button key={t} onClick={() => setDeptType(t)}
               className="p-3.5 rounded-xl border text-left transition-all"
               style={{ borderColor:deptType===t?PRIMARY:BORDER, backgroundColor:deptType===t?"#F8FAFF":"white", boxShadow:"0 1px 3px rgba(0,0,0,0.06)" }}>
-              <Icon size={18} className="mb-1.5" style={{ color:deptType===t?PRIMARY:SUBTLE }} />
+              <span className="mb-1.5 inline-flex"><Icon size={18} style={{ color:deptType===t?PRIMARY:SUBTLE }} /></span>
               <div className="text-sm font-bold leading-tight" style={{ color:deptType===t?PRIMARY:TEXT }}>{t}</div>
               <div className="text-xs mt-0.5 leading-tight" style={{ color:MUTED }}>{desc}</div>
             </button>
@@ -935,9 +935,9 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
                       <option>Departure drop-off — hotel → airport</option>
                     </select>
                   </div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Reservation (optional)</div><input placeholder="Search reservation or guest…" className={inp} style={{ borderColor:BORDER }} /></div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Guest Name *</div><input placeholder="e.g. Dr. Amaka Osei" className={inp} style={{ borderColor:BORDER }} /></div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Flight Number</div><input placeholder="e.g. DL421" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Reservation (optional)</div><input placeholder="Search reservation or guest…" aria-label="Search reservation or guest" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Guest Name *</div><input placeholder="e.g. Dr. Amaka Osei" aria-label="e.g. Dr. Amaka Osei" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Flight Number</div><input placeholder="e.g. DL421" aria-label="e.g. DL421" className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Arrival / Departure Time *</div><input type="time" defaultValue="14:30" className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Terminal</div><select className={inp} style={{ borderColor:BORDER }}><option>International</option><option>Domestic</option></select></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Passengers</div><input type="number" defaultValue="1" min={1} max={20} className={inp} style={{ borderColor:BORDER }} /></div>
@@ -947,17 +947,17 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
 
               {guestType === "Guest Charter" && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Guest / Client *</div><input placeholder="Guest name or company" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Guest / Client *</div><input placeholder="Guest name or company" aria-label="Guest name or company" className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Duration Basis</div><select className={inp} style={{ borderColor:BORDER }}><option>Hourly</option><option>Half-day (4h)</option><option>Full day (8h)</option></select></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Start Date & Time *</div><input type="datetime-local" className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Estimated End</div><input type="datetime-local" className={inp} style={{ borderColor:BORDER }} /></div>
-                  <div className="lg:col-span-2"><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Destination / Itinerary</div><input placeholder="e.g. Aso Rock → National Assembly → CBD" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div className="lg:col-span-2"><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Destination / Itinerary</div><input placeholder="e.g. Aso Rock → National Assembly → CBD" aria-label="e.g. Aso Rock → National Assembly → CBD" className={inp} style={{ borderColor:BORDER }} /></div>
                 </div>
               )}
 
               <div className="pt-2 border-t" style={{ borderColor:BORDER }}>
                 <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Special Instructions</div>
-                <textarea rows={2} placeholder="VIP handling, accessibility needs, extra stops…" className={"resize-none " + inp} style={{ borderColor:BORDER }} />
+                <textarea rows={2} placeholder="VIP handling, accessibility needs, extra stops…" aria-label="VIP handling, accessibility needs, extra stops" className={"resize-none " + inp} style={{ borderColor:BORDER }} />
               </div>
             </div>
           )}
@@ -980,15 +980,15 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Requested By (Staff Name) *</div>
-                    <input value={df.requestedBy} onChange={e => setDf(f => ({ ...f, requestedBy: e.target.value }))} placeholder="Your full name" className={inp} style={{ borderColor:BORDER }} />
+                    <input value={df.requestedBy} onChange={e => setDf(f => ({ ...f, requestedBy: e.target.value }))} placeholder="Your full name" aria-label="Your full name" className={inp} style={{ borderColor:BORDER }} />
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Supervisor / Approver</div>
-                    <input value={df.supervisor} onChange={e => setDf(f => ({ ...f, supervisor: e.target.value }))} placeholder="Name of approving supervisor" className={inp} style={{ borderColor:BORDER }} />
+                    <input value={df.supervisor} onChange={e => setDf(f => ({ ...f, supervisor: e.target.value }))} placeholder="Name of approving supervisor" aria-label="Name of approving supervisor" className={inp} style={{ borderColor:BORDER }} />
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Cost Centre</div>
-                    <input value={df.costCentre} onChange={e => setDf(f => ({ ...f, costCentre: e.target.value }))} placeholder="e.g. FB-OPS-001" className={inp} style={{ borderColor:BORDER }} />
+                    <input value={df.costCentre} onChange={e => setDf(f => ({ ...f, costCentre: e.target.value }))} placeholder="e.g. FB-OPS-001" aria-label="e.g. FB-OPS-001" className={inp} style={{ borderColor:BORDER }} />
                   </div>
                 </div>
 
@@ -1034,12 +1034,12 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Trip Purpose / Description</div>
-                    <input value={df.purpose} onChange={e => setDf(f => ({ ...f, purpose: e.target.value }))} placeholder="Brief description of why this trip is needed" className={inp} style={{ borderColor:BORDER }} />
+                    <input value={df.purpose} onChange={e => setDf(f => ({ ...f, purpose: e.target.value }))} placeholder="Brief description of why this trip is needed" aria-label="Brief description of why this trip is needed" className={inp} style={{ borderColor:BORDER }} />
                   </div>
                 </div>
                 <div>
                   <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Additional Notes for Driver</div>
-                  <textarea rows={2} value={df.notes} onChange={e => setDf(f => ({ ...f, notes: e.target.value }))} placeholder="Loading bay access, contact at destination, time constraints…" className={"resize-none " + inp} style={{ borderColor:BORDER }} />
+                  <textarea rows={2} value={df.notes} onChange={e => setDf(f => ({ ...f, notes: e.target.value }))} placeholder="Loading bay access, contact at destination, time constraints…" aria-label="Loading bay access, contact at destination, time constraints" className={"resize-none " + inp} style={{ borderColor:BORDER }} />
                 </div>
               </div>
             </>
@@ -1322,7 +1322,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                 <div className="text-sm font-bold" style={{ color:TEXT }}>Add Driver to Roster</div>
                 <div className="text-xs mt-0.5" style={{ color:MUTED }}>Step {addStep} of 2 — {addStep===1?"Select existing staff":"Enter driving credentials"}</div>
               </div>
-              <button onClick={closeModal} className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ color:MUTED, backgroundColor:"#F1F5F9" }}>
+              <button aria-label="Close" onClick={closeModal} className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ color:MUTED, backgroundColor:"#F1F5F9" }}>
                 <XCircle size={15} />
               </button>
             </div>
@@ -1335,7 +1335,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                     <Search size={13} className="absolute left-3 top-2.5" style={{ color:MUTED }} />
                     <input
                       value={staffSearch} onChange={e => setStaffSearch(e.target.value)}
-                      placeholder="Search by name or department…"
+                      placeholder="Search by name or department…" aria-label="Search by name or department"
                       className="w-full pl-8 pr-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}
                     />
                   </div>
@@ -1396,7 +1396,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                     <div className="col-span-2">
                       <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Driving Licence Number *</div>
                       <input value={nf.licNo} onChange={e => setNf(f => ({ ...f, licNo: e.target.value }))}
-                        placeholder="e.g. FCT/DL/2023/12345" className={inp} style={{ borderColor:BORDER }} />
+                        placeholder="e.g. FCT/DL/2023/12345" aria-label="e.g. FCT/DL/2023/12345" className={inp} style={{ borderColor:BORDER }} />
                     </div>
                     <div>
                       <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Licence Class</div>
@@ -1415,7 +1415,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                     <div>
                       <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Permit Reference</div>
                       <input value={nf.permitRef} onChange={e => setNf(f => ({ ...f, permitRef: e.target.value }))}
-                        placeholder="Auto-generated if blank" className={inp} style={{ borderColor:BORDER }} />
+                        placeholder="Auto-generated if blank" aria-label="Auto-generated if blank" className={inp} style={{ borderColor:BORDER }} />
                     </div>
                     <div className="col-span-2">
                       <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Assign Vehicle (optional)</div>
@@ -1463,7 +1463,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                 <div className="text-sm font-bold" style={{ color:TEXT }}>Propose Shift Change</div>
                 <div className="text-xs mt-0.5" style={{ color:MUTED }}>{shiftModal.driverName} · {shiftModal.day}</div>
               </div>
-              <button onClick={() => { setShiftModal(null); setProposalReason(""); }} className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ color:MUTED, backgroundColor:"#F1F5F9" }}>
+              <button aria-label="Close" onClick={() => { setShiftModal(null); setProposalReason(""); }} className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ color:MUTED, backgroundColor:"#F1F5F9" }}>
                 <XCircle size={15} />
               </button>
             </div>
@@ -1490,7 +1490,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
               <div>
                 <label className="text-xs font-semibold mb-1.5 block" style={{ color:TEXT }}>Reason for change</label>
                 <textarea rows={3} value={proposalReason} onChange={e => setProposalReason(e.target.value)}
-                  placeholder="Explain the operational need for this shift change…"
+                  placeholder="Explain the operational need for this shift change…" aria-label="Explain the operational need for this shift change"
                   className="w-full px-3 py-2 border rounded-xl text-xs outline-none resize-none"
                   style={{ borderColor:BORDER, color:TEXT }} />
               </div>
@@ -1613,7 +1613,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                               <XCircle size={14} style={{ color:ERROR }} />
                               <span className="text-xs font-bold" style={{ color:ERROR }}>Suspend {d.name}</span>
                               <input autoFocus value={suspendReason} onChange={e => setSuspendReason(e.target.value)}
-                                placeholder="Enter reason for suspension (required)…"
+                                placeholder="Enter reason for suspension (required)…" aria-label="Enter reason for suspension (required)"
                                 className="flex-1 px-3 py-1.5 border rounded-lg text-xs outline-none"
                                 style={{ borderColor:ERROR }}
                                 onKeyDown={e => e.key === "Enter" && confirmSuspend(d.id)}
@@ -2264,7 +2264,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               </div>
               <div>
                 <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Trip Purpose *</div>
-                <input value={sf.purpose} onChange={e => setSf(f => ({ ...f, purpose: e.target.value }))} placeholder="e.g. Airport Transfer…" className={inp} style={{ borderColor: BORDER }} />
+                <input value={sf.purpose} onChange={e => setSf(f => ({ ...f, purpose: e.target.value }))} placeholder="e.g. Airport Transfer…" aria-label="e.g. Airport Transfer" className={inp} style={{ borderColor: BORDER }} />
               </div>
               <div>
                 <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Departure</div>
@@ -2272,11 +2272,11 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               </div>
               <div>
                 <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Destination *</div>
-                <input value={sf.to} onChange={e => setSf(f => ({ ...f, to: e.target.value }))} placeholder="Final destination" className={inp} style={{ borderColor: BORDER }} />
+                <input value={sf.to} onChange={e => setSf(f => ({ ...f, to: e.target.value }))} placeholder="Final destination" aria-label="Final destination" className={inp} style={{ borderColor: BORDER }} />
               </div>
               <div>
                 <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Odometer Start *</div>
-                <input type="number" value={sf.odomStart} onChange={e => setSf(f => ({ ...f, odomStart: e.target.value }))} placeholder="e.g. 47963" className={inp} style={{ borderColor: BORDER }} />
+                <input type="number" value={sf.odomStart} onChange={e => setSf(f => ({ ...f, odomStart: e.target.value }))} placeholder="e.g. 47963" aria-label="e.g. 47963" className={inp} style={{ borderColor: BORDER }} />
               </div>
             </div>
             <button onClick={startTrip} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY }}>
@@ -2605,7 +2605,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                   <div className="text-xs font-bold" style={{ color: PRIMARY }}>Log Stop</div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Location *</div>
-                    <input value={pf.location} onChange={e => setPf(f => ({ ...f, location: e.target.value }))} placeholder="e.g. FreshMart Wuse II" className={inp} style={{ borderColor: BORDER }} />
+                    <input value={pf.location} onChange={e => setPf(f => ({ ...f, location: e.target.value }))} placeholder="e.g. FreshMart Wuse II" aria-label="e.g. FreshMart Wuse II" className={inp} style={{ borderColor: BORDER }} />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
@@ -2614,7 +2614,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                     </div>
                     <div>
                       <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Purpose</div>
-                      <input value={pf.purpose} onChange={e => setPf(f => ({ ...f, purpose: e.target.value }))} placeholder="Fuel, loading…" className={inp} style={{ borderColor: BORDER }} />
+                      <input value={pf.purpose} onChange={e => setPf(f => ({ ...f, purpose: e.target.value }))} placeholder="Fuel, loading…" aria-label="Fuel, loading" className={inp} style={{ borderColor: BORDER }} />
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -2642,12 +2642,12 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                     </div>
                     <div>
                       <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Fuel Filled (L)</div>
-                      <input type="number" value={cf.fuelFilled} onChange={e => setCf(f => ({ ...f, fuelFilled: e.target.value }))} placeholder="0" className={inp} style={{ borderColor: BORDER }} />
+                      <input type="number" value={cf.fuelFilled} onChange={e => setCf(f => ({ ...f, fuelFilled: e.target.value }))} placeholder="0" aria-label="0" className={inp} style={{ borderColor: BORDER }} />
                     </div>
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Remarks</div>
-                    <input value={cf.notes} onChange={e => setCf(f => ({ ...f, notes: e.target.value }))} placeholder="Optional" className={inp} style={{ borderColor: BORDER }} />
+                    <input value={cf.notes} onChange={e => setCf(f => ({ ...f, notes: e.target.value }))} placeholder="Optional" aria-label="Optional" className={inp} style={{ borderColor: BORDER }} />
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => completeTrip(t.id)} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: SUCCESS }}>Complete &amp; Close Trip</button>
@@ -2735,10 +2735,10 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               {showStop === t.id && (
                 <div className="mt-3 p-3 rounded-xl space-y-2" style={{ backgroundColor: "#F0F9FF", border: "1px solid #BAE6FD" }}>
                   <div className="text-xs font-bold" style={{ color: PRIMARY }}>Log Stop</div>
-                  <input value={pf.location} onChange={e => setPf(f => ({ ...f, location: e.target.value }))} placeholder="Stop location *" className={inp} style={{ borderColor: BORDER }} />
+                  <input value={pf.location} onChange={e => setPf(f => ({ ...f, location: e.target.value }))} placeholder="Stop location *" aria-label="Stop location *" className={inp} style={{ borderColor: BORDER }} />
                   <div className="grid grid-cols-2 gap-2">
-                    <input type="number" value={pf.durationMin} onChange={e => setPf(f => ({ ...f, durationMin: e.target.value }))} placeholder="Duration (min)" className={inp} style={{ borderColor: BORDER }} />
-                    <input value={pf.purpose} onChange={e => setPf(f => ({ ...f, purpose: e.target.value }))} placeholder="Purpose" className={inp} style={{ borderColor: BORDER }} />
+                    <input type="number" value={pf.durationMin} onChange={e => setPf(f => ({ ...f, durationMin: e.target.value }))} placeholder="Duration (min)" aria-label="Duration (min)" className={inp} style={{ borderColor: BORDER }} />
+                    <input value={pf.purpose} onChange={e => setPf(f => ({ ...f, purpose: e.target.value }))} placeholder="Purpose" aria-label="Purpose" className={inp} style={{ borderColor: BORDER }} />
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => logStop(t.id)} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY }}>Save Stop</button>
@@ -2749,9 +2749,9 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               {showComplete === t.id && (
                 <div className="mt-3 p-3 rounded-xl space-y-2" style={{ backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0" }}>
                   <div className="text-xs font-bold" style={{ color: SUCCESS }}>Complete Trip</div>
-                  <input type="number" value={cf.odomEnd} onChange={e => setCf(f => ({ ...f, odomEnd: e.target.value }))} placeholder="Odometer at arrival *" className={inp} style={{ borderColor: BORDER }} />
-                  <input type="number" value={cf.fuelFilled} onChange={e => setCf(f => ({ ...f, fuelFilled: e.target.value }))} placeholder="Fuel filled (litres)" className={inp} style={{ borderColor: BORDER }} />
-                  <input value={cf.notes} onChange={e => setCf(f => ({ ...f, notes: e.target.value }))} placeholder="Notes (optional)" className={inp} style={{ borderColor: BORDER }} />
+                  <input type="number" value={cf.odomEnd} onChange={e => setCf(f => ({ ...f, odomEnd: e.target.value }))} placeholder="Odometer at arrival *" aria-label="Odometer at arrival *" className={inp} style={{ borderColor: BORDER }} />
+                  <input type="number" value={cf.fuelFilled} onChange={e => setCf(f => ({ ...f, fuelFilled: e.target.value }))} placeholder="Fuel filled (litres)" aria-label="Fuel filled (litres)" className={inp} style={{ borderColor: BORDER }} />
+                  <input value={cf.notes} onChange={e => setCf(f => ({ ...f, notes: e.target.value }))} placeholder="Notes (optional)" aria-label="Notes (optional)" className={inp} style={{ borderColor: BORDER }} />
                   <div className="flex gap-2">
                     <button onClick={() => completeTrip(t.id)} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: SUCCESS }}>Complete &amp; Close Trip</button>
                     <button onClick={() => setShowComplete(null)} className="px-4 py-2.5 rounded-xl text-sm border" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button>
@@ -2815,7 +2815,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                 </div>
                 <div>
                   <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Trip Purpose *</div>
-                  <input value={sf.purpose} onChange={e => setSf(f => ({ ...f, purpose: e.target.value }))} placeholder="e.g. Airport Transfer, F&B Procurement…" className={inp} style={{ borderColor: BORDER }} />
+                  <input value={sf.purpose} onChange={e => setSf(f => ({ ...f, purpose: e.target.value }))} placeholder="e.g. Airport Transfer, F&B Procurement…" aria-label="e.g. Airport Transfer, F&B Procurement" className={inp} style={{ borderColor: BORDER }} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -2824,13 +2824,13 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Destination *</div>
-                    <input value={sf.to} onChange={e => setSf(f => ({ ...f, to: e.target.value }))} placeholder="Final destination" className={inp} style={{ borderColor: BORDER }} />
+                    <input value={sf.to} onChange={e => setSf(f => ({ ...f, to: e.target.value }))} placeholder="Final destination" aria-label="Final destination" className={inp} style={{ borderColor: BORDER }} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Odometer at Departure *</div>
-                    <input type="number" value={sf.odomStart} onChange={e => setSf(f => ({ ...f, odomStart: e.target.value }))} placeholder="e.g. 47963" className={inp} style={{ borderColor: BORDER }} />
+                    <input type="number" value={sf.odomStart} onChange={e => setSf(f => ({ ...f, odomStart: e.target.value }))} placeholder="e.g. 47963" aria-label="e.g. 47963" className={inp} style={{ borderColor: BORDER }} />
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Passengers</div>
@@ -2839,7 +2839,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                 </div>
                 <div>
                   <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Notes / Reference</div>
-                  <input value={sf.notes} onChange={e => setSf(f => ({ ...f, notes: e.target.value }))} placeholder="Trip ref, guest name, cost centre…" className={inp} style={{ borderColor: BORDER }} />
+                  <input value={sf.notes} onChange={e => setSf(f => ({ ...f, notes: e.target.value }))} placeholder="Trip ref, guest name, cost centre…" aria-label="Trip ref, guest name, cost centre" className={inp} style={{ borderColor: BORDER }} />
                 </div>
                 <button onClick={startTrip} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY }}>
                   <Car size={15} />Start Trip — Record Departure

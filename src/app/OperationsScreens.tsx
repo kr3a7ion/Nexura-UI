@@ -101,7 +101,7 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
       </div>
       {/* Filter bar */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Room or attendant…" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-44" style={{ borderColor: BORDER }} /></div>
+        <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Room or attendant…" aria-label="Room or attendant" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-44" style={{ borderColor: BORDER }} /></div>
         <div className="flex items-center gap-1.5">
           <span className="text-xs" style={{ color: MUTED }}>Floor:</span>
           {FLOORS.map(f => <button key={f} onClick={() => setFloorFilter(f)} className="text-xs px-2 py-1.5 rounded-lg border" style={{ backgroundColor: floorFilter === f ? PRIMARY : "white", color: floorFilter === f ? "white" : MUTED, borderColor: floorFilter === f ? PRIMARY : BORDER }}>{f}</button>)}
@@ -235,7 +235,7 @@ export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; 
         <StatCard label="Completed" value={String(EXTENDED_WO.filter(w=>w.status==="Completed").length)} sub="Resolved today" icon={CheckCircle2} accent={SUCCESS} />
       </div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search ID, location, technician…" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-56" style={{ borderColor: BORDER }} /></div>
+        <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search ID, location, technician…" aria-label="Search ID, location, technician" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-56" style={{ borderColor: BORDER }} /></div>
         <div className="flex gap-2 flex-wrap">
           {["All","Reported","Assigned","In Progress","Overdue","Completed"].map(s => (
             <button key={s} onClick={() => setFilter(s)} className="px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-all"
@@ -276,7 +276,7 @@ export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; 
                 <td className="px-3 py-3 text-xs font-semibold" style={{ color: w.status === "Overdue" ? ERROR : MUTED, fontFamily: mono }}>{w.slaDue}</td>
                 <td className="px-3 py-3 text-xs" style={{ color: w.tech === "Unassigned" ? WARNING : MUTED }}>{w.tech}</td>
                 <td className="px-3 py-3 text-xs font-semibold" style={{ color: w.status === "Overdue" ? ERROR : ORANGE, fontFamily: mono }}>{w.age}</td>
-                <td className="px-3 py-3"><button className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#F4F4F5]" style={{ color: SUBTLE }} onClick={e => e.stopPropagation()}><MoreHorizontal size={14} /></button></td>
+                <td className="px-3 py-3"><button aria-label="More actions" className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#F4F4F5]" style={{ color: SUBTLE }} onClick={e => e.stopPropagation()}><MoreHorizontal size={14} /></button></td>
               </tr>
             ))}
           </tbody>
@@ -291,7 +291,7 @@ export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; 
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Bulk Assign — {selected.length} work orders</h3>
             <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Assign to Technician</label>
-            <select value={bulkTech} onChange={e => setBulkTech(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
+            <select aria-label="Assign to Technician" value={bulkTech} onChange={e => setBulkTech(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
               {["Emeka Nwosu","Chidi Ike","External Vendor"].map(t => <option key={t}>{t}</option>)}
             </select></div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowBulkAssign(false)} /><button onClick={() => { add({ type: "success", title: `${selected.length} WOs assigned to ${bulkTech}` }); setSelected([]); setShowBulkAssign(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Assign</button></div>
@@ -309,37 +309,37 @@ export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; 
                 <h3 className="text-base font-bold" style={{ color: TEXT }}>New Work Order</h3>
                 <p className="text-xs mt-0.5" style={{ color: MUTED }}>Report a maintenance issue across the property</p>
               </div>
-              <button onClick={() => setShowNew(false)} style={{ color: SUBTLE }}><X size={18} /></button>
+              <button aria-label="Close" onClick={() => setShowNew(false)} style={{ color: SUBTLE }}><X size={18} /></button>
             </div>
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Title</label>
-                <input value={newWO.title} onChange={e => setNewWO(p => ({ ...p, title: e.target.value }))} placeholder="Brief description of the issue"
+                <input value={newWO.title} onChange={e => setNewWO(p => ({ ...p, title: e.target.value }))} placeholder="Brief description of the issue" aria-label="Brief description of the issue"
                   className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Location</label>
-                <input value={newWO.location} onChange={e => setNewWO(p => ({ ...p, location: e.target.value }))} placeholder="e.g. Room 207, Restaurant Kitchen, Pool Area"
+                <input value={newWO.location} onChange={e => setNewWO(p => ({ ...p, location: e.target.value }))} placeholder="e.g. Room 207, Restaurant Kitchen, Pool Area" aria-label="e.g. Room 207, Restaurant Kitchen, Pool Area"
                   className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }}
                   onFocus={e => e.target.style.borderColor = PRIMARY} onBlur={e => e.target.style.borderColor = BORDER} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Category</label>
-                  <select value={newWO.category} onChange={e => setNewWO(p => ({ ...p, category: e.target.value }))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }}>
+                  <select aria-label="Category" value={newWO.category} onChange={e => setNewWO(p => ({ ...p, category: e.target.value }))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }}>
                     {["Electrical", "HVAC", "Plumbing", "Furniture", "Equipment", "General"].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Priority</label>
-                  <select value={newWO.priority} onChange={e => setNewWO(p => ({ ...p, priority: e.target.value }))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }}>
+                  <select aria-label="Priority" value={newWO.priority} onChange={e => setNewWO(p => ({ ...p, priority: e.target.value }))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }}>
                     {["Low", "Medium", "High"].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Description</label>
-                <textarea value={newWO.desc} onChange={e => setNewWO(p => ({ ...p, desc: e.target.value }))} placeholder="Describe the issue clearly. Include what's broken, how long it's been a problem, and any safety concerns." rows={3} className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER, color: TEXT }}
+                <textarea value={newWO.desc} onChange={e => setNewWO(p => ({ ...p, desc: e.target.value }))} placeholder="Describe the issue clearly. Include what's broken, how long it's been a problem, and any safety concerns." aria-label="Describe the issue clearly. Include what's broken, how long it's been a problem, and any safety concerns" rows={3} className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER, color: TEXT }}
                   onFocus={e => e.target.style.borderColor = PRIMARY} onBlur={e => e.target.style.borderColor = BORDER} />
               </div>
             </div>
@@ -418,7 +418,7 @@ export function InternalChat({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <div className="p-2 border-b" style={{ borderColor: BORDER }}>
             <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg border" style={{ borderColor: BORDER, backgroundColor: "#F9FAFB" }}>
               <Search size={12} style={{ color: SUBTLE }} />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search messages…" className="flex-1 text-xs outline-none bg-transparent" style={{ color: TEXT }} />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search messages…" aria-label="Search messages" className="flex-1 text-xs outline-none bg-transparent" style={{ color: TEXT }} />
             </div>
           </div>
           <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
@@ -498,7 +498,7 @@ export function InternalChat({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               <input value={msg} onChange={e => setMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && send()}
                 placeholder={activeView === "channel" ? `Message #${activeCh}…` : `Message ${activeDM.split(" ")[0]}…`}
                 className="flex-1 px-4 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }} />
-              <button onClick={send} className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: PRIMARY }}>
+              <button aria-label="Send" onClick={send} className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: PRIMARY }}>
                 <Send size={16} />
               </button>
             </div>
@@ -649,9 +649,9 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
                           <div className="text-xs" style={{ color: MUTED }}>₦{o.price.toLocaleString()} each</div>
                         </div>
                         <div className="flex items-center gap-1">
-                          <button onClick={() => setQty(o.id, o.qty-1)} className="w-6 h-6 rounded flex items-center justify-center" style={{ color: MUTED }}><MinusCircle size={13} /></button>
+                          <button aria-label="Remove" onClick={() => setQty(o.id, o.qty-1)} className="w-6 h-6 rounded flex items-center justify-center" style={{ color: MUTED }}><MinusCircle size={13} /></button>
                           <span className="w-5 text-center text-xs font-bold" style={{ color: TEXT }}>{o.qty}</span>
-                          <button onClick={() => setQty(o.id, o.qty+1)} className="w-6 h-6 rounded flex items-center justify-center" style={{ color: PRIMARY }}><PlusCircle size={13} /></button>
+                          <button aria-label="Add" onClick={() => setQty(o.id, o.qty+1)} className="w-6 h-6 rounded flex items-center justify-center" style={{ color: PRIMARY }}><PlusCircle size={13} /></button>
                         </div>
                         <div className="text-xs font-bold w-14 text-right" style={{ color: TEXT }}>₦{(o.price*o.qty).toLocaleString()}</div>
                       </div>
@@ -662,7 +662,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
                       )}
                       <div className="flex items-center gap-2">
                         {editNote === o.id
-                          ? <input autoFocus value={noteVal} onChange={e=>setNoteVal(e.target.value)} onBlur={() => { setOrder(p=>p.map(x=>x.id===o.id?{...x,note:noteVal}:x)); setEditNote(null); }} className="flex-1 text-xs px-2 py-1 rounded-lg border outline-none" style={{ borderColor: BORDER }} placeholder="Note…" />
+                          ? <input autoFocus value={noteVal} onChange={e=>setNoteVal(e.target.value)} onBlur={() => { setOrder(p=>p.map(x=>x.id===o.id?{...x,note:noteVal}:x)); setEditNote(null); }} className="flex-1 text-xs px-2 py-1 rounded-lg border outline-none" style={{ borderColor: BORDER }} placeholder="Note…" aria-label="Note" />
                           : <button onClick={() => { setEditNote(o.id); setNoteVal(o.note); }} className="text-xs" style={{ color: o.note ? TEAL : SUBTLE }}>✎ {o.note || "Add note"}</button>
                         }
                         <button onClick={() => voidLine(o.id)} className="text-xs ml-auto px-2 py-0.5 rounded" style={{ color: ERROR, backgroundColor: "#FEF2F2" }}>void</button>
@@ -707,7 +707,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
             {payMethod === "cash" && (
               <div className="mb-3 p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC" }}>
                 <div className="text-xs font-semibold mb-1.5" style={{ color: MUTED }}>Cash Tendered</div>
-                <input value={cashIn} onChange={e=>setCashIn(e.target.value)} placeholder="0" className="w-full px-3 py-2 rounded-xl border text-sm font-bold outline-none" style={{ borderColor: BORDER, fontFamily: mono }} />
+                <input value={cashIn} onChange={e=>setCashIn(e.target.value)} placeholder="0" aria-label="0" className="w-full px-3 py-2 rounded-xl border text-sm font-bold outline-none" style={{ borderColor: BORDER, fontFamily: mono }} />
                 {cashInNum > 0 && <div className="mt-2 flex justify-between text-xs"><span style={{ color: MUTED }}>Change</span><span className="font-bold" style={{ color: change >= 0 ? SUCCESS : ERROR, fontFamily: mono }}>₦{change.toLocaleString()}</span></div>}
               </div>
             )}
@@ -732,7 +732,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
             {payMethod === "complimentary" && (
               <div className="mb-3">
                 <div className="text-xs font-semibold mb-1.5" style={{ color: MUTED }}>Reason (required)</div>
-                <textarea value={compReason} onChange={e=>setCompReason(e.target.value)} rows={2} placeholder="e.g. VIP guest, manager approval…" className="w-full px-3 py-2 rounded-xl border text-xs outline-none resize-none" style={{ borderColor: BORDER }} />
+                <textarea value={compReason} onChange={e=>setCompReason(e.target.value)} rows={2} placeholder="e.g. VIP guest, manager approval…" aria-label="e.g. VIP guest, manager approval" className="w-full px-3 py-2 rounded-xl border text-xs outline-none resize-none" style={{ borderColor: BORDER }} />
               </div>
             )}
 
@@ -868,7 +868,7 @@ export function TableManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => v
                 {sel.status === "Occupied" && (
                   <div className="pt-2">
                     <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Assign Server</label>
-                    <select className="w-full px-3 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }} defaultValue={sel.server ?? ""} onChange={e => { setTables(p => p.map(t => t.id === sel.id ? { ...t, server: e.target.value } : t)); add({ type: "info", title: `Server updated — ${sel.id}` }); }}>
+                    <select aria-label="Assign Server" className="w-full px-3 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }} defaultValue={sel.server ?? ""} onChange={e => { setTables(p => p.map(t => t.id === sel.id ? { ...t, server: e.target.value } : t)); add({ type: "info", title: `Server updated — ${sel.id}` }); }}>
                       {SERVERS.map(s => <option key={s}>{s}</option>)}
                     </select>
                   </div>
@@ -887,11 +887,11 @@ export function TableManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => v
             <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Seat Party — Table {selected}</h3>
             <div className="space-y-3">
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Party Size</label>
-              <select value={seatParty.size} onChange={e=>setSeatParty(p=>({...p,size:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
+              <select aria-label="Party Size" value={seatParty.size} onChange={e=>setSeatParty(p=>({...p,size:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
                 {["1","2","3","4","5","6","7","8"].map(n=><option key={n}>{n}</option>)}
               </select></div>
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Server</label>
-              <select value={seatParty.server} onChange={e=>setSeatParty(p=>({...p,server:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
+              <select aria-label="Server" value={seatParty.server} onChange={e=>setSeatParty(p=>({...p,server:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
                 {SERVERS.map(s=><option key={s}>{s}</option>)}
               </select></div>
             </div>
@@ -907,7 +907,7 @@ export function TableManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => v
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Transfer Table {selected} →</h3>
             <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Transfer to</label>
-            <select value={transferTo} onChange={e=>setTransferTo(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
+            <select aria-label="Transfer to" value={transferTo} onChange={e=>setTransferTo(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
               <option value="">Select available table…</option>
               {tables.filter(t=>t.status==="Available" && t.id !== selected).map(t=><option key={t.id}>{t.id} ({t.seats} seats)</option>)}
             </select></div>
@@ -968,7 +968,7 @@ export function StaffDirectory({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
       </div>
 
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Name, role, or ID…" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-48" style={{ borderColor: BORDER }} /></div>
+        <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Name, role, or ID…" aria-label="Name, role, or ID" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-48" style={{ borderColor: BORDER }} /></div>
         <div className="flex gap-1.5 flex-wrap">
           {depts.map(d=><button key={d} onClick={()=>setDept(d)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold" style={{ borderColor:dept===d?PRIMARY:BORDER, backgroundColor:dept===d?PRIMARY:"white", color:dept===d?"white":MUTED }}>{d}</button>)}
         </div>
@@ -1223,8 +1223,8 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Reopen Business Day</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>This action is audited and requires manager authorisation.</p>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason for Reopening</label><textarea value={reopenReason} onChange={e=>setReopenReason(e.target.value)} rows={2} placeholder="State the reason…" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" maxLength={4} value={reopenPin} onChange={e=>setReopenPin(e.target.value)} placeholder="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason for Reopening</label><textarea value={reopenReason} onChange={e=>setReopenReason(e.target.value)} rows={2} placeholder="State the reason…" aria-label="State the reason" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" maxLength={4} value={reopenPin} onChange={e=>setReopenPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
             </div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowReopen(false)} /><button onClick={() => { if (reopenPin !== "1234" || !reopenReason.trim()) { add({ type: "error", title: "Invalid PIN or missing reason" }); return; } setDayStatus("Reopened"); setShowReopen(false); add({ type: "warning", title: `Day reopened — ${BDATE}`, body: reopenReason }); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ORANGE }}>Reopen Day</button></div>
           </div>
@@ -1584,7 +1584,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
               <p className="text-xs" style={{ color: MUTED }}>{sub}</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100"><X size={14} style={{ color: MUTED }} /></button>
+          <button aria-label="Close" onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100"><X size={14} style={{ color: MUTED }} /></button>
         </div>
         {children}
       </div>
@@ -1781,7 +1781,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
                   {selected.amenities.map(a=>(
                     <span key={a} className="text-xs px-2 py-0.5 rounded-full flex items-center gap-1 group cursor-pointer" style={{ backgroundColor:"#F0FDF4", color:SUCCESS }}>
                       <CheckCircle2 size={9}/>{a}
-                      <button onClick={e=>{e.stopPropagation();removeAmenity(a);}} className="opacity-0 group-hover:opacity-100 transition-opacity -mr-0.5">
+                      <button aria-label="Close" onClick={e=>{e.stopPropagation();removeAmenity(a);}} className="opacity-0 group-hover:opacity-100 transition-opacity -mr-0.5">
                         <X size={9} style={{ color: ERROR }} />
                       </button>
                     </span>
@@ -1928,21 +1928,21 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Max Occupancy</label>
-                <select value={editVals.maxOcc} onChange={e=>setEditVals(p=>({...p,maxOcc:e.target.value}))} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
+                <select aria-label="Max Occupancy" value={editVals.maxOcc} onChange={e=>setEditVals(p=>({...p,maxOcc:e.target.value}))} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
                   {["1","2","3","4","5","6","8","10"].map(v=><option key={v}>{v}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Room Size</label>
-                <input value={editVals.size} onChange={e=>setEditVals(p=>({...p,size:e.target.value}))} placeholder="e.g. 38 m²" className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} />
+                <input value={editVals.size} onChange={e=>setEditVals(p=>({...p,size:e.target.value}))} placeholder="e.g. 38 m²" aria-label="e.g. 38 m²" className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Bed Configuration</label>
-                <input value={editVals.beds} onChange={e=>setEditVals(p=>({...p,beds:e.target.value}))} placeholder="e.g. 1 King + Sofa Bed" className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} />
+                <input value={editVals.beds} onChange={e=>setEditVals(p=>({...p,beds:e.target.value}))} placeholder="e.g. 1 King + Sofa Bed" aria-label="e.g. 1 King + Sofa Bed" className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} />
               </div>
               <div className="col-span-2">
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Description</label>
-                <textarea value={editVals.description} onChange={e=>setEditVals(p=>({...p,description:e.target.value}))} rows={3} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
+                <textarea aria-label="Description" value={editVals.description} onChange={e=>setEditVals(p=>({...p,description:e.target.value}))} rows={3} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
               </div>
             </div>
           </div>
@@ -1963,7 +1963,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
                 <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity:0.6 }}>Room Types</p>
                 <p className="text-base font-bold text-white mt-0.5">Add Room Type</p>
               </div>
-              <button onClick={()=>setShowAddType(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor:"rgba(255,255,255,0.18)" }}>
+              <button aria-label="Close" onClick={()=>setShowAddType(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor:"rgba(255,255,255,0.18)" }}>
                 <X size={16} color="white" />
               </button>
             </div>
@@ -1971,40 +1971,40 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Type Code <span style={{ color:ERROR }}>*</span></label>
-                  <input value={newType.code} onChange={e=>setNewType(p=>({...p,code:e.target.value.toUpperCase().slice(0,4)}))} placeholder="e.g. PEN" maxLength={4}
+                  <input value={newType.code} onChange={e=>setNewType(p=>({...p,code:e.target.value.toUpperCase().slice(0,4)}))} placeholder="e.g. PEN" aria-label="e.g. PEN" maxLength={4}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white", fontFamily:mono, letterSpacing:"0.1em" }} />
                   <p className="text-xs mt-1" style={{ color:SUBTLE }}>Unique 2–4 char identifier</p>
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Display Name <span style={{ color:ERROR }}>*</span></label>
-                  <input value={newType.name} onChange={e=>setNewType(p=>({...p,name:e.target.value}))} placeholder="e.g. Penthouse Suite"
+                  <input value={newType.name} onChange={e=>setNewType(p=>({...p,name:e.target.value}))} placeholder="e.g. Penthouse Suite" aria-label="e.g. Penthouse Suite"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }} />
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Base Rate (₦/night) <span style={{ color:ERROR }}>*</span></label>
-                  <input type="number" value={newType.base} onChange={e=>setNewType(p=>({...p,base:e.target.value}))} placeholder="120000"
+                  <input type="number" value={newType.base} onChange={e=>setNewType(p=>({...p,base:e.target.value}))} placeholder="120000" aria-label="120000"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white", fontFamily:mono }} />
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Max Occupancy</label>
-                  <select value={newType.maxOcc} onChange={e=>setNewType(p=>({...p,maxOcc:e.target.value}))}
+                  <select aria-label="Max Occupancy" value={newType.maxOcc} onChange={e=>setNewType(p=>({...p,maxOcc:e.target.value}))}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}>
                     {["1","2","3","4","5","6","8","10"].map(v=><option key={v}>{v}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Room Size</label>
-                  <input value={newType.size} onChange={e=>setNewType(p=>({...p,size:e.target.value}))} placeholder="e.g. 80 m²"
+                  <input value={newType.size} onChange={e=>setNewType(p=>({...p,size:e.target.value}))} placeholder="e.g. 80 m²" aria-label="e.g. 80 m²"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }} />
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Bed Configuration</label>
-                  <input value={newType.beds} onChange={e=>setNewType(p=>({...p,beds:e.target.value}))} placeholder="e.g. 2 King beds"
+                  <input value={newType.beds} onChange={e=>setNewType(p=>({...p,beds:e.target.value}))} placeholder="e.g. 2 King beds" aria-label="e.g. 2 King beds"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }} />
                 </div>
                 <div className="col-span-2">
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Description</label>
-                  <textarea value={newType.description} onChange={e=>setNewType(p=>({...p,description:e.target.value}))} rows={2} placeholder="Brief description…"
+                  <textarea value={newType.description} onChange={e=>setNewType(p=>({...p,description:e.target.value}))} rows={2} placeholder="Brief description…" aria-label="Brief description"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }} />
                 </div>
               </div>
@@ -2029,7 +2029,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
             <div className="flex gap-2 mb-5">
               <input value={newAmenity} onChange={e=>setNewAmenity(e.target.value)}
                 onKeyDown={e=>{ if(e.key==="Enter"){ doAddAmenity(newAmenity); } }}
-                placeholder="Type an amenity name…"
+                placeholder="Type an amenity name…" aria-label="Type an amenity name"
                 className="flex-1 px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor:BORDER }} />
               <button onClick={()=>doAddAmenity(newAmenity)} className="px-4 py-2.5 rounded-lg text-sm font-semibold text-white flex-shrink-0" style={{ backgroundColor: tC(selected.code) }}>Add</button>
             </div>
@@ -2055,7 +2055,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
                   {selected.amenities.map(a=>(
                     <span key={a} className="text-xs px-2 py-1 rounded-full flex items-center gap-1.5" style={{ backgroundColor:"#F0FDF4", color:SUCCESS }}>
                       <CheckCircle2 size={9}/>{a}
-                      <button onClick={()=>removeAmenity(a)} className="hover:opacity-70 transition-opacity">
+                      <button aria-label="Close" onClick={()=>removeAmenity(a)} className="hover:opacity-70 transition-opacity">
                         <X size={10} style={{ color:ERROR }} />
                       </button>
                     </span>
@@ -2291,7 +2291,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               style={{ color:offset===0?SUBTLE:PRIMARY, borderColor:offset===0?BORDER:`${PRIMARY}40`, backgroundColor:offset===0?"#F8FAFC":"#EFF6FF" }}>
               Today
             </button>
-            <button onClick={()=>setOffset(o=>Math.max(0,o-viewDays))} disabled={!canGoBack}
+            <button aria-label="Previous" onClick={()=>setOffset(o=>Math.max(0,o-viewDays))} disabled={!canGoBack}
               className="flex items-center justify-center w-8 h-8 rounded-lg border"
               style={{ color:canGoBack?MUTED:SUBTLE, borderColor:BORDER, backgroundColor:canGoBack?"white":"#F8FAFC" }}>
               <ChevronLeft size={14}/>
@@ -2299,7 +2299,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <span className="text-sm font-bold px-1 whitespace-nowrap" style={{ color:TEXT, minWidth:160, textAlign:"center" }}>
               {days[0].toLocaleDateString("en-NG",{day:"numeric",month:"short"})} – {days[DAYS-1].toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"2-digit"})}
             </span>
-            <button onClick={()=>setOffset(o=>o+viewDays)}
+            <button aria-label="Next" onClick={()=>setOffset(o=>o+viewDays)}
               className="flex items-center justify-center w-8 h-8 rounded-lg border hover:bg-gray-50"
               style={{ color:MUTED, borderColor:BORDER }}>
               <ChevronRight size={14}/>
@@ -2560,7 +2560,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 {selectedCells.length>0?`${selectedCells.length} selected`:"Edit Panel"}
               </h3>
               {selectedCells.length>0 && (
-                <button onClick={()=>setSelectedCells([])} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={13}/></button>
+                <button aria-label="Close" onClick={()=>setSelectedCells([])} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={13}/></button>
               )}
             </div>
             {selectedCells.length===0 ? (
@@ -2585,7 +2585,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               <div className="flex gap-2">
                 <input type="number" value={bulkRate} onChange={e=>setBulkRate(e.target.value)}
                   onKeyDown={e=>e.key==="Enter"&&applyBulk()}
-                  placeholder="e.g. 42,000"
+                  placeholder="e.g. 42,000" aria-label="e.g. 42,000"
                   className="flex-1 min-w-0 px-3 py-2 border rounded-lg text-sm outline-none"
                   style={{ borderColor:BORDER, fontFamily:mono }} />
                 <button onClick={applyBulk} disabled={!bulkRate||!selectedCells.length}
@@ -2609,7 +2609,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color:MUTED }}>Min Stay</label>
-              <select value={minStay} onChange={e=>setMinStay(e.target.value)}
+              <select aria-label="Min Stay" value={minStay} onChange={e=>setMinStay(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg text-sm outline-none" style={{ borderColor:BORDER }}>
                 {["No restriction","1 night","2 nights","3 nights","5 nights","7 nights"].map(v=><option key={v}>{v}</option>)}
               </select>
@@ -2658,7 +2658,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 }
 
 // B4-3 Availability Board
-export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
+export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const TODAY = new Date(2026, 7, 1);
   const [offset,      setOffset]      = useState(0);
   const [viewDays,    setViewDays]    = useState<7|14>(14);
@@ -2973,7 +2973,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                   </div>
                   <div className="text-xs mt-0.5 ml-4" style={{ color:MUTED }}>{drillCell.date}</div>
                 </div>
-                <button onClick={()=>setDrillCell(null)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={14}/></button>
+                <button aria-label="Close" onClick={()=>setDrillCell(null)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={14}/></button>
               </div>
 
               {/* Stat tiles */}
@@ -3130,7 +3130,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                 <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity:0.6 }}>Availability Board</p>
                 <p className="text-base font-bold text-white mt-0.5">Add Group Block</p>
               </div>
-              <button onClick={()=>setShowGroup(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor:"rgba(255,255,255,0.18)" }}>
+              <button aria-label="Close" onClick={()=>setShowGroup(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor:"rgba(255,255,255,0.18)" }}>
                 <X size={16} color="white" />
               </button>
             </div>
@@ -3138,14 +3138,14 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
               <div>
                 <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Group / Company Name</label>
                 <input value={grpForm.name} onChange={e=>setGrpForm(f=>({...f,name:e.target.value}))}
-                  placeholder="e.g. Dangote Conference"
+                  placeholder="e.g. Dangote Conference" aria-label="e.g. Dangote Conference"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                   style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}/>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Room Type</label>
-                  <select value={grpForm.type} onChange={e=>setGrpForm(f=>({...f,type:e.target.value}))}
+                  <select aria-label="Room Type" value={grpForm.type} onChange={e=>setGrpForm(f=>({...f,type:e.target.value}))}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}>
                     <option value="STD">Standard</option>
@@ -3155,7 +3155,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Number of Rooms</label>
-                  <input value={grpForm.rooms} onChange={e=>setGrpForm(f=>({...f,rooms:e.target.value}))}
+                  <input aria-label="Number of Rooms" value={grpForm.rooms} onChange={e=>setGrpForm(f=>({...f,rooms:e.target.value}))}
                     type="number" min="1" max="20"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}/>
@@ -3164,13 +3164,13 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Check-in Date</label>
-                  <input value={grpForm.checkin} onChange={e=>setGrpForm(f=>({...f,checkin:e.target.value}))}
+                  <input aria-label="Check-in Date" value={grpForm.checkin} onChange={e=>setGrpForm(f=>({...f,checkin:e.target.value}))}
                     type="date" className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}/>
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Check-out Date</label>
-                  <input value={grpForm.checkout} onChange={e=>setGrpForm(f=>({...f,checkout:e.target.value}))}
+                  <input aria-label="Check-out Date" value={grpForm.checkout} onChange={e=>setGrpForm(f=>({...f,checkout:e.target.value}))}
                     type="date" className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}/>
                 </div>
