@@ -11,7 +11,7 @@ export type LoginAccount = {
   kind: LoginKind;
 };
 
-// Mock only. Staff accounts live on the hotel server; cloud accounts (owner, platform) need internet.
+// Mock only. Every account lives on the hotel server, so sign-in works offline. "cloud" marks owner and platform accounts, which use their own sign-in address.
 export const LOGIN_ACCOUNTS: LoginAccount[] = [
   { username: "chioma.nwosu", password: "demo123", name: "Chioma Nwosu", role: "FD", roleName: "Front Desk", destination: "hms", branches: 1, kind: "staff" },
   { username: "fatima.musa", password: "demo123", name: "Fatima Musa", role: "HK", roleName: "Housekeeping", destination: "hms", branches: 1, kind: "staff" },

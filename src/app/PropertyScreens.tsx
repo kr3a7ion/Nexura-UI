@@ -38,6 +38,7 @@ import {
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
 
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
+import { Av } from "./AdminScreens";
 export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [step, setStep] = useState(1);
   const [selRoom, setSelRoom] = useState<{ id: string; type: string; rate: number } | null>(null);

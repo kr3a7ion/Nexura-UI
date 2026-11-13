@@ -1,34 +1,43 @@
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
-import { CheckCircle, Eye, EyeSlash, Lock, ShieldCheck, User } from "@phosphor-icons/react";
-import {
-  PRIMARY, NAV_BG, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED,
-  SUBTLE, BG, sans, display,
-} from "./constants";
-import { BRAND, BrandLockup, BrandMark } from "./brand/Brand";
+import { Buildings, ChartBar, CreditCard, CurrencyDollar, ArrowsClockwise, Users } from "@phosphor-icons/react";
+import { PRIMARY, TEAL, WARNING, ERROR, SUCCESS, BORDER, TEXT, MUTED, SUBTLE, BG, sans, display } from "./constants";
+import { BRAND, BrandMark } from "./brand/Brand";
+import { DEPARTMENTS } from "./suite/departments";
 import { LOGIN_ACCOUNTS, type LoginAccount, type LoginKind } from "./mock/staffLogin";
 
 const MAX_ATTEMPTS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const REMEMBER_KEY = "nexura.username";
-const canvasBackground = `radial-gradient(circle at 70% 42%, ${TEAL}1f 0, transparent 30%), radial-gradient(circle at 8% 92%, ${ORANGE}12 0, transparent 34%), linear-gradient(135deg, #fbfdfc 0%, #f0f8f6 52%, #f8f5ef 100%)`;
+const HOTEL_NAME = "Grand Palms Hotel, Abuja";
 
-const COPY = {
-  staff: {
-    sub: "Grand Palms Hotel, Abuja. Use the username and password your manager gave you.",
-    forgot: "Forgot your password? Ask your manager to reset it.",
-    online: "Online", offline: "Working offline. Changes will sync later.",
-    kicker: "Nexura Hotel Suite", title: BRAND.tagline,
-    body: "Check guests in, take orders and open rooms on the hotel's own server, with or without internet.",
-    card: "Everything you do today is saved here first.", cardBody: "When the internet comes back, Nexura syncs it to the cloud on its own.",
-  },
-  cloud: {
-    sub: "For hotel owners and Nexura platform admins.",
-    forgot: "Forgot your password? Contact Nexura support.",
-    online: "Connected to Nexura cloud", offline: "No internet",
-    kicker: "Nexura for owners", title: "All your hotels, one sign-in.",
-    body: "Occupancy, revenue and sync status for every branch, from wherever you are.",
-    card: "Each branch keeps running on its own server.", cardBody: "You see the full picture as soon as each one syncs.",
-  },
+// One short line per department for the sign-in panel. No hotel or user data is shown before sign-in.
+const DEPARTMENT_LINES: Record<string, string> = {
+  "front-office": "Bookings, check-in, check-out",
+  "access-security": "Key cards and door locks",
+  housekeeping: "Room cleaning and inspection",
+  maintenance: "Repairs and work orders",
+  "restaurant-pos": "Orders, tables, kitchen",
+  finance: "Bills, night audit, tax",
+  inventory: "Stock and purchasing",
+  hr: "Shifts, attendance, payroll",
+  communications: "Chat, handover, complaints",
+  fleet: "Vehicles, drivers, trips",
+  reports: "Occupancy and revenue",
+  "it-system": "Users, backups, devices",
+};
+
+const OWNER_TILES = [
+  { name: "All your hotels", line: "Every branch in one view.", color: TEAL, icon: Buildings },
+  { name: "Revenue and occupancy", line: "Today's figures and how they compare.", color: "#047857", icon: CurrencyDollar },
+  { name: "Reports", line: "Daily, monthly and yearly exports.", color: "#6D28D9", icon: ChartBar },
+  { name: "Sync status", line: "Which hotel servers are up to date.", color: WARNING, icon: ArrowsClockwise },
+  { name: "People and roles", line: "Who can sign in and open what.", color: "#BE185D", icon: Users },
+  { name: "Plan and billing", line: "Subscription, invoices and licences.", color: "#334155", icon: CreditCard },
+];
+
+const PANEL = {
+  staff: { title: BRAND.tagline, body: "Front desk, housekeeping, restaurant, finance and more. Everything your shift needs is one sign-in away." },
+  cloud: { title: "Every hotel you own, on one screen.", body: "See today's revenue, occupancy and anything that needs your attention, across all your branches." },
 } as const;
 
 function useOnline() {
@@ -45,208 +54,205 @@ function useOnline() {
 
 // localStorage can throw (private mode, locked-down kiosk); remembering the username is optional.
 const readRemembered = () => { try { return localStorage.getItem(REMEMBER_KEY) ?? ""; } catch { return ""; } };
-const writeRemembered = (value: string | null) => { try { value ? localStorage.setItem(REMEMBER_KEY, value) : localStorage.removeItem(REMEMBER_KEY); } catch { /* ignore */ } };
+const writeRemembered = (value: string) => { try { localStorage.setItem(REMEMBER_KEY, value); } catch { /* ignore */ } };
 
-function Field({ id, label, icon, children }: { id: string; label: string; icon: ReactNode; children: ReactNode }) {
+function ShowcasePanel({ kind }: { kind: LoginKind }) {
+  const copy = PANEL[kind];
+  const tiles = kind === "staff"
+    ? DEPARTMENTS.filter(d => DEPARTMENT_LINES[d.id]).map(d => ({ name: d.name, line: DEPARTMENT_LINES[d.id], color: d.accent, icon: d.icon }))
+    : OWNER_TILES;
   return (
-    <div>
-      <label htmlFor={id} className="mb-2 block text-[13px] font-medium" style={{ color: TEXT }}>{label}</label>
-      <div className="flex h-12 items-center gap-2.5 rounded-[10px] border border-[#E2E8F0] bg-white px-3.5 focus-within:border-[#1BA39C] focus-within:ring-1 focus-within:ring-[#1BA39C]">
-        <span style={{ color: SUBTLE }}>{icon}</span>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function StatusPill({ tone, label }: { tone: "ok" | "warn" | "error"; label: string }) {
-  const color = tone === "ok" ? TEAL : tone === "warn" ? WARNING : ERROR;
-  return (
-    <span className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13px] font-medium" style={{ backgroundColor: tone === "warn" ? "#FEF3C7" : "white", borderColor: tone === "warn" ? "transparent" : BORDER, color: tone === "warn" ? "#92400E" : MUTED }}>
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />{label}
-    </span>
-  );
-}
-
-function ShowcasePanel({ kicker, title, body, card, cardBody, notch, notchColor }: { kicker: string; title: string; body: string; card: string; cardBody: string; notch: string; notchColor: string }) {
-  return (
-    <aside className="relative m-6 ml-0 hidden w-[700px] max-w-[48vw] shrink-0 overflow-hidden rounded-[32px] lg:block" style={{ backgroundColor: NAV_BG }}>
-      <div className="pointer-events-none absolute -left-8 -top-[380px] h-[760px] w-[760px] rounded-full blur-[110px]" style={{ backgroundColor: `${TEAL}33` }} />
-      <svg className="pointer-events-none absolute right-0 top-0" width="420" height="520" viewBox="0 0 420 520" aria-hidden="true">
-        <defs><linearGradient id="nx-streak" x1="420" y1="0" x2="0" y2="520" gradientUnits="userSpaceOnUse"><stop stopColor={TEAL} stopOpacity="0.9" /><stop offset="0.6" stopColor="#fff" stopOpacity="0.12" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></linearGradient></defs>
-        <path d="M420 0 0 520" stroke="url(#nx-streak)" strokeWidth="10" />
-        <path d="M420 60 60 520" stroke="url(#nx-streak)" strokeWidth="3" />
-        <path d="M420 130 130 520" stroke="url(#nx-streak)" strokeWidth="1.5" opacity="0.6" />
-      </svg>
-      <svg className="pointer-events-none absolute left-[150px] top-[10px]" width="400" height="400" viewBox="0 0 64 64" aria-hidden="true">
-        <defs>
-          <linearGradient id="nx-glyph" x1="12" y1="10" x2="52" y2="54" gradientUnits="userSpaceOnUse"><stop stopColor="#5B5B62" /><stop offset="0.5" stopColor="#2C2C30" /><stop offset="1" stopColor={PRIMARY} /></linearGradient>
-          <linearGradient id="nx-shine" x1="14" y1="12" x2="30" y2="30" gradientUnits="userSpaceOnUse"><stop stopColor={TEAL} /><stop offset="1" stopColor={TEAL} stopOpacity="0" /></linearGradient>
-        </defs>
-        <g transform="translate(1.2 1.2)" opacity="0.6"><circle cx="22" cy="22" r="8.5" stroke="#000" strokeWidth="5" fill="none" /><path d="M27.8 28.2 43 43.4V35h7v15H35v-7h7.2L27 27.8" /></g>
-        <circle cx="22" cy="22" r="8.5" stroke="url(#nx-glyph)" strokeWidth="5" fill="none" />
-        <path d="M27.8 28.2 43 43.4V35h7v15H35v-7h7.2L27 27.8" fill="url(#nx-glyph)" />
-        <path d="M15 18.5a8.5 8.5 0 0 1 10-5.6" stroke="url(#nx-shine)" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-        <circle cx="49.5" cy="16" r="1.8" fill={WARNING} />
-      </svg>
-      <div className="absolute inset-x-14 bottom-14">
-        <p className="text-sm font-medium text-white/60">{kicker}</p>
-        <h2 className="mt-3 max-w-[500px] text-[38px] font-extrabold leading-[1.15] tracking-[-0.035em] text-white" style={{ fontFamily: display }}>{title}</h2>
-        <p className="mt-3 max-w-[500px] text-[15px] leading-relaxed text-white/60">{body}</p>
-        <div className="relative mt-10 h-[172px] w-[560px] max-w-full">
-          <svg className="absolute inset-0" width="560" height="172" viewBox="0 0 560 172" aria-hidden="true"><path d="M24 0H372C390 0 400 10 400 28C400 40 408 48 420 48H536C549 48 560 59 560 72V148C560 161 549 172 536 172H24C11 172 0 161 0 148V24C0 11 11 0 24 0Z" fill="#232326" /></svg>
-          <div className="absolute left-6 top-6 max-w-[320px]">
-            <p className="text-xl font-bold leading-snug text-white" style={{ fontFamily: display }}>{card}</p>
-            <p className="mt-2.5 text-sm leading-relaxed text-white/60">{cardBody}</p>
-          </div>
-          <span className="absolute right-0 top-0 inline-flex items-center gap-2 rounded-full bg-[#232326] px-3.5 py-2 text-[13px] font-medium text-white/85">
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: notchColor }} />{notch}
-          </span>
-        </div>
-      </div>
+    <aside className="m-6 ml-0 hidden w-[760px] max-w-[52vw] shrink-0 overflow-hidden rounded-[32px] p-14 lg:block" style={{ background: `linear-gradient(160deg, #CCFBF1 0%, ${BG} 100%)` }}>
+      <h2 className="max-w-[600px] text-[44px] font-extrabold leading-[1.14] tracking-[-0.03em]" style={{ color: TEXT, fontFamily: display }}>{copy.title}</h2>
+      <p className="mt-3 max-w-[600px] text-[17px] leading-relaxed" style={{ color: MUTED }}>{copy.body}</p>
+      <ul className={`mt-10 grid gap-3 ${kind === "staff" ? "grid-cols-3" : "grid-cols-2"}`}>
+        {tiles.map(tile => {
+          const Icon = tile.icon;
+          return (
+            <li key={tile.name} className={`rounded-2xl border bg-white ${kind === "staff" ? "p-3.5" : "p-6"}`} style={{ borderColor: BORDER }}>
+              <span className={`flex items-center justify-center text-white ${kind === "staff" ? "h-7 w-7 rounded-lg" : "h-9 w-9 rounded-[10px]"}`} style={{ backgroundColor: tile.color }}><Icon size={kind === "staff" ? 15 : 19} weight="bold" /></span>
+              <div className={`font-semibold ${kind === "staff" ? "mt-2 text-sm" : "mt-3 text-base"}`} style={{ color: TEXT }}>{tile.name}</div>
+              <div className={kind === "staff" ? "mt-1 text-xs" : "mt-1.5 text-sm"} style={{ color: MUTED }}>{tile.line}</div>
+            </li>
+          );
+        })}
+      </ul>
     </aside>
   );
 }
 
+function AuthLayout({ kind, title, sub, children, extra }: { kind: LoginKind; title: string; sub: string; children: ReactNode; extra?: ReactNode }) {
+  const online = useOnline();
+  return (
+    <div className="flex min-h-screen bg-white" style={{ fontFamily: sans }}>
+      <main className="relative flex flex-1 items-center px-6 pb-28 pt-14 sm:px-12 lg:px-[140px]">
+        <div className="w-full max-w-[360px]">
+          <div className="flex items-center gap-3">
+            <BrandMark size={40} />
+            <span className="text-2xl font-extrabold tracking-[-0.04em]" style={{ color: TEXT, fontFamily: display }}>{BRAND.name}</span>
+          </div>
+          <h1 className="mt-7 text-[32px] font-extrabold leading-tight tracking-[-0.03em]" style={{ color: TEXT, fontFamily: display }}>{title}</h1>
+          <p className="mt-1.5 text-[15px] leading-relaxed" style={{ color: MUTED }}>{sub}</p>
+          <div className="mt-7">{children}</div>
+        </div>
+        <div className="absolute bottom-12 left-6 flex items-center gap-4 sm:left-12 lg:left-[140px]">
+          <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-medium" style={online ? { backgroundColor: BG, color: MUTED } : { backgroundColor: "#FEF3C7", color: "#92400E" }}>
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: online ? TEAL : WARNING }} />
+            {online ? "Online" : "Working offline. Changes will sync later."}
+          </span>
+          {extra}
+        </div>
+      </main>
+      <ShowcasePanel kind={kind} />
+    </div>
+  );
+}
+
+function PasswordField({ id, label, value, onChange, invalid, autoFocus, autoComplete = "current-password" }: { id: string; label: string; value: string; onChange: (value: string) => void; invalid?: boolean; autoFocus?: boolean; autoComplete?: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div>
+      <label htmlFor={id} className="mb-2 block text-[13px] font-medium" style={{ color: TEXT }}>{label}</label>
+      <div className={`flex h-12 items-center gap-2 rounded-[10px] border bg-white px-3.5 focus-within:ring-1 ${invalid ? "border-[#D32F2F] focus-within:ring-[#D32F2F]" : "border-[#E2E8F0] focus-within:border-[#1BA39C] focus-within:ring-[#1BA39C]"}`}>
+        <input id={id} type={show ? "text" : "password"} value={value} onChange={e => onChange(e.target.value)} autoComplete={autoComplete} autoFocus={autoFocus} aria-invalid={invalid} className="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none" style={{ color: TEXT }} />
+        <button type="button" onClick={() => setShow(v => !v)} aria-label={show ? "Hide password" : "Show password"} className="text-[13px] font-medium" style={{ color: "#0F766E" }}>{show ? "Hide" : "Show"}</button>
+      </div>
+    </div>
+  );
+}
+
+function SubmitButton({ children, disabled }: { children: ReactNode; disabled?: boolean }) {
+  return <button type="submit" disabled={disabled} className="h-[50px] w-full rounded-[10px] text-[15px] font-semibold text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1BA39C] disabled:cursor-not-allowed disabled:bg-[#E2E8F0] disabled:text-[#94A3B8] disabled:hover:opacity-100" style={disabled ? undefined : { backgroundColor: PRIMARY }}>{children}</button>;
+}
+
+const Note = ({ children }: { children: ReactNode }) => <p className="text-[13px]" style={{ color: MUTED }}>{children}</p>;
+const ErrorText = ({ children }: { children: ReactNode }) => <p role="alert" className="text-sm font-medium leading-relaxed" style={{ color: ERROR }}>{children}</p>;
+const clock = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
 type Attempts = Record<string, { fails: number; until: number }>;
 
 export function LoginScreen({ kind, onLogin, onOpenFieldApp }: { kind: LoginKind; onLogin: (account: LoginAccount) => void; onOpenFieldApp?: () => void }) {
-  const copy = COPY[kind];
-  const online = useOnline();
   const [username, setUsername] = useState(readRemembered);
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(() => readRemembered() !== "");
-  const [show, setShow] = useState(false);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const [attempts, setAttempts] = useState<Attempts>({});
+  const key = username.trim().toLowerCase();
+  const lockedUntil = attempts[key]?.until ?? 0;
+  const locked = lockedUntil > Date.now();
+  const helper = kind === "staff" ? "ask your manager to reset your password" : "contact Nexura support";
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    const key = username.trim().toLowerCase();
+    if (busy || locked) return;
     if (!key || !password) { setError("Enter your username and password."); return; }
-    if (kind === "cloud" && !online) { setError("You're offline. Connect to the internet to sign in."); return; }
-    const now = Date.now();
-    const prior = attempts[key];
-    if (prior && prior.until > now) { setError(`Too many tries. Try again in ${Math.ceil((prior.until - now) / 60000)} min.`); return; }
     const account = LOGIN_ACCOUNTS.find(a => a.kind === kind && a.username === key && a.password === password);
     if (!account) {
-      const fails = (prior?.fails ?? 0) + 1;
+      const fails = (attempts[key]?.fails ?? 0) + 1;
       const left = MAX_ATTEMPTS - fails;
-      setAttempts({ ...attempts, [key]: left <= 0 ? { fails: 0, until: now + LOCK_MS } : { fails, until: 0 } });
-      setError(left <= 0 ? "Too many tries. This username is locked for 15 minutes." : `Wrong username or password. ${left} ${left === 1 ? "try" : "tries"} left.`);
+      setAttempts({ ...attempts, [key]: left <= 0 ? { fails: 0, until: Date.now() + LOCK_MS } : { fails, until: 0 } });
+      setError(left <= 0 ? "" : `Wrong username or password. ${left} ${left === 1 ? "try" : "tries"} left.`);
       setPassword("");
       return;
     }
-    writeRemembered(remember ? key : null);
-    onLogin(account);
+    writeRemembered(key);
+    setBusy(true);
+    // Brief pause so the "Signing in…" state is visible; the real server call replaces this.
+    window.setTimeout(() => onLogin(account), 500);
   };
 
-  const status = kind === "staff"
-    ? online ? { tone: "ok" as const, label: copy.online } : { tone: "warn" as const, label: copy.offline }
-    : online ? { tone: "ok" as const, label: copy.online } : { tone: "error" as const, label: copy.offline };
-  const notch = kind === "staff"
-    ? online ? { label: "All changes synced", color: TEAL } : { label: "36 changes waiting", color: WARNING }
-    : { label: "All branches synced", color: TEAL };
-
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: BG, fontFamily: sans }}>
-      <main className="relative flex flex-1 items-center px-6 pb-28 pt-16 sm:px-12 lg:px-[150px]">
-        <form onSubmit={submit} noValidate className="w-full max-w-[360px]">
-          <BrandMark size={40} />
-          <div className="mt-2.5 text-[15px] font-bold" style={{ color: TEXT, fontFamily: display }}>{BRAND.name}</div>
-          <h1 className="mt-7 text-[34px] font-extrabold leading-tight tracking-[-0.03em]" style={{ color: TEXT, fontFamily: display }}>Sign in</h1>
-          <p className="mt-1.5 text-[15px]" style={{ color: MUTED }}>{copy.sub}</p>
-
-          <div className="mt-7 space-y-[18px]">
-            <Field id="login-username" label="Username" icon={<User size={18} />}>
-              <input id="login-username" value={username} onChange={e => { setUsername(e.target.value); setError(""); }} autoComplete="username" autoCapitalize="none" spellCheck={false} autoFocus className="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none" style={{ color: TEXT }} />
-            </Field>
-            <Field id="login-password" label="Password" icon={<Lock size={18} />}>
-              <input id="login-password" type={show ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); setError(""); }} autoComplete="current-password" className="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none" style={{ color: TEXT }} />
-              <button type="button" onClick={() => setShow(v => !v)} aria-label={show ? "Hide password" : "Show password"} className="text-[13px] font-medium" style={{ color: "#0F766E" }}>{show ? "Hide" : "Show"}</button>
-            </Field>
-            <label className="flex w-fit cursor-pointer items-center gap-2.5 text-sm" style={{ color: TEXT }}>
-              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} className="h-4 w-4 accent-[#1BA39C]" />
-              Remember my username
-            </label>
-            {error && <p role="alert" className="text-sm font-medium" style={{ color: ERROR }}>{error}</p>}
-            <button type="submit" className="h-[50px] w-full rounded-[10px] text-[15px] font-semibold text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1BA39C]" style={{ backgroundColor: PRIMARY }}>Sign in</button>
-            <p className="text-[13px]" style={{ color: MUTED }}>{copy.forgot}</p>
-          </div>
-        </form>
-
-        <div className="absolute bottom-12 left-6 flex items-center gap-4 sm:left-12 lg:left-[150px]">
-          <StatusPill tone={status.tone} label={status.label} />
-          {onOpenFieldApp && <button type="button" onClick={onOpenFieldApp} className="text-[13px] font-medium underline-offset-4 hover:underline" style={{ color: MUTED }}>Field app</button>}
+    <AuthLayout kind={kind} title="Welcome back" sub={kind === "staff" ? HOTEL_NAME : "For hotel owners and Nexura platform admins"}
+      extra={onOpenFieldApp && <button type="button" onClick={onOpenFieldApp} className="text-[13px] font-medium underline-offset-4 hover:underline" style={{ color: MUTED }}>Field app</button>}>
+      <form onSubmit={submit} noValidate className="space-y-[18px]">
+        <div>
+          <label htmlFor="login-username" className="mb-2 block text-[13px] font-medium" style={{ color: TEXT }}>Username</label>
+          <input id="login-username" value={username} onChange={e => { setUsername(e.target.value); setError(""); }} autoComplete="username" autoCapitalize="none" spellCheck={false} autoFocus className="h-12 w-full rounded-[10px] border border-[#E2E8F0] bg-white px-3.5 text-[15px] outline-none focus:border-[#1BA39C] focus:ring-1 focus:ring-[#1BA39C]" style={{ color: TEXT }} />
         </div>
-      </main>
-      <ShowcasePanel kicker={copy.kicker} title={copy.title} body={copy.body} card={copy.card} cardBody={copy.cardBody} notch={notch.label} notchColor={notch.color} />
-    </div>
+        <PasswordField id="login-password" label="Password" value={password} onChange={v => { setPassword(v); setError(""); }} invalid={!!error && !!key} />
+        {locked
+          ? <ErrorText>Too many wrong tries. This username is locked for 15 minutes. Try again at {clock(lockedUntil)}, or {helper}.</ErrorText>
+          : error && <ErrorText>{error}</ErrorText>}
+        <SubmitButton disabled={locked || busy}>{busy ? "Signing in…" : "Sign in"}</SubmitButton>
+        <Note>Forgot your password? {kind === "staff" ? "Ask your manager." : "Contact Nexura support."}</Note>
+      </form>
+    </AuthLayout>
   );
 }
 
-function ErrorNotice({ message }: { message: string }) {
-  return <div className="flex items-start gap-2.5 rounded-xl border p-3 text-sm" style={{ backgroundColor: BG, borderColor: ERROR, color: ERROR }}><Lock size={16} className="mt-0.5 flex-none" />{message}</div>;
-}
-
-
-function AuthPageShell({ children }: { children: ReactNode }) {
-  return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-7" style={{ fontFamily: sans, background: canvasBackground }}>
-      <div className="pointer-events-none absolute -left-24 top-16 h-72 w-72 rounded-full blur-3xl" style={{ backgroundColor: `${TEAL}12` }} />
-      <div className="pointer-events-none absolute -bottom-28 right-0 h-80 w-80 rounded-full blur-3xl" style={{ backgroundColor: `${ORANGE}0d` }} />
-      <div className="relative z-10 w-full max-w-[440px]">
-        <div className="mb-6 flex justify-center"><BrandLockup size={40} tone="light" /></div>
-        <div className="rounded-3xl bg-white p-6 shadow-[0_0_0_1px_rgba(47,191,174,0.18),0_0_70px_rgba(47,191,174,0.16),0_30px_80px_rgba(0,0,0,0.28)] sm:p-8">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-export function ForceChangePasswordScreen({ onComplete }: { onComplete: () => void }) {
-  const [current, setCurrent] = useState("");
+export function ForceChangePasswordScreen({ kind = "staff", temporaryPassword, onComplete }: { kind?: LoginKind; temporaryPassword: string; onComplete: (password: string) => void }) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [show, setShow] = useState(false);
-  const [error, setError] = useState("");
   const requirements = [
     { label: "At least 8 characters", ok: password.length >= 8 },
-    { label: "One uppercase letter", ok: /[A-Z]/.test(password) },
-    { label: "One lowercase letter", ok: /[a-z]/.test(password) },
-    { label: "One number", ok: /\d/.test(password) },
-    { label: "Passwords match", ok: password.length > 0 && password === confirm },
+    { label: "Has a number", ok: /\d/.test(password) },
+    { label: "Different from the temporary password", ok: password.length > 0 && password !== temporaryPassword },
+    { label: "Both passwords match", ok: password.length > 0 && password === confirm },
   ];
-  const ready = requirements.every(item => item.ok) && current.length > 0;
-  const fields = [
-    { label: "Temporary password", value: current, setter: setCurrent },
-    { label: "New password", value: password, setter: setPassword },
-    { label: "Confirm new password", value: confirm, setter: setConfirm },
-  ];
-  const submit = () => {
-    if (!ready) { setError("Complete every password requirement."); return; }
-    onComplete();
+  const ready = requirements.every(item => item.ok);
+  return (
+    <AuthLayout kind={kind} title="Choose your own password" sub="Your manager gave you a temporary password. Replace it with one only you know.">
+      <form onSubmit={e => { e.preventDefault(); if (ready) onComplete(password); }} noValidate className="space-y-[18px]">
+        <PasswordField id="new-password" label="New password" value={password} onChange={setPassword} autoFocus autoComplete="new-password" />
+        <PasswordField id="confirm-password" label="Confirm new password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
+        <ul className="space-y-2">
+          {requirements.map(item => (
+            <li key={item.label} className="flex items-center gap-2 text-[13px]" style={{ color: item.ok ? TEXT : MUTED }}>
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.ok ? SUCCESS : SUBTLE }} />
+              {item.label}<span className="sr-only">{item.ok ? " (done)" : " (not yet)"}</span>
+            </li>
+          ))}
+        </ul>
+        <SubmitButton disabled={!ready}>Save password and continue</SubmitButton>
+        <Note>You will use this password from now on.</Note>
+      </form>
+    </AuthLayout>
+  );
+}
+
+// Covers the app after 15 minutes without activity. The app stays mounted underneath, so work in progress is kept.
+export function LockScreen({ account, onUnlock, onSignOut }: { account: LoginAccount; onUnlock: () => void; onSignOut: () => void }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    if (password === account.password) onUnlock();
+    else { setError("Wrong password. Try again, or sign out."); setPassword(""); }
   };
   return (
-    <AuthPageShell>
-      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl" style={{ backgroundColor: BG, color: WARNING }}><ShieldCheck size={23} /></div>
-      <h1 className="text-2xl font-bold" style={{ color: TEXT, fontFamily: display }}>Choose a personal password</h1>
-      <p className="mb-6 mt-2 text-sm leading-relaxed" style={{ color: MUTED }}>Your temporary Front Desk password must be replaced before opening the workspace.</p>
-      {error && <div className="mb-4"><ErrorNotice message={error} /></div>}
-      <div className="space-y-4">
-        {fields.map(field => (
-          <label key={field.label} className="block text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>
-            {field.label}
-            <div className="relative mt-2">
-              <input type={show ? "text" : "password"} value={field.value} onChange={event => { field.setter(event.target.value); setError(""); }} className="min-h-14 w-full rounded-xl border px-4 pr-12 text-base outline-none" style={{ borderColor: BORDER }} />
-              {field.label === "New password" && <button type="button" onClick={() => setShow(value => !value)} className="absolute right-0 top-0 flex h-14 w-12 items-center justify-center" style={{ color: MUTED }}>{show ? <EyeSlash size={18} /> : <Eye size={18} />}</button>}
-            </div>
-          </label>
-        ))}
-      </div>
-      <div className="mt-5 rounded-2xl p-4" style={{ backgroundColor: BG }}>
-        {requirements.map(item => <div key={item.label} className="flex items-center gap-2 py-1 text-sm" style={{ color: item.ok ? SUCCESS : MUTED }}>{item.ok ? <CheckCircle size={16} weight="fill" /> : <span className="h-4 w-4 rounded-full border" style={{ borderColor: BORDER }} />}{item.label}</div>)}
-      </div>
-      <button type="button" onClick={submit} disabled={!ready} className="mt-5 min-h-14 w-full rounded-xl text-sm font-bold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Set password & sign in</button>
-    </AuthPageShell>
+    <div className="fixed inset-0 z-[100] overflow-auto bg-white">
+      <AuthLayout kind={account.kind} title="Screen locked" sub={`${account.name}, ${account.roleName}. Enter your password to carry on where you stopped.`}>
+        <form onSubmit={submit} noValidate className="space-y-[18px]">
+          <PasswordField id="unlock-password" label="Password" value={password} onChange={v => { setPassword(v); setError(""); }} invalid={!!error} autoFocus />
+          {error && <ErrorText>{error}</ErrorText>}
+          <SubmitButton>Unlock</SubmitButton>
+          <Note>Not you? <button type="button" onClick={onSignOut} className="font-medium underline underline-offset-4" style={{ color: "#0F766E" }}>Sign out</button> to let someone else in.</Note>
+        </form>
+      </AuthLayout>
+    </div>
+  );
+}
+
+const HOTELS = [["All hotels", "Portfolio overview"], ["Grand Palms Hotel", "Abuja"], ["Grand Palms Ikoyi", "Lagos"], ["Grand Palms GRA", "Port Harcourt"]];
+
+export function ChooseHotelScreen({ account, onContinue, onSignOut }: { account: LoginAccount; onContinue: (hotel: string) => void; onSignOut: () => void }) {
+  const [hotel, setHotel] = useState(HOTELS[0][0]);
+  return (
+    <AuthLayout kind="cloud" title="Choose a hotel" sub="You own more than one. Figures for other hotels are as of their last sync.">
+      <form onSubmit={e => { e.preventDefault(); onContinue(hotel); }} className="space-y-[18px]">
+        <fieldset className="space-y-2.5">
+          <legend className="sr-only">Hotel</legend>
+          {HOTELS.map(([name, place]) => (
+            <label key={name} className="flex cursor-pointer flex-col rounded-[10px] border bg-white px-4 py-3 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#1BA39C]" style={hotel === name ? { borderColor: TEAL, boxShadow: `0 0 0 1px ${TEAL}` } : { borderColor: BORDER }}>
+              <input type="radio" name="hotel" value={name} checked={hotel === name} onChange={() => setHotel(name)} className="sr-only" />
+              <span className="text-[15px] font-semibold" style={{ color: TEXT }}>{name}</span>
+              <span className="text-[13px]" style={{ color: MUTED }}>{place}</span>
+            </label>
+          ))}
+        </fieldset>
+        <SubmitButton>Continue</SubmitButton>
+        <Note>Signed in as {account.username}. Not you? <button type="button" onClick={onSignOut} className="font-medium underline underline-offset-4" style={{ color: "#0F766E" }}>Sign out</button>.</Note>
+      </form>
+    </AuthLayout>
   );
 }

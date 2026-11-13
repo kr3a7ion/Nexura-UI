@@ -11,7 +11,7 @@ import {
   MinusCircle, PlusCircle, ShoppingCart, MapPin, Mail,
   UserCheck, BookOpen,
   ArrowDownToLine, ArrowUpFromLine, XCircle, Archive, Info,
-  DollarSign, BedDouble, Zap, GripVertical,
+  DollarSign, BedDouble, Zap, GripVertical, Users, Layers,
 } from "lucide-react";
 import {
   BarChart, Bar,
@@ -29,7 +29,7 @@ import {
 } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
 
-function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
+export function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
   const isFemale = gender === "F";
   const bg = isFemale ? "#FDF4FF" : "#EFF6FF";
   const fg = isFemale ? "#A855F7" : "#3B82F6";
@@ -3567,11 +3567,11 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
                     {c.repeat && <span className="ml-1.5 px-1.5 py-0.5 rounded text-xs" style={{ backgroundColor:"#FEE2E2", color:"#991B1B" }}>Repeat</span>}
                   </td>
                   <td className="px-3 py-2.5 text-xs" style={{ color:MUTED }}>{c.category}</td>
-                  <td className="px-3 py-2.5"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={SEV_COLORS[c.severity]}>{c.severity}</span></td>
+                  <td className="px-3 py-2.5"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: SEV_COLORS[c.severity].bg, color: SEV_COLORS[c.severity].text }}>{c.severity}</span></td>
                   <td className="px-3 py-2.5 text-xs" style={{ color:MUTED, fontFamily:mono }}>{c.raised}</td>
                   <td className="px-3 py-2.5 text-xs" style={{ color:TEXT }}>{c.owner}</td>
                   <td className="px-3 py-2.5">{slaLabel(c.slaRemMins)}</td>
-                  <td className="px-3 py-2.5"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={ST_COLORS[c.status]}>{c.status}</span></td>
+                  <td className="px-3 py-2.5"><span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: ST_COLORS[c.status].bg, color: ST_COLORS[c.status].text }}>{c.status}</span></td>
                   <td className="px-3 py-2.5"><ChevronRight size={14} style={{ color:SUBTLE }} /></td>
                 </tr>
               ))}
@@ -3591,8 +3591,8 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
             </div>
 
             <div className="flex gap-2 flex-wrap">
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={SEV_COLORS[selected.severity]}>{selected.severity}</span>
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={ST_COLORS[selected.status]}>{selected.status}</span>
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: SEV_COLORS[selected.severity].bg, color: SEV_COLORS[selected.severity].text }}>{selected.severity}</span>
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: ST_COLORS[selected.status].bg, color: ST_COLORS[selected.status].text }}>{selected.status}</span>
               {selected.escalated && <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor:"#FEE2E2", color:"#991B1B" }}>Escalated</span>}
             </div>
 

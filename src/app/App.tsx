@@ -21,8 +21,8 @@ import {
   mono, sans, display, NAV_BG, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE, BG,
   NOTIFS, BRANCHES,
 } from "./constants";
-import { LoginScreen, ForceChangePasswordScreen } from "./AuthScreens";
-import { MFAChallengeScreen, MFAEnrolmentScreen, BranchSelectionScreen, GuestAccessScreen } from "./AuthFlowScreens";
+import { LoginScreen, ForceChangePasswordScreen, LockScreen, ChooseHotelScreen } from "./AuthScreens";
+import type { LoginAccount } from "./mock/staffLogin";
 import AdminConsole from "./PlatformAdminConsole";
 import OrgPortal from "./OrgPortalScreens";
 import { PrintTemplates } from "./PrintTemplates";
@@ -48,7 +48,7 @@ import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "./components/ui/command";
 
-type AuthState = "login" | "field-app" | "mfa" | "mfa-enrolment" | "branch-select" | "guest-access" | "hms" | "admin-console" | "org-portal" | "force-change-password";
+type AuthState = "login" | "field-app" | "choose-hotel" | "guest-access" | "hms" | "admin-console" | "org-portal" | "force-change-password";
 
 // ─── Screen components & primitives ──────────────────────────────────────────
 import {
@@ -239,15 +239,16 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
 }
 
 // ─── App Root ─────────────────────────────────────────────────────────────────
+const IDLE_LOCK_MS = 15 * 60 * 1000;
+
 // ─── App Root — manages auth layer routing ────────────────────────────────────
 export default function App() {
   const [authState, setAuthState] = useState<AuthState>(window.location.hash.startsWith("#guest-access") ? "guest-access" : "login");
   const [loggedRole, setLoggedRole] = useState<Role>("MGT");
   const [staffName, setStaffName]   = useState("Adaeze Okonkwo");
   const [firstLoginDone, setFirstLoginDone] = useState(false);
-  const [platformMfaEnrolled, setPlatformMfaEnrolled] = useState(false);
-  const [pendingDestination, setPendingDestination] = useState<"hms" | "admin-console" | "org-portal">("hms");
-  const [pendingHasMultipleBranches, setPendingHasMultipleBranches] = useState(false);
+  const [account, setAccount] = useState<LoginAccount | null>(null);
+  const [locked, setLocked] = useState(false);
   // Owners and platform admins sign in at #/owner or #/platform; everyone else uses the hotel terminal login.
   const isCloudHash = () => /^#\/(owner|platform)/.test(window.location.hash);
   const [cloudLogin, setCloudLogin] = useState(isCloudHash);
@@ -257,33 +258,40 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  const handleLogin = (role: string, dest: "hms" | "admin-console" | "org-portal", name: string) => {
-    setLoggedRole(role as Role);
-    setStaffName(name);
-    setPendingDestination(dest);
-    const ownerFlow = role === "PLT" || role === "ORG";
-    setPendingHasMultipleBranches(ownerFlow);
-    if (role === "PLT" && !platformMfaEnrolled) { setAuthState("mfa-enrolment"); return; }
-    if (ownerFlow) { setAuthState("mfa"); return; }
-    if (dest === "admin-console") { setAuthState("admin-console"); return; }
-    if (dest === "org-portal") { setAuthState("org-portal"); return; }
-    if (role === "FD" && !firstLoginDone) { setFirstLoginDone(true); setAuthState("force-change-password"); return; }
+  const handleLogin = (next: LoginAccount) => {
+    setAccount(next);
+    setLoggedRole(next.role as Role);
+    setStaffName(next.name);
+    if (next.role === "ORG") { setAuthState(next.branches > 1 ? "choose-hotel" : "org-portal"); return; }
+    if (next.destination !== "hms") { setAuthState(next.destination); return; }
+    if (next.role === "FD" && !firstLoginDone) { setFirstLoginDone(true); setAuthState("force-change-password"); return; }
     setAuthState("hms");
   };
 
-  const handleLogout = () => setAuthState("login");
+  const handleLogout = () => { setLocked(false); setAccount(null); setAuthState("login"); };
 
-  if (authState === "login") return <LoginScreen key={cloudLogin ? "cloud" : "staff"} kind={cloudLogin ? "cloud" : "staff"} onLogin={a => handleLogin(a.role, a.destination, a.name)} onOpenFieldApp={cloudLogin ? undefined : () => setAuthState("field-app")} />;
+  // Shared terminals: lock the suite after 15 minutes without a key press or pointer move.
+  const signedIn = authState === "hms" || authState === "admin-console" || authState === "org-portal";
+  useEffect(() => {
+    if (!signedIn || locked) return;
+    let timer = window.setTimeout(() => setLocked(true), IDLE_LOCK_MS);
+    const reset = () => { window.clearTimeout(timer); timer = window.setTimeout(() => setLocked(true), IDLE_LOCK_MS); };
+    const events = ["pointerdown", "pointermove", "keydown", "wheel"] as const;
+    events.forEach(name => window.addEventListener(name, reset, { passive: true }));
+    return () => { window.clearTimeout(timer); events.forEach(name => window.removeEventListener(name, reset)); };
+  }, [signedIn, locked]);
+  const lock = locked && account ? <LockScreen account={account} onUnlock={() => setLocked(false)} onSignOut={handleLogout} /> : null;
+
+  if (authState === "login") return <LoginScreen key={cloudLogin ? "cloud" : "staff"} kind={cloudLogin ? "cloud" : "staff"} onLogin={handleLogin} onOpenFieldApp={cloudLogin ? undefined : () => setAuthState("field-app")} />;
   if (authState === "field-app") return <FieldApp onExit={() => setAuthState("login")} />;
-  if (authState === "mfa-enrolment") return <MFAEnrolmentScreen onBack={() => setAuthState("login")} onComplete={() => { setPlatformMfaEnrolled(true); setAuthState("mfa"); }} />;
-  if (authState === "mfa") return <MFAChallengeScreen onBack={() => setAuthState("login")} onComplete={() => setAuthState(pendingHasMultipleBranches ? "branch-select" : pendingDestination)} />;
-  if (authState === "branch-select") return <BranchSelectionScreen onBack={() => setAuthState("mfa")} onSelect={() => setAuthState(pendingDestination)} />;
+  // shortcut: the mock owner portal has no per-hotel view yet, so the chosen hotel is not passed on; wire it when the portal reads real data.
+  if (authState === "choose-hotel" && account) return <ChooseHotelScreen account={account} onContinue={() => setAuthState("org-portal")} onSignOut={handleLogout} />;
   if (authState === "guest-access") return <GuestPortal qrLanding={window.location.hash.includes("/qr")} onExit={() => { window.location.hash = ""; setAuthState("login"); }} />;
-  if (authState === "admin-console") return <AdminConsole onLogout={handleLogout} />;
-  if (authState === "org-portal") return <OrgPortal onLogout={handleLogout} />;
-  if (authState === "force-change-password") return <ForceChangePasswordScreen onComplete={() => setAuthState("hms")} />;
+  if (authState === "admin-console") return <>{lock}<AdminConsole onLogout={handleLogout} /></>;
+  if (authState === "org-portal") return <>{lock}<OrgPortal onLogout={handleLogout} /></>;
+  if (authState === "force-change-password") return <ForceChangePasswordScreen temporaryPassword={account?.password ?? ""} onComplete={password => { setAccount(current => current && { ...current, password }); setAuthState("hms"); }} />;
 
-  return <HMSApp initialRole={loggedRole} staffName={staffName} onLogout={handleLogout} onOpenPortal={portal => setAuthState(portal)} />;
+  return <>{lock}<HMSApp initialRole={loggedRole} staffName={staffName} onLogout={handleLogout} onOpenPortal={portal => setAuthState(portal)} /></>;
 }
 
 // ─── HMS App Shell ────────────────────────────────────────────────────────────
