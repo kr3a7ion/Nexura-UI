@@ -66,7 +66,7 @@ export const resStC: Record<string, { bg: string; text: string }> = {
 export const hkC: Record<string, { bg: string; text: string }> = {
   Dirty: { bg: "#FEF3C7", text: "#92400E" }, "In Progress": { bg: "#DBEAFE", text: "#1E40AF" },
   Clean: { bg: "#D1FAE5", text: "#065F46" }, Inspected: { bg: "#DCFCE7", text: "#166534" },
-  DND: { bg: "#F3F4F6", text: "#374151" }, Occupied: { bg: "#FEF3C7", text: "#B45309" }, Maintenance: { bg: "#FEE2E2", text: "#991B1B" },
+  DND: { bg: "#F3F4F6", text: "#374151" }, Occupied: { bg: "#CCFBF1", text: "#0F766E" }, Maintenance: { bg: "#FEE2E2", text: "#991B1B" },
 };
 export const woC: Record<string, { bg: string; text: string }> = {
   Reported: { bg: "#EEF2FF", text: "#4338CA" }, Assigned: { bg: "#CCFBF1", text: "#0F766E" },
