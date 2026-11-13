@@ -444,10 +444,10 @@ export function VehicleDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={FUEL_CHART_DATA} margin={{ left:-20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-                <XAxis dataKey="date" tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} domain={[6,12]} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} domain={[6,12]} />
                 <Tooltip contentStyle={{ fontSize:12, borderRadius:8 }} formatter={(v:number)=>[`${v} L/100km`]} />
-                <ReferenceLine y={8.5} stroke={WARNING} strokeDasharray="4 4" label={{ value:"Baseline", fill:WARNING, fontSize:10 }} />
+                <ReferenceLine y={8.5} stroke={WARNING} strokeDasharray="4 4" label={{ value:"Baseline", fill:WARNING, fontSize: 12 }} />
                 <Line type="monotone" dataKey="consumption" stroke={TEAL} strokeWidth={2} dot={{ r:4, fill:TEAL }} name="L/100km" />
               </LineChart>
             </ResponsiveContainer>
@@ -732,13 +732,13 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             { vehicle:"ABJ 789 ZC", consumption:11.8, baseline:12.0 },
           ]} margin={{ left:-20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-            <XAxis dataKey="vehicle" tick={{ fontSize:10, fill:MUTED }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} domain={[0,18]} />
+            <XAxis dataKey="vehicle" tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} domain={[0,18]} />
             <Tooltip contentStyle={{ fontSize:12, borderRadius:8 }} formatter={(v:number)=>[`${v} L/100km`]} />
-            <ReferenceLine y={12} stroke={WARNING} strokeDasharray="4 4" label={{ value:"Threshold 12.0", fill:WARNING, fontSize:10 }} />
+            <ReferenceLine y={12} stroke={WARNING} strokeDasharray="4 4" label={{ value:"Threshold 12.0", fill:WARNING, fontSize: 12 }} />
             <Bar dataKey="consumption" name="L/100km" radius={[4,4,0,0]} barSize={36}
               fill={TEAL}
-              label={{ position:"top", fontSize:10, fill:TEXT, fontWeight:700, formatter:(v:number) => v > 12 ? `${v}⚠` : `${v}` }}
+              label={{ position:"top", fontSize: 12, fill:TEXT, fontWeight:700, formatter:(v:number) => v > 12 ? `${v}⚠` : `${v}` }}
             />
           </BarChart>
         </ResponsiveContainer>
@@ -1108,8 +1108,8 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={GEN_TREND} margin={{ left:-20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="week" tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} tickFormatter={v=>`₦${(v/1000).toFixed(0)}K`} />
+              <XAxis dataKey="week" tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} tickFormatter={v=>`₦${(v/1000).toFixed(0)}K`} />
               <Tooltip contentStyle={{ fontSize:12, borderRadius:8 }} formatter={(v:number)=>[`₦${v.toLocaleString()}`]} />
               <Bar dataKey="cost" name="Diesel Cost" fill={WARNING} radius={[3,3,0,0]} barSize={24} />
             </BarChart>

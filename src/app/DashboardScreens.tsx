@@ -123,9 +123,9 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
           <ResponsiveContainer width="100%" height={170}>
             <AreaChart data={occ30Data} margin={{ top: 4, right: 0, left: -24, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={BORDER} />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: SUBTLE }} axisLine={false} tickLine={false}
+              <XAxis dataKey="day" tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false}
                 ticks={[1, 6, 11, 16, 21, 26]} />
-              <YAxis tick={{ fontSize: 10, fill: SUBTLE }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12, fontFamily: "'JetBrains Mono', monospace" }}
                 formatter={(v: any, n: any) => [n === "rev" ? `₦${v}K` : `${v}%`, n === "rev" ? "RevPAR" : "Occupancy"]} />
               <Area type="monotone" dataKey="occ" name="Occupancy" stroke={PRIMARY} strokeWidth={2} fill={PRIMARY + "18"} dot={false} />
@@ -866,8 +866,8 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={FIN_WEEKLY} margin={{ left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: MUTED }} axisLine={false} tickLine={false}
+              <XAxis dataKey="day" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false}
                 tickFormatter={(v: number) => `₦${(v / 1000000).toFixed(1)}M`} domain={[0, 1600000]} />
               <Tooltip formatter={(v: number) => `₦${v.toLocaleString()}`}
                 contentStyle={{ fontSize: 12, borderRadius: 8 }} />
@@ -1004,8 +1004,8 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={RSV_PIPELINE} margin={{ left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="date" tick={{ fontSize: 10, fill: MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: MUTED }} axisLine={false} tickLine={false} domain={[0, 20]} />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} domain={[0, 20]} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
               <Bar dataKey="arr" name="Arrivals"   fill={PRIMARY} radius={[3,3,0,0]} barSize={14} />
               <Bar dataKey="dep" name="Departures" fill={TEAL}    radius={[3,3,0,0]} barSize={14} />

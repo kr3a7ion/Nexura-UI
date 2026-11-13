@@ -378,7 +378,8 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   const [showPermsChanged, setShowPermsChanged] = useState(false);
 
   const allowedDepartments = useMemo(() => departmentsForRole(role), [role]);
-  const currentDepartment = allowedDepartments.find(department => department.id === currentDepartmentId) ?? allowedDepartments[0];
+  // On Suite Home no department is open, so the sidebar lists departments and no flow bar shows.
+  const currentDepartment = screen === "suite-home" ? undefined : allowedDepartments.find(department => department.id === currentDepartmentId) ?? allowedDepartments[0];
   const searchableScreens = useMemo(() => {
     const seen = new Set<string>();
     return allowedDepartments.flatMap(department => department.screens.flatMap(group => group.items.map(item => ({ ...item, department })))).filter(item => {
@@ -461,15 +462,27 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
             {!collapsed && <span className="text-xs font-semibold" style={{ color: screen === "suite-home" ? "white" : "rgba(255,255,255,.58)" }}>Suite Home</span>}
           </button>
 
+          {!currentDepartment && (
+            <div className="mt-3">
+              {!collapsed && <div className="px-5 pb-1 text-xs font-semibold text-white/35">Departments</div>}
+              {allowedDepartments.map(department => (
+                <button key={department.id} onClick={() => openDepartment(department)} title={department.name} className="flex min-h-10 w-full items-center gap-3 px-[18px] text-left hover:bg-white/5">
+                  <department.icon size={18} style={{ color: department.accent }} />
+                  {!collapsed && <span className="truncate text-xs font-semibold text-white/70">{department.name}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+
           {currentDepartment && (
             <div className="mt-3">
               <button onClick={() => openDepartment(currentDepartment)} className="flex min-h-11 w-full items-center gap-3 px-[18px] text-left" style={{ backgroundColor: screen === currentDepartment.home ? `${currentDepartment.accent}24` : "transparent", borderLeft: screen === currentDepartment.home ? `3px solid ${currentDepartment.accent}` : "3px solid transparent" }} title={collapsed ? currentDepartment.name : undefined}>
                 <currentDepartment.icon size={18} style={{ color: currentDepartment.accent }} />
-                {!collapsed && <div className="min-w-0"><div className="truncate text-xs font-bold text-white">{currentDepartment.name}</div><div className="mt-0.5 text-[9px] uppercase tracking-widest text-white/30">Department</div></div>}
+                {!collapsed && <div className="min-w-0"><div className="truncate text-xs font-bold text-white">{currentDepartment.name}</div><div className="mt-0.5 text-xs uppercase tracking-widest text-white/30">Department</div></div>}
               </button>
               {currentDepartment.screens.map(group => (
                 <div key={group.label} className="mt-3">
-                  {!collapsed && <div className="px-5 pb-1 text-[9px] font-bold uppercase tracking-[0.14em] text-white/25">{group.label}</div>}
+                  {!collapsed && <div className="px-5 pb-1 text-xs font-bold uppercase tracking-[0.14em] text-white/25">{group.label}</div>}
                   {group.items.map(item => {
                     const isActive = screen === item.screen;
                     return <button key={`${group.label}-${item.screen}`} onClick={() => nav(item.screen, item.label)} className="group relative flex min-h-9 w-full items-center gap-3 px-[18px] text-left" style={{ backgroundColor: isActive ? `${currentDepartment.accent}1c` : "transparent", borderLeft: isActive ? `3px solid ${currentDepartment.accent}` : "3px solid transparent" }} title={collapsed ? item.label : undefined}>
@@ -502,37 +515,37 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
             {collapsed && <button onClick={() => setCollapsed(false)} className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ color: MUTED }}><MenuIcon size={17} /></button>}
             <div className="relative">
               <button onClick={() => { setAppSwitcherOpen(previous => !previous); setUserMenuOpen(false); }} className="flex h-9 w-9 items-center justify-center rounded-xl border bg-white" style={{ borderColor: BORDER, color: PRIMARY }} title="Open app switcher"><SquaresFour size={18} weight="fill" /></button>
-              {appSwitcherOpen && <div className="absolute left-0 top-full mt-2 w-[340px] rounded-2xl border bg-white p-3 shadow-2xl" style={{ borderColor: BORDER }}><div className="mb-2 px-1 text-xs font-bold" style={{ color: TEXT }}>Department suite</div><div className="grid grid-cols-3 gap-2">{allowedDepartments.map(department => { const Icon = department.icon; return <button key={department.id} onClick={() => openDepartment(department)} className="rounded-xl border p-2.5 text-left hover:shadow-sm" style={{ borderColor: currentDepartment?.id === department.id ? department.accent : BORDER, backgroundColor: currentDepartment?.id === department.id ? `${department.accent}08` : "white" }}><div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: `${department.accent}14`, color: department.accent }}><Icon size={16} /></div><div className="line-clamp-2 text-[11px] font-semibold leading-tight" style={{ color: TEXT }}>{department.name}</div></button>; })}</div></div>}
+              {appSwitcherOpen && <div className="absolute left-0 top-full mt-2 w-[340px] rounded-2xl border bg-white p-3 shadow-2xl" style={{ borderColor: BORDER }}><div className="mb-2 px-1 text-xs font-bold" style={{ color: TEXT }}>Department suite</div><div className="grid grid-cols-3 gap-2">{allowedDepartments.map(department => { const Icon = department.icon; return <button key={department.id} onClick={() => openDepartment(department)} className="rounded-xl border p-2.5 text-left hover:shadow-sm" style={{ borderColor: currentDepartment?.id === department.id ? department.accent : BORDER, backgroundColor: currentDepartment?.id === department.id ? `${department.accent}08` : "white" }}><div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: `${department.accent}14`, color: department.accent }}><Icon size={16} /></div><div className="line-clamp-2 text-xs font-semibold leading-tight" style={{ color: TEXT }}>{department.name}</div></button>; })}</div></div>}
             </div>
 
             <div className="hidden min-w-0 sm:block">
               <div className="flex items-center gap-2 text-sm font-bold" style={{ color: TEXT }}><span className="h-2 w-2 rounded-full" style={{ backgroundColor: screen === "suite-home" ? TEAL : currentDepartment?.accent ?? TEAL }} />{screen === "suite-home" ? "Nexura Suite" : currentDepartment?.name}</div>
-              <div className="mt-0.5 flex items-center gap-1 text-[10px]" style={{ color: SUBTLE }}><button onClick={() => nav("suite-home", "Suite Home")}>Suite Home</button>{screen !== "suite-home" && <><CaretRight size={9} /><span className="truncate">{activeLabel}</span></>}</div>
+              <div className="mt-0.5 flex items-center gap-1 text-xs" style={{ color: SUBTLE }}><button onClick={() => nav("suite-home", "Suite Home")}>Suite Home</button>{screen !== "suite-home" && <><CaretRight size={9} /><span className="truncate">{activeLabel}</span></>}</div>
             </div>
 
             <div className="mx-auto flex max-w-xl flex-1 justify-center px-2">
-              <button onClick={() => setCommandOpen(true)} className="flex h-9 w-full max-w-md items-center gap-2 rounded-xl border px-3 text-left text-sm" style={{ backgroundColor: BG, borderColor: BORDER, color: MUTED }}><MagnifyingGlass size={15} /><span className="truncate">Search or jump to a screen…</span><span className="ml-auto hidden rounded-md border bg-white px-1.5 py-0.5 text-[10px] sm:inline" style={{ borderColor: BORDER, color: SUBTLE }}>⌘ K</span></button>
+              <button onClick={() => setCommandOpen(true)} className="flex h-9 w-full max-w-md items-center gap-2 rounded-xl border px-3 text-left text-sm" style={{ backgroundColor: BG, borderColor: BORDER, color: MUTED }}><MagnifyingGlass size={15} /><span className="truncate">Search or jump to a screen…</span><span className="ml-auto hidden rounded-md border bg-white px-1.5 py-0.5 text-xs sm:inline" style={{ borderColor: BORDER, color: SUBTLE }}>⌘ K</span></button>
             </div>
 
             <div className="flex flex-shrink-0 items-center gap-2">
-              <button onClick={() => { setOffline(previous => !previous); add({ type: offline ? "success" : "warning", title: offline ? "Back online — syncing…" : "Simulating offline mode" }); }} className="hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold sm:flex" style={{ backgroundColor: offline ? "#FEF3C7" : "#ECFDF5", borderColor: offline ? "#FDE68A" : "#A7F3D0", color: offline ? "#92400E" : "#047857" }}><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: offline ? WARNING : SUCCESS }} />{offline ? "Offline" : "Synced"}</button>
-              <button onClick={() => { setNotifOpen(previous => !previous); setUserMenuOpen(false); }} className="relative flex h-9 w-9 items-center justify-center rounded-xl border" style={{ borderColor: BORDER }}><Bell size={16} style={{ color: MUTED }} weight="bold" />{unread > 0 && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ backgroundColor: ERROR }}>{unread}</span>}</button>
+              <button onClick={() => { setOffline(previous => !previous); add({ type: offline ? "success" : "warning", title: offline ? "Back online — syncing…" : "Simulating offline mode" }); }} className="hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold sm:flex" style={{ backgroundColor: offline ? "#FEF3C7" : "#ECFDF5", borderColor: offline ? "#FDE68A" : "#A7F3D0", color: offline ? "#92400E" : "#047857" }}><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: offline ? WARNING : SUCCESS }} />{offline ? "Working offline" : "All changes synced"}</button>
+              <button onClick={() => { setNotifOpen(previous => !previous); setUserMenuOpen(false); }} className="relative flex h-9 w-9 items-center justify-center rounded-xl border" style={{ borderColor: BORDER }}><Bell size={16} style={{ color: MUTED }} weight="bold" />{unread > 0 && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: ERROR }}>{unread}</span>}</button>
               <div className="relative"><button onClick={() => { setUserMenuOpen(previous => !previous); setNotifOpen(false); setAppSwitcherOpen(false); }} className="flex items-center gap-2 rounded-xl border px-2 py-1" style={{ borderColor: BORDER }}><div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: PRIMARY }}>{initials}</div><CaretDown size={11} style={{ color: SUBTLE }} /></button>{userMenuOpen && <div className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-xl border bg-white shadow-xl" style={{ borderColor: BORDER }}><div className="border-b px-4 py-3" style={{ borderColor: BORDER }}><div className="text-xs font-semibold" style={{ color: TEXT }}>{staffName}</div><div className="mt-0.5 text-xs" style={{ color: MUTED }}>{roleLabels[role]}</div></div><button onClick={() => nav("my-preferences", "My Preferences")} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><User size={13} />My Profile</button><button onClick={() => setShowSessionExpired(true)} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><Lock size={13} />Auth demo</button><button onClick={onLogout} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: ERROR }}><SignOut size={13} />Sign Out</button></div>}</div>
             </div>
           </div>
         </header>
 
         {currentFlow.length > 0 && (
-          <div className="flex flex-shrink-0 items-center gap-2 overflow-x-auto border-b bg-white px-6 py-2" style={{ borderColor: BORDER }}><span className="mr-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: SUBTLE }}>Flow</span>{currentFlow.map((step, index) => { const active = index === activeFlowIndex; const complete = activeFlowIndex > index; return <button key={`${step.screen}-${index}`} onClick={() => nav(step.screen, step.label)} className="flex items-center gap-2 whitespace-nowrap text-xs font-semibold" style={{ color: active ? currentDepartment?.accent : complete ? SUCCESS : MUTED }}><span className="flex h-6 w-6 items-center justify-center rounded-full text-[10px]" style={{ backgroundColor: active ? `${currentDepartment?.accent}18` : complete ? "#ECFDF5" : BG }}>{complete ? <CheckCircle size={13} weight="fill" /> : index + 1}</span>{step.label}{index < currentFlow.length - 1 && <CaretRight size={11} style={{ color: BORDER }} />}</button>; })}</div>
+          <div className="flex flex-shrink-0 items-center gap-2 overflow-x-auto border-b bg-white px-6 py-2" style={{ borderColor: BORDER }}><span className="mr-2 text-xs font-bold uppercase tracking-wider" style={{ color: SUBTLE }}>Flow</span>{currentFlow.map((step, index) => { const active = index === activeFlowIndex; const complete = activeFlowIndex > index; return <button key={`${step.screen}-${index}`} onClick={() => nav(step.screen, step.label)} className="flex items-center gap-2 whitespace-nowrap text-xs font-semibold" style={{ color: active ? currentDepartment?.accent : complete ? SUCCESS : MUTED }}><span className="flex h-6 w-6 items-center justify-center rounded-full text-xs" style={{ backgroundColor: active ? `${currentDepartment?.accent}18` : complete ? "#ECFDF5" : BG }}>{complete ? <CheckCircle size={13} weight="fill" /> : index + 1}</span>{step.label}{index < currentFlow.length - 1 && <CaretRight size={11} style={{ color: BORDER }} />}</button>; })}</div>
         )}
 
         <main className="flex-1 overflow-y-auto p-4 pb-8 md:p-6" style={{ scrollbarWidth: "none", backgroundColor: BG }}>
           <div className="mx-auto max-w-screen-2xl">
-            {offline && <div className="mb-5 flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium" style={{ backgroundColor: "#FEF3C7", color: "#92400E", borderColor: "#FDE68A" }}><WifiSlash size={15} weight="bold" /><span>Offline — showing last synced data. Changes will sync automatically when reconnected.</span><button onClick={() => setOffline(false)} className="ml-auto rounded-lg px-2.5 py-1 text-xs font-medium text-white" style={{ backgroundColor: WARNING }}>Go Online</button></div>}
+            {offline && <div className="mb-5 flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium" style={{ backgroundColor: "#FEF3C7", color: "#92400E", borderColor: "#FDE68A" }}><WifiSlash size={15} weight="bold" /><span>Working offline. Everything you do is saved on this hotel's server and will sync later.</span><button onClick={() => setOffline(false)} className="ml-auto rounded-lg px-2.5 py-1 text-xs font-medium text-white" style={{ backgroundColor: WARNING }}>Go Online</button></div>}
             {screen === "suite-home" ? (
               <SuiteHome staffName={staffName} role={role} departments={allowedDepartments} offline={offline} pinned={pinned.filter(id => allowedDepartments.some(department => department.id === id))} onTogglePin={togglePin} onOpenDepartment={openDepartment} onOpenScreen={(nextScreen, label) => nav(nextScreen, label)} onOpenPortal={onOpenPortal} />
             ) : (screen as string).startsWith("dept-") && !["dept-front-office", "dept-access-security", "dept-housekeeping", "dept-maintenance", "dept-restaurant-pos", "dept-finance", "dept-inventory", "dept-hr", "dept-communications", "dept-fleet"].includes(screen as string) && currentDepartment ? (
-              <DepartmentHome department={currentDepartment} />
+              <DepartmentHome department={currentDepartment} nav={(nextScreen, label) => nav(nextScreen, label)} />
             ) : (
               <Router screen={screen as Screen} add={add} role={role} nav={(nextScreen, label, param) => nav(nextScreen, label, param)} staffName={staffName} navParam={navParam} />
             )}

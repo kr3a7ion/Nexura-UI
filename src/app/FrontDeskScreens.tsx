@@ -273,13 +273,13 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                   style={{ backgroundColor: active ? "rgba(255,255,255,0.25)" : done ? PRIMARY : CK_BD }}>
                   {done
                     ? <Ph.CheckCircle size={10} color="white" weight="fill" />
-                    : <span style={{ color: active ? "white" : CK_MUT, fontSize: 9, fontWeight: 700 }}>{i + 1}</span>}
+                    : <span style={{ color: active ? "white" : CK_MUT, fontSize: 12, fontWeight: 700 }}>{i + 1}</span>}
                 </div>
                 {done && <span style={{ fontSize: 7, color: PRIMARY, fontWeight: 700, letterSpacing: "0.06em" }}>DONE</span>}
               </div>
               <SI size={22} style={{ color: active ? "white" : done ? PRIMARY : CK_MUT }} />
               <p className="text-center mt-2 font-bold leading-tight"
-                style={{ fontSize: 9, color: active ? "white" : done ? PRIMARY : CK_MUT, letterSpacing: "0.05em" }}>
+                style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : CK_MUT, letterSpacing: "0.05em" }}>
                 {STEP_SHORT[i].toUpperCase()}
               </p>
             </button>
@@ -1148,7 +1148,7 @@ export function RoomAccessMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
           {(Object.entries(caps) as [string, boolean][]).map(([cap, supported]) => (
             <div key={cap} className="flex items-center gap-2 p-2.5 rounded-lg" style={{ backgroundColor: supported ? "#F0FDF4" : "#F9FAFB", border: `1px solid ${supported ? "#BBF7D0" : BORDER}` }}>
               <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: supported ? SUCCESS : "#E2E8F0" }}>
-                {supported ? <CheckCircle2 size={11} color="white" /> : <span style={{ fontSize: 10, color: MUTED }}>✕</span>}
+                {supported ? <CheckCircle2 size={11} color="white" /> : <span style={{ fontSize: 12, color: MUTED }}>✕</span>}
               </div>
               <span className="text-xs font-medium" style={{ color: supported ? TEXT : MUTED }}>{cap.replace(/([A-Z])/g, " $1").trim()}</span>
             </div>
@@ -1667,7 +1667,7 @@ export function GuestMessaging({ add }: { add: (t: Omit<Toast, "id">) => void })
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
                     <div className="text-xs font-semibold truncate" style={{ color:TEXT }}>{t.name}</div>
-                    {t.unread > 0 && <span className="w-4 h-4 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor:ERROR, fontSize:9 }}>{t.unread}</span>}
+                    {t.unread > 0 && <span className="w-4 h-4 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor:ERROR, fontSize: 12 }}>{t.unread}</span>}
                   </div>
                   <div className="text-xs truncate mb-1" style={{ color:MUTED }}>{t.lastMsg}</div>
                   <div className="flex items-center gap-2">

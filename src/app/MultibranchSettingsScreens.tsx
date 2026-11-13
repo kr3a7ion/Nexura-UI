@@ -190,8 +190,8 @@ export function BranchOverview({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={KPI_TREND} margin={{ left: -20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-            <XAxis dataKey="month" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} domain={[60, 100]} />
+            <XAxis dataKey="month" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} domain={[60, 100]} />
             <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} formatter={(v: number) => [`${v}%`]} />
             {BRANCHES.map(b => <Line key={b.id} type="monotone" dataKey={b.id.toLowerCase()} name={b.name.split(" ").pop()} stroke={BRANCH_COLORS[b.id]} strokeWidth={2} dot={{ r: 3 }} />)}
           </LineChart>
@@ -308,8 +308,8 @@ export function BranchComparison({ add }: { add: (t: Omit<Toast, "id">) => void 
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={BRANCHES.map(b => ({ name: b.id, rev: +(b.rev / 1000000).toFixed(2) }))} margin={{ left: -20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-            <XAxis dataKey="name" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} tickFormatter={v => `₦${v}M`} />
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} tickFormatter={v => `₦${v}M`} />
             <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} formatter={(v: number) => [`₦${v}M`]} />
             <Bar dataKey="rev" radius={[4, 4, 0, 0]}>
               {BRANCHES.map((b, i) => <rect key={i} fill={BRANCH_COLORS[b.id]} />)}

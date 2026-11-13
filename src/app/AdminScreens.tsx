@@ -209,7 +209,7 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
               return (
                 <div key={m.key} className="flex items-center gap-2 text-xs py-0.5">
                   <div className="w-3.5 h-3.5 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: has?"#DCFCE7":"#FEE2E2" }}>
-                    <span style={{ color: has?SUCCESS:ERROR, fontSize:9 }}>{has?"✓":"✕"}</span>
+                    <span style={{ color: has?SUCCESS:ERROR, fontSize: 12 }}>{has?"✓":"✕"}</span>
                   </div>
                   <span className="truncate" style={{ color: has?TEXT:SUBTLE }}>{m.label}</span>
                 </div>
@@ -350,9 +350,9 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={WEEKLY_TREND} margin={{ top:0, right:0, left:-20, bottom:0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="day" tick={{ fontSize:10, fill:SUBTLE }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize:10, fill:SUBTLE }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ border:`1px solid ${BORDER}`, borderRadius:8, fontSize:11 }} />
+              <XAxis dataKey="day" tick={{ fontSize: 12, fill:SUBTLE }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill:SUBTLE }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ border:`1px solid ${BORDER}`, borderRadius:8, fontSize: 12 }} />
               <Bar dataKey="present" name="Present" fill={SUCCESS} stackId="a" />
               <Bar dataKey="late"    name="Late"    fill={WARNING} stackId="a" />
               <Bar dataKey="absent"  name="Absent"  fill={ERROR}   stackId="a" radius={[4,4,0,0]} />
@@ -3708,8 +3708,8 @@ export function ComplaintDashboard() {
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={TREND} barSize={14}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="month" tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize:11, fill:MUTED }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ fontSize:12 }} />
               <Bar dataKey="Low"      stackId="a" fill="#94A3B8" radius={[0,0,0,0]} />
               <Bar dataKey="Medium"   stackId="a" fill={WARNING}  radius={[0,0,0,0]} />

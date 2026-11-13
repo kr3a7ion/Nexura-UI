@@ -394,7 +394,7 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
                     <div key={i} className="flex-shrink-0 flex flex-col items-center justify-center py-1.5" style={{ width: DW, borderRight: `1px solid ${BORDER}`, backgroundColor: isToday ? "#EFF6FF" : "transparent" }}>
                       <span className="text-xs font-semibold" style={{ color: isToday ? PRIMARY : TEXT }}>{d.toLocaleDateString("en-NG",{weekday:"short"})}</span>
                       <span className="text-xs" style={{ color: isToday ? PRIMARY : SUBTLE }}>{d.getDate()}/{d.getMonth()+1}</span>
-                      {isToday && <span style={{ fontSize: 8, fontWeight: 800, color: PRIMARY, letterSpacing: "0.05em" }}>TODAY</span>}
+                      {isToday && <span style={{ fontSize: 12, fontWeight: 800, color: PRIMARY, letterSpacing: "0.05em" }}>TODAY</span>}
                     </div>
                   );
                 })}
@@ -722,7 +722,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               {/* Top-right badge */}
               <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5">
                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ backgroundColor: active ? "rgba(255,255,255,0.25)" : done ? TEAL : PASS_BORDER, color: active ? "white" : done ? "white" : PASS_MUTED, fontSize: 9 }}>
+                  style={{ backgroundColor: active ? "rgba(255,255,255,0.25)" : done ? TEAL : PASS_BORDER, color: active ? "white" : done ? "white" : PASS_MUTED, fontSize: 12 }}>
                   {done ? <CheckCircle size={10} color="white" weight="bold" /> : i + 1}
                 </div>
                 {done && (
@@ -731,7 +731,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               </div>
 
               <SI size={24} style={{ color: active ? "white" : done ? TEAL : PASS_MUTED }} />
-              <p className="text-center mt-2 font-bold leading-tight" style={{ fontSize: 9, color: active ? "white" : done ? TEAL : PASS_MUTED, letterSpacing: "0.05em" }}>
+              <p className="text-center mt-2 font-bold leading-tight" style={{ fontSize: 12, color: active ? "white" : done ? TEAL : PASS_MUTED, letterSpacing: "0.05em" }}>
                 {label.toUpperCase()}
               </p>
             </button>
@@ -1284,7 +1284,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                 </span>
               </div>
               {form.vip && <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${ORANGE}18`, color: ORANGE }}>★ VIP</span>}
-              {!form.guestName && <span className="text-xs font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ backgroundColor: "#EFF6FF", color: PRIMARY, fontSize: 9 }}>STEP 3</span>}
+              {!form.guestName && <span className="text-xs font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ backgroundColor: "#EFF6FF", color: PRIMARY, fontSize: 12 }}>STEP 3</span>}
             </div>
 
             {/* Notch cutout row */}
@@ -1398,7 +1398,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               </div>
               {/* Label */}
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: PASS_MUTED, fontSize: 9, letterSpacing: "0.1em" }}>Scan to verify</p>
+                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: PASS_MUTED, fontSize: 12, letterSpacing: "0.1em" }}>Scan to verify</p>
                 <p className="font-bold text-xs leading-snug truncate" style={{ color: PRIMARY, fontFamily: mono }}>
                   {form.guestName ? form.guestName.toUpperCase() : "PENDING GUEST"}
                 </p>
@@ -1687,8 +1687,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           <p className="text-xs truncate leading-tight" style={{ color: active ? "rgba(255,255,255,0.6)" : CK_MUT }}>Rm {d.room} · {displayedCheckout}</p>
         </div>
         {!d.dueToday && !done
-          ? <span className="text-xs font-bold flex-shrink-0" style={{ color: active ? "rgba(255,255,255,0.65)" : TEAL, fontSize: 9 }}>EARLY</span>
-          : d.vip && !done && <span className="text-xs font-bold flex-shrink-0" style={{ color: active ? "rgba(255,255,255,0.65)" : ORANGE, fontSize: 9 }}>VIP</span>}
+          ? <span className="text-xs font-bold flex-shrink-0" style={{ color: active ? "rgba(255,255,255,0.65)" : TEAL, fontSize: 12 }}>EARLY</span>
+          : d.vip && !done && <span className="text-xs font-bold flex-shrink-0" style={{ color: active ? "rgba(255,255,255,0.65)" : ORANGE, fontSize: 12 }}>VIP</span>}
       </button>
     );
   };
@@ -1721,8 +1721,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
             {filteredDue.length > 0 && (
               <>
                 <div className="flex items-center justify-between px-2 mb-1.5">
-                  <span className="font-bold uppercase" style={{ color: ERROR, fontSize: 9, letterSpacing: "0.1em" }}>Due Today</span>
-                  <span className="font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${ERROR}15`, color: ERROR, fontSize: 9 }}>{filteredDue.length}</span>
+                  <span className="font-bold uppercase" style={{ color: ERROR, fontSize: 12, letterSpacing: "0.1em" }}>Due Today</span>
+                  <span className="font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${ERROR}15`, color: ERROR, fontSize: 12 }}>{filteredDue.length}</span>
                 </div>
                 {filteredDue.map(d => <GuestRow key={d.id} d={d} />)}
               </>
@@ -1730,8 +1730,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
             {filteredIH.length > 0 && (
               <div className={filteredDue.length > 0 ? "mt-3" : ""}>
                 <div className="flex items-center justify-between px-2 mb-1.5">
-                  <span className="font-bold uppercase" style={{ color: TEAL, fontSize: 9, letterSpacing: "0.1em" }}>In-House</span>
-                  <span className="font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${TEAL}15`, color: TEAL, fontSize: 9 }}>{filteredIH.length}</span>
+                  <span className="font-bold uppercase" style={{ color: TEAL, fontSize: 12, letterSpacing: "0.1em" }}>In-House</span>
+                  <span className="font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${TEAL}15`, color: TEAL, fontSize: 12 }}>{filteredIH.length}</span>
                 </div>
                 {filteredIH.map(d => <GuestRow key={d.id} d={d} />)}
               </div>

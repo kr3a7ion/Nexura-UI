@@ -221,8 +221,8 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={revTrend} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: SUBTLE }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: SUBTLE }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12 }} formatter={(v: any, n: string) => [`₦${v}K`, n]} />
                   <Area key="area-abj" type="monotone" dataKey="abj" name="Abuja" stroke={PRIMARY} strokeWidth={2} fill={PRIMARY + "15"} dot={false} />
                   <Area key="area-lag" type="monotone" dataKey="lag" name="Lagos" stroke={TEAL} strokeWidth={2} fill={TEAL + "15"} dot={false} />
@@ -241,8 +241,8 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={occTrend} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                    <XAxis dataKey="day" tick={{ fontSize: 11, fill: SUBTLE }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: SUBTLE }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                    <XAxis dataKey="day" tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false} domain={[0, 100]} />
                     <Tooltip contentStyle={{ border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12 }} formatter={(v: any) => [`${v}%`]} />
                     <Bar key="occ-abj" dataKey="abj" name="Abuja" fill={PRIMARY} radius={[3, 3, 0, 0]} />
                     <Bar key="occ-lag" dataKey="lag" name="Lagos" fill={TEAL} radius={[3, 3, 0, 0]} />

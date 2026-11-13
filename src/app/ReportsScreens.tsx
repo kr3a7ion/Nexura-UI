@@ -183,9 +183,9 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={MONTHLY} margin={{ left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="l" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} domain={[0, 100]} />
-              <YAxis yAxisId="r" orientation="right" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} tickFormatter={v => `₦${Math.round(v / 1000)}K`} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="l" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} domain={[0, 100]} />
+              <YAxis yAxisId="r" orientation="right" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} tickFormatter={v => `₦${Math.round(v / 1000)}K`} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} formatter={(v: number, name: string) => [name === "occ" ? `${v}%` : `₦${v.toLocaleString()}`, name === "occ" ? "Occupancy" : "RevPAR"]} />
               <Bar yAxisId="l" dataKey="occ" name="occ" fill={PRIMARY} radius={[3, 3, 0, 0]} barSize={14} />
               <Bar yAxisId="r" dataKey="revpar" name="revpar" fill={TEAL} radius={[3, 3, 0, 0]} barSize={14} />
@@ -337,8 +337,8 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} tickFormatter={v => `₦${(v / 1000000).toFixed(1)}M`} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} tickFormatter={v => `₦${(v / 1000000).toFixed(1)}M`} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} formatter={(v: number) => [`₦${(v / 1000000).toFixed(2)}M`]} />
               <Area type="monotone" dataKey="rev" stroke={PRIMARY} strokeWidth={2} fill="url(#revGrad)" name="Revenue" />
             </AreaChart>
@@ -478,8 +478,8 @@ export function DepartmentReports({ add }: { add: (t: Omit<Toast, "id">) => void
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={d.trend} margin={{ left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="day" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="day" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
               <Bar dataKey="a" name={d.aLabel} fill={PRIMARY} radius={[3, 3, 0, 0]} barSize={12} />
               {d.bLabel && <Bar dataKey="b" name={d.bLabel} fill={TEAL} radius={[3, 3, 0, 0]} barSize={12} />}
@@ -543,8 +543,8 @@ export function GuestAnalytics({ add }: { add: (t: Omit<Toast, "id">) => void })
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={GUEST_ANALYTICS_DATA} margin={{ left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} domain={[0, 100]} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} domain={[0, 100]} />
               <Tooltip formatter={(v: number) => [`${v}%`]} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
               <Bar dataKey="repeat" name="Repeat %" stackId="g" fill={PRIMARY} />
               <Bar dataKey="new"    name="New %"    stackId="g" fill={TEAL} radius={[3, 3, 0, 0]} />
@@ -582,8 +582,8 @@ export function GuestAnalytics({ add }: { add: (t: Omit<Toast, "id">) => void })
         <ResponsiveContainer width="100%" height={140}>
           <LineChart data={SATISFACTION} margin={{ left: -20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-            <XAxis dataKey="month" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
-            <YAxis domain={[4, 5]} tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(1)} />
+            <XAxis dataKey="month" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+            <YAxis domain={[4, 5]} tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(1)} />
             <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} formatter={(v: number) => [v.toFixed(1), "Score"]} />
             <Line type="monotone" dataKey="score" stroke={SUCCESS} strokeWidth={2.5} dot={{ fill: SUCCESS, r: 4 }} />
           </LineChart>
@@ -665,8 +665,8 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} tickFormatter={v => `₦${v}K`} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} tickFormatter={v => `₦${v}K`} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} formatter={(v: number) => [`₦${v}K`]} />
               <Area type="monotone" dataKey="val" stroke={TEAL} strokeWidth={2} fill="url(#invGrad)" name="F&B Spend" />
             </AreaChart>
@@ -795,8 +795,8 @@ export function StaffReports({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={weeklyHours} layout="vertical" margin={{ right: 20, left: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
-              <XAxis type="number" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
-              <YAxis dataKey="dept" type="category" tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} />
+              <XAxis type="number" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
+              <YAxis dataKey="dept" type="category" tick={{ fontSize: 12, fill: MUTED }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} formatter={(v: number) => [`${v}h`]} />
               <Bar dataKey="hours" fill={PRIMARY} radius={[0, 3, 3, 0]} barSize={14} />
             </BarChart>
