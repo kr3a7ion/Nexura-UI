@@ -1340,7 +1340,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
         </div>
         <button onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
-          style={{ backgroundColor: TEAL }}>
+          style={{ backgroundColor: PRIMARY }}>
           <Plus size={15} /> New Group
         </button>
       </div>
@@ -1448,15 +1448,15 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ border: `1.5px solid ${PASS_BORDER}` }}>
             {/* Header row */}
             <div className="flex items-center px-4 py-2.5" style={{ backgroundColor: "#F1F5F9", borderBottom: `1.5px solid ${PASS_BORDER}` }}>
-              <div className="flex-1 font-bold" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>GROUP</div>
+              <div className="flex-1 font-bold" style={{ fontSize: 12, color: PASS_MUTED }}>Group</div>
               {!selectedId && (
                 <>
-                  <div className="w-36 font-bold flex-shrink-0" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>ORGANIZER</div>
-                  <div className="w-28 font-bold flex-shrink-0" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>DATES</div>
-                  <div className="w-16 font-bold flex-shrink-0 text-center" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>ROOMS</div>
-                  <div className="w-24 font-bold flex-shrink-0" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>PICK-UP</div>
-                  <div className="w-24 font-bold flex-shrink-0 text-right" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>VALUE</div>
-                  <div className="w-24 font-bold flex-shrink-0 text-right" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>STATUS</div>
+                  <div className="w-36 font-bold flex-shrink-0" style={{ fontSize: 12, color: PASS_MUTED }}>Organizer</div>
+                  <div className="w-28 font-bold flex-shrink-0" style={{ fontSize: 12, color: PASS_MUTED }}>Dates</div>
+                  <div className="w-16 font-bold flex-shrink-0 text-center" style={{ fontSize: 12, color: PASS_MUTED }}>Rooms</div>
+                  <div className="w-24 font-bold flex-shrink-0" style={{ fontSize: 12, color: PASS_MUTED }}>Pick-up</div>
+                  <div className="w-24 font-bold flex-shrink-0 text-right" style={{ fontSize: 12, color: PASS_MUTED }}>Value</div>
+                  <div className="w-24 font-bold flex-shrink-0 text-right" style={{ fontSize: 12, color: PASS_MUTED }}>Status</div>
                 </>
               )}
             </div>
@@ -2297,7 +2297,7 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         </div>
         <button onClick={() => setShowAdd(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
-          style={{ backgroundColor:TEAL }}>
+          style={{ backgroundColor: PRIMARY }}>
           <Plus size={15} />Add Guest
         </button>
       </div>
@@ -2374,12 +2374,12 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <div className="flex items-center px-4 py-2.5" style={{ backgroundColor:"#F1F5F9", borderBottom:`1.5px solid ${PASS_BORDER}` }}>
           <div className="w-10 font-bold" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>#</div>
           <div className="w-6 flex-shrink-0" />
-          <div className="flex-1 font-bold" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>GUEST</div>
-          <div className="w-24 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>ROOM TYPE</div>
-          <div className="w-28 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>DATES</div>
-          <div className="w-20 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>WAITING</div>
-          <div className="w-20 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>SOURCE</div>
-          <div className="font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>ACTIONS</div>
+          <div className="flex-1 font-bold" style={{ fontSize: 12, color:PASS_MUTED }}>Guest</div>
+          <div className="w-24 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED }}>Room type</div>
+          <div className="w-28 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED }}>Dates</div>
+          <div className="w-20 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED }}>Waiting</div>
+          <div className="w-20 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED }}>Source</div>
+          <div className="font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED }}>Actions</div>
         </div>
 
         {sorted.map((e) => {
