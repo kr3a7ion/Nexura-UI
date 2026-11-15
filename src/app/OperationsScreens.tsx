@@ -1609,15 +1609,6 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
         {/* ── Room type cards ── */}
         <div className="flex-1 space-y-3">
 
-          {/* Swipe legend */}
-          <div className="flex items-center justify-between px-1 mb-1">
-            <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: ERROR, opacity: 0.7 }}>
-              <ChevronRight size={12}/><Trash2 size={11}/><span>Swipe right to delete</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: MUTED, opacity: 0.7 }}>
-              <span>Swipe left to edit</span><Edit3 size={11}/><ChevronLeft size={12}/>
-            </div>
-          </div>
 
           {roomTypes.map(rt => {
             const color  = tC(rt.code);
@@ -1737,6 +1728,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
                 { label:"Edit",      icon:Edit3,    fn:()=>openEdit(selected)      },
                 { label:"Amenities", icon:Plus,     fn:()=>setShowAmenity(true)    },
                 { label:"Analytics", icon:BarChart3, fn:()=>setShowAnalytics(true) },
+                { label:"Delete",    icon:Trash2,   fn:()=>setConfirmDelete({ code: selected.code, name: selected.name }) },
               ] as {label:string;icon:React.ElementType;fn:()=>void}[]).map((a,i,arr)=>(
                 <button key={a.label} onClick={a.fn}
                   className="flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors"
