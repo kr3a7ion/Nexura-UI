@@ -156,7 +156,7 @@ export default function FrontOfficeHome({ nav }: { nav: Nav }) {
             {FRONT_OFFICE_EXCEPTIONS.map((item, index) => (
               <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}>
                 <div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div>
-                <button onClick={() => nav(item.screen, item.screenLabel, item.navParam)} className="mt-2 flex min-h-8 items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button>
+                <button onClick={() => nav(item.screen, item.screenLabel, item.navParam)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button>
               </div>
             ))}
           </div>

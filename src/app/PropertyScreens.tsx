@@ -1623,7 +1623,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                         {([["Organizer","organizer","text"],["Phone","phone","tel"],["Email","email","email"]] as [string,string,string][]).map(([label,field,type]) => (
                           <div key={field}>
                             <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>{label}</label>
-                            <input type={type} value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                            <input aria-label={label} type={type} value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
                               className="w-full px-3 py-2 rounded-lg text-sm"
                               style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }} />
                           </div>
@@ -1634,7 +1634,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                           {([["Check-In","checkin"],["Check-Out","checkout"],["Cut-Off","cutoffDate"]] as [string,string][]).map(([label,field]) => (
                             <div key={field}>
                               <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>{label}</label>
-                              <input type="date" value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                              <input aria-label={label} type="date" value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
                                 className="w-full px-2 py-2 rounded-lg text-xs"
                                 style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }} />
                             </div>
@@ -2590,7 +2590,7 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
                 <td className="px-4 py-3.5 text-sm font-bold" style={{ color: PRIMARY, fontFamily: mono }}>₦{r.base.toLocaleString()}</td>
                 <td className="px-4 py-3.5 text-xs" style={{ color: MUTED }}>{r.dates}</td>
                 <td className="px-4 py-3.5" onClick={e=>{ e.stopPropagation(); toggleActive(r.id); }}>
-                  <button className="w-10 h-5 rounded-full relative transition-colors" style={{ backgroundColor: r.active ? TEAL : "#CBD5E1" }}>
+                  <button role="switch" aria-label="Turn on or off" aria-checked={!!(r.active)} className="w-10 h-5 rounded-full relative transition-colors" style={{ backgroundColor: r.active ? TEAL : "#CBD5E1" }}>
                     <div className="absolute w-4 h-4 bg-white rounded-full top-0.5 shadow transition-all" style={{ left: r.active ? 22 : 2 }} />
                   </button>
                 </td>
@@ -2916,7 +2916,7 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
             {/* Hero */}
             <div className="px-8 py-8 text-center relative" style={{ backgroundColor: PRIMARY }}>
               <button aria-label="Close" onClick={reset}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+                className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
                 style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
                 <X size={14} color="white" />
               </button>

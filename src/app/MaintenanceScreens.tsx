@@ -130,7 +130,7 @@ export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }
             </table>
             <div className="flex items-center gap-4 pt-3 border-t" style={{ borderColor: BORDER }}>
               <span className="text-xs" style={{ color: MUTED }}>Parts total: <span className="font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{partTotal.toLocaleString()}</span></span>
-              <div className="flex items-center gap-2"><span className="text-xs" style={{ color: MUTED }}>Labour hours:</span><input type="number" step="0.5" min="0" value={labourHours} onChange={e=>setLabourHours(e.target.value)} className="w-16 px-2 py-1 text-xs border rounded outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
+              <div className="flex items-center gap-2"><span className="text-xs" style={{ color: MUTED }}>Labour hours:</span><input aria-label="Labour hours" type="number" step="0.5" min="0" value={labourHours} onChange={e=>setLabourHours(e.target.value)} className="w-16 px-2 py-1 text-xs border rounded outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
               <span className="text-xs" style={{ color: MUTED }}>Labour @ ₦5,000/h: <span className="font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{labourCost.toLocaleString()}</span></span>
               <span className="ml-auto text-sm font-bold" style={{ color: PRIMARY, fontFamily: mono }}>Total: ₦{(partTotal+labourCost).toLocaleString()}</span>
             </div>

@@ -10,3 +10,7 @@
 
 /* Click targets: buttons without an explicit height are at least 32px tall inside the suite. */
 [data-suite-content] button:not([class*=" h-"]):not([class^="h-"]):not([class*="min-h-"]):not([role="switch"]):not([role="checkbox"]) { min-height: 32px; }
+
+/* Switches and custom checkboxes stay small to look at, but the area that responds to a click is 32px. */
+[data-suite-content] button[role="switch"], [data-suite-content] button[role="checkbox"] { position: relative; }
+[data-suite-content] button[role="switch"]::after, [data-suite-content] button[role="checkbox"]::after { content: ""; position: absolute; inset: -7px; }
