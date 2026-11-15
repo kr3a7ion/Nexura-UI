@@ -181,7 +181,7 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
                           <span className="text-sm" style={{ color: TEXT }}>{mod.label}</span>
                           <span className="ml-2 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{mod.key}</span>
                         </div>
-                        <button onClick={() => toggle(selectedRole, mod.key)} className="relative w-10 h-5 rounded-full transition-colors flex-shrink-0" style={{ backgroundColor: enabled?TEAL:"#CBD5E1" }}>
+                        <button aria-label={mod.key} role="switch" aria-checked={!!(enabled)} onClick={() => toggle(selectedRole, mod.key)} className="relative w-10 h-5 rounded-full transition-colors flex-shrink-0" style={{ backgroundColor: enabled?TEAL:"#CBD5E1" }}>
                           <div className="absolute w-4 h-4 bg-white rounded-full top-0.5 transition-all shadow" style={{ left: enabled?22:2 }} />
                         </button>
                       </div>
@@ -2716,7 +2716,7 @@ export function TaxConfiguration({ add }: { add: (t: Omit<Toast, "id">) => void 
                   <td className="px-3 py-3 text-xs" style={{ color: t.inclusive ? SUCCESS : MUTED }}>{t.inclusive ? "Yes" : "No"}</td>
                   <td className="px-3 py-3 text-xs" style={{ color: t.compoundsOn.length ? ORANGE : SUBTLE }}>{t.compoundsOn.length ? t.compoundsOn.join(", ") : "—"}</td>
                   <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{t.effective}</td>
-                  <td className="px-3 py-3"><button onClick={() => { setActiveCodes(p=>({...p,[t.id]:!p[t.id]})); add({ type: "info", title: `${t.name} ${activeCodes[t.id]?"deactivated":"activated"}` }); }} className="w-11 h-6 rounded-full relative flex-shrink-0" style={{ backgroundColor: activeCodes[t.id] ? TEAL : "#CBD5E1" }}><div className="absolute w-5 h-5 bg-white rounded-full top-0.5 shadow" style={{ left: activeCodes[t.id] ? 22 : 2 }} /></button></td>
+                  <td className="px-3 py-3"><button role="switch" aria-checked={!!(activeCodes[t.id])} aria-label={t.name} onClick={() => { setActiveCodes(p=>({...p,[t.id]:!p[t.id]})); add({ type: "info", title: `${t.name} ${activeCodes[t.id]?"deactivated":"activated"}` }); }} className="w-11 h-6 rounded-full relative flex-shrink-0" style={{ backgroundColor: activeCodes[t.id] ? TEAL : "#CBD5E1" }}><div className="absolute w-5 h-5 bg-white rounded-full top-0.5 shadow" style={{ left: activeCodes[t.id] ? 22 : 2 }} /></button></td>
                 </tr>
               ))}
             </tbody>

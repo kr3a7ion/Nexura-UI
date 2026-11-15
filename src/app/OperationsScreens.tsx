@@ -108,7 +108,7 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-xs" style={{ color: MUTED }}>Attendant:</span>
-          <select value={attFilter} onChange={e => setAttFilter(e.target.value)} className="text-xs px-2 py-1.5 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
+          <select aria-label="Attendant" value={attFilter} onChange={e => setAttFilter(e.target.value)} className="text-xs px-2 py-1.5 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
             {ATTENDANTS.map(a => <option key={a}>{a}</option>)}
           </select>
         </div>
@@ -276,7 +276,7 @@ export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; 
                 <td className="px-3 py-3 text-xs font-semibold" style={{ color: w.status === "Overdue" ? ERROR : MUTED, fontFamily: mono }}>{w.slaDue}</td>
                 <td className="px-3 py-3 text-xs" style={{ color: w.tech === "Unassigned" ? WARNING : MUTED }}>{w.tech}</td>
                 <td className="px-3 py-3 text-xs font-semibold" style={{ color: w.status === "Overdue" ? ERROR : ORANGE, fontFamily: mono }}>{w.age}</td>
-                <td className="px-3 py-3"><button aria-label="More actions" className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#F4F4F5]" style={{ color: SUBTLE }} onClick={e => e.stopPropagation()}><MoreHorizontal size={14} /></button></td>
+                <td className="px-3 py-3"><button aria-label="More actions" className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#F4F4F5]" style={{ color: SUBTLE }} onClick={e => e.stopPropagation()}><MoreHorizontal size={14} /></button></td>
               </tr>
             ))}
           </tbody>
@@ -1584,7 +1584,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
               <p className="text-xs" style={{ color: MUTED }}>{sub}</p>
             </div>
           </div>
-          <button aria-label="Close" onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100"><X size={14} style={{ color: MUTED }} /></button>
+          <button aria-label="Close" onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100"><X size={14} style={{ color: MUTED }} /></button>
         </div>
         {children}
       </div>

@@ -630,7 +630,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
       style={{ borderColor: err ? ERROR : PASS_DASH, border: `1.5px solid ${err ? ERROR : PASS_DASH}`, backgroundColor: "white", fontFamily: isMono ? mono : undefined }} />
   );
   const Tog = ({ on, toggle }: { on: boolean; toggle: () => void }) => (
-    <button onClick={toggle} className="w-11 h-6 rounded-full relative flex-shrink-0 transition-colors"
+    <button role="switch" aria-checked={!!(on)} aria-label="Turn on or off" onClick={toggle} className="w-11 h-6 rounded-full relative flex-shrink-0 transition-colors"
       style={{ backgroundColor: on ? TEAL : PASS_DASH }}>
       <div className="absolute w-5 h-5 bg-white rounded-full top-0.5 shadow-sm transition-all" style={{ left: on ? 22 : 2 }} />
     </button>
@@ -780,7 +780,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                     </div>
                     <div>
                       <FLabel>Source</FLabel>
-                      <select value={form.source} onChange={e => upd("source", e.target.value)}
+                      <select aria-label="Source" value={form.source} onChange={e => upd("source", e.target.value)}
                         className="w-full px-4 py-3 border rounded-xl text-sm outline-none appearance-none" style={{ borderColor: BORDER }}>
                         {["Phone","Walk-in","Email","Online","OTA","Corporate","Direct"].map(v => <option key={v}>{v}</option>)}
                       </select>
@@ -800,7 +800,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                     {([["Adults","adults",["1","2","3","4"]],["Children","children",["0","1","2","3"]]] as [string,string,string[]][]).map(([lbl,key,opts]) => (
                       <div key={key}>
                         <FLabel>{lbl}</FLabel>
-                        <select value={(form as unknown as Record<string,string>)[key]} onChange={e => upd(key, e.target.value)}
+                        <select aria-label={lbl} value={(form as unknown as Record<string,string>)[key]} onChange={e => upd(key, e.target.value)}
                           className="w-full px-4 py-3 border rounded-xl text-sm outline-none appearance-none" style={{ borderColor: BORDER }}>
                           {opts.map(v => <option key={v}>{v}</option>)}
                         </select>
@@ -995,7 +995,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                   </div>
                   <div>
                     <FLabel>Nationality</FLabel>
-                    <select value={form.nationality} onChange={e => upd("nationality",e.target.value)}
+                    <select aria-label="Nationality" value={form.nationality} onChange={e => upd("nationality",e.target.value)}
                       className="w-full px-4 py-3 border rounded-xl text-sm outline-none appearance-none" style={{ borderColor: BORDER }}>
                       {["Nigerian","Ghanaian","Kenyan","South African","British","American","Other"].map(v => <option key={v}>{v}</option>)}
                     </select>
@@ -1005,7 +1005,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                 <section className="grid grid-cols-2 gap-4">
                   <div>
                     <FLabel>ID Type</FLabel>
-                    <select value={form.idType} onChange={e => upd("idType",e.target.value)}
+                    <select aria-label="ID Type" value={form.idType} onChange={e => upd("idType",e.target.value)}
                       className="w-full px-4 py-3 border rounded-xl text-sm outline-none appearance-none" style={{ borderColor: BORDER }}>
                       {["Passport","National ID","Driver's Licence","NIN"].map(v => <option key={v}>{v}</option>)}
                     </select>
@@ -1848,7 +1848,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
 
               {/* Key return */}
               <div className="flex items-center gap-3 pt-3 border-t" style={{ borderColor: CK_DSH }}>
-                <button onClick={() => setKeyReturned(p => ({ ...p, [selectedId]: !gKey }))}
+                <button aria-label="Physical key card returned" role="checkbox" aria-checked={!!(gKey)} onClick={() => setKeyReturned(p => ({ ...p, [selectedId]: !gKey }))}
                   className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all"
                   style={{ border: `2px solid ${gKey ? SUCCESS : CK_DSH}`, backgroundColor: gKey ? SUCCESS : "white" }}>
                   {gKey && <CheckCircle size={12} color="white" weight="bold" />}

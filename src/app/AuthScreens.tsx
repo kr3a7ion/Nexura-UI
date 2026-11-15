@@ -114,7 +114,7 @@ function PasswordField({ id, label, value, onChange, invalid, autoFocus, autoCom
     <div>
       <label htmlFor={id} className="mb-2 block text-[13px] font-medium" style={{ color: TEXT }}>{label}</label>
       <div className={`flex h-12 items-center gap-2 rounded-[10px] border bg-white px-3.5 focus-within:ring-1 ${invalid ? "border-[#D32F2F] focus-within:ring-[#D32F2F]" : "border-[#E2E8F0] focus-within:border-[#1BA39C] focus-within:ring-[#1BA39C]"}`}>
-        <input id={id} type={show ? "text" : "password"} value={value} onChange={e => onChange(e.target.value)} autoComplete={autoComplete} autoFocus={autoFocus} aria-invalid={invalid} className="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none" style={{ color: TEXT }} />
+        <input aria-label={label} id={id} type={show ? "text" : "password"} value={value} onChange={e => onChange(e.target.value)} autoComplete={autoComplete} autoFocus={autoFocus} aria-invalid={invalid} className="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none" style={{ color: TEXT }} />
         <button type="button" onClick={() => setShow(v => !v)} aria-label={show ? "Hide password" : "Show password"} className="text-[13px] font-medium" style={{ color: "#0F766E" }}>{show ? "Hide" : "Show"}</button>
       </div>
     </div>

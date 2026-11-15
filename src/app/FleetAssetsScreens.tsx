@@ -195,7 +195,7 @@ export function VehicleRegister({ add, nav }: { add: (t: Omit<Toast,"id">) => vo
             <div className="text-xs mb-4" style={{ color:MUTED }}>Vehicle: <strong style={{ fontFamily:mono }}>{statusEdit.id}</strong> · Current: <strong className="capitalize">{statusEdit.current}</strong></div>
             <div className="mb-3">
               <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>New Status</div>
-              <select value={statusTarget} onChange={e => setStatusTarget(e.target.value as VehicleStatus)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
+              <select aria-label="New Status" value={statusTarget} onChange={e => setStatusTarget(e.target.value as VehicleStatus)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
                 {(["active","maintenance","off-road","decommissioned"] as VehicleStatus[]).map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
               </select>
             </div>
@@ -1124,11 +1124,11 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Generator</div>
               <select className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>{GENERATORS.map(g=><option key={g.id}>{g.name}</option>)}</select></div>
-            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Date & Time</div><input type="datetime-local" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
+            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Date & Time</div><input aria-label="Date & Time" type="datetime-local" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Litres</div><input type="number" placeholder="e.g. 200" aria-label="e.g. 200" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
-            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Unit Price (₦/L)</div><input type="number" defaultValue="1180" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
+            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Unit Price (₦/L)</div><input aria-label="Unit Price (₦/L)" type="number" defaultValue="1180" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Runtime Hours at Fill *</div><input type="number" placeholder="e.g. 14280" aria-label="e.g. 14280" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
-            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Supplier</div><select className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}><option>Emadeb Energy</option><option>Ardova Direct</option><option>NNPCL</option><option>Other</option></select></div>
+            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Supplier</div><select aria-label="Supplier" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}><option>Emadeb Energy</option><option>Ardova Direct</option><option>NNPCL</option><option>Other</option></select></div>
           </div>
           <div className="flex gap-2">
             <button onClick={()=>{setShowForm(false);add({type:"success",title:"Diesel entry recorded"});}} className="px-4 py-2 rounded-xl text-xs font-bold text-white" style={{ backgroundColor:PRIMARY }}>Save Entry</button>

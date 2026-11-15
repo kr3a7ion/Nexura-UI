@@ -134,7 +134,7 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
             <Inp label="Email" placeholder="user@hotel.ng" type="email" defaultValue={invite.email} />
             <div>
               <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Role</div>
-              <select className="w-full px-2 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: BORDER }}
+              <select aria-label="Role" className="w-full px-2 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: BORDER }}
                 value={invite.role} onChange={e => setInvite(p => ({ ...p, role: e.target.value }))}>
                 {Object.entries(ROLE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
@@ -152,7 +152,7 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
         <div className="mb-3 px-4 py-2.5 rounded-xl flex items-center gap-3 text-xs" style={{ backgroundColor: "#EFF6FF", border: `1px solid #BFDBFE` }}>
           <span style={{ color: PRIMARY }}><strong>{selected.length}</strong> selected</span>
           <span style={{ color: MUTED }}>Bulk role change:</span>
-          <select value={bulkRole} onChange={e => setBulkRole(e.target.value)} className="px-2 py-1 border rounded-lg outline-none text-xs" style={{ borderColor: BORDER }}>
+          <select aria-label="Bulk role change" value={bulkRole} onChange={e => setBulkRole(e.target.value)} className="px-2 py-1 border rounded-lg outline-none text-xs" style={{ borderColor: BORDER }}>
             {Object.entries(ROLE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
           <BtnP label="Apply" onClick={doBulkRole} />
@@ -202,7 +202,7 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
             {filtered.map(u => (
               <tr key={u.id} className="border-t hover:bg-slate-50" style={{ borderColor: BORDER }}>
                 <td className="px-3 py-2.5">
-                  <input type="checkbox" checked={selected.includes(u.id)} onChange={e => setSelected(p => e.target.checked ? [...p, u.id] : p.filter(x => x !== u.id))} />
+                  <input aria-label={u.name} type="checkbox" checked={selected.includes(u.id)} onChange={e => setSelected(p => e.target.checked ? [...p, u.id] : p.filter(x => x !== u.id))} />
                 </td>
                 <td className="px-3 py-2.5">
                   <div className="text-xs font-semibold" style={{ color: TEXT }}>{u.name}</div>

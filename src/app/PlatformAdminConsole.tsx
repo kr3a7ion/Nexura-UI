@@ -116,7 +116,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
         <div className="flex items-center gap-3">
           <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium" style={{ color: SUCCESS, border: `1px solid ${SUCCESS}` }}><Shield size={12} />MFA enforced</span>
           <span className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium" style={{ color: TEAL, border: `1px solid ${TEAL}` }}><Globe size={12} />IP allowlist active</span>
-          <button className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10">
+          <button className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10">
             <Bell size={16} color="white" />
             <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-red-500 text-white flex items-center justify-center" style={{ fontSize: 12 }}>3</span>
           </button>
@@ -415,7 +415,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
               {[["Organization Name", "Grand Meridian Hotels"], ["Contact Name", "Full name of the owner/GM"], ["Contact Email", "owner@example.ng"], ["Phone Number", "+234 8XX XXX XXXX"]].map(([label, placeholder]) => (
                 <div key={label}>
                   <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>{label}</label>
-                  <input placeholder={placeholder} className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }} />
+                  <input aria-label={label} placeholder={placeholder} className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }} />
                 </div>
               ))}
               <div>

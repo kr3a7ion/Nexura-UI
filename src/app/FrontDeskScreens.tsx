@@ -871,8 +871,8 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
         <span className="ml-auto text-xs font-medium" style={{ color: SUBTLE }}>{filtered.length} results</span>
       </div>
       <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-        <table className="w-full min-w-[1180px]">
-          <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["ETA / Res#", "Guest", "Room Type / Room", "Nights", "Rate / Night", "Balance", "Special Requests", "Status", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+        <table className="w-full min-w-[1040px]">
+          <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["ETA / Res#", "Guest", "Room Type / Room", "Nights", "Rate / Night", "Balance", "Special Requests", "Status", "Actions"].map((h,i) => <th key={i} className={`px-4 py-3 text-left text-xs font-semibold whitespace-nowrap ${h === "Actions" ? "sticky right-0 bg-[#F8FAFC]" : ""}`} style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(a => {
               const done = a.status === "Checked In";
@@ -904,9 +904,9 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
                     {a.requests ? <span className="text-xs italic" style={{ color: MUTED }}>{a.requests}</span> : <span className="text-xs" style={{ color: SUBTLE }}>—</span>}
                   </td>
                   <td className="px-4 py-3"><Badge label={a.status} colors={resStC[a.status] ?? { bg: "#F3F4F6", text: "#374151" }} /></td>
-                  <td className="px-4 py-3">
+                  <td className="sticky right-0 w-[220px] border-l bg-white px-4 py-3" style={{ borderColor: BORDER }}>
                     {!done && (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex w-[200px] flex-wrap items-center gap-1.5">
                         {!a.group && a.status !== "No Show" && <button onClick={() => openArrivalAction("assign", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: BORDER }}>{a.assigned ? "Reassign" : "Assign Room"}</button>}
                         <button onClick={() => openArrivalAction("note", a)} className="w-8 h-8 rounded-xl border flex items-center justify-center" style={{ color: MUTED, borderColor: BORDER }} title="Add note"><Ph.NotePencil size={14} /></button>
                         {a.risk && a.status !== "No Show" && <button onClick={() => openArrivalAction("noshow", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: ERROR, borderColor: `${ERROR}30` }}>No Show</button>}
@@ -2032,7 +2032,7 @@ export function MenuManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
                     <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{item.mods.length > 0 ? `${item.mods.length} opts` : "—"}</td>
                     <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{item.dayParts.join(", ")}</td>
                     <td className="px-3 py-3">
-                      <button onClick={() => toggleAvail(item.id)} className="w-11 h-6 rounded-full relative transition-colors flex-shrink-0" style={{ backgroundColor: avail ? TEAL : "#CBD5E1" }}>
+                      <button role="switch" aria-checked={!!(avail)} aria-label={item.name} onClick={() => toggleAvail(item.id)} className="w-11 h-6 rounded-full relative transition-colors flex-shrink-0" style={{ backgroundColor: avail ? TEAL : "#CBD5E1" }}>
                         <div className="absolute w-5 h-5 bg-white rounded-full top-0.5 shadow transition-all" style={{ left: avail ? 22 : 2 }} />
                       </button>
                     </td>

@@ -55,7 +55,7 @@ function Inp({ label, defaultValue, type = "text", placeholder }: { label?: stri
   return (
     <div className={label ? "mb-3" : ""}>
       {label && <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>{label}</div>}
-      <input type={type} defaultValue={defaultValue} placeholder={placeholder} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, color: TEXT }} />
+      <input aria-label={label} type={type} defaultValue={defaultValue} placeholder={placeholder} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, color: TEXT }} />
     </div>
   );
 }
@@ -64,7 +64,7 @@ function Sel({ label, options, value, onChange }: { label?: string; options: str
   return (
     <div className={label ? "mb-3" : ""}>
       {label && <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>{label}</div>}
-      <select value={value} onChange={e => onChange?.(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, color: TEXT }}>
+      <select aria-label={label} value={value} onChange={e => onChange?.(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, color: TEXT }}>
         {options.map(o => <option key={o}>{o}</option>)}
       </select>
     </div>
@@ -73,7 +73,7 @@ function Sel({ label, options, value, onChange }: { label?: string; options: str
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <button onClick={() => onChange(!checked)} className="w-9 h-5 rounded-full transition-colors relative" style={{ backgroundColor: checked ? PRIMARY : "#CBD5E1" }}>
+    <button aria-label="Turn on or off" role="switch" aria-checked={!!(checked)} onClick={() => onChange(!checked)} className="w-9 h-5 rounded-full transition-colors relative" style={{ backgroundColor: checked ? PRIMARY : "#CBD5E1" }}>
       <span className="absolute top-0.5 transition-all rounded-full w-4 h-4 bg-white shadow-sm" style={{ left: checked ? "18px" : "2px" }} />
     </button>
   );
@@ -970,7 +970,7 @@ export function PrintSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
                 <div>
                   <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Network Address / IP</div>
-                  <input
+                  <input aria-label="Network Address / IP"
                     value={printer.address}
                     onChange={e => setPrinters(prev => prev.map((p, j) => j === i ? { ...p, address: e.target.value } : p))}
                     className="w-full px-3 py-2 border rounded-xl text-xs outline-none"
@@ -979,7 +979,7 @@ export function PrintSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                 </div>
                 <div>
                   <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Paper Size</div>
-                  <select
+                  <select aria-label="Paper Size"
                     value={printer.paper}
                     onChange={e => setPrinters(prev => prev.map((p, j) => j === i ? { ...p, paper: e.target.value } : p))}
                     className="w-full px-3 py-2 border rounded-xl text-xs outline-none"
@@ -990,13 +990,13 @@ export function PrintSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                 </div>
                 <div>
                   <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Template</div>
-                  <select className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER }}>
+                  <select aria-label="Template" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER }}>
                     {["Default", "Branded", "Minimal"].map(t => <option key={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
                   <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Copies</div>
-                  <input
+                  <input aria-label="Copies"
                     type="number"
                     value={printer.copies}
                     min={1} max={5}
