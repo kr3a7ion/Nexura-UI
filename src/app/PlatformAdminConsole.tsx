@@ -328,7 +328,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
                       <td className="px-5 py-3"><Badge label={o.plan} colors={PLAN_COLORS[o.plan] ?? { bg: "#F1F5F9", text: MUTED }} /></td>
                       <td className="px-5 py-3 text-sm" style={{ color: MUTED }}>{o.branches}</td>
                       <td className="px-5 py-3 text-sm font-bold" style={{ color: TEXT }}>{fmtN(o.mrr)}</td>
-                      <td className="px-5 py-3 text-xs" style={{ color: MUTED }}>1 Jul 2025</td>
+                      <td className="px-5 py-3 text-xs" style={{ color: MUTED }}>1 Jul 2026</td>
                       <td className="px-5 py-3"><Badge label={o.billing} colors={BILLING_COLORS[o.billing] ?? { bg: "#F1F5F9", text: MUTED }} /></td>
                       <td className="px-5 py-3">
                         <div className="flex gap-1">
@@ -348,7 +348,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
         {tab === "updates" && (
           <div>
             <div className="grid grid-cols-3 gap-4 mb-5">
-              <Stat label="Current Stable" value="v2.4.1" sub="Released 20 Jun 2025" />
+              <Stat label="Current Stable" value="v2.4.1" sub="Released 20 Jun 2026" />
               <Stat label="Branches Up-to-date" value="4/6" color={PRIMARY} />
               <Stat label="Pending Update" value="2" sub="v2.3.9 → v2.4.1" color={WARNING} />
             </div>

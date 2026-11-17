@@ -922,17 +922,17 @@ export function TableManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => v
 
 export function StaffDirectory({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
   const STAFF_FULL = [
-    { id:"EMP-001", name:"John Abubakar",    role:"Front Desk Officer",  dept:"Front Desk",  phone:"0803-001-1001", email:"j.abubakar@grandpalms.ng",   empType:"Full-time",  hireDate:"03 Jan 2022", status:"Active",   shift:"Morning 07:00–15:00", gender:"M" as const },
+    { id:"EMP-001", name:"John Abubakar",    role:"Front Desk Officer",  dept:"Front Desk",  phone:"0803-001-1001", email:"j.abubakar@grandpalms.ng",   empType:"Full-time",  hireDate:"3 Jan 2022", status:"Active",   shift:"Morning 07:00–15:00", gender:"M" as const },
     { id:"EMP-002", name:"Amaka Osei",       role:"Housekeeping Attendant",dept:"Housekeeping",phone:"0802-002-2002",email:"a.osei@grandpalms.ng",       empType:"Full-time",  hireDate:"15 Mar 2021", status:"Active",   shift:"Morning 06:00–14:00", gender:"F" as const },
-    { id:"EMP-003", name:"Emeka Nwosu",      role:"Executive Chef",       dept:"Restaurant",  phone:"0801-003-3003", email:"e.nwosu@grandpalms.ng",       empType:"Full-time",  hireDate:"01 Jun 2020", status:"Active",   shift:"Morning 06:00–14:00", gender:"M" as const },
+    { id:"EMP-003", name:"Emeka Nwosu",      role:"Executive Chef",       dept:"Restaurant",  phone:"0801-003-3003", email:"e.nwosu@grandpalms.ng",       empType:"Full-time",  hireDate:"1 Jun 2020", status:"Active",   shift:"Morning 06:00–14:00", gender:"M" as const },
     { id:"EMP-004", name:"Fatima Ibrahim",   role:"Reservations Manager", dept:"Front Desk",  phone:"0805-004-4004", email:"f.ibrahim@grandpalms.ng",     empType:"Full-time",  hireDate:"20 Sep 2023", status:"Active",   shift:"Morning 08:00–16:00", gender:"F" as const },
     { id:"EMP-005", name:"Chidi Eze",        role:"Maintenance Engineer", dept:"Maintenance", phone:"0806-005-5005", email:"c.eze@grandpalms.ng",         empType:"Full-time",  hireDate:"10 Apr 2019", status:"Active",   shift:"Rotating",            gender:"M" as const },
-    { id:"EMP-006", name:"Ngozi Okonkwo",    role:"HK Supervisor",       dept:"Housekeeping",phone:"0807-006-6006", email:"n.okonkwo@grandpalms.ng",     empType:"Full-time",  hireDate:"01 Feb 2022", status:"On Leave", shift:"Morning 06:00–14:00", gender:"F" as const },
+    { id:"EMP-006", name:"Ngozi Okonkwo",    role:"HK Supervisor",       dept:"Housekeeping",phone:"0807-006-6006", email:"n.okonkwo@grandpalms.ng",     empType:"Full-time",  hireDate:"1 Feb 2022", status:"On Leave", shift:"Morning 06:00–14:00", gender:"F" as const },
     { id:"EMP-007", name:"Bello Musa",       role:"Finance Officer",      dept:"Finance",     phone:"0808-007-7007", email:"b.musa@grandpalms.ng",        empType:"Full-time",  hireDate:"14 Jul 2023", status:"Active",   shift:"Morning 08:00–17:00", gender:"M" as const },
-    { id:"EMP-008", name:"Ada Okonkwo",      role:"Guest Relations",      dept:"Front Desk",  phone:"0809-008-8008", email:"a.okonkwo@grandpalms.ng",     empType:"Contract",   hireDate:"01 Jan 2025", status:"Active",   shift:"Evening 15:00–23:00", gender:"F" as const },
-    { id:"EMP-009", name:"Tunde Adeyemi",    role:"IT Administrator",     dept:"IT",          phone:"0810-009-9009", email:"t.adeyemi@grandpalms.ng",     empType:"Full-time",  hireDate:"05 May 2021", status:"Active",   shift:"Morning 08:00–17:00", gender:"M" as const },
+    { id:"EMP-008", name:"Ada Okonkwo",      role:"Guest Relations",      dept:"Front Desk",  phone:"0809-008-8008", email:"a.okonkwo@grandpalms.ng",     empType:"Contract",   hireDate:"1 Jan 2025", status:"Active",   shift:"Evening 15:00–23:00", gender:"F" as const },
+    { id:"EMP-009", name:"Tunde Adeyemi",    role:"IT Administrator",     dept:"IT",          phone:"0810-009-9009", email:"t.adeyemi@grandpalms.ng",     empType:"Full-time",  hireDate:"5 May 2021", status:"Active",   shift:"Morning 08:00–17:00", gender:"M" as const },
     { id:"EMP-010", name:"Grace Ojo",        role:"Restaurant Supervisor",dept:"Restaurant",  phone:"0811-010-1010", email:"g.ojo@grandpalms.ng",         empType:"Full-time",  hireDate:"22 Oct 2022", status:"Active",   shift:"Evening 14:00–22:00", gender:"F" as const },
-    { id:"EMP-011", name:"Samuel Okafor",    role:"Security Officer",     dept:"Security",    phone:"0812-011-1011", email:"s.okafor@grandpalms.ng",      empType:"Contract",   hireDate:"01 Mar 2024", status:"Active",   shift:"Night 23:00–07:00",   gender:"M" as const },
+    { id:"EMP-011", name:"Samuel Okafor",    role:"Security Officer",     dept:"Security",    phone:"0812-011-1011", email:"s.okafor@grandpalms.ng",      empType:"Contract",   hireDate:"1 Mar 2024", status:"Active",   shift:"Night 23:00–07:00",   gender:"M" as const },
     { id:"EMP-012", name:"Chidinma Eze",     role:"Spa Therapist",        dept:"Spa",         phone:"0813-012-1012", email:"c.eze2@grandpalms.ng",        empType:"Part-time",  hireDate:"15 Aug 2023", status:"Inactive", shift:"Morning 09:00–15:00", gender:"F" as const },
   ];
 
@@ -1052,7 +1052,7 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const [closedBy, setClosedBy] = useState("");
   const [closedAt, setClosedAt] = useState("");
 
-  const BDATE = "14 Oct 2025";
+  const BDATE = "24 Jun 2026";
   const cats = [
     { cat: "Room Revenue",    amount: 825000,  tax: 61875,  txn: 15, prev: 714000 },
     { cat: "Restaurant & Bar",amount: 225000,  tax: 42188,  txn: 42, prev: 198000 },
@@ -1238,29 +1238,29 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 export function StockDashboard({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const PRODUCTS_SD = [
     { sku:"LIN-001", name:"Bath Towels",         cat:"Linen",      par:200, current:148, reorder:80,  reorderQty:100, cost:2800, perishable:false, expiry:"",         unit:"pcs",  fast:true  },
-    { sku:"TOI-001", name:"Shower Gel 300ml",    cat:"Toiletries", par:500, current:62,  reorder:100, reorderQty:200, cost:450,  perishable:true,  expiry:"18 Oct",   unit:"btl",  fast:true  },
-    { sku:"TOI-002", name:"Shampoo 250ml",       cat:"Toiletries", par:500, current:78,  reorder:100, reorderQty:200, cost:380,  perishable:true,  expiry:"02 Nov",   unit:"btl",  fast:true  },
-    { sku:"FB-001",  name:"Mineral Water 50cl",  cat:"F&B",        par:1000,current:240, reorder:300, reorderQty:500, cost:120,  perishable:true,  expiry:"Dec 2025", unit:"btl",  fast:true  },
-    { sku:"FB-002",  name:"Eggs (Crate)",        cat:"F&B",        par:80,  current:22,  reorder:25,  reorderQty:40,  cost:3800, perishable:true,  expiry:"18 Oct",   unit:"crate",fast:true  },
+    { sku:"TOI-001", name:"Shower Gel 300ml",    cat:"Toiletries", par:500, current:62,  reorder:100, reorderQty:200, cost:450,  perishable:true,  expiry:"28 Jun",   unit:"btl",  fast:true  },
+    { sku:"TOI-002", name:"Shampoo 250ml",       cat:"Toiletries", par:500, current:78,  reorder:100, reorderQty:200, cost:380,  perishable:true,  expiry:"13 Jul",   unit:"btl",  fast:true  },
+    { sku:"FB-001",  name:"Mineral Water 50cl",  cat:"F&B",        par:1000,current:240, reorder:300, reorderQty:500, cost:120,  perishable:true,  expiry:"Aug 2026", unit:"btl",  fast:true  },
+    { sku:"FB-002",  name:"Eggs (Crate)",        cat:"F&B",        par:80,  current:22,  reorder:25,  reorderQty:40,  cost:3800, perishable:true,  expiry:"28 Jun",   unit:"crate",fast:true  },
     { sku:"CLN-001", name:"Floor Cleaner 5L",    cat:"Cleaning",   par:60,  current:18,  reorder:20,  reorderQty:30,  cost:2200, perishable:false, expiry:"",         unit:"jrn",  fast:false },
     { sku:"CLN-002", name:"Disinfectant Spray",  cat:"Cleaning",   par:100, current:45,  reorder:30,  reorderQty:50,  cost:1800, perishable:false, expiry:"",         unit:"btl",  fast:false },
     { sku:"KIT-001", name:"Cooking Gas (12.5kg)",cat:"Kitchen",    par:12,  current:3,   reorder:4,   reorderQty:6,   cost:12500,perishable:false, expiry:"",         unit:"cyl",  fast:true  },
     { sku:"LIN-002", name:"Bed Sheets (King)",   cat:"Linen",      par:120, current:88,  reorder:50,  reorderQty:60,  cost:4500, perishable:false, expiry:"",         unit:"sets", fast:false },
-    { sku:"KIT-002", name:"Palm Oil (25L)",      cat:"Kitchen",    par:20,  current:14,  reorder:6,   reorderQty:10,  cost:42000,perishable:true,  expiry:"Mar 2026", unit:"drum", fast:true  },
+    { sku:"KIT-002", name:"Palm Oil (25L)",      cat:"Kitchen",    par:20,  current:14,  reorder:6,   reorderQty:10,  cost:42000,perishable:true,  expiry:"Nov 2026", unit:"drum", fast:true  },
   ];
   const SD_MOVEMENTS = [
-    { date:"14 Oct 14:22", item:"Bath Towels",         type:"Issue",      qty:-12, ref:"HK-TASK-0441", by:"Ada Okonkwo"  },
-    { date:"14 Oct 13:05", item:"Mineral Water 50cl",  type:"Receipt",    qty:500, ref:"PO-0451",      by:"Store Mgr"    },
-    { date:"14 Oct 11:30", item:"Eggs (Crate)",        type:"Issue",      qty:-5,  ref:"KITCHEN-DAILY", by:"Chef Emeka"  },
-    { date:"14 Oct 09:15", item:"Floor Cleaner 5L",    type:"Adjustment", qty:-2,  ref:"BREAKAGE-ADJ", by:"Mgr. Bello"  },
-    { date:"13 Oct 22:00", item:"Shower Gel 300ml",    type:"Issue",      qty:-24, ref:"HK-SHIFT-PM",  by:"HK Supervisor"},
-    { date:"13 Oct 16:40", item:"Cooking Gas (12.5kg)",type:"Receipt",    qty:6,   ref:"PO-0448",      by:"Store Mgr"    },
+    { date:"24 Jun 14:22", item:"Bath Towels",         type:"Issue",      qty:-12, ref:"HK-TASK-0441", by:"Ada Okonkwo"  },
+    { date:"24 Jun 13:05", item:"Mineral Water 50cl",  type:"Receipt",    qty:500, ref:"PO-0451",      by:"Store Mgr"    },
+    { date:"24 Jun 11:30", item:"Eggs (Crate)",        type:"Issue",      qty:-5,  ref:"KITCHEN-DAILY", by:"Chef Emeka"  },
+    { date:"24 Jun 09:15", item:"Floor Cleaner 5L",    type:"Adjustment", qty:-2,  ref:"BREAKAGE-ADJ", by:"Mgr. Bello"  },
+    { date:"23 Jun 22:00", item:"Shower Gel 300ml",    type:"Issue",      qty:-24, ref:"HK-SHIFT-PM",  by:"HK Supervisor"},
+    { date:"23 Jun 16:40", item:"Cooking Gas (12.5kg)",type:"Receipt",    qty:6,   ref:"PO-0448",      by:"Store Mgr"    },
   ];
   const CAT_COLORS = [PRIMARY, TEAL, ORANGE, SUCCESS, "#6366F1"];
   const cats = ["Linen","Toiletries","F&B","Cleaning","Kitchen"];
   const CAT_VALS = cats.map(cat=>({ name:cat, value:PRODUCTS_SD.filter(p=>p.cat===cat).reduce((s,p)=>s+p.current*p.cost,0) }));
   const pending  = PRODUCTS_SD.filter(p=>p.current<=p.reorder);
-  const expiring = PRODUCTS_SD.filter(p=>p.perishable&&p.expiry&&!p.expiry.includes("2026")&&!p.expiry.includes("Nov")&&!p.expiry.includes("Dec"));
+  const expiring = PRODUCTS_SD.filter(p=>p.perishable&&p.expiry&&!p.expiry.includes("2026")&&!p.expiry.includes("Jul")&&!p.expiry.includes("Aug"));
   const totalVal = PRODUCTS_SD.reduce((s,p)=>s+p.current*p.cost,0);
   const typeColor: Record<string,{bg:string;text:string}> = { Receipt:{bg:"#DCFCE7",text:"#166534"}, Issue:{bg:"#FEF3C7",text:"#92400E"}, Adjustment:{bg:"#EDE9FE",text:"#5B21B6"} };
   const critical = PRODUCTS_SD.filter(i => i.current === 0);

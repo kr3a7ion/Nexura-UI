@@ -21,17 +21,17 @@ export const HOTEL_PRINT_DETAILS = {
 
 export const FOLIO_INVOICE = {
   invoiceNo: "INV-2026-0841",
-  date: "5 Aug 2026",
+  date: "25 Jun 2026",
   guest: "Chukwuemeka Okafor",
   company: "Okafor & Balogun Chambers",
   address: "24 Bourdillon Road, Ikoyi, Lagos",
   reservation: "BK-2860",
   room: "301 · Suite",
-  stay: "4–5 Aug 2026",
+  stay: "24–25 Jun 2026",
   lines: [
-    { date: "4 Aug", description: "Suite accommodation", quantity: 1, unit: 91125, amount: 91125 },
-    { date: "4 Aug", description: "Room service dinner", quantity: 1, unit: 18500, amount: 18500 },
-    { date: "5 Aug", description: "Airport transfer", quantity: 1, unit: 25000, amount: 25000 },
+    { date: "24 Jun", description: "Suite accommodation", quantity: 1, unit: 91125, amount: 91125 },
+    { date: "24 Jun", description: "Room service dinner", quantity: 1, unit: 18500, amount: 18500 },
+    { date: "25 Jun", description: "Airport transfer", quantity: 1, unit: 25000, amount: 25000 },
   ],
   subtotal: 134625,
   vat: 10097,
@@ -44,7 +44,7 @@ export const FOLIO_INVOICE = {
 
 export const PAYMENT_RECEIPT = {
   receiptNo: "RCT-2026-1098",
-  date: "4 Aug 2026",
+  date: "24 Jun 2026",
   time: "16:42",
   guest: "Chukwuemeka Okafor",
   room: "301",
@@ -63,7 +63,7 @@ export const REGISTRATION_CARD = {
   idType: "International Passport",
   idNumber: "A09843211",
   room: "301 · Suite",
-  stay: "4 Aug 2026, 14:00 — 5 Aug 2026, 12:00",
+  stay: "24 Jun 2026, 14:00 — 25 Jun 2026, 12:00",
   rate: 91125,
   vehicle: "LAG 482 GK",
   terms: "I accept responsibility for all charges incurred during this stay and agree to the hotel’s check-out, non-smoking, privacy and property-damage policies.",
@@ -85,7 +85,7 @@ export const KITCHEN_TICKET = {
 
 export const TRIP_SHEET = {
   tripNo: "TRP-2026-0318",
-  date: "5 Aug 2026",
+  date: "25 Jun 2026",
   vehicle: "Toyota Hiace · ABJ 621 XV",
   driver: "Uche Obi",
   passengers: "Chukwuemeka Okafor + 2 guests",
@@ -99,7 +99,7 @@ export const TRIP_SHEET = {
 };
 
 export const NIGHT_AUDIT_REPORT = {
-  businessDate: "4 Aug 2026",
+  businessDate: "24 Jun 2026",
   occupancy: "78.4% · 40 of 51 rooms",
   adr: 68450,
   revpar: 53665,

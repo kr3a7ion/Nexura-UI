@@ -100,6 +100,12 @@ export const fmtDate = (d: Date | string) => {
   const date = typeof d === "string" ? new Date(Number(d.slice(0, 4)), Number(d.slice(5, 7)) - 1, Number(d.slice(8, 10))) : d;
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 };
+// "24 Jun 14:05": the business date with the wall-clock time, for records made just now.
+export const stampNow = (withYear = false) => {
+  const t = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const d = withYear ? fmtDate(BUSINESS_DATE) : BUSINESS_DATE.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return `${d}${withYear ? "," : ""} ${t}`;
+};
 export const fmtN = (v: number) => v >= 1e6 ? `₦${(v / 1e6).toFixed(2)}M` : v >= 1e3 ? `₦${(v / 1e3).toFixed(0)}K` : `₦${v}`;
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -404,16 +410,16 @@ export const USERS_DATA = [
   { name: "Bola Adewale", email: "b.adewale@grandpalms.ng", role: "FIN", dept: "Finance", status: "Active", lastLogin: "Today 08:30" },
 ];
 export const ASSETS = [
-  { id: "AST-001", name: "Central Air Conditioning Unit", cat: "HVAC", location: "Roof", purchased: "Jan 2021", warranty: "Jan 2024", lastService: "12 Mar 2025", nextService: "12 Jun 2025", status: "Overdue" },
-  { id: "AST-002", name: "Commercial Refrigerator (Restaurant)", cat: "Kitchen", location: "Restaurant Kitchen", purchased: "Mar 2022", warranty: "Mar 2025", lastService: "10 May 2025", nextService: "10 Aug 2025", status: "Ok" },
-  { id: "AST-003", name: "Elevator #1", cat: "Infrastructure", location: "Main Lobby", purchased: "Sep 2019", warranty: "Sep 2024", lastService: "01 Jun 2025", nextService: "01 Sep 2025", status: "Ok" },
-  { id: "AST-004", name: "Diesel Generator (50kVA)", cat: "Power", location: "Generator Room", purchased: "Jun 2020", warranty: "Jun 2025", lastService: "15 May 2025", nextService: "15 Jun 2025", status: "Due Soon" },
+  { id: "AST-001", name: "Central Air Conditioning Unit", cat: "HVAC", location: "Roof", purchased: "Jan 2021", warranty: "Jan 2025", lastService: "12 Mar 2026", nextService: "12 Jun 2026", status: "Overdue" },
+  { id: "AST-002", name: "Commercial Refrigerator (Restaurant)", cat: "Kitchen", location: "Restaurant Kitchen", purchased: "Mar 2022", warranty: "Mar 2026", lastService: "10 May 2026", nextService: "10 Aug 2026", status: "Ok" },
+  { id: "AST-003", name: "Elevator #1", cat: "Infrastructure", location: "Main Lobby", purchased: "Sep 2019", warranty: "Sep 2025", lastService: "1 Jun 2026", nextService: "1 Sep 2026", status: "Ok" },
+  { id: "AST-004", name: "Diesel Generator (50kVA)", cat: "Power", location: "Generator Room", purchased: "Jun 2020", warranty: "Jun 2026", lastService: "15 May 2026", nextService: "15 Jun 2026", status: "Due Soon" },
 ];
 export const SUPPLIERS_DATA = [
-  { id: "SUP-001", company: "FoodstuffPro Ltd", contact: "Mr. Dayo Ola", phone: "+234 801 100 2000", cat: "Food & Beverage", terms: "Net 30", lastOrder: "20 Jun 2025" },
-  { id: "SUP-002", company: "Eko Gas Supplies", contact: "Mrs. Bisi James", phone: "+234 802 200 3000", cat: "Kitchen / Gas", terms: "Net 7", lastOrder: "18 Jun 2025" },
-  { id: "SUP-003", company: "CleanPro Laundry", contact: "Mr. Emeka Ike", phone: "+234 803 300 4000", cat: "Linen / Cleaning", terms: "Net 14", lastOrder: "15 Jun 2025" },
-  { id: "SUP-004", company: "TechFix Services", contact: "Engr. Seun Adeyemi", phone: "+234 804 400 5000", cat: "Maintenance", terms: "COD", lastOrder: "22 Jun 2025" },
+  { id: "SUP-001", company: "FoodstuffPro Ltd", contact: "Mr. Dayo Ola", phone: "+234 801 100 2000", cat: "Food & Beverage", terms: "Net 30", lastOrder: "20 Jun 2026" },
+  { id: "SUP-002", company: "Eko Gas Supplies", contact: "Mrs. Bisi James", phone: "+234 802 200 3000", cat: "Kitchen / Gas", terms: "Net 7", lastOrder: "18 Jun 2026" },
+  { id: "SUP-003", company: "CleanPro Laundry", contact: "Mr. Emeka Ike", phone: "+234 803 300 4000", cat: "Linen / Cleaning", terms: "Net 14", lastOrder: "15 Jun 2026" },
+  { id: "SUP-004", company: "TechFix Services", contact: "Engr. Seun Adeyemi", phone: "+234 804 400 5000", cat: "Maintenance", terms: "COD", lastOrder: "22 Jun 2026" },
 ];
 export const PRODUCTS_DATA = [
   { code: "PR-001", name: "Shampoo (50ml)", cat: "Toiletries", unit: "pcs", stock: 28, par: 200, reorder: 50, cost: 250 },
@@ -480,9 +486,9 @@ export const DINING_RES = [
   { date: "25 Jun", time: "12:30", party: 6, guest: "Adaeze Okonkwo", table: "T08", requests: "Vegetarian options needed", status: "Confirmed" },
 ];
 export const ANNOUNCE_DATA = [
-  { id: "ANN-012", title: "Fire Drill — 24 Jun 10:30", body: "All staff to designated fire assembly points. Drill lasts approximately 15 minutes.", audience: "All Staff", expires: "24 Jun 2025", by: "Grace Mensah", read: 7, total: 8 },
-  { id: "ANN-011", title: "New Housekeeping SOP — Minibar Restock", body: "Minibar restocking must be completed and logged before marking a room as Inspected.", audience: "Housekeeping", expires: "30 Jun 2025", by: "Grace Mensah", read: 3, total: 3 },
-  { id: "ANN-010", title: "Staff Appreciation Event — 28 Jun", body: "Monthly staff gathering at 16:00 in the staff lounge. All shifts welcome.", audience: "All Staff", expires: "28 Jun 2025", by: "Grace Mensah", read: 5, total: 8 },
+  { id: "ANN-012", title: "Fire Drill — 24 Jun 10:30", body: "All staff to designated fire assembly points. Drill lasts approximately 15 minutes.", audience: "All Staff", expires: "24 Jun 2026", by: "Grace Mensah", read: 7, total: 8 },
+  { id: "ANN-011", title: "New Housekeeping SOP — Minibar Restock", body: "Minibar restocking must be completed and logged before marking a room as Inspected.", audience: "Housekeeping", expires: "30 Jun 2026", by: "Grace Mensah", read: 3, total: 3 },
+  { id: "ANN-010", title: "Staff Appreciation Event — 28 Jun", body: "Monthly staff gathering at 16:00 in the staff lounge. All shifts welcome.", audience: "All Staff", expires: "28 Jun 2026", by: "Grace Mensah", read: 5, total: 8 },
 ];
 export const PAYROLL_DATA = [
   { name: "Grace Mensah", role: "Hotel Manager", dept: "Management", baseSalary: 350000, overtime: 0, deductions: 35000, net: 315000 },
@@ -526,17 +532,17 @@ export interface ShiftProposal {
 const _shiftProposals: ShiftProposal[] = [
   {
     id: "SP-001", driverId: "DRV-003", driverName: "Musa Danladi",
-    day: "Thu 16", weekOf: "13–19 Oct 2025",
+    day: "Thu 16", weekOf: "23–29 Jun 2026",
     currentShift: "Off", proposedShift: "Morning",
     reason: "Airport pickup schedule — early morning flights booked for Thursday",
-    proposedBy: "Fleet Manager", proposedAt: "12 Oct 2025 09:14", status: "pending",
+    proposedBy: "Fleet Manager", proposedAt: "22 Jun 2026 09:14", status: "pending",
   },
   {
     id: "SP-002", driverId: "DRV-004", driverName: "Blessing Okafor",
-    day: "Wed 15", weekOf: "13–19 Oct 2025",
+    day: "Wed 15", weekOf: "23–29 Jun 2026",
     currentShift: "Off", proposedShift: "Evening",
     reason: "Covering Emeka Eze's evening shift — he has a medical appointment",
-    proposedBy: "Fleet Manager", proposedAt: "12 Oct 2025 11:45", status: "pending",
+    proposedBy: "Fleet Manager", proposedAt: "22 Jun 2026 11:45", status: "pending",
   },
 ];
 
@@ -556,7 +562,7 @@ export const ShiftProposalStore = {
     if (p) {
       p.status = "approved";
       p.reviewedBy = reviewedBy;
-      p.reviewedAt = new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+      p.reviewedAt = stampNow(true);
     }
   },
   reject(id: string, reviewedBy: string, reason: string) {
@@ -564,7 +570,7 @@ export const ShiftProposalStore = {
     if (p) {
       p.status = "rejected";
       p.reviewedBy = reviewedBy;
-      p.reviewedAt = new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+      p.reviewedAt = stampNow(true);
       p.rejectionReason = reason;
     }
   },

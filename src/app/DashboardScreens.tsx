@@ -55,8 +55,8 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
     { icon: Wrench, label: "2 work orders overdue", sub: "WO-0090 · WO-0088 — SLA breached", color: ERROR, screen: "work-orders", sl: "Work Orders" },
     { icon: Package, label: "3 items below reorder level", sub: "Towels · Breakfast cereals · Diesel", color: ORANGE, screen: "stock-dashboard", sl: "Stock Dashboard" },
     { icon: Truck, label: "Vehicle licence expiring", sub: "ABU-423-XK expiring in 8 days", color: WARNING, screen: "asset-register", sl: "Asset Register" },
-    { icon: Shield, label: "Backup age: 26 h", sub: "Last successful backup 01 Aug 07:14", color: ORANGE, screen: "backup-restore", sl: "Backup & Restore" },
-    { icon: Globe, label: "Lagos branch sync lag: 45 min", sub: "Last snapshot received 01 Aug 10:12", color: MUTED, screen: "sync-status", sl: "Central Sync Status" },
+    { icon: Shield, label: "Backup age: 26 h", sub: "Last successful backup 24 Jun 07:14", color: ORANGE, screen: "backup-restore", sl: "Backup & Restore" },
+    { icon: Globe, label: "Lagos branch sync lag: 45 min", sub: "Last snapshot received 24 Jun 10:12", color: MUTED, screen: "sync-status", sl: "Central Sync Status" },
   ];
 
   return (
@@ -279,10 +279,10 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
               </span>
             </div>
             <div className="text-xs mb-3" style={{ color: MUTED }}>
-              Last run: <span style={{ fontFamily: "'JetBrains Mono', monospace", color: TEXT }}>31 Jul 2026 · 23:58</span>
+              Last run: <span style={{ fontFamily: "'JetBrains Mono', monospace", color: TEXT }}>23 Jun 2026 · 23:58</span>
             </div>
             {!auditRunning ? (
-              <button onClick={() => { setAuditRunning(true); add({ type: "info", title: "Night audit started", body: `Processing business date ${fmtDate(BUSINESS_DATE)}…` }); setTimeout(() => { setAuditRunning(false); add({ type: "success", title: "Night audit complete", body: "Business date rolled to 02 Aug 2026." }); }, 4000); }}
+              <button onClick={() => { setAuditRunning(true); add({ type: "info", title: "Night audit started", body: `Processing business date ${fmtDate(BUSINESS_DATE)}…` }); setTimeout(() => { setAuditRunning(false); add({ type: "success", title: "Night audit complete", body: "Business date rolled to 25 Jun 2026." }); }, 4000); }}
                 className="w-full py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
                 style={{ backgroundColor: PRIMARY }}>
                 Run Night Audit
@@ -728,10 +728,10 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               <button onClick={() => go("preventive-schedule", "Preventive Schedule")} className="text-xs font-semibold" style={{ color: TEAL }}>Full schedule →</button>
             </div>
             {[
-              { asset:"HVAC Unit — Floor 3", due:"02 Aug", priority:"High",   status:"due"     },
-              { asset:"Fire Suppression Check", due:"04 Aug", priority:"Critical", status:"upcoming"},
-              { asset:"Pool Pump Inspection",   due:"05 Aug", priority:"Medium", status:"upcoming"},
-              { asset:"Elevator — Cab 2",       due:"07 Aug", priority:"High",   status:"upcoming"},
+              { asset:"HVAC Unit — Floor 3", due:"25 Jun", priority:"High",   status:"due"     },
+              { asset:"Fire Suppression Check", due:"27 Jun", priority:"Critical", status:"upcoming"},
+              { asset:"Pool Pump Inspection",   due:"28 Jun", priority:"Medium", status:"upcoming"},
+              { asset:"Elevator — Cab 2",       due:"30 Jun", priority:"High",   status:"upcoming"},
             ].map((p, i) => (
               <div key={i} className="flex items-center gap-3 py-2 border-b last:border-b-0" style={{ borderColor: BORDER }}>
                 <div className="flex-1 min-w-0">
@@ -829,10 +829,10 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
       { day:"Sun", actual:720000,  target:1100000 },
     ];
     const AP_AGING = [
-      { supplier:"Emadeb Energy",      due:"01 Aug", days:0,  amount:320000, status:"current" },
-      { supplier:"Umarfaruq Feeds",    due:"28 Jul", days:3,  amount:84000,  status:"overdue" },
-      { supplier:"Ardova Direct",      due:"25 Jul", days:6,  amount:236000, status:"overdue" },
-      { supplier:"Hygiene Plus Ltd",   due:"15 Aug", days:-14,amount:145000, status:"upcoming"},
+      { supplier:"Emadeb Energy",      due:"24 Jun", days:0,  amount:320000, status:"current" },
+      { supplier:"Umarfaruq Feeds",    due:"20 Jun", days:3,  amount:84000,  status:"overdue" },
+      { supplier:"Ardova Direct",      due:"17 Jun", days:6,  amount:236000, status:"overdue" },
+      { supplier:"Hygiene Plus Ltd",   due:"8 Jul", days:-14,amount:145000, status:"upcoming"},
     ];
     return (
       <div>
@@ -964,13 +964,13 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
   // ── RSV Dashboard ─────────────────────────────────────────────────────────────
   if (role === "RSV") {
     const RSV_PIPELINE = [
-      { date:"01 Aug", arr:12, dep:8,  occ:88, rev:1250000 },
-      { date:"02 Aug", arr:9,  dep:11, occ:86, rev:1190000 },
-      { date:"03 Aug", arr:14, dep:7,  occ:93, rev:1365000 },
-      { date:"04 Aug", arr:6,  dep:12, occ:87, rev:1218000 },
-      { date:"05 Aug", arr:11, dep:9,  occ:89, rev:1243000 },
-      { date:"06 Aug", arr:8,  dep:13, occ:84, rev:1176000 },
-      { date:"07 Aug", arr:15, dep:5,  occ:94, rev:1421000 },
+      { date:"24 Jun", arr:12, dep:8,  occ:88, rev:1250000 },
+      { date:"25 Jun", arr:9,  dep:11, occ:86, rev:1190000 },
+      { date:"26 Jun", arr:14, dep:7,  occ:93, rev:1365000 },
+      { date:"27 Jun", arr:6,  dep:12, occ:87, rev:1218000 },
+      { date:"28 Jun", arr:11, dep:9,  occ:89, rev:1243000 },
+      { date:"29 Jun", arr:8,  dep:13, occ:84, rev:1176000 },
+      { date:"30 Jun", arr:15, dep:5,  occ:94, rev:1421000 },
     ];
     return (
       <div>
@@ -1058,9 +1058,9 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
             <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
               <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Recent Cancellations</div>
               {[
-                { id:"RES-1031", guest:"Mr. Bello Haruna",   type:"Deluxe",   reason:"Change of plans", date:"31 Jul", penalty:"₦15,000" },
-                { id:"RES-1028", guest:"Miss Chika Okafor",  type:"Standard", reason:"No-show",         date:"30 Jul", penalty:"₦25,000" },
-                { id:"RES-1025", guest:"Dr. Lawal Ibrahim",  type:"Suite",    reason:"Flight cancelled", date:"29 Jul", penalty:"Waived"  },
+                { id:"RES-1031", guest:"Mr. Bello Haruna",   type:"Deluxe",   reason:"Change of plans", date:"23 Jun", penalty:"₦15,000" },
+                { id:"RES-1028", guest:"Miss Chika Okafor",  type:"Standard", reason:"No-show",         date:"22 Jun", penalty:"₦25,000" },
+                { id:"RES-1025", guest:"Dr. Lawal Ibrahim",  type:"Suite",    reason:"Flight cancelled", date:"21 Jun", penalty:"Waived"  },
               ].map(c => (
                 <div key={c.id} className="py-2 border-b last:border-b-0" style={{ borderColor: BORDER }}>
                   <div className="flex items-center justify-between">
@@ -1111,7 +1111,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <RoleKPI label="Uptime" value="99.8%" sub="30-day average" accent={SUCCESS} icon={Activity} />
         <RoleKPI label="Devices Online" value="23/26" sub="3 offline / idle" accent={ORANGE} icon={Cpu} />
-        <RoleKPI label="Backup Age" value="26 h" sub="last: 31 Jul 07:14" accent={ERROR} icon={Shield} />
+        <RoleKPI label="Backup Age" value="26 h" sub="last: 23 Jun 07:14" accent={ERROR} icon={Shield} />
         <RoleKPI label="Sync Lag" value="45 min" sub="Lagos branch" accent={WARNING} icon={Globe} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -1364,8 +1364,8 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                 { label:"Plate",       value:"ABJ 123 XA"    },
                 { label:"Make",        value:"Toyota Camry 2022" },
                 { label:"Odometer",    value:"47,963 km"     },
-                { label:"Road Worth.", value:"Valid · 30 Sep 2026" },
-                { label:"Insurance",  value:"Valid · 15 Dec 2026" },
+                { label:"Road Worth.", value:"Valid · 23 Aug 2026" },
+                { label:"Insurance",  value:"Valid · 7 Nov 2026" },
               ].map(r => (
                 <div key={r.label} className="flex items-center justify-between py-1.5 border-b last:border-b-0" style={{ borderColor: BORDER }}>
                   <span className="text-xs" style={{ color: MUTED }}>{r.label}</span>

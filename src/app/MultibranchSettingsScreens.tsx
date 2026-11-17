@@ -104,10 +104,10 @@ const BRANCHES = [
 ];
 
 const KPI_TREND = [
-  { month: "Jul", abj: 88, los: 90, phc: 75, kan: 68 },
-  { month: "Aug", abj: 90, los: 92, phc: 78, kan: 71 },
-  { month: "Sep", abj: 85, los: 89, phc: 76, kan: 69 },
-  { month: "Oct", abj: 88, los: 91, phc: 79, kan: 72 },
+  { month: "Mar", abj: 88, los: 90, phc: 75, kan: 68 },
+  { month: "Apr", abj: 90, los: 92, phc: 78, kan: 71 },
+  { month: "May", abj: 85, los: 89, phc: 76, kan: 69 },
+  { month: "Jun", abj: 88, los: 91, phc: 79, kan: 72 },
 ];
 
 const BRANCH_COLORS: Record<string, string> = { ABJ: PRIMARY, LOS: TEAL, PHC: ORANGE, KAN: SUCCESS };

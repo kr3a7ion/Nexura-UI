@@ -234,14 +234,14 @@ export function DiningReservations({ add }: { add: (t: Omit<Toast, "id">) => voi
   const [walkinTable, setWalkinTable] = useState("T04");
 
   const FULL_DINING_RES = [
-    { id: "DR001", date: "2025-10-14", time: "13:00", party: 2, guest: "Adaeze Okafor", phone: "0801 234 5678", table: "T02", status: "Seated", requests: "Gluten-free menu", vip: false, resId: "RES-2041" },
-    { id: "DR002", date: "2025-10-14", time: "19:30", party: 6, guest: "Bello Family", phone: "0802 345 6789", table: "T08", status: "Booked", requests: "Birthday cake, high chair", vip: true, resId: "" },
-    { id: "DR003", date: "2025-10-14", time: "20:00", party: 4, guest: "Chike Eze", phone: "0803 456 7890", table: "T11", status: "Booked", requests: "", vip: false, resId: "RES-2033" },
-    { id: "DR004", date: "2025-10-14", time: "20:00", party: 2, guest: "Suleiman & partner", phone: "0804 567 8901", table: "T05", status: "Booked", requests: "Vegetarian options, anniversary dinner", vip: true, resId: "" },
-    { id: "DR005", date: "2025-10-14", time: "12:30", party: 3, guest: "Ngozi Dike", phone: "0805 678 9012", table: "T03", status: "Completed", requests: "", vip: false, resId: "" },
-    { id: "DR006", date: "2025-10-14", time: "14:00", party: 1, guest: "Walk-in", phone: "", table: "T01", status: "Completed", requests: "", vip: false, resId: "" },
-    { id: "DR007", date: "2025-10-14", time: "21:00", party: 8, guest: "Emeka Nwosu Group", phone: "0806 789 0123", table: "T14", status: "Booked", requests: "Corporate dinner, projector setup", vip: true, resId: "RES-2055" },
-    { id: "DR008", date: "2025-10-14", time: "19:00", party: 2, guest: "Fatima Ibrahim", phone: "0807 890 1234", table: "T07", status: "No-show", requests: "", vip: false, resId: "" },
+    { id: "DR001", date: "2026-06-24", time: "13:00", party: 2, guest: "Adaeze Okafor", phone: "0801 234 5678", table: "T02", status: "Seated", requests: "Gluten-free menu", vip: false, resId: "RES-2041" },
+    { id: "DR002", date: "2026-06-24", time: "19:30", party: 6, guest: "Bello Family", phone: "0802 345 6789", table: "T08", status: "Booked", requests: "Birthday cake, high chair", vip: true, resId: "" },
+    { id: "DR003", date: "2026-06-24", time: "20:00", party: 4, guest: "Chike Eze", phone: "0803 456 7890", table: "T11", status: "Booked", requests: "", vip: false, resId: "RES-2033" },
+    { id: "DR004", date: "2026-06-24", time: "20:00", party: 2, guest: "Suleiman & partner", phone: "0804 567 8901", table: "T05", status: "Booked", requests: "Vegetarian options, anniversary dinner", vip: true, resId: "" },
+    { id: "DR005", date: "2026-06-24", time: "12:30", party: 3, guest: "Ngozi Dike", phone: "0805 678 9012", table: "T03", status: "Completed", requests: "", vip: false, resId: "" },
+    { id: "DR006", date: "2026-06-24", time: "14:00", party: 1, guest: "Walk-in", phone: "", table: "T01", status: "Completed", requests: "", vip: false, resId: "" },
+    { id: "DR007", date: "2026-06-24", time: "21:00", party: 8, guest: "Emeka Nwosu Group", phone: "0806 789 0123", table: "T14", status: "Booked", requests: "Corporate dinner, projector setup", vip: true, resId: "RES-2055" },
+    { id: "DR008", date: "2026-06-24", time: "19:00", party: 2, guest: "Fatima Ibrahim", phone: "0807 890 1234", table: "T07", status: "No-show", requests: "", vip: false, resId: "" },
   ];
 
   const [reservations, setReservations] = useState(FULL_DINING_RES.map(r => ({ ...r })));
@@ -549,11 +549,11 @@ export function Announcements({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   type Priority = "Normal"|"High"|"Urgent";
   type AudienceKey = "All Staff"|"Front Desk"|"Housekeeping"|"Maintenance"|"Finance"|"F&B"|"Security"|"Management";
   const ANNOUNCEMENTS = [
-    { id:"ANN-001", title:"Night Audit Time Change", body:"Starting tomorrow, night audit will run at 23:30 instead of 00:00. All POS shifts must be closed by 23:15.", by:"Fatima Ibrahim", audience:"All Staff" as AudienceKey, priority:"Urgent" as Priority, from:"14 Oct", expires:"20 Oct", read:42, total:47, ackRequired:true, active:true },
-    { id:"ANN-002", title:"VIP Guest Protocol Reminder", body:"Dr. Chukwuemeka Bello (Suite 501) checks in this evening. All staff to review VIP handling procedures. Do not disturb unless requested.", by:"Grace Mensah", audience:"Front Desk" as AudienceKey, priority:"High" as Priority, from:"14 Oct", expires:"15 Oct", read:8, total:12, ackRequired:true, active:true },
-    { id:"ANN-003", title:"Housekeeping Staffing Update", body:"Chidi Okeke is on approved leave today. Rooms may run 30 minutes behind schedule. Please inform guests of any delays proactively.", by:"Kemi Adeyemi", audience:"Housekeeping" as AudienceKey, priority:"Normal" as Priority, from:"14 Oct", expires:"14 Oct", read:9, total:9, ackRequired:false, active:true },
-    { id:"ANN-004", title:"Monthly Generator Maintenance", body:"Generator maintenance scheduled for Saturday 19 Oct between 08:00 and 10:00. Grid power will be primary. Inform guests if they inquire.", by:"Chukwuemeka Obi", audience:"All Staff" as AudienceKey, priority:"Normal" as Priority, from:"12 Oct", expires:"19 Oct", read:35, total:47, ackRequired:false, active:true },
-    { id:"ANN-005", title:"Q4 Performance Review Schedule", body:"Q4 performance reviews begin 01 November. Line managers will receive individual schedules by 25 October. Prepare your notes.", by:"HR Team", audience:"Management" as AudienceKey, priority:"Normal" as Priority, from:"10 Oct", expires:"25 Oct", read:5, total:5, ackRequired:false, active:false },
+    { id:"ANN-001", title:"Night Audit Time Change", body:"Starting tomorrow, night audit will run at 23:30 instead of 00:00. All POS shifts must be closed by 23:15.", by:"Fatima Ibrahim", audience:"All Staff" as AudienceKey, priority:"Urgent" as Priority, from:"24 Jun", expires:"30 Jun", read:42, total:47, ackRequired:true, active:true },
+    { id:"ANN-002", title:"VIP Guest Protocol Reminder", body:"Dr. Chukwuemeka Bello (Suite 501) checks in this evening. All staff to review VIP handling procedures. Do not disturb unless requested.", by:"Grace Mensah", audience:"Front Desk" as AudienceKey, priority:"High" as Priority, from:"24 Jun", expires:"25 Jun", read:8, total:12, ackRequired:true, active:true },
+    { id:"ANN-003", title:"Housekeeping Staffing Update", body:"Chidi Okeke is on approved leave today. Rooms may run 30 minutes behind schedule. Please inform guests of any delays proactively.", by:"Kemi Adeyemi", audience:"Housekeeping" as AudienceKey, priority:"Normal" as Priority, from:"24 Jun", expires:"24 Jun", read:9, total:9, ackRequired:false, active:true },
+    { id:"ANN-004", title:"Monthly Generator Maintenance", body:"Generator maintenance scheduled for Saturday 29 Jun between 08:00 and 10:00. Grid power will be primary. Inform guests if they inquire.", by:"Chukwuemeka Obi", audience:"All Staff" as AudienceKey, priority:"Normal" as Priority, from:"22 Jun", expires:"29 Jun", read:35, total:47, ackRequired:false, active:true },
+    { id:"ANN-005", title:"Q4 Performance Review Schedule", body:"Q4 performance reviews begin 12 July. Line managers will receive individual schedules by 5 July. Prepare your notes.", by:"HR Team", audience:"Management" as AudienceKey, priority:"Normal" as Priority, from:"20 Jun", expires:"5 Jul", read:5, total:5, ackRequired:false, active:false },
   ];
   const AUDIENCE_OPTIONS: AudienceKey[] = ["All Staff","Front Desk","Housekeeping","Maintenance","Finance","F&B","Security","Management"];
   const PRIORITY_COLORS: Record<Priority,{bg:string;text:string}> = {
@@ -708,26 +708,26 @@ export function StaffProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
   const STAFF_PROFILE = {
     id:"EMP-001", name:"John Abubakar", gender:"M" as const, role:"Front Desk Officer", dept:"Front Desk",
     phone:"0803-001-1001", email:"j.abubakar@grandpalms.ng", empType:"Full-time",
-    hireDate:"03 Jan 2022", shift:"Morning 07:00–15:00", status:"Active",
+    hireDate:"3 Jan 2022", shift:"Morning 07:00–15:00", status:"Active",
     reportingTo:"Fatima Ibrahim (Reservations Manager)",
-    contractEnd:"31 Dec 2025", salaryBand:"Band 3 — FD Officer", baseSalary:350000,
+    contractEnd:"10 Sep 2026", salaryBand:"Band 3 — FD Officer", baseSalary:350000,
     nokName:"Mrs. Rabi Abubakar", nokPhone:"+234 807 123 4567", nokRelation:"Spouse",
     bankName:"GTBank", bankAcct:"•••• •••• 4421",
   };
 
   const ATTEND_LOG = [
-    { date:"14 Oct", in:"07:03", out:"15:07", hours:8.1, late:3,  ot:0,   status:"Present" },
-    { date:"13 Oct", in:"06:55", out:"15:00", hours:8.1, late:0,  ot:0,   status:"Present" },
-    { date:"12 Oct", in:"07:15", out:"15:05", hours:7.8, late:15, ot:0,   status:"Late"    },
-    { date:"11 Oct", in:"07:00", out:"18:00", hours:11,  late:0,  ot:3,   status:"Present" },
-    { date:"10 Oct", in:"",      out:"",      hours:0,   late:0,  ot:0,   status:"Absent"  },
+    { date:"24 Jun", in:"07:03", out:"15:07", hours:8.1, late:3,  ot:0,   status:"Present" },
+    { date:"23 Jun", in:"06:55", out:"15:00", hours:8.1, late:0,  ot:0,   status:"Present" },
+    { date:"22 Jun", in:"07:15", out:"15:05", hours:7.8, late:15, ot:0,   status:"Late"    },
+    { date:"21 Jun", in:"07:00", out:"18:00", hours:11,  late:0,  ot:3,   status:"Present" },
+    { date:"20 Jun", in:"",      out:"",      hours:0,   late:0,  ot:0,   status:"Absent"  },
   ];
 
   const DOCS = [
     { name:"National ID (NIN)", type:"ID",          expiry:"N/A",      status:"Verified" },
-    { name:"Employment Contract",type:"Contract",   expiry:"31 Dec 2025",status:"Active" },
-    { name:"Hospitality Cert.", type:"Certificate", expiry:"Jan 2027",  status:"Valid"   },
-    { name:"Medical Certificate",type:"Medical",    expiry:"Jan 2026",  status:"Valid"   },
+    { name:"Employment Contract",type:"Contract",   expiry:"10 Sep 2026",status:"Active" },
+    { name:"Hospitality Cert.", type:"Certificate", expiry:"Sep 2027",  status:"Valid"   },
+    { name:"Medical Certificate",type:"Medical",    expiry:"Sep 2026",  status:"Valid"   },
   ];
 
   const LEAVE_BALANCES = [
@@ -867,7 +867,7 @@ export function StaffProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
                   ))}
                 </div>
                 <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Leave History</div>
-                {[{ type:"Annual", from:"01 Sep", to:"05 Sep", days:5, status:"Completed" },{ type:"Sick", from:"22 Jul", to:"22 Jul", days:1, status:"Completed" }].map((l,i)=>(
+                {[{ type:"Annual", from:"12 May", to:"16 May", days:5, status:"Completed" },{ type:"Sick", from:"1 Apr", to:"1 Apr", days:1, status:"Completed" }].map((l,i)=>(
                   <div key={i} className="flex items-center justify-between px-3 py-2.5 rounded-xl border mb-2" style={{ borderColor: BORDER }}>
                     <div><div className="text-xs font-medium" style={{ color: TEXT }}>{l.type} Leave · {l.days} days</div><div className="text-xs" style={{ color: MUTED }}>{l.from} – {l.to}</div></div>
                     <Badge label={l.status} colors={{ bg:"#DCFCE7", text:"#166534" }} />
@@ -892,7 +892,7 @@ export function StaffProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
             )}
             {tab==="Access" && (
               <div className="space-y-3">
-                {([["System Role","Front Desk (FD)"],["Permissions","Dashboard, Reservations, Front Desk, Guest Messaging, Internal Chat"],["MFA Enabled","Yes — SMS"],["Last Login","14 Oct 2025, 07:01"],["Login Device","iPad · EMP-iPad-003"],["Failed Attempts (30d)","0"]] as [string,string][]).map(([k,v])=>(
+                {([["System Role","Front Desk (FD)"],["Permissions","Dashboard, Reservations, Front Desk, Guest Messaging, Internal Chat"],["MFA Enabled","Yes — SMS"],["Last Login","24 Jun 2026, 07:01"],["Login Device","iPad · EMP-iPad-003"],["Failed Attempts (30d)","0"]] as [string,string][]).map(([k,v])=>(
                   <div key={k} className="flex justify-between text-sm border-b py-2" style={{ borderColor: BORDER }}>
                     <span style={{ color: MUTED }}>{k}</span><span className="font-medium text-right" style={{ color: TEXT }}>{v}</span>
                   </div>
@@ -2083,11 +2083,11 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   };
 
   const [entries, setEntries] = useState<WLEntry[]>([
-    { id:"WL-018", guest:"Amara Nwosu",   phone:"+234 802 111 2233", email:"amara@nwosu.ng",   type:"Suite",    dates:"26–29 Aug", waitDays:2, priority:1, source:"Phone",    notes:"VIP — CEO of Nwosu Group. Prefers high floor.",              contacted:false, contactedAt:null,          availMatch:true  },
-    { id:"WL-017", guest:"Kunle Badmus",  phone:"+234 803 445 6677", email:"kunle@badmus.com",  type:"Deluxe",   dates:"25–27 Aug", waitDays:3, priority:2, source:"Walk-in",  notes:"Travelling with spouse. Needs connecting rooms if possible.", contacted:true,  contactedAt:"Today 09:14", availMatch:false },
-    { id:"WL-016", guest:"Sade Oladipo",  phone:"+234 809 900 1122", email:"sade@gmail.com",    type:"Standard", dates:"25 Aug",    waitDays:1, priority:3, source:"Online",   notes:"",                                                           contacted:false, contactedAt:null,          availMatch:false },
-    { id:"WL-015", guest:"Emeka Nwosu",   phone:"+234 706 334 5566", email:"emeka@nwosu.ng",    type:"Deluxe",   dates:"3–5 Sep",   waitDays:5, priority:4, source:"Referral", notes:"Referred by GRP-001.",                                       contacted:true,  contactedAt:"Yesterday",   availMatch:false },
-    { id:"WL-014", guest:"Funke Abosede", phone:"+234 812 667 8899", email:"funke@abosede.ng",  type:"Standard", dates:"2–4 Sep",   waitDays:6, priority:5, source:"Phone",    notes:"Requested ground-floor room.",                               contacted:false, contactedAt:null,          availMatch:false },
+    { id:"WL-018", guest:"Amara Nwosu",   phone:"+234 802 111 2233", email:"amara@nwosu.ng",   type:"Suite",    dates:"6–9 May", waitDays:2, priority:1, source:"Phone",    notes:"VIP — CEO of Nwosu Group. Prefers high floor.",              contacted:false, contactedAt:null,          availMatch:true  },
+    { id:"WL-017", guest:"Kunle Badmus",  phone:"+234 803 445 6677", email:"kunle@badmus.com",  type:"Deluxe",   dates:"5–7 May", waitDays:3, priority:2, source:"Walk-in",  notes:"Travelling with spouse. Needs connecting rooms if possible.", contacted:true,  contactedAt:"Today 09:14", availMatch:false },
+    { id:"WL-016", guest:"Sade Oladipo",  phone:"+234 809 900 1122", email:"sade@gmail.com",    type:"Standard", dates:"5 May",    waitDays:1, priority:3, source:"Online",   notes:"",                                                           contacted:false, contactedAt:null,          availMatch:false },
+    { id:"WL-015", guest:"Emeka Nwosu",   phone:"+234 706 334 5566", email:"emeka@nwosu.ng",    type:"Deluxe",   dates:"14–16 May",   waitDays:5, priority:4, source:"Referral", notes:"Referred by GRP-001.",                                       contacted:true,  contactedAt:"Yesterday",   availMatch:false },
+    { id:"WL-014", guest:"Funke Abosede", phone:"+234 812 667 8899", email:"funke@abosede.ng",  type:"Standard", dates:"13–15 May",   waitDays:6, priority:5, source:"Phone",    notes:"Requested ground-floor room.",                               contacted:false, contactedAt:null,          availMatch:false },
   ]);
 
   const [dismissed,     setDismissed]     = useState<string[]>([]);
@@ -2226,7 +2226,7 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Requested Dates</label>
-                  <input value={form.dates} onChange={e => upd("dates", e.target.value)} placeholder="e.g. 10–12 Sep" aria-label="e.g. 10–12 Sep"
+                  <input value={form.dates} onChange={e => upd("dates", e.target.value)} placeholder="e.g. 21–23 May" aria-label="e.g. 21–23 May"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${PASS_DASH}`, backgroundColor:"white" }} />
                 </div>
               </div>
@@ -3215,13 +3215,13 @@ export function LeaveManagement({ add }: { add: (t: Omit<Toast, "id">) => void }
   type LvType = "Annual" | "Sick" | "Casual" | "Maternity" | "Paternity" | "Compassionate" | "Study";
 
   const LEAVE_REQUESTS = [
-    { id:"LV-2025-001", staff:"John Abubakar",    dept:"Front Desk",    type:"Annual" as LvType,      from:"25 Oct", to:"31 Oct", days:7,  reason:"Family vacation",              status:"Pending" as LvStatus,  applied:"12 Oct", cover:"Mary Okonkwo", approver:"F. Ibrahim" },
-    { id:"LV-2025-002", staff:"Amina Yusuf",      dept:"Housekeeping",  type:"Sick" as LvType,        from:"14 Oct", to:"15 Oct", days:2,  reason:"Doctor's appointment",         status:"Approved" as LvStatus, applied:"11 Oct", cover:"N/A",           approver:"K. Diallo"  },
-    { id:"LV-2025-003", staff:"Chukwuemeka Obi",  dept:"Maintenance",   type:"Casual" as LvType,      from:"20 Oct", to:"20 Oct", days:1,  reason:"Personal errand",              status:"Approved" as LvStatus, applied:"10 Oct", cover:"Y. Danjuma",    approver:"A. Musa"    },
-    { id:"LV-2025-004", staff:"Fatima Ibrahim",   dept:"Reservations",  type:"Annual" as LvType,      from:"01 Nov", to:"07 Nov", days:7,  reason:"Rest and recreation",          status:"Pending" as LvStatus,  applied:"13 Oct", cover:"N. Suleiman",   approver:"GM"         },
-    { id:"LV-2025-005", staff:"Ngozi Eze",        dept:"F&B",           type:"Maternity" as LvType,   from:"01 Nov", to:"31 Jan", days:90, reason:"Maternity leave",              status:"Approved" as LvStatus, applied:"01 Oct", cover:"Relief staff",  approver:"HR"         },
-    { id:"LV-2025-006", staff:"Ibrahim Suleiman", dept:"Security",      type:"Annual" as LvType,      from:"18 Oct", to:"22 Oct", days:5,  reason:"Travel",                       status:"Rejected" as LvStatus, applied:"09 Oct", cover:"B. Adamu",      approver:"A. Musa"    },
-    { id:"LV-2025-007", staff:"Kemi Adeyemi",     dept:"Front Desk",    type:"Compassionate" as LvType,from:"15 Oct",to:"17 Oct", days:3,  reason:"Bereavement — close family",  status:"Approved" as LvStatus, applied:"15 Oct", cover:"N/A",           approver:"GM"         },
+    { id:"LV-2025-001", staff:"John Abubakar",    dept:"Front Desk",    type:"Annual" as LvType,      from:"5 Jul", to:"11 Jul", days:7,  reason:"Family vacation",              status:"Pending" as LvStatus,  applied:"22 Jun", cover:"Mary Okonkwo", approver:"F. Ibrahim" },
+    { id:"LV-2025-002", staff:"Amina Yusuf",      dept:"Housekeeping",  type:"Sick" as LvType,        from:"24 Jun", to:"25 Jun", days:2,  reason:"Doctor's appointment",         status:"Approved" as LvStatus, applied:"21 Jun", cover:"N/A",           approver:"K. Diallo"  },
+    { id:"LV-2025-003", staff:"Chukwuemeka Obi",  dept:"Maintenance",   type:"Casual" as LvType,      from:"30 Jun", to:"30 Jun", days:1,  reason:"Personal errand",              status:"Approved" as LvStatus, applied:"20 Jun", cover:"Y. Danjuma",    approver:"A. Musa"    },
+    { id:"LV-2025-004", staff:"Fatima Ibrahim",   dept:"Reservations",  type:"Annual" as LvType,      from:"12 Jul", to:"18 Jul", days:7,  reason:"Rest and recreation",          status:"Pending" as LvStatus,  applied:"23 Jun", cover:"N. Suleiman",   approver:"GM"         },
+    { id:"LV-2025-005", staff:"Ngozi Eze",        dept:"F&B",           type:"Maternity" as LvType,   from:"12 Jul", to:"11 Oct", days:90, reason:"Maternity leave",              status:"Approved" as LvStatus, applied:"11 Jun", cover:"Relief staff",  approver:"HR"         },
+    { id:"LV-2025-006", staff:"Ibrahim Suleiman", dept:"Security",      type:"Annual" as LvType,      from:"28 Jun", to:"2 Jul", days:5,  reason:"Travel",                       status:"Rejected" as LvStatus, applied:"19 Jun", cover:"B. Adamu",      approver:"A. Musa"    },
+    { id:"LV-2025-007", staff:"Kemi Adeyemi",     dept:"Front Desk",    type:"Compassionate" as LvType,from:"25 Jun",to:"27 Jun", days:3,  reason:"Bereavement — close family",  status:"Approved" as LvStatus, applied:"25 Jun", cover:"N/A",           approver:"GM"         },
   ];
 
   const BALANCES: Record<string, Record<LvType, { total: number; used: number }>> = {
@@ -3291,7 +3291,7 @@ export function LeaveManagement({ add }: { add: (t: Omit<Toast, "id">) => void }
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {[
           { label:"Pending Approval", val:pendingCount,  color:WARNING },
-          { label:"Approved (Oct)",   val:approvedCount, color:SUCCESS },
+          { label:"Approved (Jun)",   val:approvedCount, color:SUCCESS },
           { label:"On Leave Today",   val:2,             color:TEAL    },
           { label:"Leave Types",      val:7,             color:PRIMARY },
         ].map(k=>(
@@ -3373,7 +3373,7 @@ export function LeaveManagement({ add }: { add: (t: Omit<Toast, "id">) => void }
 
       {tab==="Calendar" && (
         <div className="bg-white rounded-xl border p-5" style={{ borderColor:BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="text-sm font-semibold mb-4" style={{ color:TEXT }}>Team Leave — October & November 2025</div>
+          <div className="text-sm font-semibold mb-4" style={{ color:TEXT }}>Team Leave — October & July 2026</div>
           <div className="grid grid-cols-31 gap-0.5 mb-3 text-center" style={{ gridTemplateColumns:"180px repeat(31,1fr)" }}>
             <div />
             {Array.from({length:31},(_,i)=>(
@@ -3394,7 +3394,7 @@ export function LeaveManagement({ add }: { add: (t: Omit<Toast, "id">) => void }
             </div>
           ))}
           <div className="mt-4 p-3 rounded-xl" style={{ backgroundColor:"#FEF3C7" }}>
-            <div className="text-xs font-semibold" style={{ color:WARNING }}>Coverage Risk — 25–31 Oct</div>
+            <div className="text-xs font-semibold" style={{ color:WARNING }}>Coverage Risk — 5–11 Jul</div>
             <div className="text-xs mt-1" style={{ color:TEXT }}>Front Desk will have 1 officer absent (John Abubakar). Ensure relief coverage is confirmed.</div>
           </div>
         </div>

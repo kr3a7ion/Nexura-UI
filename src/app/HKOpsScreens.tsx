@@ -32,6 +32,7 @@ import {
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
+stampNow
 } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 // HK-04 Inspection Log
@@ -330,7 +331,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const stepNames = ["Reservation", "Configuration", "Read Card", "Register", "Complete"];
   const simulateRead = () => { setIssueStep("read"); setTimeout(() => { setSerialRead(`E9B3-${Math.floor(Math.random() * 9999).toString().padStart(4,"0")}`); setIssueStep("register"); }, 1400); };
   const finishIssue = () => {
-    const newCard = { id: `KC-00${cards.length + 1}`, room: issueRoom, guest: "Emmanuel Adeyemi", res: issueRes, serial: serialRead, issued: "24 Jun " + new Date().getHours() + ":" + String(new Date().getMinutes()).padStart(2,"0"), validTo: "25 Jun 12:00", status: "Active" as const, duplicate: cardCount > 1, by: "Grace M." };
+    const newCard = { id: `KC-00${cards.length + 1}`, room: issueRoom, guest: "Emmanuel Adeyemi", res: issueRes, serial: serialRead, issued: stampNow(), validTo: "25 Jun 12:00", status: "Active" as const, duplicate: cardCount > 1, by: "Grace M." };
     setCards(p => [...p, newCard]);
     setIssueStep("done");
     add({ type: "success", title: `Card encoded — Room ${issueRoom}`, body: `Serial ${serialRead} · Valid ${validHrs}h` });
@@ -515,7 +516,7 @@ export function HKMyTasks({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
   return (
     <div>
-      <PageHeader title="My Tasks — Grace Achebe" sub="24 Jun 2025 · Morning Shift" />
+      <PageHeader title="My Tasks — Grace Achebe" sub="24 Jun 2026 · Morning Shift" />
       {/* Progress summary bar */}
       <div className="bg-white rounded-xl border p-4 mb-5" style={{ borderColor: BORDER }}>
         <div className="flex items-center justify-between mb-2">

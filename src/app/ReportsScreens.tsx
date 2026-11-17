@@ -139,12 +139,12 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
   const [drillType, setDrillType] = useState<string | null>(null);
 
   const MONTHLY = [
-    { month: "May", occ: 79, adr: 52000, revpar: 41080, arrivals: 180, dep: 172 },
-    { month: "Jun", occ: 88, adr: 55000, revpar: 48400, arrivals: 212, dep: 198 },
-    { month: "Jul", occ: 92, adr: 57500, revpar: 52900, arrivals: 231, dep: 220 },
-    { month: "Aug", occ: 90, adr: 56000, revpar: 50400, arrivals: 224, dep: 215 },
-    { month: "Sep", occ: 85, adr: 54000, revpar: 45900, arrivals: 205, dep: 198 },
-    { month: "Oct", occ: 88, adr: 55417, revpar: 48767, arrivals: 218, dep: 207 },
+    { month: "Jan", occ: 79, adr: 52000, revpar: 41080, arrivals: 180, dep: 172 },
+    { month: "Feb", occ: 88, adr: 55000, revpar: 48400, arrivals: 212, dep: 198 },
+    { month: "Mar", occ: 92, adr: 57500, revpar: 52900, arrivals: 231, dep: 220 },
+    { month: "Apr", occ: 90, adr: 56000, revpar: 50400, arrivals: 224, dep: 215 },
+    { month: "May", occ: 85, adr: 54000, revpar: 45900, arrivals: 205, dep: 198 },
+    { month: "Jun", occ: 88, adr: 55417, revpar: 48767, arrivals: 218, dep: 207 },
   ];
 
   const BY_TYPE = [
@@ -170,10 +170,10 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
     <ReportShell title="Occupancy Reports" sub="Occupancy, ADR, RevPAR by date / type / segment" add={add}>
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Occupancy (Oct)" value="88.0%" sub="vs 85.3% Sep" icon={Building2} accent={PRIMARY} delta="+2.7pp" deltaPositive />
-        <StatCard label="ADR (Oct)"       value="₦55,417" sub="vs ₦54,000 Sep" icon={DollarSign} accent={TEAL} delta="+2.6%" deltaPositive />
-        <StatCard label="RevPAR (Oct)"    value="₦48,767" sub="vs ₦45,900 Sep" icon={TrendingUp} accent={SUCCESS} delta="+6.2%" deltaPositive />
-        <StatCard label="No-Show Rate"    value="3.2%"    sub="−0.4pp vs Sep" icon={AlertTriangle} accent={WARNING} delta="−0.4pp" deltaPositive />
+        <StatCard label="Occupancy (Jun)" value="88.0%" sub="vs 85.3% May" icon={Building2} accent={PRIMARY} delta="+2.7pp" deltaPositive />
+        <StatCard label="ADR (Jun)"       value="₦55,417" sub="vs ₦54,000 May" icon={DollarSign} accent={TEAL} delta="+2.6%" deltaPositive />
+        <StatCard label="RevPAR (Jun)"    value="₦48,767" sub="vs ₦45,900 May" icon={TrendingUp} accent={SUCCESS} delta="+6.2%" deltaPositive />
+        <StatCard label="No-Show Rate"    value="3.2%"    sub="−0.4pp vs May" icon={AlertTriangle} accent={WARNING} delta="−0.4pp" deltaPositive />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
@@ -195,7 +195,7 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
 
         {/* Source mix */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Source Mix (Oct)</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Source Mix (Jun)</div>
           <div className="flex gap-4 items-center">
             <ResponsiveContainer width={140} height={140}>
               <PieChart>
@@ -219,7 +219,7 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
 
       {/* LOS distribution */}
       <div className="bg-white rounded-xl border p-4 mb-5" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Length of Stay Distribution (Oct)</div>
+        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Length of Stay Distribution (Jun)</div>
         <div className="flex items-end gap-4">
           {LOS_DIST.map(l => (
             <div key={l.nights} className="flex-1 flex flex-col items-center gap-1.5">
@@ -318,10 +318,10 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
     >
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Total Revenue (Oct)"  value={`₦${(totalOct / 1000000).toFixed(2)}M`} sub={`vs ₦${(totalSep / 1000000).toFixed(2)}M Sep`} icon={DollarSign} accent={PRIMARY} delta={`+${(((totalOct - totalSep) / totalSep) * 100).toFixed(1)}%`} deltaPositive />
-        <StatCard label="YTD Revenue"           value={`₦${(totalYTD / 1000000).toFixed(1)}M`} sub="Jan–Oct 2025" icon={TrendingUp} accent={TEAL} delta="+11.4% vs 2024" deltaPositive />
-        <StatCard label="Tax Collected (Oct)"   value={`₦${((TAX.reduce((s,t)=>s+t.amt,0))/1000).toFixed(0)}K`} sub="VAT + Consumption + Service" icon={FileText} accent={WARNING} />
-        <StatCard label="Discounts & Comps"     value="₦94,000" sub="4 approvals this month" icon={AlertTriangle} accent={ERROR} delta="+12% vs Sep" deltaPositive={false} />
+        <StatCard label="Total Revenue (Jun)"  value={`₦${(totalOct / 1000000).toFixed(2)}M`} sub={`vs ₦${(totalSep / 1000000).toFixed(2)}M May`} icon={DollarSign} accent={PRIMARY} delta={`+${(((totalOct - totalSep) / totalSep) * 100).toFixed(1)}%`} deltaPositive />
+        <StatCard label="YTD Revenue"           value={`₦${(totalYTD / 1000000).toFixed(1)}M`} sub="Jan–Jun 2026" icon={TrendingUp} accent={TEAL} delta="+11.4% vs 2024" deltaPositive />
+        <StatCard label="Tax Collected (Jun)"   value={`₦${((TAX.reduce((s,t)=>s+t.amt,0))/1000).toFixed(0)}K`} sub="VAT + Consumption + Service" icon={FileText} accent={WARNING} />
+        <StatCard label="Discounts & Comps"     value="₦94,000" sub="4 approvals this month" icon={AlertTriangle} accent={ERROR} delta="+12% vs May" deltaPositive={false} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
@@ -369,7 +369,7 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
 
       {/* Tax summary */}
       <div className="bg-white rounded-xl border p-4 mb-5" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Tax Collected (Oct 2025)</div>
+        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Tax Collected (Jun 2026)</div>
         <div className="flex gap-6 flex-wrap">
           {TAX.map(t => (
             <div key={t.name}>
@@ -387,7 +387,7 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
           <div className="text-sm font-semibold" style={{ color: TEXT }}>Revenue by {dim}</div>
         </div>
         <table className="w-full">
-          <thead><TableHeader cols={[dim, "Oct 2025", "Sep 2025", "Change", "% of Total", ""]} /></thead>
+          <thead><TableHeader cols={[dim, "Jun 2026", "May 2026", "Change", "% of Total", ""]} /></thead>
           <tbody>
             {dimData[dim].map((r, i) => {
               const change = ((r.oct - r.sep) / r.sep) * 100;
@@ -406,7 +406,7 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
             {drill && (
               <tr style={{ backgroundColor: "#F9FAFB" }}>
                 <td colSpan={6} className="px-4 py-3 text-xs" style={{ color: MUTED }}>
-                  <strong style={{ color: TEXT }}>{drill}</strong> — Daily average: ₦{Math.round(dimData[dim].find(r => r.name === drill)!.oct / 31).toLocaleString()} · Peak day: 14 Oct.
+                  <strong style={{ color: TEXT }}>{drill}</strong> — Daily average: ₦{Math.round(dimData[dim].find(r => r.name === drill)!.oct / 31).toLocaleString()} · Peak day: 24 Jun.
                   <button onClick={() => setDrill(null)} className="ml-3 text-xs" style={{ color: PRIMARY }}>Close</button>
                 </td>
               </tr>
@@ -430,24 +430,24 @@ export function DepartmentReports({ add }: { add: (t: Omit<Toast, "id">) => void
     incidents: { date: string; type: string; status: string; note: string }[];
   }> = {
     "Front Desk":  {
-      kpis: [{ label:"Check-ins (Oct)", val:"218", delta:"+8 vs Sep", pos:true },{ label:"Avg Processing", val:"3.8 min", delta:"−0.4 vs Sep", pos:true },{ label:"Walk-ins", val:"24", delta:"+3", pos:true },{ label:"Guest Rating", val:"4.7/5" }],
+      kpis: [{ label:"Check-ins (Jun)", val:"218", delta:"+8 vs May", pos:true },{ label:"Avg Processing", val:"3.8 min", delta:"−0.4 vs May", pos:true },{ label:"Walk-ins", val:"24", delta:"+3", pos:true },{ label:"Guest Rating", val:"4.7/5" }],
       trend: [{ day:"Mon",a:38 },{ day:"Tue",a:42 },{ day:"Wed",a:35 },{ day:"Thu",a:44 },{ day:"Fri",a:51 },{ day:"Sat",a:58 },{ day:"Sun",a:48 }],
       aLabel:"Check-ins",
-      incidents:[{ date:"14 Oct",type:"Late Check-in",status:"Resolved",note:"Guest arrived 03:30, key issued without issue." },{ date:"11 Oct",type:"Overbooking",status:"Resolved",note:"1 room oversold. Guest upgraded to Suite, comp breakfast." }],
+      incidents:[{ date:"24 Jun",type:"Late Check-in",status:"Resolved",note:"Guest arrived 03:30, key issued without issue." },{ date:"21 Jun",type:"Overbooking",status:"Resolved",note:"1 room oversold. Guest upgraded to Suite, comp breakfast." }],
     },
     "Housekeeping": {
-      kpis: [{ label:"Rooms Cleaned (Oct)",val:"674",delta:"+12 vs Sep",pos:true },{ label:"Avg Turnaround",val:"41 min",delta:"−3 min",pos:true },{ label:"Inspection Pass",val:"92%",delta:"+4pp",pos:true },{ label:"DND Overrides",val:"3" }],
+      kpis: [{ label:"Rooms Cleaned (Jun)",val:"674",delta:"+12 vs May",pos:true },{ label:"Avg Turnaround",val:"41 min",delta:"−3 min",pos:true },{ label:"Inspection Pass",val:"92%",delta:"+4pp",pos:true },{ label:"DND Overrides",val:"3" }],
       trend: [{ day:"Mon",a:88,b:81 },{ day:"Tue",a:95,b:87 },{ day:"Wed",a:91,b:84 },{ day:"Thu",a:98,b:90 },{ day:"Fri",a:104,b:96 },{ day:"Sat",a:112,b:103 },{ day:"Sun",a:86,b:80 }],
       aLabel:"Cleaned", bLabel:"Inspected",
-      incidents:[{ date:"12 Oct",type:"DND Wellness Check",status:"Completed",note:"Room 407 — 28hrs DND. Checked, guest resting, declined service." }],
+      incidents:[{ date:"22 Jun",type:"DND Wellness Check",status:"Completed",note:"Room 407 — 28hrs DND. Checked, guest resting, declined service." }],
     },
     "Maintenance": {
-      kpis:[{ label:"WOs Created (Oct)",val:"31",delta:"+5 vs Sep",pos:false },{ label:"WOs Closed",val:"28",delta:"+8 vs Sep",pos:true },{ label:"Avg Resolution",val:"5.8h",delta:"−1.2h",pos:true },{ label:"Overdue",val:"3" }],
+      kpis:[{ label:"WOs Created (Jun)",val:"31",delta:"+5 vs May",pos:false },{ label:"WOs Closed",val:"28",delta:"+8 vs May",pos:true },{ label:"Avg Resolution",val:"5.8h",delta:"−1.2h",pos:true },{ label:"Overdue",val:"3" }],
       trend:[{ day:"Mon",a:4,b:5 },{ day:"Tue",a:6,b:4 },{ day:"Wed",a:3,b:6 },{ day:"Thu",a:7,b:3 },{ day:"Fri",a:5,b:7 },{ day:"Sat",a:4,b:4 },{ day:"Sun",a:2,b:4 }],
       aLabel:"Created", bLabel:"Closed",
-      incidents:[{ date:"14 Oct",type:"SLA Breach",status:"Open",note:"WO-0090 — AC Room 316 exceeded 8h SLA." }],
+      incidents:[{ date:"24 Jun",type:"SLA Breach",status:"Open",note:"WO-0090 — AC Room 316 exceeded 8h SLA." }],
     },
-    "F&B":       { kpis:[{ label:"Covers (Oct)",val:"1,842" },{ label:"Avg Cover Value",val:"₦6,240" },{ label:"Room Charges Posted",val:"₦284K" },{ label:"Wastage",val:"₦18K" }], trend:[{ day:"Mon",a:240 },{ day:"Tue",a:265 },{ day:"Wed",a:258 },{ day:"Thu",a:272 },{ day:"Fri",a:290 },{ day:"Sat",a:318 },{ day:"Sun",a:199 }], aLabel:"Covers", incidents:[] },
+    "F&B":       { kpis:[{ label:"Covers (Jun)",val:"1,842" },{ label:"Avg Cover Value",val:"₦6,240" },{ label:"Room Charges Posted",val:"₦284K" },{ label:"Wastage",val:"₦18K" }], trend:[{ day:"Mon",a:240 },{ day:"Tue",a:265 },{ day:"Wed",a:258 },{ day:"Thu",a:272 },{ day:"Fri",a:290 },{ day:"Sat",a:318 },{ day:"Sun",a:199 }], aLabel:"Covers", incidents:[] },
     "Finance":   { kpis:[{ label:"Revenue Today",val:"₦1.25M" },{ label:"Outstanding AR",val:"₦380K" },{ label:"AP Due This Week",val:"₦240K" },{ label:"Day-Close Status",val:"Open" }], trend:[{ day:"Mon",a:1050 },{ day:"Tue",a:1180 },{ day:"Wed",a:920 },{ day:"Thu",a:1340 },{ day:"Fri",a:1250 },{ day:"Sat",a:1420 },{ day:"Sun",a:980 }], aLabel:"Revenue (₦K)", incidents:[] },
     "HR":        { kpis:[{ label:"Headcount",val:"47" },{ label:"Attendance Rate",val:"94.1%",delta:"+0.8pp",pos:true },{ label:"Overtime Hours",val:"89h",delta:"+12h",pos:false },{ label:"Open Leave Requests",val:"4" }], trend:[{ day:"Mon",a:44 },{ day:"Tue",a:46 },{ day:"Wed",a:45 },{ day:"Thu",a:47 },{ day:"Fri",a:43 },{ day:"Sat",a:38 },{ day:"Sun",a:22 }], aLabel:"Staff On Duty", incidents:[] },
   };
@@ -512,28 +512,28 @@ export function GuestAnalytics({ add }: { add: (t: Omit<Toast, "id">) => void })
   const [drill, setDrill] = useState<string | null>(null);
 
   const VIP_TABLE = [
-    { name:"Dr. Chukwuemeka Bello",  stays:18, ltv:4820000, lastStay:"14 Oct", rating:5.0, tier:"Platinum" },
-    { name:"Senator Adeyemi",         stays:12, ltv:2950000, lastStay:"02 Oct", rating:4.8, tier:"Gold"     },
-    { name:"Mrs. Ngozi Okonkwo-Iweala",stays:9, ltv:1840000, lastStay:"28 Sep", rating:4.9, tier:"Gold"    },
-    { name:"Engr. Musa Abdullahi",    stays:7,  ltv:1260000, lastStay:"15 Sep", rating:4.6, tier:"Silver"   },
-    { name:"Adaeze Okonkwo",          stays:6,  ltv:980000,  lastStay:"14 Oct", rating:4.7, tier:"Silver"   },
+    { name:"Dr. Chukwuemeka Bello",  stays:18, ltv:4820000, lastStay:"24 Jun", rating:5.0, tier:"Platinum" },
+    { name:"Senator Adeyemi",         stays:12, ltv:2950000, lastStay:"12 Jun", rating:4.8, tier:"Gold"     },
+    { name:"Mrs. Ngozi Okonkwo-Iweala",stays:9, ltv:1840000, lastStay:"8 Jun", rating:4.9, tier:"Gold"    },
+    { name:"Engr. Musa Abdullahi",    stays:7,  ltv:1260000, lastStay:"26 May", rating:4.6, tier:"Silver"   },
+    { name:"Adaeze Okonkwo",          stays:6,  ltv:980000,  lastStay:"24 Jun", rating:4.7, tier:"Silver"   },
   ];
 
   const TIER_COLORS: Record<string, string> = { Platinum: "#7C3AED", Gold: "#D97706", Silver: "#64748B" };
 
   const SATISFACTION = [
-    { month: "May", score: 4.3 }, { month: "Jun", score: 4.5 },
-    { month: "Jul", score: 4.4 }, { month: "Aug", score: 4.6 },
-    { month: "Sep", score: 4.5 }, { month: "Oct", score: 4.7 },
+    { month: "Jan", score: 4.3 }, { month: "Feb", score: 4.5 },
+    { month: "Mar", score: 4.4 }, { month: "Apr", score: 4.6 },
+    { month: "May", score: 4.5 }, { month: "Jun", score: 4.7 },
   ];
 
   return (
     <ReportShell title="Guest Analytics" sub="Repeat rate, nationality mix, lifetime value, satisfaction" add={add}>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <StatCard label="Repeat Guest Rate" value="42.1%" sub="+7pp vs May" icon={Users} accent={PRIMARY} delta="+7pp" deltaPositive />
-        <StatCard label="New Guests (Oct)"  value="127"   sub="First-time arrivals" icon={UserCheck} accent={TEAL} />
+        <StatCard label="New Guests (Jun)"  value="127"   sub="First-time arrivals" icon={UserCheck} accent={TEAL} />
         <StatCard label="Avg Lifetime Value" value="₦1.23M" sub="All active guests" icon={DollarSign} accent={SUCCESS} delta="+8.4% vs last yr" deltaPositive />
-        <StatCard label="Guest Satisfaction" value="4.7/5" sub="34 reviews this month" icon={Star} accent={WARNING} delta="+0.2 vs Sep" deltaPositive />
+        <StatCard label="Guest Satisfaction" value="4.7/5" sub="34 reviews this month" icon={Star} accent={WARNING} delta="+0.2 vs May" deltaPositive />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
@@ -647,8 +647,8 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
     <ReportShell title="Inventory Reports" sub="Consumption, wastage, stock turn, and supplier performance" add={add}>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <StatCard label="Total Stock Value"   value="₦1.84M" sub="Current inventory"      icon={Package}      accent={PRIMARY} />
-        <StatCard label="F&B Consumption"     value="₦312K"  sub="October"                icon={TrendingUp}   accent={TEAL}    delta="+5.2% vs Sep" deltaPositive />
-        <StatCard label="Wastage (Oct)"        value="₦27.5K" sub="1.4% of consumption"   icon={AlertTriangle} accent={WARNING} delta="−0.3pp vs Sep" deltaPositive />
+        <StatCard label="F&B Consumption"     value="₦312K"  sub="June"                icon={TrendingUp}   accent={TEAL}    delta="+5.2% vs May" deltaPositive />
+        <StatCard label="Wastage (Jun)"        value="₦27.5K" sub="1.4% of consumption"   icon={AlertTriangle} accent={WARNING} delta="−0.3pp vs May" deltaPositive />
         <StatCard label="Critical Stock Items" value="2"      sub="Reorder immediately"   icon={AlertTriangle} accent={ERROR}  />
       </div>
 
@@ -675,7 +675,7 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
 
         {/* Wastage by category */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Wastage by Category (Oct)</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Wastage by Category (Jun)</div>
           {CATS.map(c => (
             <div key={c.cat} className="mb-3">
               <div className="flex justify-between text-xs mb-1"><span style={{ color: TEXT }}>{c.cat}</span><span className="font-bold" style={{ color: c.wastage > 10000 ? ERROR : MUTED }}>₦{c.wastage.toLocaleString()}</span></div>
@@ -693,7 +693,7 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
           <div className="text-sm font-semibold" style={{ color: TEXT }}>Consumption by Category</div>
         </div>
         <table className="w-full">
-          <thead><TableHeader cols={["Category", "Consumed (Oct)", "Wastage", "Wastage %", "Stock Turn", "Top Supplier", ""]} /></thead>
+          <thead><TableHeader cols={["Category", "Consumed (Jun)", "Wastage", "Wastage %", "Stock Turn", "Top Supplier", ""]} /></thead>
           <tbody>
             {CATS.map(c => (
               <tr key={c.cat} className="border-t cursor-pointer hover:bg-slate-50" style={{ borderColor: BORDER }} onClick={() => setDrill(drill === c.cat ? null : c.cat)}>
@@ -725,7 +725,7 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
           <div className="text-sm font-semibold" style={{ color: TEXT }}>Supplier Performance</div>
         </div>
         <table className="w-full">
-          <thead><TableHeader cols={["Supplier", "On-Time %", "Quality Rating", "Orders (Oct)", "Avg Lead (days)"]} /></thead>
+          <thead><TableHeader cols={["Supplier", "On-Time %", "Quality Rating", "Orders (Jun)", "Avg Lead (days)"]} /></thead>
           <tbody>
             {SUPPLIER_PERF.map(s => (
               <tr key={s.supplier} className="border-t" style={{ borderColor: BORDER }}>
@@ -782,16 +782,16 @@ export function StaffReports({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   return (
     <ReportShell title="Staff Reports" sub="Attendance, overtime, productivity, leave utilisation" add={add}>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Overall Attendance"  value="94.1%" sub="All departments"     icon={UserCheck}    accent={PRIMARY} delta="+0.8pp vs Sep" deltaPositive />
-        <StatCard label="Total Hours Worked"  value="1,642h" sub="October 2025"       icon={Clock}        accent={TEAL}    />
-        <StatCard label="Overtime (Oct)"      value="48h"    sub="5 departments"      icon={TrendingUp}   accent={WARNING} delta="+12h vs Sep" deltaPositive={false} />
+        <StatCard label="Overall Attendance"  value="94.1%" sub="All departments"     icon={UserCheck}    accent={PRIMARY} delta="+0.8pp vs May" deltaPositive />
+        <StatCard label="Total Hours Worked"  value="1,642h" sub="June 2026"       icon={Clock}        accent={TEAL}    />
+        <StatCard label="Overtime (Jun)"      value="48h"    sub="5 departments"      icon={TrendingUp}   accent={WARNING} delta="+12h vs May" deltaPositive={false} />
         <StatCard label="Leave Requests Open" value="4"      sub="Pending approval"   icon={Calendar}     accent={MUTED}   />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {/* Hours by dept */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Hours Worked by Department (Oct)</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Hours Worked by Department (Jun)</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={weeklyHours} layout="vertical" margin={{ right: 20, left: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />

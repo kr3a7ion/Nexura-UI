@@ -1463,9 +1463,9 @@ export function ShiftHandover({ add }: { add: (t: Omit<Toast, "id">) => void }) 
     { key:"notes",      label:"General Notes",                placeholder:"e.g. Housekeeping short-staffed — Chidi on leave. ~30 min delay." },
   ];
   const PRIOR = [
-    { label:"14 Oct 15:00", lead:"Grace Mensah",  dept:"Morning → Evening", acked:true  },
-    { label:"13 Oct 23:00", lead:"David Okafor",  dept:"Evening → Night",   acked:true  },
-    { label:"13 Oct 07:00", lead:"Tobi Okeke",    dept:"Night → Morning",   acked:true  },
+    { label:"24 Jun 15:00", lead:"Grace Mensah",  dept:"Morning → Evening", acked:true  },
+    { label:"23 Jun 23:00", lead:"David Okafor",  dept:"Evening → Night",   acked:true  },
+    { label:"23 Jun 07:00", lead:"Tobi Okeke",    dept:"Night → Morning",   acked:true  },
   ];
   const DEPTS = ["All Departments","Front Desk","Housekeeping","Maintenance","F&B","Security"];
 
@@ -1504,14 +1504,14 @@ export function ShiftHandover({ add }: { add: (t: Omit<Toast, "id">) => void }) 
       <div className="bg-white rounded-xl border p-8 text-center" style={{ borderColor: BORDER }}>
         <CheckCircle2 size={48} className="mx-auto mb-3" style={{ color: SUCCESS }} />
         <h2 className="text-base font-semibold mb-1" style={{ color: TEXT }}>Handover Complete</h2>
-        <p className="text-sm" style={{ color: MUTED }}>Acknowledged by David Okafor · 14 Oct 2025 at 15:03</p>
+        <p className="text-sm" style={{ color: MUTED }}>Acknowledged by David Okafor · 24 Jun 2026 at 15:03</p>
       </div>
     </div>
   );
 
   return (
     <div>
-      <PageHeader title="Shift Handover" sub="Morning Shift → Evening Shift · 14 Oct 2025"
+      <PageHeader title="Shift Handover" sub="Morning Shift → Evening Shift · 24 Jun 2026"
         actions={
           <select value={dept} onChange={e=>setDept(e.target.value)} className="px-3 py-2 text-sm rounded-xl border outline-none" style={{ borderColor:BORDER, color:TEXT }}>
             {DEPTS.map(d => <option key={d}>{d}</option>)}
@@ -1540,7 +1540,7 @@ export function ShiftHandover({ add }: { add: (t: Omit<Toast, "id">) => void }) 
         <div className="space-y-4">
           <div className="bg-white rounded-xl border p-4 sticky top-4" style={{ borderColor: BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
             <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Shift Details</h3>
-            {([["Outgoing Shift","Morning · 07:00–15:00"],["Outgoing Lead","Grace Mensah"],["Incoming Shift","Evening · 15:00–23:00"],["Incoming Lead","David Okafor"],["Date","14 Oct 2025"],["Department",dept]] as [string,string][]).map(([k,v]) => (
+            {([["Outgoing Shift","Morning · 07:00–15:00"],["Outgoing Lead","Grace Mensah"],["Incoming Shift","Evening · 15:00–23:00"],["Incoming Lead","David Okafor"],["Date","24 Jun 2026"],["Department",dept]] as [string,string][]).map(([k,v]) => (
               <div key={k} className="flex justify-between text-xs mb-2"><span style={{ color:MUTED }}>{k}</span><span className="font-medium" style={{ color:TEXT }}>{v}</span></div>
             ))}
           </div>
@@ -2087,12 +2087,12 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const [claimant, setClaimant] = useState({ name: "", id: "", phone: "" });
   const [shipAddr, setShipAddr] = useState("");
   const LF = [
-    { id: "LF-0041", desc: "iPhone 14 Pro (Black)", cat: "Electronics", storage: "Front Desk Safe B-2", room: "204", guestRes: "R-1024", guest: "Mrs. Adeola Bello", date: "22 Jun 2025", loggedBy: "Grace Achebe", claimedBy: "", status: "Held" },
-    { id: "LF-0040", desc: "Gold Bracelet", cat: "Jewellery", storage: "Safe Box 1", room: "315", guestRes: "R-1018", guest: "Dr. Emeka Chukwu", date: "20 Jun 2025", loggedBy: "Ngozi Ike", claimedBy: "Dr. Emeka Chukwu", status: "Claimed" },
-    { id: "LF-0039", desc: "Blue Patagonia Jacket", cat: "Clothing", storage: "HK Store Room A", room: "108", guestRes: "R-1015", guest: "Ms. Sarah Okafor", date: "18 Jun 2025", loggedBy: "Amaka Osei", claimedBy: "", status: "Held" },
-    { id: "LF-0038", desc: "Laptop Charger (Dell)", cat: "Electronics", storage: "Front Desk Shelf", room: "221", guestRes: "R-1010", guest: "Mr. Tunde Adeyemi", date: "15 Jun 2025", loggedBy: "Grace Achebe", claimedBy: "Mr. Tunde Adeyemi", status: "Shipped" },
-    { id: "LF-0037", desc: "Prescription Glasses", cat: "Personal", storage: "Front Desk Safe B-1", room: "401", guestRes: "R-1002", guest: "Mrs. Ngozi Eze", date: "10 Jun 2025", loggedBy: "Ngozi Ike", claimedBy: "", status: "Held" },
-    { id: "LF-0036", desc: "Children's Stuffed Bear", cat: "Clothing", storage: "Disposed — 30-day expired", room: "103", guestRes: "R-0999", guest: "Mr. Femi Adesanya", date: "01 Jun 2025", loggedBy: "Amaka Osei", claimedBy: "", status: "Disposed" },
+    { id: "LF-0041", desc: "iPhone 14 Pro (Black)", cat: "Electronics", storage: "Front Desk Safe B-2", room: "204", guestRes: "R-1024", guest: "Mrs. Adeola Bello", date: "22 Jun 2026", loggedBy: "Grace Achebe", claimedBy: "", status: "Held" },
+    { id: "LF-0040", desc: "Gold Bracelet", cat: "Jewellery", storage: "Safe Box 1", room: "315", guestRes: "R-1018", guest: "Dr. Emeka Chukwu", date: "20 Jun 2026", loggedBy: "Ngozi Ike", claimedBy: "Dr. Emeka Chukwu", status: "Claimed" },
+    { id: "LF-0039", desc: "Blue Patagonia Jacket", cat: "Clothing", storage: "HK Store Room A", room: "108", guestRes: "R-1015", guest: "Ms. Sarah Okafor", date: "18 Jun 2026", loggedBy: "Amaka Osei", claimedBy: "", status: "Held" },
+    { id: "LF-0038", desc: "Laptop Charger (Dell)", cat: "Electronics", storage: "Front Desk Shelf", room: "221", guestRes: "R-1010", guest: "Mr. Tunde Adeyemi", date: "15 Jun 2026", loggedBy: "Grace Achebe", claimedBy: "Mr. Tunde Adeyemi", status: "Shipped" },
+    { id: "LF-0037", desc: "Prescription Glasses", cat: "Personal", storage: "Front Desk Safe B-1", room: "401", guestRes: "R-1002", guest: "Mrs. Ngozi Eze", date: "10 Jun 2026", loggedBy: "Ngozi Ike", claimedBy: "", status: "Held" },
+    { id: "LF-0036", desc: "Children's Stuffed Bear", cat: "Clothing", storage: "Disposed — 30-day expired", room: "103", guestRes: "R-0999", guest: "Mr. Femi Adesanya", date: "1 Jun 2026", loggedBy: "Amaka Osei", claimedBy: "", status: "Disposed" },
   ];
   const items = LF.map(i => ({ ...i, status: statuses[i.id] ?? i.status }));
   const visible = items.filter(i => (filter === "All" || i.status === filter) && (!search || i.desc.toLowerCase().includes(search.toLowerCase()) || i.room.includes(search) || i.guest.toLowerCase().includes(search.toLowerCase())));
@@ -2186,7 +2186,7 @@ export function DNDLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
   const logCheck = (room: string) => {
     const now = new Date();
-    const ts = `${now.getDate()} Jun ${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}`;
+    const ts = `${BUSINESS_DATE.getDate()} Jun ${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}`;
     setRows(p => p.map(r => r.room === room ? { ...r, wellness: [...r.wellness, { time: ts, by: "Current User", outcome: "Wellness check logged — awaiting response" }] } : r));
     add({ type: "info", title: `Wellness check recorded — Room ${room}`, body: `${ts} · This record is audited for liability` });
   };
@@ -2291,17 +2291,17 @@ export function InvoiceReceipts({ add }: { add: (t: Omit<Toast, "id">) => void }
   type InvType   = "Guest" | "Corporate" | "Group" | "Proforma";
 
   const INVOICES_FULL = [
-    { id: "INV-2025-0814", num: 814, type: "Guest" as InvType,     folio: "FO-2848", billTo: "Emmanuel Adeyemi",     tin: "",              date: "14 Oct", due: "14 Oct", terms: "Due on checkout", subtotal: 456800, tax: 80370,  total: 537170, paid: 537170, status: "Paid" as InvStatus,           lines: [{ desc: "Room 202 — 4 nights Deluxe", qty: 4, unit: 95000, tax: 17812 }, { desc: "Restaurant & bar charges", qty: 1, unit: 76800, tax: 14400 }] },
-    { id: "INV-2025-0815", num: 815, type: "Corporate" as InvType, folio: "FO-2849", billTo: "Meridian Oil & Gas Ltd", tin: "1234567-0012",   date: "14 Oct", due: "28 Oct", terms: "Net 14",          subtotal: 820000, tax: 143500, total: 963500, paid: 0,      status: "Issued" as InvStatus,         lines: [{ desc: "Suite 501 — 5 nights", qty: 5, unit: 135000, tax: 25313 }, { desc: "Spa & wellness", qty: 1, unit: 95000, tax: 17813 }] },
-    { id: "INV-2025-0816", num: 816, type: "Guest" as InvType,     folio: "FO-2851", billTo: "Fatima Ibrahim",       tin: "",              date: "14 Oct", due: "14 Oct", terms: "Due on checkout", subtotal: 218400, tax: 38220,  total: 256620, paid: 100000, status: "Partially Paid" as InvStatus, lines: [{ desc: "Room 418 — 2 nights Standard", qty: 2, unit: 62000, tax: 11625 }, { desc: "Minibar, laundry, room service", qty: 1, unit: 94400, tax: 14970 }] },
-    { id: "INV-2025-0813", num: 813, type: "Group" as InvType,     folio: "FO-2831", billTo: "Bello Wedding Group",  tin: "",              date: "11 Oct", due: "11 Oct", terms: "Due on checkout", subtotal: 1240000,tax: 217000, total: 1457000,paid: 1457000,status: "Paid" as InvStatus,           lines: [{ desc: "10 rooms × 3 nights", qty: 30, unit: 38000, tax: 7125 }, { desc: "Events — hall hire & catering", qty: 1, unit: 100000, tax: 18750 }] },
-    { id: "INV-2025-0812", num: 812, type: "Guest" as InvType,     folio: "FO-2820", billTo: "Chukwuemeka Obi",     tin: "",              date: "10 Oct", due: "10 Oct", terms: "Due on checkout", subtotal: 175000, tax: 30625,  total: 205625, paid: 205625, status: "Void" as InvStatus,           lines: [] },
+    { id: "INV-2025-0814", num: 814, type: "Guest" as InvType,     folio: "FO-2848", billTo: "Emmanuel Adeyemi",     tin: "",              date: "24 Jun", due: "24 Jun", terms: "Due on checkout", subtotal: 456800, tax: 80370,  total: 537170, paid: 537170, status: "Paid" as InvStatus,           lines: [{ desc: "Room 202 — 4 nights Deluxe", qty: 4, unit: 95000, tax: 17812 }, { desc: "Restaurant & bar charges", qty: 1, unit: 76800, tax: 14400 }] },
+    { id: "INV-2025-0815", num: 815, type: "Corporate" as InvType, folio: "FO-2849", billTo: "Meridian Oil & Gas Ltd", tin: "1234567-0012",   date: "24 Jun", due: "8 Jul", terms: "Net 14",          subtotal: 820000, tax: 143500, total: 963500, paid: 0,      status: "Issued" as InvStatus,         lines: [{ desc: "Suite 501 — 5 nights", qty: 5, unit: 135000, tax: 25313 }, { desc: "Spa & wellness", qty: 1, unit: 95000, tax: 17813 }] },
+    { id: "INV-2025-0816", num: 816, type: "Guest" as InvType,     folio: "FO-2851", billTo: "Fatima Ibrahim",       tin: "",              date: "24 Jun", due: "24 Jun", terms: "Due on checkout", subtotal: 218400, tax: 38220,  total: 256620, paid: 100000, status: "Partially Paid" as InvStatus, lines: [{ desc: "Room 418 — 2 nights Standard", qty: 2, unit: 62000, tax: 11625 }, { desc: "Minibar, laundry, room service", qty: 1, unit: 94400, tax: 14970 }] },
+    { id: "INV-2025-0813", num: 813, type: "Group" as InvType,     folio: "FO-2831", billTo: "Bello Wedding Group",  tin: "",              date: "21 Jun", due: "21 Jun", terms: "Due on checkout", subtotal: 1240000,tax: 217000, total: 1457000,paid: 1457000,status: "Paid" as InvStatus,           lines: [{ desc: "10 rooms × 3 nights", qty: 30, unit: 38000, tax: 7125 }, { desc: "Events — hall hire & catering", qty: 1, unit: 100000, tax: 18750 }] },
+    { id: "INV-2025-0812", num: 812, type: "Guest" as InvType,     folio: "FO-2820", billTo: "Chukwuemeka Obi",     tin: "",              date: "20 Jun", due: "20 Jun", terms: "Due on checkout", subtotal: 175000, tax: 30625,  total: 205625, paid: 205625, status: "Void" as InvStatus,           lines: [] },
   ];
 
   const RECEIPTS_DATA = [
-    { id: "RCT-2025-0381", invRef: "INV-2025-0814", guest: "Emmanuel Adeyemi",  method: "Card",          amount: 537170, date: "14 Oct 14:32" },
-    { id: "RCT-2025-0380", invRef: "INV-2025-0816", guest: "Fatima Ibrahim",    method: "Cash",          amount: 100000, date: "14 Oct 11:00" },
-    { id: "RCT-2025-0379", invRef: "INV-2025-0813", guest: "Bello Wedding Group",method:"Bank Transfer",  amount: 1457000,date: "11 Oct 09:30" },
+    { id: "RCT-2025-0381", invRef: "INV-2025-0814", guest: "Emmanuel Adeyemi",  method: "Card",          amount: 537170, date: "24 Jun 14:32" },
+    { id: "RCT-2025-0380", invRef: "INV-2025-0816", guest: "Fatima Ibrahim",    method: "Cash",          amount: 100000, date: "24 Jun 11:00" },
+    { id: "RCT-2025-0379", invRef: "INV-2025-0813", guest: "Bello Wedding Group",method:"Bank Transfer",  amount: 1457000,date: "21 Jun 09:30" },
   ];
 
   const stColors: Record<InvStatus,{bg:string;text:string}> = {
@@ -2494,13 +2494,13 @@ export function AccountsPayable({ add }: { add: (t: Omit<Toast, "id">) => void }
   type APStatus = "Draft"|"Pending Approval"|"Approved"|"Scheduled"|"Paid"|"Overdue"|"Disputed";
 
   const AP_INV = [
-    { id:"API-0081", vendor:"Lagos Linen Co.",    po:"PO-0441", invDate:"01 Oct", dueDate:"31 Oct", amount:185000, taxWH:9250,  paid:0,      status:"Approved" as APStatus,         aging:30, category:"Laundry Supplies" },
-    { id:"API-0082", vendor:"Jumia Business",     po:"PO-0449", invDate:"05 Oct", dueDate:"19 Oct", amount:78000,  taxWH:3900,  paid:0,      status:"Overdue" as APStatus,          aging:25, category:"Consumables" },
-    { id:"API-0083", vendor:"EKEDC (Electric)",   po:"",        invDate:"01 Oct", dueDate:"14 Oct", amount:342000, taxWH:0,     paid:342000, status:"Paid" as APStatus,             aging:0,  category:"Utilities" },
-    { id:"API-0084", vendor:"Abuja Fresh Farms",  po:"PO-0451", invDate:"10 Oct", dueDate:"24 Oct", amount:95400,  taxWH:4770,  paid:0,      status:"Pending Approval" as APStatus, aging:4,  category:"F&B Supplies" },
-    { id:"API-0085", vendor:"GP Maintenance Ltd", po:"PO-0438", invDate:"28 Sep", dueDate:"12 Oct", amount:220000, taxWH:11000, paid:0,      status:"Overdue" as APStatus,          aging:32, category:"Maintenance" },
-    { id:"API-0086", vendor:"TechCare IT Ltd",    po:"PO-0455", invDate:"12 Oct", dueDate:"26 Oct", amount:135000, taxWH:6750,  paid:0,      status:"Draft" as APStatus,            aging:2,  category:"IT Services" },
-    { id:"API-0087", vendor:"Beachfront Laundry", po:"",        invDate:"08 Oct", dueDate:"22 Oct", amount:48500,  taxWH:2425,  paid:0,      status:"Disputed" as APStatus,         aging:6,  category:"Laundry" },
+    { id:"API-0081", vendor:"Lagos Linen Co.",    po:"PO-0441", invDate:"11 Jun", dueDate:"11 Jul", amount:185000, taxWH:9250,  paid:0,      status:"Approved" as APStatus,         aging:30, category:"Laundry Supplies" },
+    { id:"API-0082", vendor:"Jumia Business",     po:"PO-0449", invDate:"15 Jun", dueDate:"29 Jun", amount:78000,  taxWH:3900,  paid:0,      status:"Overdue" as APStatus,          aging:25, category:"Consumables" },
+    { id:"API-0083", vendor:"EKEDC (Electric)",   po:"",        invDate:"11 Jun", dueDate:"24 Jun", amount:342000, taxWH:0,     paid:342000, status:"Paid" as APStatus,             aging:0,  category:"Utilities" },
+    { id:"API-0084", vendor:"Abuja Fresh Farms",  po:"PO-0451", invDate:"20 Jun", dueDate:"4 Jul", amount:95400,  taxWH:4770,  paid:0,      status:"Pending Approval" as APStatus, aging:4,  category:"F&B Supplies" },
+    { id:"API-0085", vendor:"GP Maintenance Ltd", po:"PO-0438", invDate:"8 Jun", dueDate:"22 Jun", amount:220000, taxWH:11000, paid:0,      status:"Overdue" as APStatus,          aging:32, category:"Maintenance" },
+    { id:"API-0086", vendor:"TechCare IT Ltd",    po:"PO-0455", invDate:"22 Jun", dueDate:"6 Jul", amount:135000, taxWH:6750,  paid:0,      status:"Draft" as APStatus,            aging:2,  category:"IT Services" },
+    { id:"API-0087", vendor:"Beachfront Laundry", po:"",        invDate:"18 Jun", dueDate:"2 Jul", amount:48500,  taxWH:2425,  paid:0,      status:"Disputed" as APStatus,         aging:6,  category:"Laundry" },
   ];
 
   const stColors: Record<APStatus,{bg:string;text:string}> = {

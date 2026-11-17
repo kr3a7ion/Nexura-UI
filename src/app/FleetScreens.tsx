@@ -20,6 +20,7 @@ import {
   type Toast, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR,
   BORDER, TEXT, MUTED, SUBTLE,
   ShiftProposalStore, type ShiftProposal,
+fmtDate, BUSINESS_DATE, stampNow
 } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO, Badge } from "./UIKit";
 
@@ -210,10 +211,10 @@ interface Driver {
 }
 
 const DRIVERS: Driver[] = [
-  { id:"DRV-001", name:"Uche Obi",       licNo:"FCT/DL/2019/04821", licClass:"E", licExpiry:"15 Mar 2026", licDaysLeft:162, medExpiry:"01 Jun 2025", medDaysLeft:-136, permitRef:"NIG/DP/22/4821", vehicle:"ABJ-001E", onDuty:true,  tripsToday:2, tripsMonth:48, totalKm:14820, avgRating:4.9, incidents:0, status:"available", hrShift:"Morning" },
-  { id:"DRV-002", name:"Emeka Eze",       licNo:"FCT/DL/2020/07114", licClass:"B", licExpiry:"03 Oct 2025", licDaysLeft:-11, medExpiry:"15 Apr 2026", medDaysLeft:183, permitRef:"NIG/DP/21/7114", vehicle:"ABJ-002E", onDuty:true,  tripsToday:1, tripsMonth:31, totalKm:9240,  avgRating:4.7, incidents:1, status:"on-trip",   hrShift:"Morning" },
-  { id:"DRV-003", name:"Musa Danladi",    licNo:"FCT/DL/2021/09302", licClass:"B", licExpiry:"20 Jul 2026", licDaysLeft:289, medExpiry:"10 Jan 2026", medDaysLeft:88,  permitRef:"NIG/DP/23/9302", vehicle:"ABJ-003V", onDuty:true,  tripsToday:1, tripsMonth:22, totalKm:6810,  avgRating:4.6, incidents:0, status:"on-trip",   hrShift:"Evening" },
-  { id:"DRV-004", name:"Blessing Okafor", licNo:"FCT/DL/2022/11540", licClass:"B", licExpiry:"18 Feb 2027", licDaysLeft:497, medExpiry:"22 Mar 2026", medDaysLeft:169, permitRef:"NIG/DP/23/1154", vehicle:undefined,  onDuty:false, tripsToday:0, tripsMonth:14, totalKm:4120,  avgRating:4.5, incidents:0, status:"off-duty",  hrShift:"Off"     },
+  { id:"DRV-001", name:"Uche Obi",       licNo:"FCT/DL/2019/04821", licClass:"E", licExpiry:"23 Nov 2026", licDaysLeft:152, medExpiry:"9 Feb 2026", medDaysLeft:-135, permitRef:"NIG/DP/22/4821", vehicle:"ABJ-001E", onDuty:true,  tripsToday:2, tripsMonth:48, totalKm:14820, avgRating:4.9, incidents:0, status:"available", hrShift:"Morning" },
+  { id:"DRV-002", name:"Emeka Eze",       licNo:"FCT/DL/2020/07114", licClass:"B", licExpiry:"13 Jun 2026", licDaysLeft:-11, medExpiry:"24 Dec 2026", medDaysLeft:183, permitRef:"NIG/DP/21/7114", vehicle:"ABJ-002E", onDuty:true,  tripsToday:1, tripsMonth:31, totalKm:9240,  avgRating:4.7, incidents:1, status:"on-trip",   hrShift:"Morning" },
+  { id:"DRV-003", name:"Musa Danladi",    licNo:"FCT/DL/2021/09302", licClass:"B", licExpiry:"30 Mar 2027", licDaysLeft:279, medExpiry:"20 Sep 2026", medDaysLeft:88,  permitRef:"NIG/DP/23/9302", vehicle:"ABJ-003V", onDuty:true,  tripsToday:1, tripsMonth:22, totalKm:6810,  avgRating:4.6, incidents:0, status:"on-trip",   hrShift:"Evening" },
+  { id:"DRV-004", name:"Blessing Okafor", licNo:"FCT/DL/2022/11540", licClass:"B", licExpiry:"29 Oct 2027", licDaysLeft:492, medExpiry:"30 Nov 2026", medDaysLeft:159, permitRef:"NIG/DP/23/1154", vehicle:undefined,  onDuty:false, tripsToday:0, tripsMonth:14, totalKm:4120,  avgRating:4.5, incidents:0, status:"off-duty",  hrShift:"Off"     },
 ];
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
@@ -1140,7 +1141,7 @@ const SHIFT_PILL: Record<HRShift,{bg:string;text:string}> = {
 };
 
 const ROSTER_DAYS = ["Mon 13","Tue 14","Wed 15","Thu 16","Fri 17","Sat 18","Sun 19"] as const;
-const ROSTER_WEEK = "13–19 Oct 2025";
+const ROSTER_WEEK = "23–29 Jun 2026";
 
 // Weekly shift schedule per driver — mutable so approved proposals update it
 const DRIVER_WEEK_SCHEDULE: Record<string, Record<string, HRShift>> = {
@@ -1193,7 +1194,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
     const msDay = 86400000;
     const licDaysLeft = Math.round((new Date(nf.licExpiry).getTime() - Date.now()) / msDay);
     const medDaysLeft = Math.round((new Date(nf.medExpiry).getTime() - Date.now()) / msDay);
-    const fmt = (s: string) => new Date(s).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
+    const fmt = (s: string) => new Date(s).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
     const hrShift: HRShift = HR_DRIVER_SHIFTS[pickedStaff.id] ?? "Off";
     const newId = `DRV-${String(drivers.length + 1).padStart(3, "0")}`;
     const newDriver: Driver = {
@@ -1201,7 +1202,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
       licNo: nf.licNo, licClass: nf.licClass,
       licExpiry: fmt(nf.licExpiry), licDaysLeft,
       medExpiry: fmt(nf.medExpiry), medDaysLeft,
-      permitRef: nf.permitRef || `NIG/DP/${new Date().getFullYear()}/${String(Math.floor(Math.random()*9000)+1000)}`,
+      permitRef: nf.permitRef || `NIG/DP/${BUSINESS_DATE.getFullYear()}/${String(Math.floor(Math.random()*9000)+1000)}`,
       vehicle: nf.vehicleId || undefined,
       onDuty: hrShift !== "Off",
       tripsToday: 0, tripsMonth: 0, totalKm: 0, avgRating: 0, incidents: 0,
@@ -1279,7 +1280,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
       proposedShift: capturedShift,
       reason: proposalReason.trim(),
       proposedBy: "Fleet Manager",
-      proposedAt: new Date().toLocaleString("en-GB", { dateStyle:"medium", timeStyle:"short" }),
+      proposedAt: stampNow(true),
     });
     setProposals(ShiftProposalStore.getAll());
     add({ type:"info", title:"Shift proposal sent to HR", body:`${capturedModal.driverName}: ${capturedModal.day} · ${capturedModal.current} → ${capturedShift}` });
@@ -1790,17 +1791,17 @@ const COST_BY_VEHICLE = [
 ];
 
 const REV_VS_COST = [
-  { month:"May", rev:1820000, cost:980000  },
-  { month:"Jun", rev:2140000, cost:1120000 },
-  { month:"Jul", rev:2380000, cost:1240000 },
-  { month:"Aug", rev:1960000, cost:1080000 },
-  { month:"Sep", rev:2210000, cost:1190000 },
-  { month:"Oct", rev:2375000, cost:1248760 },
+  { month:"Jan", rev:1820000, cost:980000  },
+  { month:"Feb", rev:2140000, cost:1120000 },
+  { month:"Mar", rev:2380000, cost:1240000 },
+  { month:"Apr", rev:1960000, cost:1080000 },
+  { month:"May", rev:2210000, cost:1190000 },
+  { month:"Jun", rev:2375000, cost:1248760 },
 ];
 
 const FUEL_TREND = [
-  { month:"May", cost:82000 },{ month:"Jun", cost:96000 },{ month:"Jul", cost:108000 },
-  { month:"Aug", cost:91000 },{ month:"Sep", cost:98000 },{ month:"Oct", cost:112460 },
+  { month:"Jan", cost:82000 },{ month:"Feb", cost:96000 },{ month:"Mar", cost:108000 },
+  { month:"Apr", cost:91000 },{ month:"May", cost:98000 },{ month:"Jun", cost:112460 },
 ];
 
 export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
@@ -1827,8 +1828,8 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Total Revenue (Oct)" value={`₦${(totalRev/1000000).toFixed(2)}M`} sub="All service lines" icon={DollarSign} accent={SUCCESS} delta="+7.5% vs Sep" deltaPositive />
-        <StatCard label="Total Costs (Oct)"   value={`₦${(totalCost/1000).toFixed(0)}K`}   sub="Fuel + maintenance" icon={Activity}  accent={ERROR}   />
+        <StatCard label="Total Revenue (Jun)" value={`₦${(totalRev/1000000).toFixed(2)}M`} sub="All service lines" icon={DollarSign} accent={SUCCESS} delta="+7.5% vs Sep" deltaPositive />
+        <StatCard label="Total Costs (Jun)"   value={`₦${(totalCost/1000).toFixed(0)}K`}   sub="Fuel + maintenance" icon={Activity}  accent={ERROR}   />
         <StatCard label="Net Margin"           value={`${(((totalRev-totalCost)/totalRev)*100).toFixed(1)}%`} sub="Revenue - cost" icon={TrendingUp} accent={TEAL} />
         <StatCard label="Cost per km"          value={`₦${(totalCost/totalKm).toFixed(0)}`} sub="Fleet average"     icon={Fuel}      accent={ORANGE}  />
       </div>
@@ -1976,7 +1977,7 @@ interface TripLog {
 
 const LOGBOOK_SEED: TripLog[] = [
   {
-    id: "TL-0008", driver: "Uche Obi", vehicle: "ABJ 123 XA", date: "20 Aug 2025",
+    id: "TL-0008", driver: "Uche Obi", vehicle: "ABJ 123 XA", date: "30 Apr 2026",
     purpose: "Airport Transfer — Guest pickup",
     from: "Grand Palms Abuja", to: "Nnamdi Azikiwe Intl Airport",
     departureTime: "05:45", arrivalTime: "07:11",
@@ -1986,7 +1987,7 @@ const LOGBOOK_SEED: TripLog[] = [
     tripMode: "round-trip", returnStarted: true,
   },
   {
-    id: "TL-0007", driver: "Emeka Eze", vehicle: "ABJ 456 YB", date: "20 Aug 2025",
+    id: "TL-0007", driver: "Emeka Eze", vehicle: "ABJ 456 YB", date: "30 Apr 2026",
     purpose: "Charter — Senator Adeyemi",
     from: "Grand Palms Abuja", to: "Aso Rock (State House)",
     departureTime: "10:00", arrivalTime: "10:32",
@@ -1996,7 +1997,7 @@ const LOGBOOK_SEED: TripLog[] = [
     tripMode: "one-way", returnStarted: false,
   },
   {
-    id: "TL-0006", driver: "Musa Danladi", vehicle: "ABJ 789 ZC", date: "19 Aug 2025",
+    id: "TL-0006", driver: "Musa Danladi", vehicle: "ABJ 789 ZC", date: "29 Apr 2026",
     purpose: "F&B Procurement — FreshMart run",
     from: "Grand Palms Abuja", to: "FreshMart Wuse II",
     departureTime: "09:00", arrivalTime: "11:45",
@@ -2018,7 +2019,7 @@ function nowStr() {
   return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 function todayStr() {
-  return new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  return fmtDate(BUSINESS_DATE);
 }
 function stopLabel(m: number) {
   return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;

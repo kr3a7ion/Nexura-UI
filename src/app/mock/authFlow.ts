@@ -32,5 +32,5 @@ export const GUEST_QR_RESERVATION = {
   surname: "Okafor",
   guest: "Chukwuemeka Okafor",
   property: "Grand Palms Ikoyi",
-  stay: "4–5 Aug 2026",
+  stay: "24–25 Jun 2026",
 };
