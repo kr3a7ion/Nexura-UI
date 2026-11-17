@@ -109,7 +109,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
             <Shield size={14} color="white" />
           </div>
           <div>
-            <span className="text-white font-semibold text-sm">Platform Admin Console</span>
+            <span className="text-white font-semibold text-sm">Platform admin console</span>
             <span className="text-xs ml-2" style={{ color: "#71717A" }}>admin.yourplatform.com</span>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
         {tab === "orgs" && (
           <>
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-              <Stat label="Total Organizations" value={ORGS.length.toString()} sub="3 active plans" />
+              <Stat label="Total organizations" value={ORGS.length.toString()} sub="3 active plans" />
               <Stat label="Total Branches" value={BRANCHES_ALL.length.toString()} sub="5 online · 1 offline" color={PRIMARY} />
               <Stat label="Monthly Revenue" value={fmtN(ORGS.reduce((s, o) => s + o.mrr, 0))} sub="Across all clients" color={SUCCESS} />
               <Stat label="Overdue Accounts" value={ORGS.filter(o => o.billing === "Overdue").length.toString()} sub="Action required" color={WARNING} />
@@ -174,7 +174,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
             {/* Orgs table */}
             <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
               <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "#F1F5F9" }}>
-                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Client Organizations</h3>
+                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Client organizations</h3>
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
@@ -187,7 +187,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
                 </div>
               </div>
               <table className="w-full">
-                <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Organization", "Plan", "Branches", "MRR", "Billing", "Last Sync", "Status", ""].map(h => <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+                <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Organization", "Plan", "Branches", "MRR", "Billing", "Last sync", "Status", ""].map(h => <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
                 <tbody>
                   {filteredOrgs.map(o => (
                     <tr key={o.id} className="border-t hover:bg-[#F9FAFB] cursor-pointer transition-colors" style={{ borderColor: "#F1F5F9" }}
@@ -242,14 +242,14 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
                           </div>
                         </div>
                         <div className="space-y-1 text-xs" style={{ color: MUTED }}>
-                          <div className="flex justify-between"><span>IP Address</span><span style={{ fontFamily: mono, color: TEXT }}>{b.ip}</span></div>
-                          <div className="flex justify-between"><span>Last Sync</span><span style={{ color: b.pendingItems > 0 ? WARNING : SUBTLE }}>{b.lastSync}</span></div>
-                          <div className="flex justify-between"><span>Pending Items</span><span style={{ color: b.pendingItems > 0 ? WARNING : SUBTLE }}>{b.pendingItems}</span></div>
+                          <div className="flex justify-between"><span>IP address</span><span style={{ fontFamily: mono, color: TEXT }}>{b.ip}</span></div>
+                          <div className="flex justify-between"><span>Last sync</span><span style={{ color: b.pendingItems > 0 ? WARNING : SUBTLE }}>{b.lastSync}</span></div>
+                          <div className="flex justify-between"><span>Pending items</span><span style={{ color: b.pendingItems > 0 ? WARNING : SUBTLE }}>{b.pendingItems}</span></div>
                           <div className="flex justify-between"><span>Version</span><span style={{ fontFamily: mono, color: TEXT }}>{b.version}</span></div>
                           <div className="flex justify-between"><span>Rooms</span><span style={{ color: TEXT }}>{b.rooms}</span></div>
                         </div>
                         <div className="flex gap-1.5 mt-3">
-                          <button onClick={() => showToast(`Force sync — ${b.name}`)} className="flex-1 py-1.5 rounded-lg text-xs border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Force Sync</button>
+                          <button onClick={() => showToast(`Force sync — ${b.name}`)} className="flex-1 py-1.5 rounded-lg text-xs border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Force sync</button>
                           <button onClick={() => showToast(`Viewing logs — ${b.name}`)} className="flex-1 py-1.5 rounded-lg text-xs border" style={{ color: MUTED, borderColor: BORDER }}>Logs</button>
                         </div>
                       </div>
@@ -266,11 +266,11 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
             <div className="grid grid-cols-3 gap-4 mb-5">
               <Stat label="Total Branches" value={BRANCHES_ALL.length.toString()} sub="Across all clients" />
               <Stat label="Online" value={BRANCHES_ALL.filter(b => b.status === "Online").length.toString()} color={SUCCESS} />
-              <Stat label="Need Attention" value={BRANCHES_ALL.filter(b => b.pendingItems > 0 || b.status === "Offline").length.toString()} color={WARNING} />
+              <Stat label="Need attention" value={BRANCHES_ALL.filter(b => b.pendingItems > 0 || b.status === "Offline").length.toString()} color={WARNING} />
             </div>
             <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
               <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "#F1F5F9" }}>
-                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Branch Provisioning Tracker</h3>
+                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Branch provisioning tracker</h3>
                 <div className="flex gap-2">
                   <button onClick={() => showToast("Force update sent to all branches")} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border" style={{ color: MUTED, borderColor: BORDER }}>
                     <RefreshCw size={13} />Force Update All
@@ -278,7 +278,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
                 </div>
               </div>
               <table className="w-full">
-                <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Branch", "Organization", "IP Address", "Last Sync", "Pending", "Version", "Status", ""].map(h => <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+                <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Branch", "Organization", "IP address", "Last sync", "Pending", "Version", "Status", ""].map(h => <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
                 <tbody>
                   {BRANCHES_ALL.map((b, i) => (
                     <tr key={i} className="border-t hover:bg-[#F9FAFB] transition-colors" style={{ borderColor: "#F1F5F9" }}>
@@ -313,14 +313,14 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
               <Stat label="Monthly Revenue" value={fmtN(ORGS.reduce((s, o) => s + o.mrr, 0))} sub="All active clients" color={SUCCESS} />
               <Stat label="Overdue Accounts" value="1" sub="₦25,000 at risk" color={WARNING} />
               <Stat label="Suspended" value="1" sub="₦0 MRR" color={ERROR} />
-              <Stat label="Annual Run Rate" value={fmtN(ORGS.reduce((s, o) => s + o.mrr, 0) * 12)} sub="Projected" />
+              <Stat label="Annual run rate" value={fmtN(ORGS.reduce((s, o) => s + o.mrr, 0) * 12)} sub="Projected" />
             </div>
             <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
               <div className="px-5 py-4 border-b" style={{ borderColor: "#F1F5F9" }}>
-                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Billing Overview</h3>
+                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Billing overview</h3>
               </div>
               <table className="w-full">
-                <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Organization", "Plan", "Branches", "MRR", "Next Invoice", "Status", ""].map(h => <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+                <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Organization", "Plan", "Branches", "MRR", "Next invoice", "Status", ""].map(h => <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
                 <tbody>
                   {ORGS.map(o => (
                     <tr key={o.id} className="border-t hover:bg-[#F9FAFB]" style={{ borderColor: "#F1F5F9" }}>
@@ -348,12 +348,12 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
         {tab === "updates" && (
           <div>
             <div className="grid grid-cols-3 gap-4 mb-5">
-              <Stat label="Current Stable" value="v2.4.1" sub="Released 20 Jun 2026" />
-              <Stat label="Branches Up-to-date" value="4/6" color={PRIMARY} />
-              <Stat label="Pending Update" value="2" sub="v2.3.9 → v2.4.1" color={WARNING} />
+              <Stat label="Current stable" value="v2.4.1" sub="Released 20 Jun 2026" />
+              <Stat label="Branches up-to-date" value="4/6" color={PRIMARY} />
+              <Stat label="Pending update" value="2" sub="v2.3.9 → v2.4.1" color={WARNING} />
             </div>
             <div className="bg-white rounded-xl border p-5 mb-4" style={{ borderColor: BORDER }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Deployment Controls</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Deployment controls</h3>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {[
                   { label: "Push Stable to All", desc: "Send v2.4.1 to all branches not yet updated", action: "Push v2.4.1", color: PRIMARY },
@@ -369,9 +369,9 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
               </div>
             </div>
             <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
-              <div className="px-5 py-4 border-b" style={{ borderColor: "#F1F5F9" }}><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Version Status by Branch</h3></div>
-              <table className="w-full"><thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Branch", "Org", "Current Version", "Latest", ""].map(h => <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-                <tbody>{BRANCHES_ALL.map((b, i) => <tr key={i} className="border-t hover:bg-[#F9FAFB]" style={{ borderColor: "#F1F5F9" }}><td className="px-5 py-3 text-sm font-medium" style={{ color: TEXT }}>{b.name}</td><td className="px-5 py-3 text-xs" style={{ color: MUTED }}>{b.org}</td><td className="px-5 py-3 text-xs font-mono" style={{ color: TEXT, fontFamily: mono }}>{b.version}</td><td className="px-5 py-3"><Badge label={b.version === "v2.4.1" ? "Up to date" : "Update available"} colors={b.version === "v2.4.1" ? { bg: "#DCFCE7", text: "#166534" } : { bg: "#FEF3C7", text: "#92400E" }} /></td><td className="px-5 py-3">{b.version !== "v2.4.1" && <button onClick={() => showToast(`Update pushed — ${b.name}`)} className="text-xs px-2 py-1 rounded border" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Push Update</button>}</td></tr>)}</tbody>
+              <div className="px-5 py-4 border-b" style={{ borderColor: "#F1F5F9" }}><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Version status by branch</h3></div>
+              <table className="w-full"><thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Branch", "Org", "Current version", "Latest", ""].map(h => <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+                <tbody>{BRANCHES_ALL.map((b, i) => <tr key={i} className="border-t hover:bg-[#F9FAFB]" style={{ borderColor: "#F1F5F9" }}><td className="px-5 py-3 text-sm font-medium" style={{ color: TEXT }}>{b.name}</td><td className="px-5 py-3 text-xs" style={{ color: MUTED }}>{b.org}</td><td className="px-5 py-3 text-xs font-mono" style={{ color: TEXT, fontFamily: mono }}>{b.version}</td><td className="px-5 py-3"><Badge label={b.version === "v2.4.1" ? "Up to date" : "Update available"} colors={b.version === "v2.4.1" ? { bg: "#DCFCE7", text: "#166534" } : { bg: "#FEF3C7", text: "#92400E" }} /></td><td className="px-5 py-3">{b.version !== "v2.4.1" && <button onClick={() => showToast(`Update pushed — ${b.name}`)} className="text-xs px-2 py-1 rounded border" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Push update</button>}</td></tr>)}</tbody>
               </table>
             </div>
           </div>
@@ -380,7 +380,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
         {tab === "audit" && (
           <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "#F1F5F9" }}>
-              <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Platform Audit Log</h3>
+              <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Platform audit log</h3>
               <button onClick={() => showToast("CSV downloaded")} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border" style={{ color: MUTED, borderColor: BORDER }}><Download size={13} />Export</button>
             </div>
             <table className="w-full"><thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Timestamp", "Actor", "Action", "Entity", "IP"].map(h => <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
@@ -408,7 +408,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => setShowCreate(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6" style={{ border: `1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-semibold" style={{ color: TEXT }}>New Organization</h3>
+              <h3 className="text-base font-semibold" style={{ color: TEXT }}>New organization</h3>
               <button aria-label="Close" onClick={() => setShowCreate(false)} style={{ color: SUBTLE }}><X size={18} /></button>
             </div>
             <div className="space-y-4">
@@ -419,16 +419,16 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
                 </div>
               ))}
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Subscription Plan</label>
-                <select aria-label="Subscription Plan" className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
+                <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Subscription plan</label>
+                <select aria-label="Subscription plan" className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
                   <option>Starter — ₦15,000–₦25,000/month · 5–15 rooms</option>
                   <option>Growth — ₦35,000–₦60,000/month · 15–50 rooms</option>
                   <option>Business — ₦80,000–₦150,000/month · 50+ rooms</option>
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Number of Branches</label>
-                <input aria-label="Number of Branches" type="number" defaultValue="1" min="1" className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }} />
+                <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Number of branches</label>
+                <input aria-label="Number of branches" type="number" defaultValue="1" min="1" className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }} />
               </div>
             </div>
             <div className="flex gap-3 mt-6">

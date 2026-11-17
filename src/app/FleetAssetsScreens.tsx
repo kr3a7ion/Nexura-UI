@@ -141,7 +141,7 @@ function VStatusPill({ status }: { status: VehicleStatus }) {
 function ExportBtn({ add, label }: { add: (t: Omit<Toast,"id">) => void; label: string }) {
   const [st, setSt] = useState<"idle"|"gen"|"ready">("idle");
   if (st==="gen") return <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs" style={{ backgroundColor:"#EFF6FF", color:PRIMARY }}><div className="w-3 h-3 border-2 rounded-full animate-spin" style={{ borderColor:`${PRIMARY}40`, borderTopColor:PRIMARY }} />Generating…</div>;
-  if (st==="ready") return <button onClick={()=>{add({type:"success",title:`${label} exported`});setSt("idle");}} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold" style={{ backgroundColor:"#DCFCE7", color:"#166534" }}><Download size={12}/>Download Ready</button>;
+  if (st==="ready") return <button onClick={()=>{add({type:"success",title:`${label} exported`});setSt("idle");}} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold" style={{ backgroundColor:"#DCFCE7", color:"#166534" }}><Download size={12}/>Download ready</button>;
   return <button onClick={()=>{setSt("gen");setTimeout(()=>setSt("ready"),1600);}} className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs" style={{ borderColor:BORDER, color:MUTED }}><Download size={12}/>Export</button>;
 }
 
@@ -192,11 +192,11 @@ export function VehicleRegister({ add, nav }: { add: (t: Omit<Toast,"id">) => vo
       {statusEdit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor:"rgba(13,27,46,0.55)" }}>
           <div className="bg-white rounded-2xl p-6 w-96 shadow-2xl">
-            <div className="text-sm font-bold mb-1" style={{ color:TEXT }}>Change Vehicle Status</div>
+            <div className="text-sm font-bold mb-1" style={{ color:TEXT }}>Change vehicle status</div>
             <div className="text-xs mb-4" style={{ color:MUTED }}>Vehicle: <strong style={{ fontFamily:mono }}>{statusEdit.id}</strong> · Current: <strong className="capitalize">{statusEdit.current}</strong></div>
             <div className="mb-3">
-              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>New Status</div>
-              <select aria-label="New Status" value={statusTarget} onChange={e => setStatusTarget(e.target.value as VehicleStatus)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
+              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>New status</div>
+              <select aria-label="New status" value={statusTarget} onChange={e => setStatusTarget(e.target.value as VehicleStatus)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
                 {(["active","maintenance","off-road","decommissioned"] as VehicleStatus[]).map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
               </select>
             </div>
@@ -213,20 +213,20 @@ export function VehicleRegister({ add, nav }: { add: (t: Omit<Toast,"id">) => vo
       )}
 
       <PageHeader title="Vehicle Register" sub="Fleet assets — document status, service schedule, utilisation"
-        actions={<BtnP label="Add Vehicle" icon={Plus} onClick={() => add({type:"info",title:"Add vehicle — full form coming in next release"})} />}
+        actions={<BtnP label="Add vehicle" icon={Plus} onClick={() => add({type:"info",title:"Add vehicle — full form coming in next release"})} />}
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <StatCard label="Total Vehicles"  value={String(vehicles.length)}                              sub="On register"        icon={Car}           accent={PRIMARY} />
+        <StatCard label="Total vehicles"  value={String(vehicles.length)}                              sub="On register"        icon={Car}           accent={PRIMARY} />
         <StatCard label="Active"          value={String(vehicles.filter(v=>v.status==="active").length)} sub="Operational"       icon={CheckCircle2}  accent={SUCCESS} />
-        <StatCard label="Doc Issues"      value={String(vehicles.filter(v=>v.worstDocStatus!=="valid").length)} sub="Expiring or expired" icon={AlertTriangle} accent={ERROR}   />
-        <StatCard label="Services Overdue" value={String(vehicles.filter(v=>v.nextServiceDate==="OVERDUE").length)} sub="Immediate action" icon={Wrench}       accent={WARNING} />
+        <StatCard label="Doc issues"      value={String(vehicles.filter(v=>v.worstDocStatus!=="valid").length)} sub="Expiring or expired" icon={AlertTriangle} accent={ERROR}   />
+        <StatCard label="Services overdue" value={String(vehicles.filter(v=>v.nextServiceDate==="OVERDUE").length)} sub="Immediate action" icon={Wrench}       accent={WARNING} />
       </div>
 
       {/* Alert strip */}
       {alertVehicles.length > 0 && (
         <div className="mb-4 p-3 rounded-xl" style={{ backgroundColor:"#FEF3C7", border:`1px solid #FDE68A` }}>
-          <div className="text-xs font-bold mb-1" style={{ color:"#92400E" }}>Document & Service Alerts</div>
+          <div className="text-xs font-bold mb-1" style={{ color:"#92400E" }}>Document & service alerts</div>
           {alertVehicles.map(v => (
             <div key={v.id} className="text-xs" style={{ color:"#92400E" }}>
               {v.plate} ({v.make} {v.model}) — {
@@ -409,7 +409,7 @@ export function VehicleDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             ))}
           </div>
           <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor:BORDER }}>
-            <div className="px-4 py-3 border-b text-sm font-semibold" style={{ borderColor:BORDER, color:TEXT }}>Service History</div>
+            <div className="px-4 py-3 border-b text-sm font-semibold" style={{ borderColor:BORDER, color:TEXT }}>Service history</div>
             <table className="w-full">
               <thead><TH cols={["Date","Odometer","Type","Parts / Work","Cost","Garage"]} /></thead>
               <tbody>
@@ -507,7 +507,7 @@ export function VehicleDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
       {tab === "Costs" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER }}>
-            <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Cost of Ownership</div>
+            <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Cost of ownership</div>
             {[["Acquisition Cost","₦14,800,000"],["Depreciation (4yr)","₦3,700,000/yr"],["Book Value (Est.)","₦9,400,000"],["Fuel (Jun)","₦151,875"],["Maintenance YTD","₦360,000"],["Total Cost This Year","₦511,875"]].map(([k,v])=>(
               <div key={k} className="flex justify-between py-2 border-b last:border-b-0 text-xs" style={{ borderColor:BORDER }}>
                 <span style={{ color:MUTED }}>{k}</span>
@@ -516,7 +516,7 @@ export function VehicleDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             ))}
           </div>
           <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER }}>
-            <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Efficiency Metrics</div>
+            <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Efficiency metrics</div>
             {[["Total km (YTD)","47,963 km"],["Revenue Generated","₦1,286,000"],["Revenue per km","₦26.8"],["Cost per km","₦10.7"],["Net Margin per km","₦16.1"],["Utilisation","78%"]].map(([k,v])=>(
               <div key={k} className="flex justify-between py-2 border-b last:border-b-0 text-xs" style={{ borderColor:BORDER }}>
                 <span style={{ color:MUTED }}>{k}</span>
@@ -533,9 +533,9 @@ export function VehicleDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
           <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor:"#F1F5F9" }}>
             <MapPin size={22} style={{ color:SUBTLE }} />
           </div>
-          <div className="text-sm font-semibold mb-1" style={{ color:TEXT }}>Telematics Not Configured</div>
+          <div className="text-sm font-semibold mb-1" style={{ color:TEXT }}>Telematics not configured</div>
           <div className="text-xs mb-4" style={{ color:MUTED }}>Bind a GPS device to this vehicle to enable live position, trip recording, speed monitoring, and geofence alerts.</div>
-          <button onClick={() => add({type:"info",title:"GPS device binding coming soon"})} className="px-4 py-2 rounded-xl text-xs font-semibold" style={{ backgroundColor:"#EFF6FF", color:PRIMARY }}>Configure GPS Device</button>
+          <button onClick={() => add({type:"info",title:"GPS device binding coming soon"})} className="px-4 py-2 rounded-xl text-xs font-semibold" style={{ backgroundColor:"#EFF6FF", color:PRIMARY }}>Configure GPS device</button>
         </div>
       )}
     </div>
@@ -609,22 +609,22 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
         actions={
           <div className="flex gap-2">
             <ExportBtn add={add} label="Fuel Log" />
-            <BtnP label="Record Fuel" icon={Plus} onClick={() => setShowForm(!showForm)} />
+            <BtnP label="Record fuel" icon={Plus} onClick={() => setShowForm(!showForm)} />
           </div>
         }
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <StatCard label="Entries (Jun)"   value="22"         sub="All vehicles"    icon={Fuel}          accent={PRIMARY} />
-        <StatCard label="Total Litres"    value="1,248 L"    sub="Aug to date"     icon={Activity}      accent={TEAL}    />
-        <StatCard label="Total Cost"      value="₦1.40M"     sub="Aug to date"     icon={TrendingUp}    accent={ORANGE}  />
+        <StatCard label="Total litres"    value="1,248 L"    sub="Aug to date"     icon={Activity}      accent={TEAL}    />
+        <StatCard label="Total cost"      value="₦1.40M"     sub="Aug to date"     icon={TrendingUp}    accent={ORANGE}  />
         <StatCard label="Anomalies"       value="2"          sub="Exceed threshold" icon={AlertTriangle} accent={ERROR}   />
       </div>
 
       {/* New entry form */}
       {showForm && (
         <div className="bg-white rounded-xl border mb-4 p-4" style={{ borderColor:PRIMARY, boxShadow:`0 0 0 2px ${PRIMARY}20` }}>
-          <div className="text-sm font-bold mb-4" style={{ color:TEXT }}>Record Fuel Entry</div>
+          <div className="text-sm font-bold mb-4" style={{ color:TEXT }}>Record fuel entry</div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
             <div>
               <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Vehicle *</div>
@@ -643,7 +643,7 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
               {errors.driver && <div className="text-xs mt-0.5" style={{ color:ERROR }}>{errors.driver}</div>}
             </div>
             <div>
-              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Entry Type</div>
+              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Entry type</div>
               <select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
                 <option value="fill">Fill</option><option value="drain">Drain</option><option value="transfer">Transfer</option><option value="adjustment">Adjustment</option>
               </select>
@@ -671,13 +671,13 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
               <input placeholder="e.g. MRS Wuse II" aria-label="e.g. MRS Wuse II" value={form.station} onChange={e=>setForm(f=>({...f,station:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
             </div>
             <div>
-              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Payment Method</div>
+              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Payment method</div>
               <select value={form.paymentMethod} onChange={e=>setForm(f=>({...f,paymentMethod:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
-                <option>Corporate Card</option><option>Cash</option><option>Bank Transfer</option><option>Internal</option>
+                <option>Corporate card</option><option>Cash</option><option>Bank transfer</option><option>Internal</option>
               </select>
             </div>
             <div>
-              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Receipt Reference</div>
+              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Receipt reference</div>
               <input placeholder="e.g. MRS-20250820-041" aria-label="e.g. MRS-20250820-041" value={form.receiptRef} onChange={e=>setForm(f=>({...f,receiptRef:e.target.value}))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
             </div>
           </div>
@@ -693,9 +693,9 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Fuel size={15} style={{ color:ORANGE }} />
-            <div className="text-sm font-bold" style={{ color:TEXT }}>Hotel Bulk Diesel Tank</div>
+            <div className="text-sm font-bold" style={{ color:TEXT }}>Hotel bulk diesel tank</div>
           </div>
-          <button onClick={() => add({ type:"info", title:"Bulk tank refill logged" })} className="px-3 py-1.5 rounded-xl text-xs font-semibold border" style={{ borderColor:BORDER, color:MUTED }}>Log Refill</button>
+          <button onClick={() => add({ type:"info", title:"Bulk tank refill logged" })} className="px-3 py-1.5 rounded-xl text-xs font-semibold border" style={{ borderColor:BORDER, color:MUTED }}>Log refill</button>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
           {[
@@ -897,7 +897,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
               <span className="px-2 py-0.5 rounded-full text-xs font-semibold capitalize" style={{ backgroundColor:g.status==="running"?"#DCFCE7":g.status==="standby"?"#EFF6FF":"#FEF3C7", color:g.status==="running"?"#166534":g.status==="standby"?PRIMARY:"#92400E" }}>{g.status}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 mb-2">
-              <div><div className="text-xs" style={{ color:MUTED }}>Runtime Hrs</div><div className="text-lg font-bold" style={{ color:TEXT, fontFamily:mono }}>{g.runtimeHours.toLocaleString()}</div></div>
+              <div><div className="text-xs" style={{ color:MUTED }}>Runtime hrs</div><div className="text-lg font-bold" style={{ color:TEXT, fontFamily:mono }}>{g.runtimeHours.toLocaleString()}</div></div>
               <div><div className="text-xs" style={{ color:MUTED }}>Tank Cap.</div><div className="text-lg font-bold" style={{ color:TEXT, fontFamily:mono }}>{g.tankCapacityL}L</div></div>
             </div>
             <div className="text-xs" style={{ color:svcDue<=100?WARNING:MUTED }}>Service in {svcDue > 0 ? `${svcDue} hrs` : "OVERDUE"}</div>
@@ -911,7 +911,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
     <div className="bg-white rounded-xl border mb-4 p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
       <div className="flex items-center gap-2 mb-3">
         <Wrench size={15} style={{ color:PRIMARY }} />
-        <div className="text-sm font-bold" style={{ color:TEXT }}>Generator Service Tracker</div>
+        <div className="text-sm font-bold" style={{ color:TEXT }}>Generator service tracker</div>
       </div>
       <div className="space-y-3">
         {GENERATORS.map(g => {
@@ -955,12 +955,12 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
   if (isMX) return (
     <div>
       <PageHeader title="Generator Diesel" sub="Monitor generator runtime, raise diesel requisitions to Procurement for ordering and delivery"
-        actions={<BtnP label="Raise Requisition" icon={Plus} onClick={() => setShowReqForm(!showReqForm)} />}
+        actions={<BtnP label="Raise requisition" icon={Plus} onClick={() => setShowReqForm(!showReqForm)} />}
       />
 
       {showReqForm && (
         <div className="bg-white rounded-xl border mb-4 p-4" style={{ borderColor:PRIMARY, boxShadow:`0 0 0 2px ${PRIMARY}20` }}>
-          <div className="text-sm font-bold mb-1" style={{ color:TEXT }}>Raise Diesel Requisition</div>
+          <div className="text-sm font-bold mb-1" style={{ color:TEXT }}>Raise diesel requisition</div>
           <div className="text-xs mb-3 p-3 rounded-xl" style={{ backgroundColor:"#EFF6FF", color:"#1E40AF" }}>
             Your requisition is sent to Procurement for approval and supplier ordering. Urgent requests are processed within 4 hours; Critical within 1 hour.
           </div>
@@ -990,7 +990,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={submitReq} className="px-4 py-2 rounded-xl text-xs font-bold text-white" style={{ backgroundColor:PRIMARY }}>Submit to Procurement</button>
+            <button onClick={submitReq} className="px-4 py-2 rounded-xl text-xs font-bold text-white" style={{ backgroundColor:PRIMARY }}>Submit to procurement</button>
             <button onClick={()=>{setShowReqForm(false);setReqForm(EMPTY_REQ);}} className="px-4 py-2 rounded-xl text-xs" style={{ backgroundColor:"#F1F5F9", color:MUTED }}>Cancel</button>
           </div>
         </div>
@@ -1002,7 +1002,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
       {/* My Requisitions */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor:BORDER }}>
-          <div className="text-sm font-semibold" style={{ color:TEXT }}>My Diesel Requisitions</div>
+          <div className="text-sm font-semibold" style={{ color:TEXT }}>My diesel requisitions</div>
           {pending.length > 0 && <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor:"#DBEAFE", color:"#1E40AF" }}>{pending.length} pending</span>}
         </div>
         <table className="w-full">
@@ -1035,8 +1035,8 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
       <PageHeader title="Generator & Diesel Log" sub="Diesel procurement, delivery records, generator cost analysis and consumption monitoring"
         actions={
           <div className="flex gap-2">
-            <ExportBtn add={add} label="Generator Diesel Log" />
-            <BtnP label="Record Delivery" icon={Plus} onClick={() => setShowForm(!showForm)} />
+            <ExportBtn add={add} label="Generator diesel log" />
+            <BtnP label="Record delivery" icon={Plus} onClick={() => setShowForm(!showForm)} />
           </div>
         }
       />
@@ -1062,7 +1062,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
                     <div className="text-xs mt-0.5" style={{ color:MUTED }}>{r.reason}</div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
-                    <button onClick={() => approveReq(r.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor:SUCCESS }}>Approve & Order</button>
+                    <button onClick={() => approveReq(r.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor:SUCCESS }}>Approve & order</button>
                     <button onClick={() => rejectReq(r.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold" style={{ backgroundColor:"#FEE2E2", color:"#991B1B" }}>Reject</button>
                   </div>
                 </div>
@@ -1098,14 +1098,14 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
             <div className="text-xs" style={{ color:"#C2410C" }}>80 rooms occupied (avg)</div>
           </div>
           <div className="p-3 rounded-xl text-center" style={{ backgroundColor:"#F0F9FF" }}>
-            <div className="text-xs font-semibold mb-1" style={{ color:"#0369A1" }}>Generator vs Grid Hours</div>
+            <div className="text-xs font-semibold mb-1" style={{ color:"#0369A1" }}>Generator vs grid hours</div>
             <div className="text-2xl font-bold" style={{ color:"#0369A1", fontFamily:mono }}>{genHrsVsGrid}%</div>
             <div className="text-xs" style={{ color:"#0369A1" }}>On generator this week</div>
           </div>
         </div>
 
         <div>
-          <div className="text-xs font-semibold mb-2" style={{ color:MUTED }}>Weekly Diesel Cost & Runtime Trend</div>
+          <div className="text-xs font-semibold mb-2" style={{ color:MUTED }}>Weekly diesel cost & runtime trend</div>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={GEN_TREND} margin={{ left:-20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
@@ -1121,18 +1121,18 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
       {/* New diesel entry form */}
       {showForm && (
         <div className="bg-white rounded-xl border mb-4 p-4" style={{ borderColor:PRIMARY, boxShadow:`0 0 0 2px ${PRIMARY}20` }}>
-          <div className="text-sm font-bold mb-3" style={{ color:TEXT }}>Record Diesel Delivery</div>
+          <div className="text-sm font-bold mb-3" style={{ color:TEXT }}>Record diesel delivery</div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Generator</div>
               <select className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>{GENERATORS.map(g=><option key={g.id}>{g.name}</option>)}</select></div>
-            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Date & Time</div><input aria-label="Date & Time" type="datetime-local" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
+            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Date & time</div><input aria-label="Date & time" type="datetime-local" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Litres</div><input type="number" placeholder="e.g. 200" aria-label="e.g. 200" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Unit Price (₦/L)</div><input aria-label="Unit Price (₦/L)" type="number" defaultValue="1180" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
             <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Runtime Hours at Fill *</div><input type="number" placeholder="e.g. 14280" aria-label="e.g. 14280" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} /></div>
-            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Supplier</div><select aria-label="Supplier" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}><option>Emadeb Energy</option><option>Ardova Direct</option><option>NNPCL</option><option>Other</option></select></div>
+            <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Supplier</div><select aria-label="Supplier" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}><option>Emadeb energy</option><option>Ardova direct</option><option>NNPCL</option><option>Other</option></select></div>
           </div>
           <div className="flex gap-2">
-            <button onClick={()=>{setShowForm(false);add({type:"success",title:"Diesel entry recorded"});}} className="px-4 py-2 rounded-xl text-xs font-bold text-white" style={{ backgroundColor:PRIMARY }}>Save Entry</button>
+            <button onClick={()=>{setShowForm(false);add({type:"success",title:"Diesel entry recorded"});}} className="px-4 py-2 rounded-xl text-xs font-bold text-white" style={{ backgroundColor:PRIMARY }}>Save entry</button>
             <button onClick={()=>setShowForm(false)} className="px-4 py-2 rounded-xl text-xs" style={{ backgroundColor:"#F1F5F9", color:MUTED }}>Cancel</button>
           </div>
         </div>
@@ -1143,7 +1143,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
       {/* Requisitions history — all statuses */}
       <div className="bg-white rounded-xl border overflow-hidden mb-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor:BORDER }}>
-          <div className="text-sm font-semibold" style={{ color:TEXT }}>Diesel Requisition History</div>
+          <div className="text-sm font-semibold" style={{ color:TEXT }}>Diesel requisition history</div>
           {pending.length > 0 && <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor:"#FEF3C7", color:"#92400E" }}>{pending.length} pending action</span>}
         </div>
         <table className="w-full">

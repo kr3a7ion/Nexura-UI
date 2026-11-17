@@ -2501,7 +2501,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
       {filtered.length === 0 ? <EmptyState icon={Users} message={guests.length === 0 ? "Nobody is checked in. Guests appear here once they check in." : "No guests match your filters"} cta={guests.length === 0 ? "Go to Check-In" : undefined} onCta={() => nav?.("check-in", "Check-In")} /> : (
         <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full min-w-[1050px]">
-            <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Room", "Guest", "Check-in", "Check-out", "Nights Left", "Balance", "Flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Room", "Guest", "Check-in", "Check-out", "Nights left", "Balance", "Flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(g => (
                 <tr key={g.room} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER }}>
@@ -2810,7 +2810,7 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
       {filtered.length === 0 ? <EmptyState icon={User} message={`No guest profiles match ${search ? `"${search}"` : `the ${filterTab} filter`}.`} cta="Clear filters" onCta={() => { setSearch(""); setFilterTab("All"); }} /> : (
         <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full min-w-[920px]">
-            <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Guest", "Contact", "Stays / Last Stay", "Lifetime Value", "Tier / Flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Guest", "Contact", "Stays / last stay", "Lifetime value", "Tier / flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(g => (
                 <tr key={g.id} className="border-t hover:bg-[#F8FAFC] transition-colors cursor-pointer" style={{ borderColor: BORDER }} onClick={() => nav && nav("guest-profile-detail", g.name, g.id)}>
@@ -2946,7 +2946,7 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
           <span className="ml-auto text-xs" style={{ color: SUBTLE }}>Posted charges are reversal-only — no direct editing</span>
         </div>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Date", "Cat", "Description", "Qty", "Unit (₦)", "Amount (₦)", "Tax (₦)", "Running Bal", "By", ""].map((h,i) => <th key={i} className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Date", "Cat", "Description", "Qty", "Unit (₦)", "Amount (₦)", "Tax (₦)", "Running bal", "By", ""].map((h,i) => <th key={i} className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {visibleLines.map((l) => {
               if (!l.reversed) runningBal -= l.amount + l.tax; else runningBal += l.amount + l.tax;
@@ -3088,7 +3088,7 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
         <table className="w-full">
           <thead><tr style={{ backgroundColor: "#F9FAFB" }}>
             <th className="px-4 py-3 w-8"><input type="checkbox" onChange={e => setSelected(e.target.checked ? filtered.map(f=>f.id) : [])} /></th>
-            {["Folio / Res", "Guest", "Room", "Dates", "Charges", "Payments", "Balance", "Days Open", "Last Pulse", "Flags", ""].map((h,i) => <th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}
+            {["Folio / res", "Guest", "Room", "Dates", "Charges", "Payments", "Balance", "Days open", "Last pulse", "Flags", ""].map((h,i) => <th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}
           </tr></thead>
           <tbody>
             {filtered.map(f => (

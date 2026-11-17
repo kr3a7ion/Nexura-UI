@@ -134,8 +134,8 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
     <div>
       <PageHeader title="Roles & Permissions" sub="13 system roles · module-level permission matrix · effective-permission preview" actions={
         <div className="flex gap-2">
-          {unsavedRole === selectedRole && <BtnP label="Save Changes" icon={CheckCircle2} onClick={save} />}
-          <BtnO label="Create Role" icon={Plus} onClick={() => add({ type:"info", title:"Custom role creation" })} />
+          {unsavedRole === selectedRole && <BtnP label="Save changes" icon={CheckCircle2} onClick={save} />}
+          <BtnO label="Create role" icon={Plus} onClick={() => add({ type:"info", title:"Custom role creation" })} />
         </div>
       } />
 
@@ -144,10 +144,10 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Roles Defined"   value={String(ROLES.length)}                      sub="3 custom, 10 system-seeded" icon={Shield}        accent={PRIMARY} />
-        <StatCard label="Total Staff"     value={String(ROLES.reduce((s,r)=>s+r.count,0))}  sub="Across all roles"           icon={Users}         accent={TEAL}    />
-        <StatCard label="Seeded Roles"    value={String(ROLES.filter(r=>r.seeded).length)}  sub="Cannot be deleted"          icon={Lock}          accent={ORANGE}  />
-        <StatCard label="Custom Roles"    value={String(ROLES.filter(r=>!r.seeded).length)} sub="User-defined"                icon={Edit3}         accent={SUCCESS} />
+        <StatCard label="Roles defined"   value={String(ROLES.length)}                      sub="3 custom, 10 system-seeded" icon={Shield}        accent={PRIMARY} />
+        <StatCard label="Total staff"     value={String(ROLES.reduce((s,r)=>s+r.count,0))}  sub="Across all roles"           icon={Users}         accent={TEAL}    />
+        <StatCard label="Seeded roles"    value={String(ROLES.filter(r=>r.seeded).length)}  sub="Cannot be deleted"          icon={Lock}          accent={ORANGE}  />
+        <StatCard label="Custom roles"    value={String(ROLES.filter(r=>!r.seeded).length)} sub="User-defined"                icon={Edit3}         accent={SUCCESS} />
       </div>
 
       <div className="flex gap-4">
@@ -169,7 +169,7 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
               <h3 className="text-sm font-semibold" style={{ color: TEXT }}>{ROLES.find(r=>r.code===selectedRole)?.name} — Permission Matrix</h3>
               {ROLES.find(r=>r.code===selectedRole)?.seeded && <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>System-seeded role · core defaults protected</div>}
             </div>
-            {unsavedRole===selectedRole && <button onClick={save} className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white" style={{ backgroundColor: PRIMARY }}>Save Changes</button>}
+            {unsavedRole===selectedRole && <button onClick={save} className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white" style={{ backgroundColor: PRIMARY }}>Save changes</button>}
           </div>
           <div className="p-4">
             {groups.map(group => (
@@ -198,7 +198,7 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
 
         {/* Effective permissions preview */}
         <div className="w-56 flex-shrink-0 bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Effective Permissions</div>
+          <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Effective permissions</div>
           <div className="mb-3">
             <label className="text-xs block mb-1.5" style={{ color: MUTED }}>Preview for user</label>
             <select aria-label="Preview for user" value={previewUser} onChange={e=>setPreviewUser(e.target.value)} className="w-full px-2 py-1.5 rounded-xl border text-xs outline-none bg-white" style={{ borderColor: BORDER }}>
@@ -294,7 +294,7 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
       <PageHeader title="Attendance" sub="24 Jun 2026 · Grand Palms Abuja · clock-in/out, lateness, overtime" actions={
         <div className="flex gap-2">
           <BtnO label="Export" icon={Download} onClick={()=>add({type:"info",title:"Exporting attendance report"})} />
-          <BtnO label="Manual Entry" icon={Edit3} onClick={()=>setShowManual(true)} />
+          <BtnO label="Manual entry" icon={Edit3} onClick={()=>setShowManual(true)} />
         </div>
       } />
 
@@ -302,7 +302,7 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
         <StatCard label="Present"   value={String(ATTENDANCE.filter(a=>a.status==="Present").length)} sub="On duty now"          icon={CheckCircle2}  accent={SUCCESS} />
         <StatCard label="Late"      value={String(ATTENDANCE.filter(a=>a.status==="Late").length)}    sub="Clocked in late"      icon={Clock}         accent={WARNING} />
         <StatCard label="Absent"    value={String(ATTENDANCE.filter(a=>a.status==="Absent").length)}  sub="Not reported"         icon={AlertTriangle} accent={ERROR}   />
-        <StatCard label="On Leave"  value={String(ATTENDANCE.filter(a=>a.status==="Leave").length)}   sub="Approved"             icon={CalendarDays}  accent={TEAL}    />
+        <StatCard label="On leave"  value={String(ATTENDANCE.filter(a=>a.status==="Leave").length)}   sub="Approved"             icon={CalendarDays}  accent={TEAL}    />
         <StatCard label="Total OT"  value={`${ATTENDANCE.reduce((s,a)=>s+a.overtime,0).toFixed(1)}h`} sub="Overtime today"      icon={TrendingUp}    accent={ORANGE}  />
       </div>
 
@@ -315,7 +315,7 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
 
       <div className="bg-white rounded-xl border overflow-hidden mb-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Staff","Dept","Scheduled Shift","Clock In","Clock Out","Hours","Late (min)","OT (h)","Status"].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Staff","Dept","Scheduled shift","Clock in","Clock out","Hours","Late (min)","OT (h)","Status"].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(a => (
               <tr key={a.id} className="border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER }}>
@@ -337,7 +337,7 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
       <div className="grid grid-cols-3 gap-5">
         {/* Dept summary */}
         <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>By Department</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>By department</h3>
           {DEPT_SUMMARY.map(d => (
             <div key={d.dept} className="flex items-center gap-2 mb-2.5">
               <div className="flex-1 text-xs" style={{ color: TEXT }}>{d.dept}</div>
@@ -368,9 +368,9 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>setShowManual(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-96" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Manual Attendance Entry</h3>
+            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Manual attendance entry</h3>
             <div className="space-y-3">
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Staff Member</label><input value={manName} onChange={e=>setManName(e.target.value)} placeholder="Name" aria-label="Name" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Staff member</label><input value={manName} onChange={e=>setManName(e.target.value)} placeholder="Name" aria-label="Name" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Status</label>
                 <div className="flex gap-2 flex-wrap">
                   {(["Present","Late","Absent","Leave"] as AttStatus[]).map(s=><button key={s} onClick={()=>setManStatus(s)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold" style={{ backgroundColor:manStatus===s?PRIMARY:"white", color:manStatus===s?"white":MUTED, borderColor:manStatus===s?PRIMARY:BORDER }}>{s}</button>)}
@@ -381,7 +381,7 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
             </div>
             <div className="flex gap-3 mt-5">
               <BtnO label="Cancel" onClick={()=>setShowManual(false)} />
-              <button onClick={submitManual} disabled={!manName||!manReason} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Save Entry</button>
+              <button onClick={submitManual} disabled={!manName||!manReason} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Save entry</button>
             </div>
           </div>
         </>
@@ -504,7 +504,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
     <div>
       <PageHeader title="Shift Scheduler" sub="Week of 23–29 Jun 2026 · click a cell to change shift · coverage warnings shown" actions={
         <div className="flex gap-2">
-          <BtnO label="Clone Last Week" icon={RefreshCw} onClick={() => add({ type:"info", title:"Last week cloned" })} />
+          <BtnO label="Clone last week" icon={RefreshCw} onClick={() => add({ type:"info", title:"Last week cloned" })} />
           <BtnO label="Templates" icon={Layers} onClick={() => add({ type:"info", title:"Shift templates" })} />
           <BtnP label={published?"Published ✓":"Publish Schedule"} icon={Send} onClick={publish} />
         </div>
@@ -515,7 +515,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
         <div className="bg-white rounded-xl border mb-5 overflow-hidden" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
           <div className="px-5 py-3 border-b flex items-center gap-2" style={{ borderColor:BORDER, backgroundColor:"#FFFBEB" }}>
             <AlertTriangle size={14} style={{ color:"#92400E" }} />
-            <div className="text-sm font-bold" style={{ color:"#92400E" }}>Driver Shift Change Requests</div>
+            <div className="text-sm font-bold" style={{ color:"#92400E" }}>Driver shift change requests</div>
             {driverProposals.length > 0 && (
               <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ backgroundColor:"#F59E0B" }}>
                 {driverProposals.length} pending your review
@@ -540,7 +540,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
                         style={{ borderColor:ERROR }}
                         onKeyDown={e => e.key==="Enter" && confirmReject()}
                       />
-                      <button onClick={confirmReject} className="px-3 py-1.5 rounded-lg text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor:ERROR }}>Confirm Reject</button>
+                      <button onClick={confirmReject} className="px-3 py-1.5 rounded-lg text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor:ERROR }}>Confirm reject</button>
                       <button onClick={() => { setRejectTarget(null); setRejectReason(""); }} className="px-3 py-1.5 rounded-lg text-xs flex-shrink-0" style={{ backgroundColor:"#F1F5F9", color:MUTED }}>Cancel</button>
                     </div>
                   ) : (
@@ -579,9 +579,9 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Staff on Roster"   value={String(ROSTER.length)}                          sub="This week"          icon={Users}         accent={PRIMARY} />
-        <StatCard label="Shifts Assigned"   value={String(Object.values(schedule).flatMap(d=>Object.values(d)).filter(s=>s!=="Off").length)} sub="7-day period" icon={CalendarDays}  accent={TEAL}    />
-        <StatCard label="Coverage Warnings" value={String(totalWarnings)}                           sub="Under-staffed slots" icon={AlertTriangle} accent={totalWarnings>0?WARNING:SUCCESS} />
+        <StatCard label="Staff on roster"   value={String(ROSTER.length)}                          sub="This week"          icon={Users}         accent={PRIMARY} />
+        <StatCard label="Shifts assigned"   value={String(Object.values(schedule).flatMap(d=>Object.values(d)).filter(s=>s!=="Off").length)} sub="7-day period" icon={CalendarDays}  accent={TEAL}    />
+        <StatCard label="Coverage warnings" value={String(totalWarnings)}                           sub="Under-staffed slots" icon={AlertTriangle} accent={totalWarnings>0?WARNING:SUCCESS} />
         <StatCard label="Published"         value={published?"Yes":"Not yet"}                       sub={published?"Staff notified":"Pending publish"} icon={Send} accent={published?SUCCESS:ORANGE} />
       </div>
 
@@ -651,7 +651,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
       {/* Shift templates */}
       <div className="grid grid-cols-2 gap-5">
         <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Shift Templates</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Shift templates</h3>
           <div className="space-y-2">
             {SHIFT_TEMPLATES.map(t=>(
               <div key={t.name} className="flex items-center justify-between px-3 py-2.5 rounded-xl border hover:bg-[#F8FAFC] cursor-pointer" style={{ borderColor: BORDER }}>
@@ -663,7 +663,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
         </div>
 
         <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Swap Requests</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Swap requests</h3>
           <div className="space-y-2">
             {[
               { from:"Emeka Nwosu",   day:"Tue 14", shift:"Night",   to:"Grace Ojo", status:"Pending"  },
@@ -825,15 +825,15 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
           {showAdvanced && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
               <div>
-                <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Check-In From</label>
-                <DateInput aria-label="Check-In From" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateFrom ? TEAL : BORDER }} />
+                <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Check-in from</label>
+                <DateInput aria-label="Check-in from" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateFrom ? TEAL : BORDER }} />
               </div>
               <div>
-                <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Check-In To</label>
-                <DateInput aria-label="Check-In To" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateTo ? TEAL : BORDER }} />
+                <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Check-in to</label>
+                <DateInput aria-label="Check-in to" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateTo ? TEAL : BORDER }} />
               </div>
               <div>
-                <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Room Type</label>
+                <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Room type</label>
                 <select aria-label="Room Type" value={typeF} onChange={e => setTypeF(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: typeF !== "All" ? TEAL : BORDER }}>
                   {["All","Standard","Deluxe","Suite"].map(s => <option key={s}>{s}</option>)}
                 </select>
@@ -1059,9 +1059,9 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
         actions={
           <div className="flex items-center gap-2 flex-wrap">
             {/* Secondary actions */}
-            <BtnO label="Extend Stay"    icon={CalendarDays} onClick={() => { setNewCheckout(res.checkout); setShowExtend(true); }} />
-            <BtnO label="Change Rate"    icon={DollarSign}   onClick={() => { setNewRate(String(res.rate)); setShowChangeRate(true); }} />
-            <BtnO label="Print Reg Card" icon={FileText}      onClick={() => add({type:"info", title:"Printing registration card…", body:`${res.guest} · Room ${res.room}`})} />
+            <BtnO label="Extend stay"    icon={CalendarDays} onClick={() => { setNewCheckout(res.checkout); setShowExtend(true); }} />
+            <BtnO label="Change rate"    icon={DollarSign}   onClick={() => { setNewRate(String(res.rate)); setShowChangeRate(true); }} />
+            <BtnO label="Print reg card" icon={FileText}      onClick={() => add({type:"info", title:"Printing registration card…", body:`${res.guest} · Room ${res.room}`})} />
             {/* Destructive — with inline confirm */}
             {!showNoShowConfirm && !showCancelConfirm && (
               <div className="flex gap-1">
@@ -1182,7 +1182,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
               {/* Booking detail grid + quick actions */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Booking Details</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Booking details</h3>
                   <div className="space-y-2">
                     {([
                       ["Reservation ID", res.id],
@@ -1204,7 +1204,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick Actions</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick actions</h3>
                   <div className="grid grid-cols-2 gap-2 mb-4">
                     {([
                       {label:"Post Charge", icon:DollarSign,    action:()=>setShowPostCharge(true)},
@@ -1221,7 +1221,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                   </div>
                   {/* Special notes */}
                   <div className="p-4 rounded-xl border-l-4" style={{ backgroundColor:"#FFFBEB", borderLeftColor:ORANGE }}>
-                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: ORANGE }}>Special Notes</p>
+                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: ORANGE }}>Special notes</p>
                     <p className="text-sm" style={{ color: TEXT }}>Champagne on arrival · High floor preferred · Airport transfer booked for 26 Jun 11:30</p>
                   </div>
                 </div>
@@ -1234,7 +1234,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Folio Charges</h3>
+                  <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Folio charges</h3>
                   <p className="text-xs mt-0.5" style={{ color: MUTED }}>{folioItems.length} line items · deposit ₦{depositPaid.toLocaleString()} applied</p>
                 </div>
                 <div className="flex gap-2">
@@ -1303,7 +1303,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                     </div>
                     <div className="text-xs" style={{ color: MUTED }}>VIP · 15 previous stays · Guest since 2019</div>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor:"#FEF3C7", color:"#92400E" }}>Gold Member</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor:"#FEF3C7", color:"#92400E" }}>Gold member</span>
                     </div>
                   </div>
                 </div>
@@ -1325,7 +1325,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                 </div>
               </div>
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Stay History</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Stay history</h3>
                 <div className="space-y-2">
                   {[
                     {id:"BK-2701", dates:"12–14 Mar 2026", room:"Suite 501",   total:"₦177,375", nights:2},
@@ -1357,10 +1357,10 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Room Access Credentials</h3>
+                    <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Room access credentials</h3>
                     <p className="text-xs mt-0.5" style={{ color: MUTED }}>Room {res.room} · valid until {res.checkout} 11:00</p>
                   </div>
-                  <BtnP label="Issue New Card" icon={Plus} onClick={() => {
+                  <BtnP label="Issue new card" icon={Plus} onClick={() => {
                     const ref = `KC-${String(Math.floor(Math.random()*9000)+1000)}`;
                     setAccessCards(p=>[...p,{type:"Key Card",ref,issued:stampNow(),issuedBy:"Staff",status:"Active"}]);
                     add({type:"success",title:"Key card issued",body:`${ref} · Room ${res.room} — insert blank card`});
@@ -1401,7 +1401,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
 
               {/* Right: access log */}
               <div className="w-80 flex-shrink-0 bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-                <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Access Log</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Access log</h3>
                 <div className="space-y-0">
                   {([
                     ["24 Jun 14:13","Door opened — Key Card KC-0042","Main Entrance"],
@@ -1429,7 +1429,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Service & Special Requests</h3>
+                    <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Service & special requests</h3>
                     <p className="text-xs mt-0.5" style={{ color: MUTED }}>{pendingCount} pending · {requests.length} total</p>
                   </div>
                   <BtnP label="Add Request" icon={Plus} onClick={() => setShowAddReq(true)} />
@@ -1468,7 +1468,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
               <div className="w-64 flex-shrink-0 space-y-3">
                 {/* Status breakdown */}
                 <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Status Summary</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Status summary</h3>
                   <div className="space-y-2.5">
                     {(["Pending","Assigned","Fulfilled"] as const).map(s => {
                       const count = requests.filter(r => r.status === s).length;
@@ -1486,7 +1486,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
 
                 {/* Category breakdown */}
                 <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>By Category</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>By category</h3>
                   <div className="space-y-2">
                     {Array.from(new Set(requests.map(r => r.category))).map(cat => {
                       const total = requests.filter(r => r.category === cat).length;
@@ -1519,7 +1519,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
           {tab === "History" && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Audit Trail</h3>
+                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Audit trail</h3>
                 <button onClick={() => add({type:"info",title:"Audit log exported"})}
                   className="text-xs flex items-center gap-1 font-semibold" style={{ color: PRIMARY }}>
                   <Download size={12} />Export
@@ -1568,7 +1568,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
-              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Extend Stay</h2>
+              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Extend stay</h2>
               <button aria-label="Close" onClick={()=>setShowExtend(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
             </div>
             <div className="px-5 py-4 space-y-3">
@@ -1581,7 +1581,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
             <div className="flex gap-3 px-5 pb-5">
               <button onClick={()=>setShowExtend(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
               <button onClick={()=>{ if(!newCheckout){return;} add({type:"success",title:"Stay extended",body:`New check-out: ${newCheckout}`}); setShowExtend(false); }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Confirm Extension</button>
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Confirm extension</button>
             </div>
           </div>
         </div>
@@ -1592,11 +1592,11 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
-              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Change Rate</h2>
+              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Change rate</h2>
               <button aria-label="Close" onClick={()=>setShowChangeRate(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
             </div>
             <div className="px-5 py-4 space-y-3">
-              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Rate Plan</label>
+              <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Rate plan</label>
                 <select aria-label="Rate Plan" value={newRatePlan} onChange={e=>setNewRatePlan(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
                   {["Standard Rate","Corporate Rate","Weekend Special","Advance Purchase","Loyalty Rate"].map(p=><option key={p}>{p}</option>)}
@@ -1608,7 +1608,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
             <div className="flex gap-3 px-5 pb-5">
               <button onClick={()=>setShowChangeRate(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
               <button onClick={()=>{ add({type:"success",title:"Rate updated",body:`${newRatePlan} · ₦${Number(newRate).toLocaleString()}/night`}); setShowChangeRate(false); }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Apply Rate</button>
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Apply rate</button>
             </div>
           </div>
         </div>
@@ -1619,7 +1619,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
-              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Post Charge</h2>
+              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Post charge</h2>
               <button aria-label="Close" onClick={()=>setShowPostCharge(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
             </div>
             <div className="px-5 py-4 space-y-3">
@@ -1644,7 +1644,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                 setFolioItems(p=>[...p, {date:now, desc:chargeDesc, dept:chargeDept, amount:amt}]);
                 add({type:"success",title:"Charge posted",body:`₦${amt.toLocaleString()} · ${chargeDesc}`});
                 setChargeDesc(""); setChargeAmt(""); setShowPostCharge(false);
-              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Post to Folio</button>
+              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Post to folio</button>
             </div>
           </div>
         </div>
@@ -1655,7 +1655,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
-              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Add Service Request</h2>
+              <h2 className="text-sm font-bold" style={{ color:TEXT }}>Add service request</h2>
               <button aria-label="Close" onClick={()=>setShowAddReq(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
             </div>
             <div className="px-5 py-4 space-y-3">
@@ -1676,7 +1676,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                 setRequests(p=>[...p, {id, category:reqCat, detail:reqDetail, status:"Pending", by:"Staff"}]);
                 add({type:"success",title:"Request added",body:reqDetail});
                 setReqDetail(""); setShowAddReq(false);
-              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Submit Request</button>
+              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Submit request</button>
             </div>
           </div>
         </div>
@@ -1688,7 +1688,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto" style={{ border:`1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
               <div>
-                <h2 className="text-sm font-bold" style={{ color:TEXT }}>Message Guest</h2>
+                <h2 className="text-sm font-bold" style={{ color:TEXT }}>Message guest</h2>
                 <p className="text-xs mt-0.5" style={{ color:MUTED }}>{res.guest}</p>
               </div>
               <button aria-label="Close" onClick={()=>setShowMessage(false)} className="p-1 rounded hover:bg-gray-100" style={{ color:MUTED }}><X size={15}/></button>
@@ -1714,7 +1714,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                 if(!msgText.trim())return;
                 add({type:"success",title:`Message sent via ${msgChannel}`,body:res.guest});
                 setMsgText(""); setShowMessage(false);
-              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Send Message</button>
+              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Send message</button>
             </div>
           </div>
         </div>
@@ -1814,12 +1814,12 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
   const inspectedRoom = ALL_ROOMS.find(room => room.id === detailRoom);
   return (
     <div>
-      <PageHeader title="Room Assignment Board" sub="Select or drag an arrival to a ready room; review upgrades before confirming" actions={<BtnP label="Auto-Assign Ready Rooms" icon={Zap} onClick={autoAssign} />} />
+      <PageHeader title="Room Assignment Board" sub="Select or drag an arrival to a ready room; review upgrades before confirming" actions={<BtnP label="Auto-assign ready rooms" icon={Zap} onClick={autoAssign} />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Unassigned" value={String(UNASSIGNED_ARRIVALS.filter(a => !Object.values(assigned).includes(a.id)).length)} sub="Need room" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Ready Rooms" value={String(ALL_ROOMS.filter(r => isReady(r) && !(r.id in assigned)).length)} sub="Clean or inspected" icon={BedDouble} accent={SUCCESS} />
-        <StatCard label="Total Arrivals" value={String(UNASSIGNED_ARRIVALS.length + 3)} sub="Expected today" icon={CalendarCheck} accent={PRIMARY} />
-        <StatCard label="Assigned Today" value={String(totalAssigned + 3)} sub="Ready for check-in" icon={CheckCircle2} accent={TEAL} />
+        <StatCard label="Ready rooms" value={String(ALL_ROOMS.filter(r => isReady(r) && !(r.id in assigned)).length)} sub="Clean or inspected" icon={BedDouble} accent={SUCCESS} />
+        <StatCard label="Total arrivals" value={String(UNASSIGNED_ARRIVALS.length + 3)} sub="Expected today" icon={CalendarCheck} accent={PRIMARY} />
+        <StatCard label="Assigned today" value={String(totalAssigned + 3)} sub="Ready for check-in" icon={CheckCircle2} accent={TEAL} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
         {/* Left: unassigned arrivals */}
@@ -1917,7 +1917,7 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
               {pendingGuest.type !== pendingRoom.type && <div className="p-3 rounded-xl flex gap-2 text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}><AlertTriangle size={16} className="flex-shrink-0" /><span>This changes the booked room type from {pendingGuest.type} to {pendingRoom.type}. Confirm the upgrade or room-type change with the guest and verify the rate.</span></div>}
               {assigned[pendingRoom.id] && <div className="p-3 rounded-xl text-xs" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>Room {pendingRoom.id} is assigned to {UNASSIGNED_ARRIVALS.find(arrival => arrival.id === assigned[pendingRoom.id])?.guest}. The two room assignments will be swapped.</div>}
             </div>
-            <div className="px-5 py-4 border-t flex justify-end gap-2" style={{ borderColor: BORDER }}><button onClick={() => setPendingAssignment(null)} className="px-4 py-2 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button><button onClick={() => doAssign(pendingGuest.id, pendingRoom.id)} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Confirm Assignment</button></div>
+            <div className="px-5 py-4 border-t flex justify-end gap-2" style={{ borderColor: BORDER }}><button onClick={() => setPendingAssignment(null)} className="px-4 py-2 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button><button onClick={() => doAssign(pendingGuest.id, pendingRoom.id)} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Confirm assignment</button></div>
           </div>
         </div>
       )}
@@ -1990,13 +1990,13 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
   ];
   return (
     <div>
-      <button onClick={() => nav?.("guest-profiles", "Guest Profiles")} className="inline-flex items-center gap-1.5 mb-3 text-sm font-semibold hover:opacity-75" style={{ color: PRIMARY }}><ChevronLeft size={17} />Back to Guest Profiles</button>
+      <button onClick={() => nav?.("guest-profiles", "Guest Profiles")} className="inline-flex items-center gap-1.5 mb-3 text-sm font-semibold hover:opacity-75" style={{ color: PRIMARY }}><ChevronLeft size={17} />Back to guest profiles</button>
       <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-5 p-5 bg-white rounded-xl border" style={{ borderColor: BORDER }}>
         <div className="w-16 h-16 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}><User size={28} /></div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <span className="text-lg font-bold" style={{ color: TEXT }}>{guest.name}</span>
-            {guest.tier && <><span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: "#F5F3FF", color: "#7C3AED" }}>{guest.tier}</span><Star size={14} fill={ORANGE} style={{ color: ORANGE }} /><span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#CCFBF1", color: "#0F766E" }}>VIP Guest</span></>}
+            {guest.tier && <><span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: "#F5F3FF", color: "#7C3AED" }}>{guest.tier}</span><Star size={14} fill={ORANGE} style={{ color: ORANGE }} /><span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#CCFBF1", color: "#0F766E" }}>VIP guest</span></>}
           </div>
           <div className="flex items-center gap-4 flex-wrap text-xs" style={{ color: MUTED }}>
             <span style={{ fontFamily: mono }}>{profileId}</span>
@@ -2006,14 +2006,14 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
           </div>
         </div>
         <div className="flex gap-2 flex-shrink-0 flex-wrap">
-          <BtnO label="Create Reservation" icon={Plus} onClick={() => nav?.("new-reservation", "New Reservation", guest.name)} />
-          <BtnP label="Edit Profile" icon={Edit3} onClick={() => { setEditForm({ ...guest }); setShowEdit(true); }} />
+          <BtnO label="Create reservation" icon={Plus} onClick={() => nav?.("new-reservation", "New Reservation", guest.name)} />
+          <BtnP label="Edit profile" icon={Edit3} onClick={() => { setEditForm({ ...guest }); setShowEdit(true); }} />
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         <div className="space-y-4">
           <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-            <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick Stats</div>
+            <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick stats</div>
             {[["Total Stays", String(guest.stays)], ["Lifetime Value", `₦${guest.value.toLocaleString()}`], ["Profile ID", profileId], ["Nationality", guest.nationality]].map(([k,v]) => (
               <div key={k} className="flex justify-between py-1.5 border-b last:border-0" style={{ borderColor: BORDER }}><span className="text-xs" style={{ color: MUTED }}>{k}</span><span className="text-xs font-semibold" style={{ color: TEXT }}>{v}</span></div>
             ))}
@@ -2041,7 +2041,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
                   ))}
                 </div>
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>ID Documents</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>ID documents</div>
                   <div className="grid grid-cols-2 gap-3">
                     {[["ID Type", "International Passport"], ["ID Number", "A12345678"], ["Issue Date", "Jan 2020"], ["Expiry Date", "Jan 2030"]].map(([k,v]) => (
                       <div key={k} className="p-3 rounded-xl" style={{ backgroundColor: "#F9FAFB" }}><div className="text-xs" style={{ color: MUTED }}>{k}</div><div className="text-sm font-medium mt-0.5" style={{ color: TEXT, fontFamily: k === "ID Number" ? mono : undefined }}>{v}</div></div>
@@ -2049,7 +2049,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Consent & Marketing</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Consent & marketing</div>
                   <div className="flex items-center gap-4 text-xs" style={{ color: MUTED }}>
                     <span className="flex items-center gap-1.5"><CheckCircle2 size={13} style={{ color: SUCCESS }} />Data consent given (24 Mar 2020)</span>
                     <span className="flex items-center gap-1.5"><CheckCircle2 size={13} style={{ color: SUCCESS }} />Marketing emails opted in</span>
@@ -2081,7 +2081,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
             {tab === "Preferences" && (
               <div className="space-y-4">
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Room & Floor</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Room & floor</div>
                   <div className="grid grid-cols-2 gap-3">
                     {[["Room Type", "Suite — top floor preferred"], ["Floor", "5th floor or above"], ["Bed Type", "King — firm"], ["Smoking", "Non-smoking only"]].map(([k,v]) => (
                       <div key={k} className="p-3 rounded-xl" style={{ backgroundColor: "#F9FAFB" }}><div className="text-xs" style={{ color: MUTED }}>{k}</div><div className="text-sm font-medium mt-0.5" style={{ color: TEXT }}>{v}</div></div>
@@ -2089,7 +2089,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Dietary & Amenities</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Dietary & amenities</div>
                   <div className="grid grid-cols-2 gap-3">
                     {[["Dietary", "No shellfish (allergy)"], ["Pillow", "Firm × 4"], ["Minibar", "Stocked with whisky"], ["Amenities", "Extra towels, bathrobe"], ["Wake-up Call", "07:30 daily"], ["Newspaper", "The Punch"]].map(([k,v]) => (
                       <div key={k} className="p-3 rounded-xl" style={{ backgroundColor: "#F9FAFB" }}><div className="text-xs" style={{ color: MUTED }}>{k}</div><div className="text-sm font-medium mt-0.5" style={{ color: TEXT }}>{v}</div></div>
@@ -2097,7 +2097,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Language & Communication</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Language & communication</div>
                   <div className="grid grid-cols-2 gap-3">
                     {[["Language", "English"], ["Communication", "Email preferred"], ["Temperature", "20°C room setting"]].map(([k,v]) => (
                       <div key={k} className="p-3 rounded-xl" style={{ backgroundColor: "#F9FAFB" }}><div className="text-xs" style={{ color: MUTED }}>{k}</div><div className="text-sm font-medium mt-0.5" style={{ color: TEXT }}>{v}</div></div>
@@ -2134,7 +2134,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
             )}
             {tab === "Requests & Complaints" && (
               <div>
-                <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Open Requests</div>
+                <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Open requests</div>
                 <div className="space-y-2 mb-5">
                   <div className="p-3 rounded-xl flex items-start gap-3" style={{ backgroundColor: "#EFF6FF" }}>
                     <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: PRIMARY }} />
@@ -2142,14 +2142,14 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
                     <Badge label="Fulfilled" colors={{ bg: "#DCFCE7", text: "#166534" }} />
                   </div>
                 </div>
-                <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Complaints on Record</div>
+                <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Complaints on record</div>
                 <EmptyState icon={CheckCircle2} message="No complaints on record. Excellent guest history." />
               </div>
             )}
             {tab === "Notes" && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Internal Notes</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Internal notes</div>
                   <button onClick={() => add({ type: "info", title: "Note editor opened" })} className="text-xs px-3 py-1.5 rounded-xl font-semibold text-white hover:opacity-90" style={{ backgroundColor: PRIMARY }}>+ Add Note</button>
                 </div>
                 <div className="space-y-3">
@@ -2175,7 +2175,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onMouseDown={() => setShowEdit(false)}>
           <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl" onMouseDown={event => event.stopPropagation()}>
             <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
-              <div><h3 className="font-bold" style={{ color: TEXT }}>Edit Guest Profile</h3><p className="text-xs mt-0.5" style={{ color: MUTED }}>{profileId} · Contact and loyalty details</p></div>
+              <div><h3 className="font-bold" style={{ color: TEXT }}>Edit guest profile</h3><p className="text-xs mt-0.5" style={{ color: MUTED }}>{profileId} · Contact and loyalty details</p></div>
               <button aria-label="Close edit profile" onClick={() => setShowEdit(false)}><X size={20} style={{ color: MUTED }} /></button>
             </div>
             <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2200,7 +2200,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
             </div>
             <div className="px-5 py-4 border-t flex justify-end gap-2" style={{ borderColor: BORDER }}>
               <button onClick={() => setShowEdit(false)} className="px-4 py-2 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button>
-              <button onClick={saveProfile} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save Changes</button>
+              <button onClick={saveProfile} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save changes</button>
             </div>
           </div>
         </div>
@@ -2273,22 +2273,22 @@ export function CashDrawerReconciliation({ add }: { add: (t: Omit<Toast, "id">) 
       <PageHeader title="Cash Drawer Reconciliation" sub="Shift open/close, denomination count, variance, and manager sign-off" actions={
         <div className="flex gap-2">
           <button onClick={() => setShowHistory(p=>!p)} className="text-xs px-3 py-2 rounded-xl border font-medium" style={{ borderColor: BORDER, color: MUTED }}>{showHistory ? "Live View" : "Shift History"}</button>
-          {phase === "done" && <BtnP label="Open New Shift" icon={Plus} onClick={() => { setPhase("active"); setCounts(Object.fromEntries(DENOMS.map(d=>[d.value,""]))); setVarReason(""); setManagerPin(""); }} />}
+          {phase === "done" && <BtnP label="Open new shift" icon={Plus} onClick={() => { setPhase("active"); setCounts(Object.fromEntries(DENOMS.map(d=>[d.value,""]))); setVarReason(""); setManagerPin(""); }} />}
         </div>
       } />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Opening Float" value={`₦${float.toLocaleString()}`} sub="Shift start amount" icon={DollarSign} accent={PRIMARY_} />
+        <StatCard label="Opening float" value={`₦${float.toLocaleString()}`} sub="Shift start amount" icon={DollarSign} accent={PRIMARY_} />
         <StatCard label="Net Sales" value={`₦${expectedSales.toLocaleString()}`} sub="Cash movements" icon={TrendingUp} accent={TEAL} />
-        <StatCard label="Expected Total" value={`₦${expectedTotal.toLocaleString()}`} sub="Float + sales" icon={CheckCircle2} accent={SUCCESS} />
+        <StatCard label="Expected total" value={`₦${expectedTotal.toLocaleString()}`} sub="Float + sales" icon={CheckCircle2} accent={SUCCESS} />
         <StatCard label="Variance" value={`₦${Math.abs(variance).toLocaleString()}`} sub={variance === 0 ? "Balanced" : variance > 0 ? `Over by ₦${variance.toLocaleString()}` : `Short by ₦${Math.abs(variance).toLocaleString()}`} icon={AlertTriangle} accent={variance === 0 ? SUCCESS : variance > 0 ? ORANGE : ERROR} />
       </div>
 
       {showHistory ? (
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="px-5 py-4 border-b" style={{ borderColor: BORDER }}><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Recent Shift History</h3></div>
+          <div className="px-5 py-4 border-b" style={{ borderColor: BORDER }}><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Recent shift history</h3></div>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Shift ID","Date","Operator","Float","Net Sales","Variance","Status"].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Shift ID","Date","Operator","Float","Net sales","Variance","Status"].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {HISTORY.map(h => (
                 <tr key={h.id} className="border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER }}>
@@ -2333,7 +2333,7 @@ export function CashDrawerReconciliation({ add }: { add: (t: Omit<Toast, "id">) 
           {/* Denomination count + close */}
           <div className="col-span-2 space-y-4">
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Denomination Count</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Denomination count</h3>
               <div className="space-y-2">
                 {DENOMS.map(d => (
                   <div key={d.value} className="flex items-center gap-3">
@@ -2345,11 +2345,11 @@ export function CashDrawerReconciliation({ add }: { add: (t: Omit<Toast, "id">) 
               </div>
               <div className="mt-4 pt-3 border-t" style={{ borderColor: BORDER }}>
                 <div className="flex justify-between text-sm font-bold">
-                  <span style={{ color: TEXT }}>Counted Total</span>
+                  <span style={{ color: TEXT }}>Counted total</span>
                   <span style={{ color: PRIMARY_, fontFamily: mono }}>₦{countedTotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm mt-1">
-                  <span style={{ color: MUTED }}>Expected Total</span>
+                  <span style={{ color: MUTED }}>Expected total</span>
                   <span style={{ color: MUTED, fontFamily: mono }}>₦{expectedTotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold mt-2 pt-2 border-t" style={{ borderColor: BORDER }}>
@@ -2361,7 +2361,7 @@ export function CashDrawerReconciliation({ add }: { add: (t: Omit<Toast, "id">) 
 
             {/* Close shift */}
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Close Shift</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Close shift</h3>
               {variance !== 0 && (
                 <div className="mb-3">
                   <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Variance Reason <span style={{ color: ERROR }}>*</span></label>
@@ -2375,7 +2375,7 @@ export function CashDrawerReconciliation({ add }: { add: (t: Omit<Toast, "id">) 
               {phase === "done" ? (
                 <div className="py-3 text-center text-sm font-semibold rounded-xl" style={{ backgroundColor: "#DCFCE7", color: "#166534" }}>Shift closed ✓</div>
               ) : (
-                <button onClick={confirmClose} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY_ }}>Close & Reconcile Shift</button>
+                <button onClick={confirmClose} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY_ }}>Close & reconcile shift</button>
               )}
             </div>
           </div>
@@ -2471,7 +2471,7 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
       {showHistory ? (
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="px-5 py-4 border-b" style={{ borderColor: BORDER }}><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Night Audit History</h3></div>
+          <div className="px-5 py-4 border-b" style={{ borderColor: BORDER }}><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Night audit history</h3></div>
           <table className="w-full">
             <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Audit ID","Date","Operator","Rooms","Revenue","Duration","Status",""].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
@@ -2497,7 +2497,7 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             {/* Pre-audit checklist */}
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Pre-audit Checklist</h3>
+                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Pre-audit checklist</h3>
                 {!allPass && <span className="text-xs px-2.5 py-1 rounded-xl font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Action required</span>}
                 {allPass && <span className="text-xs px-2.5 py-1 rounded-xl font-semibold" style={{ backgroundColor: "#DCFCE7", color: SUCCESS }}>All clear</span>}
               </div>
@@ -2514,7 +2514,7 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
             {/* Audit steps */}
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Audit Steps</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Audit steps</h3>
               <div className="space-y-3">
                 {STEPS_DEF.map((step, i) => {
                   const s = stepStatuses[step.id];
@@ -2565,7 +2565,7 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs" style={{ backgroundColor: SUCCESS }}>✓</div>
-                  <h3 className="text-sm font-semibold" style={{ color: SUCCESS }}>Audit Complete</h3>
+                  <h3 className="text-sm font-semibold" style={{ color: SUCCESS }}>Audit complete</h3>
                 </div>
                 <div className="space-y-2.5 text-sm">
                   {[
@@ -2595,7 +2595,7 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               </div>
             )}
             <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick Info</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick info</h3>
               <div className="space-y-2 text-xs">
                 {[["Business date","24 Jun 2026"],["Last audit","23 Jun 23:58"],["Catch-up nights","0"],["Operator","Grace Mensah"]].map(([k,v])=>(
                   <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span style={{ color: TEXT }}>{v}</span></div>
@@ -2611,13 +2611,13 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowRollback(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Rollback Night Audit</h3>
+            <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Rollback night audit</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>This will reverse the date roll and unfreeze revenue. This action is fully audited.</p>
             <div className="space-y-3">
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason <span style={{ color: ERROR }}>*</span></label><textarea value={rollbackReason} onChange={e=>setRollbackReason(e.target.value)} rows={2} placeholder="State the reason for rollback…" aria-label="State the reason for rollback" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN <span style={{ color: ERROR }}>*</span></label><input type="password" maxLength={4} value={rollbackPin} onChange={e=>setRollbackPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowRollback(false)} /><button onClick={() => { if (rollbackPin !== "1234" || !rollbackReason.trim()) { add({ type: "error", title: "Invalid PIN or missing reason" }); return; } setAuditStatus("idle"); setStepStatuses(Object.fromEntries(STEPS_DEF.map(s=>[s.id,"pending"]))); setShowRollback(false); add({ type: "warning", title: "Night audit rolled back", body: rollbackReason }); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Confirm Rollback</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowRollback(false)} /><button onClick={() => { if (rollbackPin !== "1234" || !rollbackReason.trim()) { add({ type: "error", title: "Invalid PIN or missing reason" }); return; } setAuditStatus("idle"); setStepStatuses(Object.fromEntries(STEPS_DEF.map(s=>[s.id,"pending"]))); setShowRollback(false); add({ type: "warning", title: "Night audit rolled back", body: rollbackReason }); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Confirm rollback</button></div>
           </div>
         </>
       )}
@@ -2661,12 +2661,12 @@ export function TaxConfiguration({ add }: { add: (t: Omit<Toast, "id">) => void 
 
   return (
     <div>
-      <PageHeader title="Tax Configuration" sub="Tax codes, computation sequence, exemptions, and FIRS e-invoicing" actions={<BtnP label="Add Tax Code" icon={Plus} onClick={() => setShowEdit(true)} />} />
+      <PageHeader title="Tax Configuration" sub="Tax codes, computation sequence, exemptions, and FIRS e-invoicing" actions={<BtnP label="Add tax code" icon={Plus} onClick={() => setShowEdit(true)} />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Active Codes" value={String(Object.values(activeCodes).filter(Boolean).length)} sub="Applied to transactions" icon={Layers} accent={PRIMARY} />
-        <StatCard label="VAT Rate" value="7.5%" sub="Federal — standard" icon={DollarSign} accent={TEAL} />
+        <StatCard label="Active codes" value={String(Object.values(activeCodes).filter(Boolean).length)} sub="Applied to transactions" icon={Layers} accent={PRIMARY} />
+        <StatCard label="VAT rate" value="7.5%" sub="Federal — standard" icon={DollarSign} accent={TEAL} />
         <StatCard label="Service Charge" value="10%" sub="All F&B categories" icon={Activity} accent={ORANGE} />
-        <StatCard label="FIRS Status" value="Active" sub="e-Invoicing connected" icon={CheckCircle2} accent={SUCCESS} />
+        <StatCard label="FIRS status" value="Active" sub="e-Invoicing connected" icon={CheckCircle2} accent={SUCCESS} />
       </div>
 
       {/* Tab bar */}
@@ -2681,7 +2681,7 @@ export function TaxConfiguration({ add }: { add: (t: Omit<Toast, "id">) => void 
       {tab === "codes" && (
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Code","Name","Rate","Jurisdiction","Type","Categories","Inclusive","Compounds On","Effective","Active"].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Code","Name","Rate","Jurisdiction","Type","Categories","Inclusive","Compounds on","Effective","Active"].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {TAX_CODES.map(t => (
                 <tr key={t.id} className="border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER, opacity: activeCodes[t.id] ? 1 : 0.55 }}>
@@ -2705,7 +2705,7 @@ export function TaxConfiguration({ add }: { add: (t: Omit<Toast, "id">) => void 
       {tab === "stacking" && (
         <div className="grid grid-cols-2 gap-5">
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-            <h3 className="text-sm font-semibold mb-1" style={{ color: TEXT }}>Computation Sequence</h3>
+            <h3 className="text-sm font-semibold mb-1" style={{ color: TEXT }}>Computation sequence</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>Taxes apply in this order. Drag to reorder.</p>
             <div className="space-y-2">
               {[{ step: 1, code: "SVC", label: "Service Charge (10%)", base: "Base amount" },{ step: 2, code: "VAT", label: "VAT (7.5%)", base: "Base + Service Charge" }].map(s=>(
@@ -2718,7 +2718,7 @@ export function TaxConfiguration({ add }: { add: (t: Omit<Toast, "id">) => void 
             </div>
           </div>
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-            <h3 className="text-sm font-semibold mb-1" style={{ color: TEXT }}>Worked Example</h3>
+            <h3 className="text-sm font-semibold mb-1" style={{ color: TEXT }}>Worked example</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>₦50,000 room rate</p>
             <div className="space-y-2">
               {[
@@ -2740,7 +2740,7 @@ export function TaxConfiguration({ add }: { add: (t: Omit<Toast, "id">) => void 
 
       {tab === "exemptions" && (
         <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="flex items-center justify-between mb-4"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Exemption Rules</h3><BtnO label="Add Exemption" icon={Plus} onClick={() => add({ type: "info", title: "Add exemption rule" })} /></div>
+          <div className="flex items-center justify-between mb-4"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Exemption rules</h3><BtnO label="Add exemption" icon={Plus} onClick={() => add({ type: "info", title: "Add exemption rule" })} /></div>
           <div className="space-y-3">
             {EXEMPTIONS.map((ex,i)=>(
               <div key={i} className="flex items-start justify-between gap-4 px-4 py-4 rounded-xl border" style={{ borderColor: BORDER }}>
@@ -2759,17 +2759,17 @@ export function TaxConfiguration({ add }: { add: (t: Omit<Toast, "id">) => void 
       {tab === "firs" && (
         <div className="grid grid-cols-2 gap-5">
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-            <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>FIRS e-Invoicing Settings</h3>
+            <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>FIRS e-Invoicing settings</h3>
             <div className="space-y-3">
               {[["TIN","1234567-0001"],["Business Name","Grand Palms Hotel Ltd"],["FIRS Endpoint","https://einvoice.firs.gov.ng/api"],["API Key","••••••••••••2D9F"],["Submission Mode","Real-time"]].map(([k,v])=>(
                 <div key={k}><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>{k}</label>
                 <div className="px-3 py-2.5 rounded-xl border text-sm" style={{ borderColor: BORDER, color: TEXT, fontFamily: k==="API Key"||k==="TIN"?mono:undefined }}>{v}</div></div>
               ))}
-              <button onClick={() => add({ type: "success", title: "FIRS connection tested — OK" })} className="w-full py-2.5 rounded-xl text-sm font-semibold border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Test Connection</button>
+              <button onClick={() => add({ type: "success", title: "FIRS connection tested — OK" })} className="w-full py-2.5 rounded-xl text-sm font-semibold border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Test connection</button>
             </div>
           </div>
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-            <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Submission Queue</h3>
+            <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Submission queue</h3>
             <div className="space-y-2">
               {[{ inv: "INV-2025-0814", status: "Submitted", irn: "IRN-5A2F9C", ts: "24 Jun 11:02" },{ inv: "INV-2025-0815", status: "Submitted", irn: "IRN-6B3D0E", ts: "24 Jun 13:45" },{ inv: "INV-2025-0816", status: "Pending",   irn: "—",          ts: "24 Jun 14:22" },{ inv: "INV-2025-0817", status: "Failed",   irn: "—",          ts: "24 Jun 15:01" }].map(r=>(
                 <div key={r.inv} className="flex items-center gap-3 px-3 py-2.5 rounded-xl border" style={{ borderColor: BORDER }}>
@@ -2828,9 +2828,9 @@ export function RefundProcessing({ add }: { add: (t: Omit<Toast, "id">) => void 
   return (
     <div className="flex gap-4">
       <div className="flex-1 min-w-0">
-        <PageHeader title="Refund Processing" sub="Guest refunds — original lookup, penalty deduction, approval gate, and gateway status" actions={<BtnP label="New Refund Request" icon={Plus} onClick={() => setShowNew(true)} />} />
+        <PageHeader title="Refund Processing" sub="Guest refunds — original lookup, penalty deduction, approval gate, and gateway status" actions={<BtnP label="New refund request" icon={Plus} onClick={() => setShowNew(true)} />} />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Refunded Today" value={`₦${totalRefunded.toLocaleString()}`} sub="Completed" icon={ArrowDownToLine} accent={PRIMARY} />
+          <StatCard label="Refunded today" value={`₦${totalRefunded.toLocaleString()}`} sub="Completed" icon={ArrowDownToLine} accent={PRIMARY} />
           <StatCard label="Pending Approval" value={String(refunds.filter(r=>r.status==="Requested").length)} sub="Awaiting sign-off" icon={AlertTriangle} accent={ORANGE} />
           <StatCard label="Processing" value={String(refunds.filter(r=>r.status==="Processing").length)} sub="With payment gateway" icon={Clock} accent={TEAL} />
           <StatCard label="Failed" value={String(refunds.filter(r=>r.status==="Failed").length)} sub="Require retry" icon={AlertTriangle} accent={ERROR} />
@@ -2878,18 +2878,18 @@ export function RefundProcessing({ add }: { add: (t: Omit<Toast, "id">) => void 
               <div key={String(k)} className="flex justify-between gap-2"><span style={{ color: MUTED, flexShrink: 0 }}>{k}</span><span className="text-right font-semibold" style={{ color: TEXT, fontFamily: ["Original paid","Cancellation penalty","Unpaid charges","Refundable"].includes(String(k))?mono:undefined }}>{v}</span></div>
             ))}
             <div className="flex justify-between items-center"><span style={{ color: MUTED }}>Status</span><Badge label={sel.status} colors={statusColors[sel.status]} /></div>
-            {sel.gwRef && <div className="flex justify-between"><span style={{ color: MUTED }}>GW Ref</span><span className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{sel.gwRef}</span></div>}
+            {sel.gwRef && <div className="flex justify-between"><span style={{ color: MUTED }}>GW ref</span><span className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{sel.gwRef}</span></div>}
           </div>
           {/* Audit trail */}
           <div className="border-t pt-3 mt-2" style={{ borderColor: BORDER }}>
-            <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Audit Trail</div>
+            <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Audit trail</div>
             <div className="space-y-1.5 text-xs" style={{ color: MUTED }}>
               <div><span style={{ fontFamily: mono }}>{sel.raisedAt}</span> — Request raised</div>
               {sel.approver && <div><span style={{ fontFamily: mono }}>{sel.completedAt||"Pending"}</span> — {sel.status === "Completed" ? "Processed" : `Approved by ${sel.approver}`}</div>}
             </div>
           </div>
           <div className="mt-4 space-y-2">
-            {sel.status === "Requested" && <button onClick={() => setShowApprove(true)} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Approve Refund</button>}
+            {sel.status === "Requested" && <button onClick={() => setShowApprove(true)} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Approve refund</button>}
             {sel.status === "Requested" && <button onClick={() => { setRefunds(prev=>prev.map(r=>r.id===sel.id?{...r,status:"Rejected",approver:"Grace Mensah"}:r)); setSelected(null); add({ type:"warning", title:`Refund ${sel.id} rejected` }); }} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Reject</button>}
           </div>
         </div>
@@ -2969,7 +2969,7 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
           </div>
           <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
             <table className="w-full">
-              <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Reversal ID","Date/Time","Type","Charge","Folio","Original","Reversed","Reason","Operator","Auth. By"].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+              <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Reversal ID","Date/Time","Type","Charge","Folio","Original","Reversed","Reason","Operator","Auth. by"].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
               <tbody>
                 {REVERSAL_HISTORY.map(r=>(
                   <tr key={r.id} className="border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER }}>
@@ -2994,7 +2994,7 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
           {/* Left: charge selector */}
           <div className="space-y-4">
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Select Charge</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Select charge</h3>
               <div className="space-y-2">
                 {SAMPLE_CHARGES.map(c=>(
                   <div key={c.id} onClick={() => { setSelectedCharge(c); setSubmitted(false); setAckText(""); setManagerPin(""); }} className="px-4 py-3 rounded-xl border cursor-pointer transition-colors" style={{ borderColor: selectedCharge.id===c.id?PRIMARY:BORDER, backgroundColor: selectedCharge.id===c.id?"#EFF6FF":"white" }}>
@@ -3031,7 +3031,7 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
                 <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Void / Reversal Form</h3>
 
                 {/* Type */}
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-2" style={{ color: MUTED }}>Reversal Type</label>
+                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-2" style={{ color: MUTED }}>Reversal type</label>
                 <div className="grid grid-cols-2 gap-2">
                   {(["full","partial"] as const).map(t=>(
                     <button key={t} onClick={() => setVoidType(t)} className="py-2.5 rounded-xl border text-sm font-semibold" style={{ backgroundColor: voidType===t?PRIMARY:"white", color: voidType===t?"white":MUTED, borderColor: voidType===t?PRIMARY:BORDER }}>
@@ -3042,8 +3042,8 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
 
                 {/* Partial amount */}
                 {voidType === "partial" && (
-                  <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reversal Amount (₦)</label>
-                  <input aria-label="Reversal Amount (₦)" type="number" max={selectedCharge.amount} value={partialAmt} onChange={e=>setPartialAmt(e.target.value)} placeholder={`Max ₦${selectedCharge.amount.toLocaleString()}`} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                  <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reversal amount (₦)</label>
+                  <input aria-label="Reversal amount (₦)" type="number" max={selectedCharge.amount} value={partialAmt} onChange={e=>setPartialAmt(e.target.value)} placeholder={`Max ₦${selectedCharge.amount.toLocaleString()}`} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
                 )}
 
                 {/* Reason */}
@@ -3056,7 +3056,7 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
 
                 {/* Balance preview */}
                 <div className="px-4 py-3 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: `1px solid ${BORDER}` }}>
-                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Balance Preview</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Balance preview</div>
                   <div className="flex justify-between text-sm"><span style={{ color: MUTED }}>Original</span><span style={{ fontFamily: mono }}>₦{selectedCharge.amount.toLocaleString()}</span></div>
                   <div className="flex justify-between text-sm"><span style={{ color: MUTED }}>Reversal</span><span style={{ color: ERROR, fontFamily: mono }}>−₦{reversalAmount.toLocaleString()}</span></div>
                   <div className="flex justify-between text-sm font-bold border-t mt-1.5 pt-1.5" style={{ borderColor: BORDER }}><span style={{ color: TEXT }}>Result</span><span style={{ color: resultingBalance===0?SUCCESS:PRIMARY, fontFamily: mono }}>₦{resultingBalance.toLocaleString()}</span></div>
@@ -3139,7 +3139,7 @@ export function AccountingExport({ add }: { add: (t: Omit<Toast, "id">) => void 
     <div>
       <PageHeader title="Accounting Export" sub="GL mapping · journal preview · balanced-entry check · export history" actions={
         <div className="flex gap-2">
-          <BtnO label="Download Template" icon={Download} onClick={() => add({ type:"info", title:"GL template downloading" })} />
+          <BtnO label="Download template" icon={Download} onClick={() => add({ type:"info", title:"GL template downloading" })} />
         </div>
       } />
 
@@ -3156,13 +3156,13 @@ export function AccountingExport({ add }: { add: (t: Omit<Toast, "id">) => void 
           {/* Config & validation */}
           <div className="space-y-4">
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: MUTED }}>Export Settings</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: MUTED }}>Export settings</h3>
               <div className="space-y-3">
                 <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Period</label>
                   <input aria-label="Period" value={period} onChange={e=>setPeriod(e.target.value)} className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} />
                 </div>
-                <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Export Format</label>
-                  <select aria-label="Export Format" value={format} onChange={e=>setFormat(e.target.value)} className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-white" style={{ borderColor: BORDER }}>
+                <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Export format</label>
+                  <select aria-label="Export format" value={format} onChange={e=>setFormat(e.target.value)} className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-white" style={{ borderColor: BORDER }}>
                     {["Sage 50","QuickBooks IIF","CSV (Generic)","Excel","IFRS XML"].map(f=><option key={f}>{f}</option>)}
                   </select>
                 </div>
@@ -3224,11 +3224,11 @@ export function AccountingExport({ add }: { add: (t: Omit<Toast, "id">) => void 
       {tab === "mapping" && (
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold" style={{ color: TEXT }}>GL Account Mapping</h3>
-            <BtnO label="Save Mapping" icon={Download} onClick={() => add({ type:"success", title:"GL mapping saved" })} />
+            <h3 className="text-sm font-semibold" style={{ color: TEXT }}>GL account mapping</h3>
+            <BtnO label="Save mapping" icon={Download} onClick={() => add({ type:"success", title:"GL mapping saved" })} />
           </div>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Income Code","Description","GL Account","Dept","Cost Center","Active"].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Income code","Description","GL account","Dept","Cost center","Active"].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {mapping.map((m,i) => (
                 <tr key={i} className="border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER }}>
@@ -3250,10 +3250,10 @@ export function AccountingExport({ add }: { add: (t: Omit<Toast, "id">) => void 
       {tab === "history" && (
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <div className="px-5 py-4 border-b" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Export History</h3>
+            <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Export history</h3>
           </div>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Export ID","Date","Period","Format","Entries","Exported By","Status",""].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Export ID","Date","Period","Format","Entries","Exported by","Status",""].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {EXPORT_HISTORY.map(h => (
                 <tr key={h.id} className="border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER }}>
@@ -3337,20 +3337,20 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <PageHeader title="Credit Notes" sub="Gapless CN numbering · approval workflow · apply to invoice" actions={
           <div className="flex gap-2">
             <BtnO label="Export" icon={Download} onClick={() => add({ type:"info", title:"Exporting credit notes" })} />
-            <BtnP label="Issue Credit Note" icon={Plus} onClick={() => setShowNew(true)} />
+            <BtnP label="Issue credit note" icon={Plus} onClick={() => setShowNew(true)} />
           </div>
         } />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Total CNs Issued"  value={`${cns.length}`}                                           sub="All time"             icon={FileText}    accent={PRIMARY} />
-          <StatCard label="Total CN Value"     value={`₦${cns.reduce((s,c)=>s+c.amount,0).toLocaleString()}`}  sub="All CNs"              icon={TrendingDown} accent={ERROR}   />
+          <StatCard label="Total CNs issued"  value={`${cns.length}`}                                           sub="All time"             icon={FileText}    accent={PRIMARY} />
+          <StatCard label="Total CN value"     value={`₦${cns.reduce((s,c)=>s+c.amount,0).toLocaleString()}`}  sub="All CNs"              icon={TrendingDown} accent={ERROR}   />
           <StatCard label="Pending Approval"   value={`${cns.filter(c=>c.status==="Pending Approval").length}`} sub="Awaiting manager"     icon={AlertCircle}  accent={WARNING} />
           <StatCard label="Next CN #"          value={`CN-2025-${String(nextNum).padStart(4,"0")}`}             sub="Gapless sequence"     icon={Hash}         accent={TEAL}    />
         </div>
 
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["CN #","Invoice Ref","Guest","Type","Amount","Reason","Issued","Status",""].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["CN #","Invoice ref","Guest","Type","Amount","Reason","Issued","Status",""].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {cns.map(cn => (
                 <tr key={cn.id} onClick={() => setSelected(cn.id)} className="border-t hover:bg-[#F8FAFC] cursor-pointer" style={{ borderColor: BORDER, backgroundColor: selected===cn.id?"#EFF6FF":undefined }}>
@@ -3401,7 +3401,7 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Issue Credit Note — {`CN-2025-${String(nextNum).padStart(4,"0")}`}</h3>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Invoice Reference</label><input value={newInvRef} onChange={e=>setNewInvRef(e.target.value)} placeholder="INV-2025-XXXX" aria-label="INV-2025-XXXX" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
+                <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Invoice reference</label><input value={newInvRef} onChange={e=>setNewInvRef(e.target.value)} placeholder="INV-2025-XXXX" aria-label="INV-2025-XXXX" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
                 <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Guest / Company</label><input value={newGuest} onChange={e=>setNewGuest(e.target.value)} placeholder="Name" aria-label="Name" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -3421,7 +3421,7 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             </div>
             <div className="flex gap-3 mt-5">
               <BtnO label="Cancel" onClick={() => setShowNew(false)} />
-              <button onClick={issueCN} disabled={!newInvRef||!newGuest||!newAmt} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Create Credit Note</button>
+              <button onClick={issueCN} disabled={!newInvRef||!newGuest||!newAmt} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Create credit note</button>
             </div>
           </div>
         </>
@@ -3503,7 +3503,7 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
   return (
     <div>
       <PageHeader title="Complaint Management" sub="CS-owned · SLA tracking · Compensation recording"
-        actions={<BtnP label="New Complaint" icon={Plus} onClick={()=>add({type:"info",title:"Complaint log opened"})} />}
+        actions={<BtnP label="New complaint" icon={Plus} onClick={()=>add({type:"info",title:"Complaint log opened"})} />}
       />
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
@@ -3592,16 +3592,16 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
 
             {/* Internal note */}
             <div>
-              <label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Internal Note</label>
+              <label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Internal note</label>
               <textarea value={noteText} onChange={e=>setNoteText(e.target.value)} rows={2} placeholder="Add note visible only to staff…" aria-label="Add note visible only to staff" className="w-full px-3 py-2 rounded-xl border text-xs outline-none resize-none" style={{ borderColor:BORDER, color:TEXT }} />
-              <button onClick={()=>{ add({type:"info",title:"Note added"}); setNoteText(""); }} className="mt-1 text-xs px-3 py-1.5 rounded-xl border font-semibold" style={{ color:PRIMARY, borderColor:`${PRIMARY}30` }}>Save Note</button>
+              <button onClick={()=>{ add({type:"info",title:"Note added"}); setNoteText(""); }} className="mt-1 text-xs px-3 py-1.5 rounded-xl border font-semibold" style={{ color:PRIMARY, borderColor:`${PRIMARY}30` }}>Save note</button>
             </div>
 
             {/* Actions */}
             <div className="space-y-2">
-              <button onClick={()=>setShowComp(true)} className="w-full py-2.5 rounded-xl text-xs font-semibold border" style={{ color:TEAL, borderColor:`${TEAL}30` }}>Post Compensation to Folio</button>
+              <button onClick={()=>setShowComp(true)} className="w-full py-2.5 rounded-xl text-xs font-semibold border" style={{ color:TEAL, borderColor:`${TEAL}30` }}>Post compensation to folio</button>
               <button onClick={()=>add({type:"warning",title:`${selected.id} escalated to management`})} className="w-full py-2.5 rounded-xl text-xs font-semibold border" style={{ color:ERROR, borderColor:`${ERROR}30` }}>Escalate</button>
-              <button onClick={()=>add({type:"success",title:`${selected.id} resolved`})} className="w-full py-2.5 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor:SUCCESS }}>Mark Resolved</button>
+              <button onClick={()=>add({type:"success",title:`${selected.id} resolved`})} className="w-full py-2.5 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor:SUCCESS }}>Mark resolved</button>
             </div>
           </div>
         )}
@@ -3612,11 +3612,11 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.45)" }} onClick={()=>setShowComp(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-80" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-sm font-bold mb-1" style={{ color:TEXT }}>Post Compensation</h3>
+            <h3 className="text-sm font-bold mb-1" style={{ color:TEXT }}>Post compensation</h3>
             <p className="text-xs mb-4" style={{ color:MUTED }}>Amount will be posted as a credit to Room {selected.room} folio and deducted from the guest's bill.</p>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Compensation Type</label>
-                <select aria-label="Compensation Type" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
+              <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Compensation type</label>
+                <select aria-label="Compensation type" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
                   {["Room Rate Discount","F&B Credit","Service Waiver","Full Night Comp","Other Credit"].map(t=><option key={t}>{t}</option>)}
                 </select>
               </div>
@@ -3626,7 +3626,7 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
             </div>
             <div className="flex gap-3 mt-4">
               <button onClick={()=>setShowComp(false)} className="flex-1 py-2.5 rounded-xl text-sm border font-semibold" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
-              <button onClick={()=>{ add({type:"success",title:`₦${Number(compAmt).toLocaleString()} compensation posted to folio`}); setShowComp(false); setCompAmt(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:TEAL }}>Post Credit</button>
+              <button onClick={()=>{ add({type:"success",title:`₦${Number(compAmt).toLocaleString()} compensation posted to folio`}); setShowComp(false); setCompAmt(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:TEAL }}>Post credit</button>
             </div>
           </div>
         </>
@@ -3682,7 +3682,7 @@ export function ComplaintDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {/* Trend by severity */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.07)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Complaints by Month & Severity</div>
+          <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Complaints by month & severity</div>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={TREND} barSize={14}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
@@ -3699,7 +3699,7 @@ export function ComplaintDashboard() {
 
         {/* By category */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.07)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>By Category</div>
+          <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>By category</div>
           <div className="space-y-2">
             {byCat.map(b=>(
               <div key={b.cat} className="flex items-center gap-3">
@@ -3717,7 +3717,7 @@ export function ComplaintDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* By department */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.07)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Open vs Resolved by Department</div>
+          <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Open vs resolved by department</div>
           <div className="space-y-2">
             {byDept.filter(d=>d.open+d.resolved>0).map(d=>(
               <div key={d.dept} className="flex items-center justify-between text-xs py-1.5 border-b" style={{ borderColor:"#F4F4F5" }}>
@@ -3733,7 +3733,7 @@ export function ComplaintDashboard() {
 
         {/* Repeat guests */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.07)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Repeat-Complaint Guests</div>
+          <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Repeat-complaint guests</div>
           {REPEAT_GUESTS.length === 0
             ? <div className="text-xs text-center mt-6" style={{ color:SUBTLE }}>No repeat complaint guests this period.</div>
             : REPEAT_GUESTS.map((g,i)=>(

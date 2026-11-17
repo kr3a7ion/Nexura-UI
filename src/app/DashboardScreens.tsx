@@ -112,7 +112,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         <div className="lg:col-span-6 bg-white rounded-xl p-5 border" style={{ borderColor: BORDER }}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <div className="text-sm font-semibold" style={{ color: TEXT }}>Occupancy Trend</div>
+              <div className="text-sm font-semibold" style={{ color: TEXT }}>Occupancy trend</div>
               <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>June 2026 — 30 days</div>
             </div>
             <div className="flex gap-4 text-xs" style={{ color: MUTED }}>
@@ -136,7 +136,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
 
         {/* Revenue by category — donut */}
         <div className="lg:col-span-3 bg-white rounded-xl p-5 border" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold mb-1" style={{ color: TEXT }}>Revenue by Category</div>
+          <div className="text-sm font-semibold mb-1" style={{ color: TEXT }}>Revenue by category</div>
           <div className="text-xs mb-3" style={{ color: SUBTLE }}>Today · total ₦1.25M</div>
           <div className="flex items-center justify-center">
             <PieChart width={130} height={130}>
@@ -158,7 +158,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         {/* Room status panel */}
         <div className="lg:col-span-3 bg-white rounded-xl p-5 border" style={{ borderColor: BORDER }}>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-sm font-semibold" style={{ color: TEXT }}>Room Status</div>
+            <div className="text-sm font-semibold" style={{ color: TEXT }}>Room status</div>
             <button onClick={() => go("hk-board", "Housekeeping Board")} className="text-xs font-semibold" style={{ color: TEAL }}>Board →</button>
           </div>
           <div className="space-y-2">
@@ -213,7 +213,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         {/* Recent activity feed */}
         <div className="lg:col-span-4 bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
           <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: BORDER }}>
-            <div className="text-sm font-semibold" style={{ color: TEXT }}>Live Activity</div>
+            <div className="text-sm font-semibold" style={{ color: TEXT }}>Live activity</div>
             <button onClick={() => go("audit-log", "Audit Log")} className="text-xs font-semibold" style={{ color: TEAL }}>Full log →</button>
           </div>
           <div className="divide-y" style={{ borderColor: BORDER }}>
@@ -547,7 +547,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
 
             {/* Quick actions */}
             <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick Actions</div>
+              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick actions</div>
               <div className="space-y-2">
                 {[
                   { label:"New Reservation",    screen:"new-reservation", color:PRIMARY  },
@@ -593,7 +593,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         <RoleKPI label="Assigned" value="40" sub="rooms this shift" accent={PRIMARY} icon={BedDouble} />
         <RoleKPI label="Dirty" value="14" sub="3 departures priority" accent={ERROR} icon={AlertTriangle} />
         <RoleKPI label="Clean / Ready" value="18" sub="inspected & released" accent={SUCCESS} icon={CheckCircle2} />
-        <RoleKPI label="DND Rooms" value="3" sub="wellness check due × 1" accent={WARNING} icon={XCircle} />
+        <RoleKPI label="DND rooms" value="3" sub="wellness check due × 1" accent={WARNING} icon={XCircle} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RoleCard title="Room Status Grid">
@@ -660,9 +660,9 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <RoleKPI label="Open Orders" value="7" sub="all priorities" accent={PRIMARY} icon={Wrench} />
+        <RoleKPI label="Open orders" value="7" sub="all priorities" accent={PRIMARY} icon={Wrench} />
         <RoleKPI label="Overdue" value="2" sub="SLA breached" accent={ERROR} icon={AlertTriangle} />
-        <RoleKPI label="PM Due" value="1" sub="generator — 7 days" accent={ORANGE} icon={CalendarCheck} />
+        <RoleKPI label="PM due" value="1" sub="generator — 7 days" accent={ORANGE} icon={CalendarCheck} />
         <RoleKPI label="Completed" value="3" sub="this shift" accent={SUCCESS} icon={CheckCircle2} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -696,7 +696,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Zap size={13} style={{ color: WARNING }} />
-                <div className="text-sm font-semibold" style={{ color: TEXT }}>Generator Status</div>
+                <div className="text-sm font-semibold" style={{ color: TEXT }}>Generator status</div>
               </div>
               <button onClick={() => go("generator-diesel", "Generator Diesel")} className="text-xs font-semibold" style={{ color: TEAL }}>Log diesel →</button>
             </div>
@@ -768,10 +768,10 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <RoleKPI label="Covers Today" value="47" sub="breakfast service" accent={PRIMARY} icon={Users} />
-        <RoleKPI label="Open Tables" value="8/24" sub="tables available" accent={SUCCESS} icon={UtensilsCrossed} />
+        <RoleKPI label="Covers today" value="47" sub="breakfast service" accent={PRIMARY} icon={Users} />
+        <RoleKPI label="Open tables" value="8/24" sub="tables available" accent={SUCCESS} icon={UtensilsCrossed} />
         <RoleKPI label="KDS Queue" value="4" sub="orders in kitchen" accent={ORANGE} icon={ClipboardList} />
-        <RoleKPI label="F&B Revenue" value="₦225K" sub="today so far" accent={TEAL} icon={DollarSign} />
+        <RoleKPI label="F&B revenue" value="₦225K" sub="today so far" accent={TEAL} icon={DollarSign} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RoleCard title="KDS Queue">
@@ -854,7 +854,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
           <RoleKPI label="Revenue Today" value="₦1.25M" sub="113% of ₦1.1M target"  accent={SUCCESS}  icon={TrendingUp}  />
           <RoleKPI label="Outstanding"   value="₦284K"  sub="3 open guest folios"    accent={ERROR}    icon={FileText}   />
           <RoleKPI label="AP Due / Wk"   value="₦640K"  sub="2 suppliers overdue"    accent={ORANGE}   icon={CreditCard} />
-          <RoleKPI label="Day Close"     value="Pending" sub="audit not yet run"      accent={WARNING}  icon={RefreshCw}  />
+          <RoleKPI label="Day close"     value="Pending" sub="audit not yet run"      accent={WARNING}  icon={RefreshCw}  />
         </div>
 
         {/* Revenue vs Target chart */}
@@ -940,7 +940,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               ))}
             </RoleCard>
             <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick Links</div>
+              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick links</div>
               {[
                 { label:"Night Audit",        screen:"night-audit"         },
                 { label:"Refund Processing",  screen:"refund-processing"   },
@@ -989,10 +989,10 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
           </div>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-          <RoleKPI label="Bookings Today"  value="7"  sub="4 confirmed · 3 pending" accent={PRIMARY} icon={CalendarDays} />
+          <RoleKPI label="Bookings today"  value="7"  sub="4 confirmed · 3 pending" accent={PRIMARY} icon={CalendarDays} />
           <RoleKPI label="Pipeline (7d)"   value="34" sub="reservations ahead"      accent={TEAL}    icon={TrendingUp}   />
           <RoleKPI label="Waitlist"        value="3"  sub="guests waiting"           accent={ORANGE}  icon={ClipboardList}/>
-          <RoleKPI label="Group Blocks"    value="1"  sub="12 rooms · 60% picked up" accent={SUCCESS}  icon={Users}        />
+          <RoleKPI label="Group blocks"    value="1"  sub="12 rooms · 60% picked up" accent={SUCCESS}  icon={Users}        />
         </div>
 
         {/* 7-day pipeline chart */}
@@ -1056,7 +1056,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
           {/* Quick Links + Cancellations */}
           <div className="flex flex-col gap-4">
             <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Recent Cancellations</div>
+              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Recent cancellations</div>
               {[
                 { id:"RES-1031", guest:"Mr. Bello Haruna",   type:"Deluxe",   reason:"Change of plans", date:"23 Jun", penalty:"₦15,000" },
                 { id:"RES-1028", guest:"Miss Chika Okafor",  type:"Standard", reason:"No-show",         date:"22 Jun", penalty:"₦25,000" },
@@ -1076,7 +1076,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               ))}
             </div>
             <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick Actions</div>
+              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick actions</div>
               {[
                 { label:"Group Bookings",  screen:"group-bookings"  },
                 { label:"Rate Calendar",   screen:"rate-calendar"   },
@@ -1101,7 +1101,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
   if (role === "IT") return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>IT Administration</h1>
+        <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>IT administration</h1>
           <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · System status</div></div>
         <button onClick={() => go("system-health", "System Health")}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>
@@ -1110,9 +1110,9 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <RoleKPI label="Uptime" value="99.8%" sub="30-day average" accent={SUCCESS} icon={Activity} />
-        <RoleKPI label="Devices Online" value="23/26" sub="3 offline / idle" accent={ORANGE} icon={Cpu} />
-        <RoleKPI label="Backup Age" value="26 h" sub="last: 23 Jun 07:14" accent={ERROR} icon={Shield} />
-        <RoleKPI label="Sync Lag" value="45 min" sub="Lagos branch" accent={WARNING} icon={Globe} />
+        <RoleKPI label="Devices online" value="23/26" sub="3 offline / idle" accent={ORANGE} icon={Cpu} />
+        <RoleKPI label="Backup age" value="26 h" sub="last: 23 Jun 07:14" accent={ERROR} icon={Shield} />
+        <RoleKPI label="Sync lag" value="45 min" sub="Lagos branch" accent={WARNING} icon={Globe} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RoleCard title="Service Checks">
@@ -1206,7 +1206,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         {/* KPI strip */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
           <RoleKPI label="Active Trips"        value={String(activeTrips.length)}    sub="dispatched / en-route / in-transit" accent={PRIMARY}  icon={Car}           />
-          <RoleKPI label="Vehicles Available"  value={`${vehiclesAvailable}/4`}      sub="1 in maintenance"                   accent={SUCCESS}  icon={CheckCircle2}  />
+          <RoleKPI label="Vehicles available"  value={`${vehiclesAvailable}/4`}      sub="1 in maintenance"                   accent={SUCCESS}  icon={CheckCircle2}  />
           <RoleKPI label="Pending Approval"    value={String(pendingApproval.length)} sub={pendingApproval.length > 0 ? "Awaiting supervisor sign-off" : "Queue clear"} accent={pendingApproval.length > 0 ? ERROR : MUTED} icon={AlertTriangle} />
           <RoleKPI label="Doc / Service Alerts" value={String(docAlerts)}            sub="vehicles with expired or expiring docs" accent={docAlerts > 0 ? WARNING : MUTED} icon={Wrench} />
         </div>
@@ -1325,7 +1325,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
     return (
       <div>
         <div className="flex items-center justify-between mb-5">
-          <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>My Dashboard</h1>
+          <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>My dashboard</h1>
             <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · Driver view</div></div>
           <button onClick={() => go("new-trip", "New Trip Request")}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>
@@ -1334,9 +1334,9 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
           <RoleKPI label="Today's Trips" value="3"    sub="1 active · 2 upcoming" accent={PRIMARY}  icon={Car}          />
-          <RoleKPI label="Km Today"      value="84km" sub="est. 210km total"      accent={TEAL}     icon={MapPin}       />
+          <RoleKPI label="Km today"      value="84km" sub="est. 210km total"      accent={TEAL}     icon={MapPin}       />
           <RoleKPI label="Vehicle"       value="ABJ 123 XA" sub="Toyota Camry"   accent={SUCCESS}   icon={CheckCircle2} />
-          <RoleKPI label="Fuel Level"    value="72%"  sub="~310 km range"         accent={WARNING}   icon={Layers}       />
+          <RoleKPI label="Fuel level"    value="72%"  sub="~310 km range"         accent={WARNING}   icon={Layers}       />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <RoleCard title="Today's Trips">
@@ -1359,7 +1359,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
           </RoleCard>
           <div className="flex flex-col gap-4">
             <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Vehicle Status</div>
+              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Vehicle status</div>
               {[
                 { label:"Plate",       value:"ABJ 123 XA"    },
                 { label:"Make",        value:"Toyota Camry 2022" },
@@ -1374,7 +1374,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               ))}
             </div>
             <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
-              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick Actions</div>
+              <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick actions</div>
               {[
                 { label:"Report Defect",     screen:"internal-chat"  },
                 { label:"Internal Chat",     screen:"internal-chat"  },
@@ -1410,7 +1410,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         <RoleKPI label="Occupancy" value="88%" sub="62 / 100 rooms" accent={PRIMARY} icon={Building2} />
         <RoleKPI label="Revenue Today" value="₦1.25M" sub="+13.5% vs target" accent={SUCCESS} icon={DollarSign} />
         <RoleKPI label="In House" value="94" sub="12 arrivals today" accent={ORANGE} icon={Users} />
-        <RoleKPI label="Open Issues" value="9" sub="7 MX · 2 complaints" accent={ERROR} icon={AlertTriangle} />
+        <RoleKPI label="Open issues" value="9" sub="7 MX · 2 complaints" accent={ERROR} icon={AlertTriangle} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RoleCard title="Department Status">
