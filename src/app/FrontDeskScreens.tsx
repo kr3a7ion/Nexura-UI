@@ -94,10 +94,10 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
   const STEP_ICONS = [Ph.CalendarCheck, Ph.UserCheck, Ph.Bed, Ph.FileText, Ph.CreditCard, Ph.Key, Ph.DownloadSimple];
 
   const ALL_ARRIVALS = [
-    { id: "BK-2849", guest: "Dr. Chukwuemeka Bello", av: "CB", room: "501", type: "Suite", eta: "14:00", nights: 3, rate: 91125, vip: true, deposit: 91125, requests: "Champagne + fruit basket" },
-    { id: "BK-2850", guest: "Adaeze Okonkwo", av: "AO", room: "303", type: "Deluxe", eta: "15:30", nights: 2, rate: 55000, vip: false, deposit: 55000, requests: "High floor preferred" },
-    { id: "BK-2851", guest: "Emmanuel Adeyemi", av: "EA", room: "", type: "Standard", eta: "12:00", nights: 1, rate: 35000, vip: false, deposit: 35000, requests: "" },
-    { id: "BK-2852", guest: "Fatima Al-Hassan", av: "FA", room: "", type: "Deluxe", eta: "16:00", nights: 4, rate: 55000, vip: true, deposit: 55000, requests: "Extra pillows, no smoking floor" },
+    { id: "BK-2855", guest: "Chief Emeka Okafor", av: "EO", room: "502", type: "Suite", eta: "14:00", nights: 3, rate: 85000, vip: true, deposit: 85000, requests: "Champagne + fruit basket" },
+    { id: "BK-2856", guest: "Aisha Mohammed", av: "AM", room: "303", type: "Deluxe", eta: "15:30", nights: 2, rate: 55000, vip: false, deposit: 55000, requests: "High floor preferred" },
+    { id: "BK-2857", guest: "Peter Okafor", av: "PO", room: "", type: "Standard", eta: "12:00", nights: 1, rate: 35000, vip: false, deposit: 35000, requests: "" },
+    { id: "BK-2858", guest: "Ngozi Adeyemi", av: "NA", room: "", type: "Deluxe", eta: "16:00", nights: 4, rate: 55000, vip: true, deposit: 55000, requests: "Extra pillows, no smoking floor" },
   ];
   const ARRIVALS = searchQ.trim()
     ? ALL_ARRIVALS.filter(a => a.guest.toLowerCase().includes(searchQ.toLowerCase()) || a.id.toLowerCase().includes(searchQ.toLowerCase()))
@@ -275,12 +275,11 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     ? <Ph.CheckCircle size={10} color="white" weight="fill" />
                     : <span style={{ color: active ? "white" : CK_MUT, fontSize: 12, fontWeight: 700 }}>{i + 1}</span>}
                 </div>
-                {done && <span style={{ fontSize: 7, color: PRIMARY, fontWeight: 700, letterSpacing: "0.06em" }}>DONE</span>}
-              </div>
+                              </div>
               <SI size={22} style={{ color: active ? "white" : done ? PRIMARY : CK_MUT }} />
               <p className="text-center mt-2 font-bold leading-tight"
                 style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : CK_MUT, letterSpacing: "0.05em" }}>
-                {STEP_SHORT[i].toUpperCase()}
+                {STEP_SHORT[i]}
               </p>
             </button>
           );
@@ -363,19 +362,19 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                   </div>
                 )}
                 <section>
-                  <SecLabel>Identity Verification</SecLabel>
+                  <SecLabel>Identity verification</SecLabel>
                   <div className="grid grid-cols-2 gap-4">
-                    <div><FL>Full Name (from ID)</FL><CkIn val={selData.guest} readOnly /></div>
+                    <div><FL>Full name (from ID)</FL><CkIn val={selData.guest} readOnly /></div>
                     <div><FL>Nationality</FL><CkSl val={nationality} set={setNationality} opts={["Nigerian","Ghanaian","Kenyan","South African","British","American","Other"]} /></div>
-                    <div><FL>ID Document Type</FL><CkSl val={idType} set={setIdType} opts={["International Passport","National ID Card","Driver's License","Voter's Card"]} /></div>
-                    <div><FL req>ID Number</FL><CkIn val={idNum} set={setIdNum} placeholder="A12345678" err={step === 2 && !idNum.trim()} /></div>
-                    <div><FL>Issue Date</FL><CkIn type="date" val={idIssueDate} set={setIdIssueDate} err={!idDatesValid} /></div>
-                    <div><FL req>Expiry Date</FL><CkIn type="date" val={idExp} set={setIdExp} err={!idExp || !idDatesValid} /></div>
+                    <div><FL>ID document type</FL><CkSl val={idType} set={setIdType} opts={["International Passport","National ID Card","Driver's License","Voter's Card"]} /></div>
+                    <div><FL req>ID number</FL><CkIn val={idNum} set={setIdNum} placeholder="A12345678" err={step === 2 && !idNum.trim()} /></div>
+                    <div><FL>Issue date</FL><CkIn type="date" val={idIssueDate} set={setIdIssueDate} err={!idDatesValid} /></div>
+                    <div><FL req>Expiry date</FL><CkIn type="date" val={idExp} set={setIdExp} err={!idExp || !idDatesValid} /></div>
                   </div>
                   {!idDatesValid && <p className="text-xs mt-2 font-semibold" style={{ color: ERROR }}>Expiry date must be after the issue date.</p>}
                 </section>
                 <section>
-                  <SecLabel>Document Capture</SecLabel>
+                  <SecLabel>Document capture</SecLabel>
                   <div className="rounded-xl p-6 text-center" style={{ border: `1.5px dashed ${idCaptured ? SUCCESS : CK_DSH}`, backgroundColor: "white" }}>
                     {idCaptured ? <Ph.CheckCircle size={24} weight="fill" className="mx-auto mb-2" style={{ color: SUCCESS }} /> : <Ph.FileText size={24} className="mx-auto mb-2" style={{ color: SUBTLE }} />}
                     <p className="text-sm font-medium mb-1" style={{ color: TEXT }}>{idCaptured ? "ID document captured" : "Upload or scan ID document"}</p>
@@ -399,7 +398,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     <Ph.Star size={12} />Upgrade available — Suite for +₦{(91125 - selData.rate).toLocaleString()}/night extra. Requires manager authorisation.
                   </div>
                 )}
-                <SecLabel>Available Rooms</SecLabel>
+                <SecLabel>Available rooms</SecLabel>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                   {AVAIL_ROOMS.map(r => {
                     const isUpgrade = r.type !== selData.type && (r.type === "Suite" || (r.type === "Deluxe" && selData.type === "Standard"));
@@ -441,14 +440,14 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div><FL req>Upgrade Reason</FL><CkSl val={upgradeReason} set={setUpgradeReason} opts={["","Guest requested upgrade","VIP service recovery","Operational room move","Complimentary management upgrade"]} /></div>
+                        <div><FL req>Upgrade reason</FL><CkSl val={upgradeReason} set={setUpgradeReason} opts={["","Guest requested upgrade","VIP service recovery","Operational room move","Complimentary management upgrade"]} /></div>
                         <div><FL req>Manager PIN</FL><CkIn type="password" val={upgradeManagerPin} set={setUpgradeManagerPin} placeholder="Enter approval PIN" /></div>
                       </div>
                       <div className="flex items-center justify-end gap-2">
                         <button onClick={() => setUpgradeCandidate(null)} className="px-4 py-2 rounded-xl text-xs font-bold border" style={{ color: CK_MUT, borderColor: CK_DSH, backgroundColor: "white" }}>Cancel</button>
                         <button onClick={approveUpgrade} disabled={!upgradeReason || upgradeManagerPin.length < 4}
                           className="px-4 py-2 rounded-xl text-xs font-bold text-white disabled:opacity-35"
-                          style={{ backgroundColor: PRIMARY }}>Authorise Upgrade</button>
+                          style={{ backgroundColor: PRIMARY }}>Authorise upgrade</button>
                       </div>
                     </div>
                   ) : null;
@@ -458,7 +457,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
               {/* ── Step 4: Registration ───────────────────────────────────── */}
               {step === 4 && selData && (<>
                 <section>
-                  <SecLabel>Terms & Conditions</SecLabel>
+                  <SecLabel>Terms & conditions</SecLabel>
                   <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white" }}>
                     <div className="px-4 py-3 text-xs overflow-y-auto max-h-32" style={{ color: CK_MUT, lineHeight: 1.7, backgroundColor: CK_BG }}>
                       {PROPERTY_PROFILE.name}, {PROPERTY_PROFILE.city}. By checking in, the guest agrees to: (1) abide by hotel policies including quiet hours {PROPERTY_PROFILE.quietHours}; (2) accept responsibility for any damages caused to hotel property during the stay; (3) authorise the hotel to charge the card on file for any outstanding charges upon departure; (4) acknowledge that the hotel is not responsible for valuables left in rooms.
@@ -474,14 +473,14 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                   </div>
                 </section>
                 <section>
-                  <SecLabel>Vehicle Registration (optional)</SecLabel>
+                  <SecLabel>Vehicle registration (optional)</SecLabel>
                   <div className="grid grid-cols-2 gap-4">
-                    <div><FL>Plate Number</FL><CkIn val={vehicleReg} set={setVehicleReg} placeholder="ABJ-123-XY" /></div>
-                    <div><FL>Parking Bay</FL><CkSl val={parkingBay} set={setParkingBay} opts={["Not required","Bay A1","Bay A2","Bay B1","Bay B2","Bay B3"]} /></div>
+                    <div><FL>Plate number</FL><CkIn val={vehicleReg} set={setVehicleReg} placeholder="ABJ-123-XY" /></div>
+                    <div><FL>Parking bay</FL><CkSl val={parkingBay} set={setParkingBay} opts={["Not required","Bay A1","Bay A2","Bay B1","Bay B2","Bay B3"]} /></div>
                   </div>
                 </section>
                 <section>
-                  <SecLabel>Signature Capture</SecLabel>
+                  <SecLabel>Signature capture</SecLabel>
                   <button onClick={() => { setSignatureCaptured(true); add({ type: "success", title: "Guest signature captured" }); }}
                     className="w-full h-28 rounded-xl flex flex-col items-center justify-center gap-2"
                     style={{ border: `1.5px dashed ${signatureCaptured ? SUCCESS : CK_DSH}`, backgroundColor: "white" }}>
@@ -496,18 +495,18 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
               {/* ── Step 5: Payment ────────────────────────────────────────── */}
               {step === 5 && selData && (<>
                 <section>
-                  <SecLabel>Deposit Summary</SecLabel>
+                  <SecLabel>Deposit summary</SecLabel>
                   <div className="rounded-xl p-4" style={{ backgroundColor: "white", border: `1.5px solid ${CK_DSH}` }}>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between"><span style={{ color: CK_MUT }}>Room × {selData.nights}n</span><span style={{ fontFamily: mono }}>₦{subtotal.toLocaleString()}</span></div>
                       <div className="flex justify-between"><span style={{ color: CK_MUT }}>VAT (7.5%)</span><span style={{ fontFamily: mono }}>₦{vat.toLocaleString()}</span></div>
                       <div className="flex justify-between font-bold border-t pt-2" style={{ borderColor: CK_DSH, color: TEXT }}><span>Total</span><span style={{ fontFamily: mono }}>₦{total.toLocaleString()}</span></div>
-                      <div className="flex justify-between text-base font-black" style={{ color: PRIMARY }}><span>Deposit Due</span><span style={{ fontFamily: mono }}>₦{selData.deposit.toLocaleString()}</span></div>
+                      <div className="flex justify-between text-base font-black" style={{ color: PRIMARY }}><span>Deposit due</span><span style={{ fontFamily: mono }}>₦{selData.deposit.toLocaleString()}</span></div>
                     </div>
                   </div>
                 </section>
                 <section>
-                  <SecLabel>Payment Method</SecLabel>
+                  <SecLabel>Payment method</SecLabel>
                   <div className="space-y-2">
                     {["Cash", "POS / Card", "Bank Transfer", "Corporate Account"].map(m => (
                       <button key={m} onClick={() => setPayMethod(m)}
@@ -524,7 +523,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                   </div>
                   {payMethod === "Cash" && (
                     <div className="mt-3 space-y-2">
-                      <FL req>Cash Received (₦)</FL>
+                      <FL req>Cash received (₦)</FL>
                       <CkIn type="number" val={cashReceived} set={setCashReceived} placeholder={selData.deposit.toLocaleString()} />
                       {cashNum > 0 && (
                         <div className="px-3 py-2 rounded-lg text-sm font-bold" style={{ backgroundColor: cashNum >= selData.deposit ? "#F0FDF4" : "#FEF2F2", color: cashNum >= selData.deposit ? SUCCESS : ERROR }}>
@@ -534,11 +533,11 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     </div>
                   )}
                   {(payMethod === "POS / Card" || payMethod === "Bank Transfer") && (
-                    <div className="mt-3"><FL req>Transaction Reference</FL><CkIn val={payRef} set={setPayRef} placeholder="TRN-2024-XXXX" /></div>
+                    <div className="mt-3"><FL req>Transaction reference</FL><CkIn val={payRef} set={setPayRef} placeholder="TRN-2024-XXXX" /></div>
                   )}
                   {payMethod === "Corporate Account" && (
                     <div className="mt-3 space-y-3">
-                      <div><FL req>Corporate Account</FL><CkSl val={corporateAccount} set={setCorporateAccount} opts={["Bello & Associates Ltd.","Lagos Corp Group","Federal Ministry of Works"]} /></div>
+                      <div><FL req>Corporate account</FL><CkSl val={corporateAccount} set={setCorporateAccount} opts={["Bello & Associates Ltd.","Lagos Corp Group","Federal Ministry of Works"]} /></div>
                       <div><FL req>Purchase Order #</FL><CkIn val={purchaseOrder} set={setPurchaseOrder} placeholder="PO-2025-001" /></div>
                     </div>
                   )}
@@ -548,7 +547,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
               {/* ── Step 6: Access Credentials ─────────────────────────────── */}
               {step === 6 && selData && (<>
                 <section>
-                  <SecLabel>Credential Type</SecLabel>
+                  <SecLabel>Credential type</SecLabel>
                   <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg mb-4 text-xs font-semibold" style={{ backgroundColor: "#D1FAE5", border: "1px solid #A7F3D0", color: "#065F46" }}>
                     <Ph.WifiHigh size={13} />Connected — TTLock API reachable · Encoder: USB active
                   </div>
@@ -568,7 +567,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                 </section>
                 {(credType === "card" || credType === "both") && (
                   <section>
-                    <SecLabel>Key Card Encoding</SecLabel>
+                    <SecLabel>Key card encoding</SecLabel>
                     <div className="rounded-xl p-4" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white" }}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="text-xs" style={{ color: CK_MUT }}>Valid: today → {selData.nights === 3 ? "27 Jun" : "25 Jun"} 11:00</div>
@@ -597,7 +596,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                 )}
                 {(credType === "pin" || credType === "both") && (
                   <section>
-                    <SecLabel>PIN Code</SecLabel>
+                    <SecLabel>PIN code</SecLabel>
                     <div className="rounded-xl p-4" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white" }}>
                       {!pinGen ? (
                         <button onClick={() => {
@@ -618,7 +617,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                           <div className="flex items-center gap-2"><Ph.WarningCircle size={11} style={{ color: ERROR }} /><span className="text-xs font-semibold" style={{ color: ERROR }}>Cannot be retrieved after this screen. Show to guest now.</span></div>
                           <div className="flex gap-2">
                             <BtnO label="Copy" icon={Ph.ClipboardText} onClick={() => { try { navigator.clipboard.writeText(pinCode); } catch(e){} add({ type: "info", title: "PIN copied to clipboard" }); }} />
-                            <BtnO label="Print Slip" icon={Ph.FileText} onClick={() => add({ type: "info", title: "PIN slip sent to printer" })} />
+                            <BtnO label="Print slip" icon={Ph.FileText} onClick={() => add({ type: "info", title: "PIN slip sent to printer" })} />
                             <button onClick={() => setPinRevealed(v => !v)} className="text-xs px-3 py-1.5 rounded-lg border font-semibold" style={{ color: CK_MUT, borderColor: CK_DSH }}>
                               {pinRevealed ? "Mask PIN" : "Reveal PIN"}
                             </button>
@@ -639,7 +638,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                   <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: "#D1FAE5" }}>
                     <Ph.CheckCircle size={32} weight="fill" style={{ color: SUCCESS }} />
                   </div>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-In Complete</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-in complete</p>
                   <p className="text-2xl font-bold mb-1" style={{ color: TEXT }}>{selData.guest}</p>
                   <p className="text-sm mb-1" style={{ color: CK_MUT }}>Room {selRoom ?? selData.room} · {selData.type} · {selData.nights} nights</p>
                   <p className="text-sm mb-6 font-semibold" style={{ color: SUCCESS }}>Folio opened · Access credentials active</p>
@@ -655,7 +654,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                   </div>
                   <button onClick={doReset}
                     className="text-sm px-6 py-2.5 rounded-xl font-bold text-white"
-                    style={{ backgroundColor: PRIMARY }}>New Check-In</button>
+                    style={{ backgroundColor: PRIMARY }}>New check-in</button>
                 </div>
               )}
 
@@ -690,7 +689,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
         {/* ── Summary sidebar ──────────────────────────────────────────────── */}
         <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
           <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Booking Summary</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Booking summary</p>
           </div>
           <Notch />
           <div className="p-5">
@@ -701,7 +700,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     style={{ backgroundColor: selData.vip ? ORANGE : PRIMARY }}><Ph.User size={18} weight="bold" /></div>
                   <div>
                     <div className="text-sm font-bold" style={{ color: TEXT }}>{selData.guest}</div>
-                    {selData.vip && <div className="text-xs font-semibold" style={{ color: ORANGE }}>VIP Guest</div>}
+                    {selData.vip && <div className="text-xs font-semibold" style={{ color: ORANGE }}>VIP guest</div>}
                   </div>
                 </div>
                 <div className="pt-3 space-y-2 text-xs border-t" style={{ borderColor: CK_DSH }}>
@@ -789,23 +788,6 @@ export function PlaceholderScreen({ title, desc, icon: Icon }: { title: string; 
 // ─── NEW SCREENS ─────────────────────────────────────────────────────────────
 
 
-const DEPARTURES_DATA = [
-  { room: "101", guest: "Adaeze Okonkwo", checkout: "11:00", balance: 0, lateFlag: false, nights: 3, av: "AO" },
-  { room: "202", guest: "Emmanuel Adeyemi", checkout: "11:00", balance: 45000, lateFlag: false, nights: 2, av: "EA" },
-  { room: "203", guest: "Fatima Musa", checkout: "12:00", balance: 0, lateFlag: true, nights: 3, av: "FM" },
-  { room: "118", guest: "Tunde Lawal", checkout: "10:00", balance: 18500, lateFlag: false, nights: 1, av: "TL" },
-];
-
-
-
-
-
-
-
-
-
-
-
 const MENU_ALL = [
   { id: 1, name: "Jollof Rice + Chicken", price: 4500, cat: "Mains", avail: true },
   { id: 2, name: "Egusi Soup + Pounded Yam", price: 5200, cat: "Mains", avail: true },
@@ -826,11 +808,12 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
   const [arSearch, setArSearch] = useState("");
   const [arTab, setArTab] = useState("All");
   const [arrivals, setArrivals] = useState([
-    { id: "BK-2849", guest: "Dr. Chukwuemeka Bello", type: "Suite", room: "501", nights: 3, eta: "14:00", rate: 91125, balance: 0, vip: true, assigned: true, group: false, requests: "Champagne + fruit basket on arrival", status: "Checked In", risk: false },
-    { id: "BK-2850", guest: "Adaeze Okonkwo", type: "Deluxe", room: "303", nights: 2, eta: "15:30", rate: 55000, balance: 27500, vip: false, assigned: true, group: false, requests: "High floor preferred", status: "Confirmed", risk: false },
-    { id: "BK-2851", guest: "Emmanuel Adeyemi", type: "Standard", room: "", nights: 1, eta: "12:00", rate: 35000, balance: 35000, vip: false, assigned: false, group: false, requests: "", status: "Confirmed", risk: true },
-    { id: "BK-2852", guest: "Fatima Al-Hassan", type: "Deluxe", room: "", nights: 4, eta: "16:00", rate: 55000, balance: 0, vip: true, assigned: false, group: false, requests: "Extra pillows, no smoking floor", status: "Pending", risk: false },
-    { id: "BK-2853", guest: "Lagos Corp Group (8 pax)", type: "Standard", room: "108–115", nights: 2, eta: "13:00", rate: 35000, balance: 0, vip: false, assigned: true, group: true, requests: "Meeting room required", status: "Confirmed", risk: false },
+    { id: "BK-2851", guest: "Dr. Chukwuemeka Bello", type: "Suite", room: "501", nights: 3, eta: "14:00", rate: 85000, balance: 0, vip: true, assigned: true, group: false, requests: "Welcome dinner", status: "Checked In", risk: false },
+    { id: "BK-2855", guest: "Chief Emeka Okafor", type: "Suite", room: "502", nights: 3, eta: "14:00", rate: 85000, balance: 0, vip: true, assigned: true, group: false, requests: "Champagne + fruit basket", status: "Confirmed", risk: false },
+    { id: "BK-2856", guest: "Aisha Mohammed", type: "Deluxe", room: "303", nights: 2, eta: "15:30", rate: 55000, balance: 27500, vip: false, assigned: true, group: false, requests: "High floor preferred", status: "Confirmed", risk: false },
+    { id: "BK-2857", guest: "Peter Okafor", type: "Standard", room: "", nights: 1, eta: "12:00", rate: 35000, balance: 35000, vip: false, assigned: false, group: false, requests: "—", status: "Confirmed", risk: true },
+    { id: "BK-2858", guest: "Ngozi Adeyemi", type: "Deluxe", room: "", nights: 4, eta: "16:00", rate: 55000, balance: 0, vip: true, assigned: false, group: false, requests: "Extra pillows, no smoking floor", status: "Pending", risk: false },
+    { id: "BK-2859", guest: "Lagos Corp Group (8 pax)", type: "Standard", room: "108–115", nights: 2, eta: "13:00", rate: 35000, balance: 0, vip: false, assigned: true, group: true, requests: "Meeting room required", status: "Confirmed", risk: false },
   ]);
   type Arrival = typeof arrivals[number];
   const [arrivalAction, setArrivalAction] = useState<{ type: "assign" | "note" | "noshow"; id: string } | null>(null);
@@ -858,7 +841,7 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
   };
   return (
     <div>
-      <PageHeader title="Today's Arrivals" sub={`${fmtDate(BUSINESS_DATE)} · Check-in from ${PROPERTY_PROFILE.checkInTime}`} actions={<><BtnO label="Print Manifest" icon={Ph.FileText} onClick={() => add({ type: "info", title: "Arrival manifest sent to printer" })} /><BtnP label="Quick Check-In" icon={Ph.Key} onClick={() => nav && nav("check-in", "Check-In")} /></>} />
+      <PageHeader title="Today's Arrivals" sub={`${fmtDate(BUSINESS_DATE)} · Check-in from ${PROPERTY_PROFILE.checkInTime}`} actions={<><BtnO label="Print manifest" icon={Ph.FileText} onClick={() => add({ type: "info", title: "Arrival manifest sent to printer" })} /><BtnP label="Quick check-in" icon={Ph.Key} onClick={() => nav && nav("check-in", "Check-In")} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Expected" value={String(expected)} sub="Total today's arrivals" icon={Ph.CalendarCheck} accent={PRIMARY} />
         <StatCard label="Arrived" value={String(arrived)} sub="Checked in" icon={Ph.CheckCircle} accent={SUCCESS} />
@@ -909,7 +892,7 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
                       <div className="flex w-[200px] flex-wrap items-center gap-1.5">
                         {!a.group && a.status !== "No Show" && <button onClick={() => openArrivalAction("assign", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: BORDER }}>{a.assigned ? "Reassign" : "Assign Room"}</button>}
                         <button onClick={() => openArrivalAction("note", a)} className="w-8 h-8 rounded-xl border flex items-center justify-center" style={{ color: MUTED, borderColor: BORDER }} title="Add note"><Ph.NotePencil size={14} /></button>
-                        {a.risk && a.status !== "No Show" && <button onClick={() => openArrivalAction("noshow", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: ERROR, borderColor: `${ERROR}30` }}>No Show</button>}
+                        {a.risk && a.status !== "No Show" && <button onClick={() => openArrivalAction("noshow", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: ERROR, borderColor: `${ERROR}30` }}>No show</button>}
                         {a.status !== "No Show" && <button onClick={() => {
                           if (a.group) {
                             add({ type: "info", title: "Group booking opened", body: a.guest });
@@ -944,13 +927,13 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
               {arrivalAction.type === "assign" && (
                 <>
                   <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold" style={{ backgroundColor: "#F0FDF4", color: "#065F46", border: "1px solid #BBF7D0" }}><Ph.CheckCircle size={14} weight="fill" />Only clean or inspected {activeArrival.type.toLowerCase()} rooms are shown.</div>
-                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Available Room *</label><select aria-label="Available Room" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${selectedRoom ? BORDER : ERROR}`, backgroundColor: "white", color: TEXT }}><option value="">Select room</option>{(roomOptions[activeArrival.type] ?? []).map(room => <option key={room} value={room}>{room} · {activeArrival.type} · Inspected</option>)}</select></div>
-                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Assignment Note</label><textarea value={assignmentNote} onChange={e => setAssignmentNote(e.target.value)} rows={2} placeholder="High floor, near lift, accessibility requirement…" aria-label="High floor, near lift, accessibility requirement" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
+                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Available Room *</label><select aria-label="Available room" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${selectedRoom ? BORDER : ERROR}`, backgroundColor: "white", color: TEXT }}><option value="">Select room</option>{(roomOptions[activeArrival.type] ?? []).map(room => <option key={room} value={room}>{room} · {activeArrival.type} · Inspected</option>)}</select></div>
+                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Assignment note</label><textarea value={assignmentNote} onChange={e => setAssignmentNote(e.target.value)} rows={2} placeholder="High floor, near lift, accessibility requirement…" aria-label="High floor, near lift, accessibility requirement" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
                 </>
               )}
               {arrivalAction.type === "note" && (
                 <>
-                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Note Type</label><select aria-label="Note Type" value={noteType} onChange={e => setNoteType(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${BORDER}`, backgroundColor: "white", color: TEXT }}>{["Internal note", "Guest request", "Handover note", "VIP instruction"].map(type => <option key={type}>{type}</option>)}</select></div>
+                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Note type</label><select aria-label="Note type" value={noteType} onChange={e => setNoteType(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${BORDER}`, backgroundColor: "white", color: TEXT }}>{["Internal note", "Guest request", "Handover note", "VIP instruction"].map(type => <option key={type}>{type}</option>)}</select></div>
                   <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Note *</label><textarea value={noteText} onChange={e => setNoteText(e.target.value)} rows={4} placeholder="Add useful context for the arrival team…" aria-label="Add useful context for the arrival team" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
                 </>
               )}
@@ -962,9 +945,9 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
               )}
               <div className="flex gap-3">
                 <button onClick={() => setArrivalAction(null)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button>
-                {arrivalAction.type === "assign" && <button disabled={!selectedRoom} onClick={() => { setArrivals(list => list.map(arrival => arrival.id === activeArrival.id ? { ...arrival, room: selectedRoom, assigned: true } : arrival)); add({ type: "success", title: `Room ${selectedRoom} pre-assigned`, body: `${activeArrival.guest}${assignmentNote ? ` · ${assignmentNote}` : ""}` }); setArrivalAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Confirm Assignment</button>}
-                {arrivalAction.type === "note" && <button disabled={!noteText.trim()} onClick={() => { setNotes(current => ({ ...current, [activeArrival.id]: (current[activeArrival.id] ?? 0) + 1 })); add({ type: "success", title: `${noteType} added`, body: `${activeArrival.guest} · Visible to the arrival team` }); setArrivalAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Save Note</button>}
-                {arrivalAction.type === "noshow" && <button disabled={!noShowReason.trim()} onClick={() => { setArrivals(list => list.map(arrival => arrival.id === activeArrival.id ? { ...arrival, status: "No Show", assigned: false, room: "" } : arrival)); add({ type: "error", title: "Reservation marked No Show", body: `${activeArrival.guest} · Room released · Penalty queued for review` }); setArrivalAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ERROR }}>Confirm No Show</button>}
+                {arrivalAction.type === "assign" && <button disabled={!selectedRoom} onClick={() => { setArrivals(list => list.map(arrival => arrival.id === activeArrival.id ? { ...arrival, room: selectedRoom, assigned: true } : arrival)); add({ type: "success", title: `Room ${selectedRoom} pre-assigned`, body: `${activeArrival.guest}${assignmentNote ? ` · ${assignmentNote}` : ""}` }); setArrivalAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Confirm assignment</button>}
+                {arrivalAction.type === "note" && <button disabled={!noteText.trim()} onClick={() => { setNotes(current => ({ ...current, [activeArrival.id]: (current[activeArrival.id] ?? 0) + 1 })); add({ type: "success", title: `${noteType} added`, body: `${activeArrival.guest} · Visible to the arrival team` }); setArrivalAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Save note</button>}
+                {arrivalAction.type === "noshow" && <button disabled={!noShowReason.trim()} onClick={() => { setArrivals(list => list.map(arrival => arrival.id === activeArrival.id ? { ...arrival, status: "No Show", assigned: false, room: "" } : arrival)); add({ type: "error", title: "Reservation marked No Show", body: `${activeArrival.guest} · Room released · Penalty queued for review` }); setArrivalAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ERROR }}>Confirm no show</button>}
               </div>
             </div>
           </div>
@@ -976,11 +959,10 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
 
 export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [dep, setDep] = useState([
-    { id: "BK-2846", room: "101", guest: "Adaeze Okonkwo", checkout: "09:32", nights: 3, balance: 0, method: "Card", hkSt: "Dirty", lateFlag: false, overstay: false, status: "Departed" },
-    { id: "BK-2848", room: "202", guest: "Emmanuel Adeyemi", checkout: "11:00", nights: 4, balance: 82100, method: "Cash", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
-    { id: "BK-2850", room: "304", guest: "Chukwuemeka Obi", checkout: "14:00", nights: 2, balance: 0, method: "Transfer", hkSt: "Occupied", lateFlag: true, overstay: false, status: "Pending" },
-    { id: "BK-2851", room: "501", guest: "Dr. Chukwuemeka Bello", checkout: "11:00", nights: 1, balance: 0, method: "Card", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
-    { id: "BK-2852", room: "410", guest: "Fatima Al-Hassan", checkout: "10:00", nights: 5, balance: 35200, method: "Card", hkSt: "Occupied", lateFlag: false, overstay: true, status: "Pending" },
+    { id: "BK-2846", room: "101", guest: "Adaeze Okonkwo", checkout: "11:00", nights: 3, balance: 0, method: "Card", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
+    { id: "BK-2848", room: "202", guest: "Emmanuel Adeyemi", checkout: "11:00", nights: 2, balance: 82708, method: "Cash", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
+    { id: "BK-2843", room: "203", guest: "Fatima Musa", checkout: "14:00", nights: 3, balance: 0, method: "Transfer", hkSt: "Occupied", lateFlag: true, overstay: false, status: "Pending" },
+    { id: "BK-2852", room: "118", guest: "Tunde Lawal", checkout: "11:00", nights: 1, balance: 22513, method: "Card", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
   ]);
   type Departure = typeof dep[number];
   const [depSearch, setDepSearch] = useState("");
@@ -1009,7 +991,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
   };
   return (
     <div>
-      <PageHeader title="Today's Departures" sub={`${fmtDate(BUSINESS_DATE)} · Standard check-out ${PROPERTY_PROFILE.checkOutTime}`} actions={<><BtnO label="Print List" icon={Ph.FileText} onClick={() => add({ type: "info", title: "Departure list sent to printer" })} /><BtnP label={`Express Check-Out${selectedEligible.length ? ` (${selectedEligible.length})` : ""}`} icon={Ph.ArrowRight} onClick={() => setShowBulkConfirm(true)} /></>} />
+      <PageHeader title="Today's Departures" sub={`${fmtDate(BUSINESS_DATE)} · Standard check-out ${PROPERTY_PROFILE.checkOutTime}`} actions={<><BtnO label="Print list" icon={Ph.FileText} onClick={() => add({ type: "info", title: "Departure list sent to printer" })} /><BtnP label={`Express check-out${selectedEligible.length ? ` (${selectedEligible.length})` : ""}`} icon={Ph.ArrowRight} onClick={() => setShowBulkConfirm(true)} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Expected" value={String(dep.length)} sub="Departures today" icon={Ph.ArrowRight} accent={PRIMARY} />
         <StatCard label="Departed" value={String(departed)} sub="Rooms released" icon={Ph.CheckCircle} accent={SUCCESS} />
@@ -1058,10 +1040,10 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
                   <td className="px-4 py-3">
                     {!done && (
                       <div className="flex gap-1.5">
-                        <button onClick={() => { add({ type: "info", title: "Check-out initiated", body: `Room ${d.room} · ${d.guest}` }); nav && nav("check-out", "Check-Out", d.id); }} className="text-xs px-3 py-1.5 rounded-xl font-bold text-white hover:opacity-90 transition-all whitespace-nowrap" style={{ backgroundColor: PRIMARY }}>Check Out</button>
-                        <button onClick={() => openDepartureAction("charge", d)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: BORDER }}>Post Charge</button>
+                        <button onClick={() => { add({ type: "info", title: "Check-out initiated", body: `Room ${d.room} · ${d.guest}` }); nav && nav("check-out", "Check-Out", d.id); }} className="text-xs px-3 py-1.5 rounded-xl font-bold text-white hover:opacity-90 transition-all whitespace-nowrap" style={{ backgroundColor: PRIMARY }}>Check out</button>
+                        <button onClick={() => openDepartureAction("charge", d)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: BORDER }}>Post charge</button>
                         {!d.lateFlag && !d.overstay && (
-                          <button onClick={() => openDepartureAction("late", d)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold hover:bg-[#F4F4F5] transition-all whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Late Check-Out</button>
+                          <button onClick={() => openDepartureAction("late", d)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold hover:bg-[#F4F4F5] transition-all whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Late check-out</button>
                         )}
                       </div>
                     )}
@@ -1078,13 +1060,13 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowBulkConfirm(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${BORDER}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: PRIMARY }}><p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Express Processing</p><p className="text-base font-bold text-white mt-0.5">Bulk Check-Out</p></div>
+            <div className="px-6 py-4" style={{ backgroundColor: PRIMARY }}><p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Express processing</p><p className="text-base font-bold text-white mt-0.5">Bulk check-out</p></div>
             <div className="p-6 space-y-4">
               {selectedEligible.length === 0 ? <div className="text-center py-5"><Ph.CheckSquare size={28} className="mx-auto mb-2" style={{ color: SUBTLE }} /><p className="text-sm font-semibold" style={{ color: TEXT }}>Select one or more zero-balance rooms.</p><p className="text-xs mt-1" style={{ color: MUTED }}>{eligibleForExpress.length} departure{eligibleForExpress.length === 1 ? "" : "s"} currently eligible.</p></div> : <>
                 <div className="space-y-2">{selectedEligible.map(item => <div key={item.id} className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: `1px solid ${BORDER}` }}><div><p className="text-sm font-bold" style={{ color: TEXT }}>Room {item.room} · {item.guest}</p><p className="text-xs" style={{ color: MUTED }}>Zero balance · {item.method} on file</p></div><Ph.CheckCircle size={16} weight="fill" style={{ color: SUCCESS }} /></div>)}</div>
                 <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E", border: "1px solid #FDE68A" }}><Ph.Warning size={14} className="flex-shrink-0" />Access credentials will be revoked, folios closed, and rooms released to housekeeping.</div>
               </>}
-              <div className="flex gap-3"><button onClick={() => setShowBulkConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button disabled={selectedEligible.length === 0} onClick={() => { const rooms = selectedEligible.map(item => item.room); setDep(list => list.map(item => rooms.includes(item.room) ? { ...item, status: "Departed", hkSt: "Dirty", checkout: "Now" } : item)); setSelectedRooms([]); setShowBulkConfirm(false); add({ type: "success", title: `${rooms.length} express check-out${rooms.length === 1 ? "" : "s"} complete`, body: `Rooms ${rooms.join(", ")} → Cleaning · Access revoked` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: SUCCESS }}>Confirm Express Check-Out</button></div>
+              <div className="flex gap-3"><button onClick={() => setShowBulkConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button disabled={selectedEligible.length === 0} onClick={() => { const rooms = selectedEligible.map(item => item.room); setDep(list => list.map(item => rooms.includes(item.room) ? { ...item, status: "Departed", hkSt: "Dirty", checkout: "Now" } : item)); setSelectedRooms([]); setShowBulkConfirm(false); add({ type: "success", title: `${rooms.length} express check-out${rooms.length === 1 ? "" : "s"} complete`, body: `Rooms ${rooms.join(", ")} → Cleaning · Access revoked` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: SUCCESS }}>Confirm express check-out</button></div>
             </div>
           </div>
         </>
@@ -1096,7 +1078,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
             <div className="px-6 py-4" style={{ backgroundColor: depAction.type === "late" ? ORANGE : PRIMARY }}><p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>{depAction.type === "late" ? "Manager Approval" : "Guest Folio"}</p><p className="text-base font-bold text-white mt-0.5">{depAction.type === "late" ? "Approve Late Check-Out" : "Post Late Charge"}</p><p className="text-xs text-white mt-1" style={{ opacity: 0.7 }}>{activeDeparture.guest} · Room {activeDeparture.room}</p></div>
             <div className="p-6 space-y-4">
               {depAction.type === "late" ? <>
-                <div className="grid grid-cols-2 gap-3"><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New Checkout</label><input aria-label="New Checkout" type="time" value={lateTime} onChange={e => setLateTime(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}` }} /></div><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Manager PIN *</label><input type="password" value={lateManagerPin} onChange={e => setLateManagerPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${lateManagerPin.length >= 4 ? BORDER : ERROR}` }} /></div></div>
+                <div className="grid grid-cols-2 gap-3"><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New checkout</label><input aria-label="New checkout" type="time" value={lateTime} onChange={e => setLateTime(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}` }} /></div><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Manager PIN *</label><input type="password" value={lateManagerPin} onChange={e => setLateManagerPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${lateManagerPin.length >= 4 ? BORDER : ERROR}` }} /></div></div>
                 <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason *</label><textarea value={lateReason} onChange={e => setLateReason(e.target.value)} rows={3} placeholder="Flight delay, guest request, loyalty benefit…" aria-label="Flight delay, guest request, loyalty benefit" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
               </> : <>
                 <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Description *</label><input value={chargeDesc} onChange={e => setChargeDesc(e.target.value)} placeholder="Minibar, room service, damages…" aria-label="Minibar, room service, damages" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
@@ -1104,7 +1086,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
                 {(parseInt(chargeAmount) || 0) > 0 && <div className="flex justify-between p-3 rounded-xl text-sm" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}><span>Total incl. VAT</span><span className="font-black" style={{ fontFamily: mono }}>₦{Math.round((parseInt(chargeAmount) || 0) * 1.075).toLocaleString()}</span></div>}
               </>}
               <div className="flex gap-3"><button onClick={() => setDepAction(null)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button>
-                {depAction.type === "late" ? <button disabled={!lateReason.trim() || lateManagerPin.length < 4} onClick={() => { setDep(list => list.map(item => item.id === activeDeparture.id ? { ...item, lateFlag: true, checkout: lateTime, overstay: false } : item)); add({ type: "success", title: `Late check-out approved — Room ${activeDeparture.room}`, body: `${lateTime} · ${lateReason}` }); setDepAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ORANGE }}>Approve Extension</button> : <button disabled={!chargeDesc.trim() || (parseInt(chargeAmount) || 0) <= 0} onClick={() => { const total = Math.round((parseInt(chargeAmount) || 0) * 1.075); setDep(list => list.map(item => item.id === activeDeparture.id ? { ...item, balance: item.balance + total } : item)); add({ type: "success", title: "Charge posted", body: `Room ${activeDeparture.room} · ₦${total.toLocaleString()} incl. VAT` }); setDepAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Post Charge</button>}
+                {depAction.type === "late" ? <button disabled={!lateReason.trim() || lateManagerPin.length < 4} onClick={() => { setDep(list => list.map(item => item.id === activeDeparture.id ? { ...item, lateFlag: true, checkout: lateTime, overstay: false } : item)); add({ type: "success", title: `Late check-out approved — Room ${activeDeparture.room}`, body: `${lateTime} · ${lateReason}` }); setDepAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ORANGE }}>Approve extension</button> : <button disabled={!chargeDesc.trim() || (parseInt(chargeAmount) || 0) <= 0} onClick={() => { const total = Math.round((parseInt(chargeAmount) || 0) * 1.075); setDep(list => list.map(item => item.id === activeDeparture.id ? { ...item, balance: item.balance + total } : item)); add({ type: "success", title: "Charge posted", body: `Room ${activeDeparture.room} · ₦${total.toLocaleString()} incl. VAT` }); setDepAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Post charge</button>}
               </div>
             </div>
           </div>
@@ -1840,7 +1822,7 @@ export function KitchenDisplay() {
           {newAlert && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl animate-pulse" style={{ backgroundColor: "#FEE2E2", border: `1px solid ${ERROR}` }}>
               <Bell size={14} style={{ color: ERROR }} />
-              <span className="text-xs font-bold" style={{ color: ERROR }}>NEW ORDER</span>
+              <span className="text-xs font-bold" style={{ color: ERROR }}>New order</span>
               <button aria-label="Close" onClick={() => setNewAlert(false)} style={{ color: ERROR }}><X size={12} /></button>
             </div>
           )}
@@ -1877,7 +1859,7 @@ export function KitchenDisplay() {
                         <div>
                           <div className="flex items-center gap-1.5">
                             <span className="text-lg font-black" style={{ color: TEXT }}>{o.table}</span>
-                            {o.priority && <span className="text-xs px-1.5 py-0.5 rounded font-bold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>PRIORITY</span>}
+                            {o.priority && <span className="text-xs px-1.5 py-0.5 rounded font-bold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Priority</span>}
                           </div>
                           <div className="text-xs mt-0.5" style={{ color: SUBTLE, fontFamily: mono }}>{o.id}</div>
                         </div>
@@ -2234,7 +2216,7 @@ export function DNDLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-black" style={{ color: r.hours >= THRESHOLD_CRITICAL && !r.overridden ? ERROR : PRIMARY }}>{r.room}</span>
                     {r.hours >= THRESHOLD_CRITICAL && !r.overridden && <AlertTriangle size={14} style={{ color: ERROR }} />}
-                    {r.overridden && <span className="text-xs px-1.5 py-0.5 rounded font-bold" style={{ backgroundColor: "#DCFCE7", color: "#166534" }}>OVERRIDE</span>}
+                    {r.overridden && <span className="text-xs px-1.5 py-0.5 rounded font-bold" style={{ backgroundColor: "#DCFCE7", color: "#166534" }}>Override</span>}
                   </div>
                 </td>
                 <td className="px-4 py-3"><div className="text-sm font-medium" style={{ color: TEXT }}>{r.guest}</div><div className="text-xs" style={{ color: SUBTLE }}>{r.res}</div></td>

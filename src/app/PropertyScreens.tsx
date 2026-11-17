@@ -1577,7 +1577,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                             ? <CheckCircle2 size={12} color="white" />
                             : <span className="w-2 h-2 rounded-full block" style={{ backgroundColor: i === stage ? "white" : PASS_MUTED }} />}
                         </div>
-                        <p className="text-center font-bold" style={{ fontSize: 12, color: i <= stage ? TEAL : PASS_MUTED, letterSpacing: "0.06em" }}>{s.toUpperCase()}</p>
+                        <p className="text-center font-bold" style={{ fontSize: 12, color: i <= stage ? TEAL : PASS_MUTED, letterSpacing: "0.06em" }}>{s}</p>
                       </div>
                       {i < STATUS_PIPELINE.length - 1 && (
                         <div className="flex-1 h-0.5 mx-1 mb-3.5" style={{ backgroundColor: i < stage ? TEAL : PASS_DASH }} />

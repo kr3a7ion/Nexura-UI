@@ -322,11 +322,10 @@ export const ALL_RES = [
   { id: "BK-2840", guest: "Tunde Bakare", room: "118", type: "Standard", checkin: "28 Jun", checkout: "30 Jun", status: "Confirmed", source: "Phone", nights: 2, rate: 35000 },
 ];
 export const ARRIVALS_DATA = [
-  { id: "BK-2849", guest: "Dr. Chukwuemeka Bello", type: "Suite 501", eta: "14:00", nights: 3, vip: true, requests: "Champagne, high floor", assigned: true, av: "CB" },
-  { id: "BK-2850", guest: "Aisha Mohammed", type: "Deluxe 203", eta: "12:00", nights: 2, vip: false, requests: "—", assigned: true, av: "AM" },
-  { id: "BK-2851", guest: "Peter Okafor", type: "Standard 102", eta: "15:30", nights: 1, vip: false, requests: "Late check-out if possible", assigned: false, av: "PO" },
-  { id: "BK-2852", guest: "Ngozi Adeyemi", type: "Deluxe 304", eta: "16:00", nights: 4, vip: false, requests: "Extra towels", assigned: false, av: "NA" },
-  { id: "BK-2853", guest: "Chief Emeka Okafor", type: "Suite 502", eta: "18:30", nights: 5, vip: true, requests: "Airport transfer, dinner reservation", assigned: true, av: "EO" },
+  { id: "BK-2855", guest: "Chief Emeka Okafor", type: "Suite 502", eta: "14:00", nights: 3, vip: true, requests: "Champagne + fruit basket", assigned: true, av: "EO" },
+  { id: "BK-2856", guest: "Aisha Mohammed", type: "Deluxe 303", eta: "15:30", nights: 2, vip: false, requests: "High floor preferred", assigned: true, av: "AM" },
+  { id: "BK-2857", guest: "Peter Okafor", type: "Standard", eta: "12:00", nights: 1, vip: false, requests: "—", assigned: false, av: "PO" },
+  { id: "BK-2858", guest: "Ngozi Adeyemi", type: "Deluxe", eta: "16:00", nights: 4, vip: true, requests: "Extra pillows, no smoking floor", assigned: false, av: "NA" },
 ];
 export const ACCESS_CREDS = [
   { room: "101", guest: "Adaeze Okonkwo", cards: [{ serial: "XXXX-1A2B", issued: "22 Jun 14:03", by: "John A." }], pin: { hint: "74**12", issued: "22 Jun 14:05", by: "John A." }, validTo: "25 Jun 11:00", status: "Active" },
