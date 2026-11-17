@@ -15,8 +15,7 @@ import {
 import {
   type Toast, type Role, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR,
   BORDER, TEXT, MUTED, SUBTLE,
-  stampNow,
-} from "./constants";
+  stampNow, ORANGE_INK, WARNING_INK } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO } from "./UIKit";
 
 // ─── Shared data ──────────────────────────────────────────────────────────────
@@ -494,7 +493,7 @@ export function VehicleDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                   <td className="px-3 py-2.5 text-xs font-bold" style={{ color:PRIMARY, fontFamily:mono }}>{t.id}</td>
                   <td className="px-3 py-2.5 text-xs" style={{ color:TEXT }}>{t.route}</td>
                   <td className="px-3 py-2.5 text-xs" style={{ color:MUTED, fontFamily:mono }}>{t.km} km</td>
-                  <td className="px-3 py-2.5 text-xs font-bold" style={{ color:SUCCESS, fontFamily:mono }}>₦{t.revenue.toLocaleString()}</td>
+                  <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{t.revenue.toLocaleString()}</td>
                   <td className="px-3 py-2.5 text-xs" style={{ color:MUTED }}>{t.driver}</td>
                 </tr>
               ))}
@@ -692,7 +691,7 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
       <div className="bg-white rounded-xl border mb-4 p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Fuel size={15} style={{ color:ORANGE }} />
+            <Fuel size={15} style={{ color:ORANGE_INK }} />
             <div className="text-sm font-bold" style={{ color:TEXT }}>Hotel bulk diesel tank</div>
           </div>
           <button onClick={() => add({ type:"info", title:"Bulk tank refill logged" })} className="px-3 py-1.5 rounded-xl text-xs font-semibold border" style={{ borderColor:BORDER, color:MUTED }}>Log refill</button>
@@ -714,7 +713,7 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
         <div>
           <div className="flex justify-between text-xs mb-1" style={{ color:MUTED }}>
             <span>Tank level</span>
-            <span className="font-bold" style={{ color:ORANGE }}>2,100 L / 5,000 L (42%)</span>
+            <span className="font-bold" style={{ color:ORANGE_INK }}>2,100 L / 5,000 L (42%)</span>
           </div>
           <div className="h-3 rounded-full overflow-hidden" style={{ backgroundColor:"#F4F4F5" }}>
             <div className="h-full rounded-full transition-all" style={{ width:"42%", backgroundColor: ORANGE }} />
@@ -1077,7 +1076,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
       {/* The differentiator — Cost Analysis */}
       <div className="bg-white rounded-xl border p-4 mb-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="flex items-center gap-2 mb-3">
-          <Zap size={15} style={{ color:WARNING }} />
+          <Zap size={15} style={{ color:WARNING_INK }} />
           <div className="text-sm font-bold" style={{ color:TEXT }}>Generator Cost Analysis — This Week</div>
           <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor:"#FEF3C7", color:"#92400E" }}>Live figures</span>
         </div>

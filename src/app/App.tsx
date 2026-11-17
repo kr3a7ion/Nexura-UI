@@ -325,13 +325,13 @@ function SessionExpiredModal({ offline, onStay, onSignOut }: { offline: boolean;
         <h3 className="text-base font-bold text-center mb-1" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>
           {offline ? "Session Extended (Offline)" : "Session About to Expire"}
         </h3>
-        <p className="text-sm text-center mb-5 leading-relaxed" style={{ color: "#71717A" }}>
+        <p className="text-sm text-center mb-5 leading-relaxed" style={{ color: "#52525B" }}>
           {offline
             ? "Your session token expired while offline. An 8-hour grace period extension has been issued automatically (HMS_Auth §7.1). Please re-authenticate when connectivity returns."
             : "Your 12-hour session will expire in 5 minutes. Stay signed in or you'll be redirected to the login screen."}
         </p>
         <div className="flex gap-3">
-          <button onClick={onSignOut} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors hover:bg-[#F9FAFB]" style={{ color: "#71717A", borderColor: "#E4E4E7" }}>
+          <button onClick={onSignOut} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors hover:bg-[#F9FAFB]" style={{ color: "#52525B", borderColor: "#E4E4E7" }}>
             Sign Out
           </button>
           <button onClick={onStay} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-md" style={{ backgroundColor: PRIMARY }}>
@@ -355,7 +355,7 @@ function PermissionsChangedDialog({ onReLogin }: { onReLogin: () => void }) {
         <h3 className="text-base font-bold text-center mb-1" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>
           Account Permissions Updated
         </h3>
-        <p className="text-sm text-center mb-2 leading-relaxed" style={{ color: "#71717A" }}>
+        <p className="text-sm text-center mb-2 leading-relaxed" style={{ color: "#52525B" }}>
           Your role permissions were changed by a manager while you were logged in. Your current session has been invalidated (HMS_Auth §6.3).
         </p>
         <p className="text-xs text-center mb-5" style={{ color: "#A1A1AA" }}>Please sign in again to receive your updated permissions.</p>

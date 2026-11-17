@@ -22,7 +22,7 @@ export function DateInput({ value, defaultValue, onChange, className, style, pla
         onClick={open}
         onKeyDown={e => { if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") { e.preventDefault(); open(); } }}
       />
-      <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#71717A" strokeWidth="1.8" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+      <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#52525B" strokeWidth="1.8" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
         <rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" />
       </svg>
       <input

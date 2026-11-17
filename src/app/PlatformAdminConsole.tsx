@@ -11,18 +11,21 @@ import {
 import { BranchProvisioning, FleetRelease, SupportTools } from "./PlatformAdminExtensions";
 
 const PRIMARY = "#18181B";
-const TEAL = "#0EA5E9";
+const TEAL = "#1BA39C";
+const TEAL_INK = "#0F766E";
+const ORANGE_INK = "#C2410C";
+const WARNING_INK = "#B45309";
 const ORANGE = "#F57C00";
 const SUCCESS = "#2E7D32";
 const WARNING = "#FFA000";
 const ERROR = "#D32F2F";
 const BORDER = "#E4E4E7";
 const TEXT = "#18181B";
-const MUTED = "#71717A";
+const MUTED = "#52525B";
 const SUBTLE = "#A1A1AA";
 const NAV = "#0C1A36";
 const sans = "'Inter', system-ui, sans-serif";
-const mono = "'JetBrains Mono', monospace";
+const mono = "'Inter', system-ui, sans-serif";
 
 function fmtN(v: number) {
   return v >= 1e6 ? `₦${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `₦${(v / 1e3).toFixed(0)}K` : `₦${v}`;
@@ -110,19 +113,19 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
           </div>
           <div>
             <span className="text-white font-semibold text-sm">Platform admin console</span>
-            <span className="text-xs ml-2" style={{ color: "#71717A" }}>admin.yourplatform.com</span>
+            <span className="text-xs ml-2" style={{ color: "#52525B" }}>admin.yourplatform.com</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium" style={{ color: SUCCESS, border: `1px solid ${SUCCESS}` }}><Shield size={12} />MFA enforced</span>
-          <span className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium" style={{ color: TEAL, border: `1px solid ${TEAL}` }}><Globe size={12} />IP allowlist active</span>
+          <span className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium" style={{ color: TEAL_INK, border: `1px solid ${TEAL}` }}><Globe size={12} />IP allowlist active</span>
           <button className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10">
             <Bell size={16} color="white" />
             <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-red-500 text-white flex items-center justify-center" style={{ fontSize: 12 }}>3</span>
           </button>
           <div className="relative">
             <button onClick={() => setUserMenu(p => !p)} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: TEAL }}>G</div>
+              <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: TEAL_INK }}>G</div>
               <span className="text-xs text-white font-medium hidden sm:block">Gideon</span>
               <ChevronDown size={11} color="#A1A1AA" />
             </button>
@@ -249,7 +252,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
                           <div className="flex justify-between"><span>Rooms</span><span style={{ color: TEXT }}>{b.rooms}</span></div>
                         </div>
                         <div className="flex gap-1.5 mt-3">
-                          <button onClick={() => showToast(`Force sync — ${b.name}`)} className="flex-1 py-1.5 rounded-lg text-xs border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Force sync</button>
+                          <button onClick={() => showToast(`Force sync — ${b.name}`)} className="flex-1 py-1.5 rounded-lg text-xs border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Force sync</button>
                           <button onClick={() => showToast(`Viewing logs — ${b.name}`)} className="flex-1 py-1.5 rounded-lg text-xs border" style={{ color: MUTED, borderColor: BORDER }}>Logs</button>
                         </div>
                       </div>
@@ -295,7 +298,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
                       </td>
                       <td className="px-5 py-3">
                         <div className="flex gap-1">
-                          <button onClick={() => showToast(`Sync triggered — ${b.name}`)} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Sync</button>
+                          <button onClick={() => showToast(`Sync triggered — ${b.name}`)} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Sync</button>
                           <button onClick={() => showToast(`Update pushed — ${b.name}`)} className="text-xs px-2 py-1 rounded border" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Update</button>
                         </div>
                       </td>
@@ -333,7 +336,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
                       <td className="px-5 py-3">
                         <div className="flex gap-1">
                           <button onClick={() => showToast(`Invoice sent — ${o.name}`)} className="text-xs px-2 py-1 rounded border" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Invoice</button>
-                          {o.billing === "Overdue" && <button onClick={() => showToast(`Reminder sent — ${o.name}`)} className="text-xs px-2 py-1 rounded border" style={{ color: WARNING, borderColor: `${WARNING}40` }}>Remind</button>}
+                          {o.billing === "Overdue" && <button onClick={() => showToast(`Reminder sent — ${o.name}`)} className="text-xs px-2 py-1 rounded border" style={{ color: WARNING_INK, borderColor: `${WARNING}40` }}>Remind</button>}
                           {o.billing === "Suspended" && <button onClick={() => showToast(`${o.name} reactivated`)} className="text-xs px-2 py-1 rounded border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Reactivate</button>}
                         </div>
                       </td>
@@ -357,7 +360,7 @@ export default function AdminConsole({ onLogout }: { onLogout: () => void }) {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {[
                   { label: "Push Stable to All", desc: "Send v2.4.1 to all branches not yet updated", action: "Push v2.4.1", color: PRIMARY },
-                  { label: "Force Update All", desc: "Immediately trigger update check on all connected branches", action: "Force Update", color: TEAL },
+                  { label: "Force Update All", desc: "Immediately trigger update check on all connected branches", action: "Force Update", color: TEAL_INK },
                   { label: "Emergency Rollback", desc: "Roll back all branches to v2.4.0 (previous stable)", action: "Rollback to v2.4.0", color: ERROR },
                 ].map(c => (
                   <div key={c.label} className="p-4 rounded-xl border" style={{ borderColor: BORDER }}>

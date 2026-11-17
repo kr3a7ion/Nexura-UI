@@ -31,8 +31,7 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-} from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, Av } from "./UIKit";
 import { DateInput } from "./DateInput";
@@ -623,7 +622,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
                     <div className="text-sm font-semibold mb-1 leading-tight" style={{ color: item.avail ? TEXT : SUBTLE }}>{item.name}</div>
                     <div className="text-base font-bold" style={{ color: item.avail ? PRIMARY : SUBTLE }}>₦{item.price.toLocaleString()}</div>
                     {!item.avail && <div className="text-xs mt-1 font-semibold" style={{ color: ERROR }}>86'd</div>}
-                    {inOrder && <div className="text-xs mt-1 font-semibold" style={{ color: TEAL }}>×{inOrder.qty} added</div>}
+                    {inOrder && <div className="text-xs mt-1 font-semibold" style={{ color: TEAL_INK }}>×{inOrder.qty} added</div>}
                   </button>
                 );
               })}
@@ -635,7 +634,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
         <div className="w-72 flex-shrink-0 bg-white rounded-xl border flex flex-col" style={{ borderColor: BORDER }}>
           <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: BORDER, backgroundColor: "#F9FAFB" }}>
             <div><div className="text-sm font-bold" style={{ color: TEXT }}>{activeTable} · Current Order</div><div className="text-xs" style={{ color: SUBTLE }}>{order.reduce((s,o)=>s+o.qty,0)} items</div></div>
-            {order.length > 0 && <button onClick={() => { setHeld(true); add({ type: "info", title: `${activeTable} order held` }); }} className="text-xs px-2 py-1.5 rounded-lg border" style={{ color: ORANGE, borderColor: `${ORANGE}30` }}>Hold</button>}
+            {order.length > 0 && <button onClick={() => { setHeld(true); add({ type: "info", title: `${activeTable} order held` }); }} className="text-xs px-2 py-1.5 rounded-lg border" style={{ color: ORANGE_INK, borderColor: `${ORANGE}30` }}>Hold</button>}
           </div>
           <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
             {order.length === 0
@@ -741,7 +740,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
             {order.length > 0 && (
               <div className="p-3 rounded-xl mb-3" style={{ backgroundColor: "#F0FDF4", border: `1px solid #BBF7D0` }}>
                 <div className="text-xs font-semibold mb-1" style={{ color: SUCCESS }}>Order total</div>
-                <div className="text-xl font-black" style={{ color: SUCCESS, fontFamily: mono }}>₦{total.toLocaleString()}</div>
+                <div className="text-xl font-black" style={{ color: TEXT, fontFamily: mono }}>₦{total.toLocaleString()}</div>
               </div>
             )}
           </div>
@@ -749,7 +748,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
             <button disabled={order.length === 0} onClick={handlePayment} className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>
               Charge ₦{total.toLocaleString()}
             </button>
-            <button onClick={() => { add({ type: "info", title: `${activeTable} order held` }); setHeld(true); }} disabled={order.length === 0} className="w-full py-2.5 rounded-xl text-xs font-semibold border disabled:opacity-40" style={{ color: ORANGE, borderColor: `${ORANGE}30` }}>
+            <button onClick={() => { add({ type: "info", title: `${activeTable} order held` }); setHeld(true); }} disabled={order.length === 0} className="w-full py-2.5 rounded-xl text-xs font-semibold border disabled:opacity-40" style={{ color: ORANGE_INK, borderColor: `${ORANGE}30` }}>
               Hold Order
             </button>
           </div>
@@ -1028,7 +1027,7 @@ export function StaffDirectory({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
                     <td className="px-3 py-3"><Badge label={s.status} colors={stColors[s.status]} /></td>
                     <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
                       <div className="flex gap-1">
-                        <button onClick={()=>add({type:"info",title:`Invite sent — ${s.name}`})} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Invite</button>
+                        <button onClick={()=>add({type:"info",title:`Invite sent — ${s.name}`})} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Invite</button>
                         {s.status==="Active"&&<button onClick={()=>add({type:"warning",title:`${s.name} deactivated`})} className="text-xs px-2 py-1 rounded border" style={{ color: ERROR, borderColor:`${ERROR}30` }}>Deactivate</button>}
                       </div>
                     </td>
@@ -1196,7 +1195,7 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             {[{ desc: "VIP comp — Suite 501", amt: 25000, by: "Tunde A." },{ desc: "Loyalty discount — Room 202", amt: 12000, by: "Grace M." },{ desc: "Rate adjustment — Room 311", amt: 8000, by: "Nkechi O." }].map((d,i)=>(
               <div key={i} className="flex items-start justify-between gap-2 mb-2">
                 <div><div className="text-xs font-medium" style={{ color: TEXT }}>{d.desc}</div><div className="text-xs" style={{ color: SUBTLE }}>{d.by}</div></div>
-                <span className="text-xs font-bold flex-shrink-0" style={{ color: ORANGE, fontFamily: mono }}>₦{d.amt.toLocaleString()}</span>
+                <span className="text-xs font-bold flex-shrink-0" style={{ color: ORANGE_INK, fontFamily: mono }}>₦{d.amt.toLocaleString()}</span>
               </div>
             ))}
           </div>
@@ -1307,7 +1306,7 @@ export function StockDashboard({ add }: { add: (t: Omit<Toast, "id">) => void })
                     <td className="px-4 py-3 text-sm" style={{ color: MUTED, fontFamily: mono }}>{p.reorder}</td>
                     <td className="px-4 py-3 text-sm font-semibold" style={{ color: PRIMARY, fontFamily: mono }}>{p.reorderQty} {p.unit}</td>
                     <td className="px-4 py-3 text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{(p.reorderQty*p.cost).toLocaleString()}</td>
-                    <td className="px-4 py-3"><button onClick={() => add({ type:"info", title:`PO draft — ${p.name}` })} className="text-xs px-2.5 py-1.5 rounded border font-semibold whitespace-nowrap" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Draft PO</button></td>
+                    <td className="px-4 py-3"><button onClick={() => add({ type:"info", title:`PO draft — ${p.name}` })} className="text-xs px-2.5 py-1.5 rounded border font-semibold whitespace-nowrap" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Draft PO</button></td>
                   </tr>
                 );
               })}
@@ -1883,8 +1882,8 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
               {assignedRooms(roomTypes.find(r=>r.code===confirmDelete.code)!).length > 0 && (
                 <div className="mt-4 flex items-start gap-2.5 text-left p-3 rounded-xl w-full"
                   style={{ backgroundColor:`${WARNING}10`, border:`1px solid ${WARNING}30` }}>
-                  <AlertTriangle size={14} style={{ color: WARNING, flexShrink:0, marginTop:1 }}/>
-                  <p className="text-xs" style={{ color: WARNING }}>
+                  <AlertTriangle size={14} style={{ color: WARNING_INK, flexShrink:0, marginTop:1 }}/>
+                  <p className="text-xs" style={{ color: WARNING_INK }}>
                     <strong>{assignedRooms(roomTypes.find(r=>r.code===confirmDelete.code)!).length} room{assignedRooms(roomTypes.find(r=>r.code===confirmDelete.code)!).length!==1?"s":""}</strong> are currently assigned to this type and will become unassigned.
                   </p>
                 </div>
@@ -1965,7 +1964,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Type Code <span style={{ color:ERROR }}>*</span></label>
                   <input value={newType.code} onChange={e=>setNewType(p=>({...p,code:e.target.value.toUpperCase().slice(0,4)}))} placeholder="e.g. PEN" aria-label="e.g. PEN" maxLength={4}
-                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white", fontFamily:mono, letterSpacing:"0.1em" }} />
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white", fontFamily:mono }} />
                   <p className="text-xs mt-1" style={{ color:SUBTLE }}>Unique 2–4 char identifier</p>
                 </div>
                 <div>
@@ -2350,7 +2349,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                           {d.toLocaleDateString("en-NG",{weekday:"short"}).slice(0,3)}
                         </span>
                         <div className="flex flex-col items-center">
-                          <span style={{ fontSize: viewDays===7?18:14, fontWeight:800, lineHeight:1, color:isToday?PRIMARY:isWeekend?"#475569":TEXT }}>
+                          <span style={{ fontSize: viewDays===7?18:14, fontWeight: 700, lineHeight:1, color:isToday?PRIMARY:isWeekend?"#475569":TEXT }}>
                             {d.getDate()}
                           </span>
                           {(i===0||d.getDate()===1) && (
@@ -2412,7 +2411,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor:"#FEE2E2" }}>
                                 <MinusCircle size={14} style={{ color:ERROR }}/>
                               </div>
-                              <span style={{ fontSize: 12, fontWeight:800, color:ERROR, letterSpacing:"0.08em" }}>CLOSED</span>
+                              <span style={{ fontSize: 12, fontWeight: 700, color:ERROR }}>CLOSED</span>
                               <span style={{ fontSize: 12, color:"#F87171" }}>tap to lift</span>
                             </div>
                           ) : (
@@ -2420,7 +2419,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                             <div className="absolute inset-0 flex flex-col justify-between p-2">
                               {/* Rate */}
                               <div className="flex items-start justify-between">
-                                <span style={{ fontSize: viewDays===7?15:12, fontWeight:800, color:rateColor, fontFamily:mono, lineHeight:1 }}>
+                                <span style={{ fontSize: viewDays===7?15:12, fontWeight: 700, color:rateColor, fontFamily:mono, lineHeight:1 }}>
                                   ₦{(rate/1000).toFixed(rate%1000===0?0:1)}k
                                 </span>
                                 {hasOvr && (
@@ -2497,7 +2496,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 <div key={rt.code} className="flex items-center gap-3">
                   {/* Badge */}
                   <div className="flex-shrink-0 w-10 h-7 rounded flex items-center justify-center text-white"
-                    style={{ backgroundColor:TYPE_COLOR[rt.code], fontSize: 12, fontWeight:800, letterSpacing:"0.04em" }}>
+                    style={{ backgroundColor:TYPE_COLOR[rt.code], fontSize: 12, fontWeight: 700 }}>
                     {rt.code}
                   </div>
                   {/* Cells */}
@@ -2634,14 +2633,14 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           {overrides>0 && (
             <div className="rounded-xl border p-4" style={{ borderColor:`${ORANGE}30`, backgroundColor:`${ORANGE}06` }}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color:ORANGE }}>Pending</span>
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color:ORANGE_INK }}>Pending</span>
                 <button onClick={()=>{ setCellRates({}); add({type:"info",title:"Overrides cleared"}); }}
                   className="text-xs px-2 py-0.5 rounded border" style={{ color:MUTED, borderColor:BORDER, backgroundColor:"white" }}>
                   Clear
                 </button>
               </div>
-              <p className="text-2xl font-black" style={{ color:ORANGE, fontFamily:mono }}>{overrides}</p>
-              <p className="text-xs" style={{ color:ORANGE }}>override{overrides!==1?"s":""} · publish to go live</p>
+              <p className="text-2xl font-black" style={{ color:ORANGE_INK, fontFamily:mono }}>{overrides}</p>
+              <p className="text-xs" style={{ color:ORANGE_INK }}>override{overrides!==1?"s":""} · publish to go live</p>
             </div>
           )}
         </div>
@@ -2671,8 +2670,8 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
   const days    = Array.from({ length: DAYS }, (_, i) => { const d = new Date(TODAY); d.setDate(TODAY.getDate()+offset+i); return d; });
   const TYPES   = [
     { code:"STD", name:"Standard", total:10, color:PRIMARY },
-    { code:"DLX", name:"Deluxe",   total:8,  color:TEAL   },
-    { code:"STE", name:"Suite",    total:4,  color:ORANGE },
+    { code:"DLX", name:"Deluxe",   total:8,  color:TEAL_INK   },
+    { code:"STE", name:"Suite",    total:4,  color:ORANGE_INK },
   ];
   const totalInv  = TYPES.reduce((s,t)=>s+t.total, 0);
   const todayIdx  = days.findIndex(d=>d.toDateString()===TODAY.toDateString());
@@ -2788,7 +2787,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                       <span style={{ fontSize: 12, fontWeight:700, color:isToday?PRIMARY:isWeekend?MUTED:SUBTLE }}>
                         {d.toLocaleDateString("en-NG",{weekday:"short"}).slice(0,3)}
                       </span>
-                      <span style={{ fontSize:viewDays===7?17:14, fontWeight:800, lineHeight:1, color:isToday?PRIMARY:isWeekend?"#475569":TEXT }}>
+                      <span style={{ fontSize:viewDays===7?17:14, fontWeight: 700, lineHeight:1, color:isToday?PRIMARY:isWeekend?"#475569":TEXT }}>
                         {d.getDate()}
                       </span>
                       {(i===0||d.getDate()===1) && (
@@ -2811,7 +2810,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                     style={{ width:LABEL_W, borderRight:`1px solid ${BORDER}`, minHeight:ROW_H }}>
                     <div className="w-2 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor:rt.color }}/>
                     <div className="w-9 h-7 rounded flex items-center justify-center text-white flex-shrink-0"
-                      style={{ backgroundColor:rt.color, fontSize: 12, fontWeight:800 }}>{rt.code}</div>
+                      style={{ backgroundColor:rt.color, fontSize: 12, fontWeight: 700 }}>{rt.code}</div>
                     <div>
                       <div className="text-xs font-bold" style={{ color:TEXT }}>{rt.name}</div>
                       <div className="text-xs mt-0.5" style={{ color:MUTED }}>{rt.total} rooms</div>
@@ -2850,7 +2849,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor:"#FEE2E2" }}>
                               <MinusCircle size={14} style={{ color:ERROR }}/>
                             </div>
-                            <span style={{ fontSize: 12, fontWeight:800, color:ERROR, letterSpacing:"0.06em" }}>STOP SELL</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color:ERROR }}>STOP SELL</span>
                             <span style={{ fontSize: 12, color:"#F87171" }}>tap to lift</span>
                           </div>
                         ) : viewDays===7 ? (
@@ -2859,11 +2858,11 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                             {/* Avail + Sold side by side */}
                             <div className="flex items-end justify-between">
                               <div className="flex flex-col items-start">
-                                <span style={{ fontSize:26, fontWeight:900, lineHeight:1, color:avail===0?ERROR:avail<=2?ORANGE:avail<=4?AVAIL_LOW:TEXT, fontFamily:mono }}>{avail}</span>
+                                <span style={{ fontSize:26, fontWeight: 700, lineHeight:1, color:avail===0?ERROR:avail<=2?ORANGE:avail<=4?AVAIL_LOW:TEXT, fontFamily:mono }}>{avail}</span>
                                 <span style={{ fontSize: 12, color:MUTED, marginTop:1 }}>available</span>
                               </div>
                               <div className="flex flex-col items-end">
-                                <span style={{ fontSize:16, fontWeight:800, lineHeight:1, color:sold===rt.total?ERROR:MUTED, fontFamily:mono }}>{sold}</span>
+                                <span style={{ fontSize:16, fontWeight: 700, lineHeight:1, color:sold===rt.total?ERROR:MUTED, fontFamily:mono }}>{sold}</span>
                                 <span style={{ fontSize: 12, color:SUBTLE, marginTop:1 }}>sold</span>
                               </div>
                             </div>
@@ -2871,7 +2870,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                             <div>
                               {grpBlock && (
                                 <div className="mb-1.5 px-1.5 py-0.5 rounded text-white inline-block max-w-full truncate"
-                                  style={{ backgroundColor:TEAL, fontSize: 12, fontWeight:800 }}>
+                                  style={{ backgroundColor:TEAL, fontSize: 12, fontWeight: 700 }}>
                                   {grpBlock.name} · {grpBlock.rooms}rm
                                 </div>
                               )}
@@ -2880,7 +2879,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                               </div>
                               <div className="flex justify-between items-center">
                                 <span style={{ fontSize: 12, color:MUTED }}>{rt.total} total</span>
-                                <span style={{ fontSize: 12, fontWeight:800, color:barColor, fontFamily:mono }}>{Math.round(pct*100)}%</span>
+                                <span style={{ fontSize: 12, fontWeight: 700, color:barColor, fontFamily:mono }}>{Math.round(pct*100)}%</span>
                               </div>
                             </div>
                           </div>
@@ -2889,11 +2888,11 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                           <div className="absolute inset-0 flex flex-col justify-between p-2">
                             <div className="flex items-start justify-between">
                               <div className="flex items-baseline gap-0.5">
-                                <span style={{ fontSize:16, fontWeight:900, lineHeight:1, color:avail===0?ERROR:avail<=2?ORANGE:avail<=4?AVAIL_LOW:TEXT, fontFamily:mono }}>{avail}</span>
+                                <span style={{ fontSize:16, fontWeight: 700, lineHeight:1, color:avail===0?ERROR:avail<=2?ORANGE:avail<=4?AVAIL_LOW:TEXT, fontFamily:mono }}>{avail}</span>
                                 <span style={{ fontSize: 12, color:MUTED }}>free</span>
                               </div>
                               {grpBlock && (
-                                <div className="px-1 py-0.5 rounded text-white flex-shrink-0" style={{ backgroundColor:TEAL, fontSize: 12, fontWeight:800 }}>
+                                <div className="px-1 py-0.5 rounded text-white flex-shrink-0" style={{ backgroundColor: TEAL_INK, fontSize: 12, fontWeight: 700 }}>
                                   GRP·{grpBlock.rooms}
                                 </div>
                               )}
@@ -2926,7 +2925,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                   return (
                     <div key={i} className="flex flex-col items-center justify-center py-2.5 gap-1"
                       style={{ flex:1, minWidth:62, borderRight:`1px solid ${BORDER}`, backgroundColor:i===todayIdx?"#EFF6FF":"transparent" }}>
-                      <span style={{ fontSize:viewDays===7?15:13, fontWeight:800, color:c, fontFamily:mono }}>{occ}%</span>
+                      <span style={{ fontSize:viewDays===7?15:13, fontWeight: 700, color:c, fontFamily:mono }}>{occ}%</span>
                       <div className="rounded-full overflow-hidden" style={{ width:"72%", height:5, backgroundColor:"#E2E8F0" }}>
                         <div className="h-full rounded-full" style={{ width:`${occ}%`, backgroundColor:c }}/>
                       </div>
@@ -2946,7 +2945,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
               </span>
             ))}
             <span className="flex items-center gap-1.5 text-xs" style={{ color:MUTED }}>
-              <span className="px-1 rounded text-white inline-block" style={{ backgroundColor:TEAL, fontSize: 12, fontWeight:800 }}>GRP·N</span> Group block
+              <span className="px-1 rounded text-white inline-block" style={{ backgroundColor: TEAL_INK, fontSize: 12, fontWeight: 700 }}>GRP·N</span> Group block
             </span>
             <span className="ml-auto text-xs" style={{ color:SUBTLE }}>Click any cell to inspect · click stop-sell cell to lift</span>
           </div>
@@ -3019,7 +3018,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                         <div className="text-xs" style={{ color:MUTED, fontFamily:mono }}>{r.id} · {r.checkin}–{r.checkout}</div>
                       </div>
                       <button onClick={()=>nav?nav("reservation-detail",r.guest,r.id):add({type:"info",title:r.id})}
-                        className="text-xs px-2 py-1 rounded-lg border flex-shrink-0" style={{ color:TEAL, borderColor:`${TEAL}30` }}>View</button>
+                        className="text-xs px-2 py-1 rounded-lg border flex-shrink-0" style={{ color:TEAL_INK, borderColor:`${TEAL}30` }}>View</button>
                     </div>
                   ))}
                   {drillCell.sold===0 && <div className="text-xs text-center py-3" style={{ color:MUTED }}>No reservations for this cell</div>}
@@ -3063,7 +3062,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                       <div key={rt.code}>
                         <div className="flex justify-between items-center mb-1">
                           <div className="flex items-center gap-2">
-                            <div className="w-9 h-5 rounded flex items-center justify-center text-white" style={{ backgroundColor:rt.color, fontSize: 12, fontWeight:800 }}>{rt.code}</div>
+                            <div className="w-9 h-5 rounded flex items-center justify-center text-white" style={{ backgroundColor:rt.color, fontSize: 12, fontWeight: 700 }}>{rt.code}</div>
                             <span className="text-xs font-semibold" style={{ color:TEXT }}>{rt.name}</span>
                           </div>
                           <span className="text-xs font-black" style={{ color:heatC(occ), fontFamily:mono }}>{occ}%</span>
@@ -3096,7 +3095,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                     </div>
                   ))}
                   <div className="flex items-center gap-2.5 pt-2 border-t" style={{ borderColor:BORDER }}>
-                    <div className="px-1.5 py-0.5 rounded text-white flex-shrink-0" style={{ backgroundColor:TEAL, fontSize: 12, fontWeight:800 }}>GRP·N</div>
+                    <div className="px-1.5 py-0.5 rounded text-white flex-shrink-0" style={{ backgroundColor: TEAL_INK, fontSize: 12, fontWeight: 700 }}>GRP·N</div>
                     <div>
                       <div className="text-xs font-semibold" style={{ color:TEXT }}>Group block</div>
                       <div style={{ fontSize: 12, color:SUBTLE }}>N rooms held for a group</div>

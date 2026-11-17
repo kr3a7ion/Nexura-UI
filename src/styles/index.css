@@ -5,7 +5,6 @@
 /* Brand rules applied app-wide (unlayered, so they win over utility classes):
    - no text under 12px: the root is 14px, which made text-xs 10.5px
    - sentence case: labels are never forced to capitals */
-.text-xs { font-size: 12px; line-height: 1.35; }
 .uppercase { text-transform: none; letter-spacing: 0; }
 
 /* Click targets: buttons without an explicit height are at least 32px tall inside the suite. */
@@ -14,3 +13,25 @@
 /* Switches and custom checkboxes stay small to look at, but the area that responds to a click is 32px. */
 [data-suite-content] button[role="switch"], [data-suite-content] button[role="checkbox"] { position: relative; }
 [data-suite-content] button[role="switch"]::after, [data-suite-content] button[role="checkbox"]::after { content: ""; position: absolute; inset: -7px; }
+
+/* Typography (17 Nov 2026). The root is 14px, so Tailwind's rem sizes came out small
+   and most text sat at 12px; weights leaned on bold. One scale and calmer weights: */
+.text-xs   { font-size: 13px; line-height: 18px; }
+.text-sm   { font-size: 14px; line-height: 20px; }
+.text-base { font-size: 15px; line-height: 22px; }
+.text-lg   { font-size: 17px; line-height: 24px; }
+.text-xl   { font-size: 19px; line-height: 26px; }
+.text-2xl  { font-size: 22px; line-height: 28px; }
+.text-3xl  { font-size: 26px; line-height: 32px; }
+
+/* Bold is for emphasis, not for every label. */
+.font-bold { font-weight: 600; }
+.font-extrabold, .font-black { font-weight: 700; }
+.text-xs.font-semibold, .text-xs.font-bold { font-weight: 500; }
+
+/* Small labels are not spaced out; headings keep their slight tightening. */
+.tracking-wide, .tracking-wider, .tracking-widest { letter-spacing: 0; }
+
+/* Names, pills and badges in tables stay on one line; a wide table scrolls inside its own box. */
+body { -webkit-font-smoothing: antialiased; }
+td span[class*="rounded"], td .text-sm.font-semibold, td .text-sm.font-bold, th { white-space: nowrap; }

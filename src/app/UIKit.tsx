@@ -24,7 +24,7 @@ import {
 } from "recharts";
 import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
-  mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
+  mono, display, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
@@ -33,8 +33,7 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-} from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK } from "./constants";
 import { TextOrDate } from "./DateInput";
 import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, balanceOf } from "./mock/frontOffice";
 
@@ -44,7 +43,7 @@ import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, 
 export function Badge({ label, colors }: { label: string; colors: { bg: string; text: string } }) {
   return (
     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
-      style={{ backgroundColor: colors.bg, color: colors.text, letterSpacing: "0.01em" }}>
+      style={{ backgroundColor: colors.bg, color: colors.text }}>
       {label}
     </span>
   );
@@ -126,7 +125,7 @@ export function LiveClock() {
   const p = (n: number) => String(n).padStart(2, "0");
   return (
     <div className="text-right">
-      <div className="text-sm font-semibold text-white leading-none tracking-wide" style={{ fontFamily: mono, letterSpacing: "0.05em" }}>
+      <div className="text-sm font-semibold text-white leading-none tracking-wide" style={{ fontFamily: mono }}>
         {p(t.getHours())}:{p(t.getMinutes())}:{p(t.getSeconds())}
       </div>
       <div className="text-xs mt-0.5" style={{ color: "#A1A1AA", fontFamily: mono }}>
@@ -169,7 +168,7 @@ export function StatCard({ label, value, sub, delta, deltaPositive, icon: Icon, 
         )}
       </div>
       <div className="text-3xl font-bold leading-none mb-1.5 tracking-tight" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 700, letterSpacing: "-0.02em" }}>{value}</div>
-      <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: MUTED, letterSpacing: "0.08em" }}>{label}</div>
+      <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: MUTED }}>{label}</div>
       <div className="text-xs" style={{ color: SUBTLE }}>{sub}</div>
     </div>
   );
@@ -179,7 +178,7 @@ export function PageHeader({ title, sub, actions }: { title: string; sub?: strin
   return (
     <div className="flex items-center justify-between mb-6">
       <div>
-        <h1 className="font-bold tracking-tight" style={{ color: TEXT, fontSize: 22, fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 700, letterSpacing: "-0.02em" }}>{title}</h1>
+        <h1 style={{ color: TEXT, fontSize: 24, lineHeight: "30px", fontFamily: display, fontWeight: 600, letterSpacing: "-0.01em" }}>{title}</h1>
         {sub && <p className="text-sm mt-0.5" style={{ color: MUTED }}>{sub}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -223,7 +222,7 @@ export function Inp({ label, placeholder, type, defaultValue, value, onChange, r
         onChange={e => onChange?.({ target: { value: e.target.value } })}
         readOnly={readOnly}
         className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none"
-        style={{ borderColor: BORDER, color: TEXT, fontFamily: monoFont ? "'JetBrains Mono', monospace" : undefined }}
+        style={{ borderColor: BORDER, color: TEXT, fontFamily: monoFont ? "'Inter', system-ui, sans-serif" : undefined }}
       />
     </div>
   );
@@ -391,7 +390,7 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
           </div>
           <div className="bg-white rounded-xl border p-3" style={{ borderColor: BORDER }}>
             <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Legend</div>
-            {[{ label:"Checked In", color:SUCCESS }, { label:"Confirmed", color:TEAL }, { label:"Pending", color:ORANGE }, { label:"Checked Out", color:SUBTLE }].map(l => (
+            {[{ label:"Checked In", color:SUCCESS }, { label:"Confirmed", color:TEAL_INK }, { label:"Pending", color:ORANGE_INK }, { label:"Checked Out", color:SUBTLE }].map(l => (
               <div key={l.label} className="flex items-center gap-2 text-xs mb-1.5" style={{ color: TEXT }}>
                 <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: l.color }} />{l.label}
               </div>
@@ -421,7 +420,7 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
                     <div key={i} className="flex-shrink-0 flex flex-col items-center justify-center py-1.5" style={{ width: DW, borderRight: `1px solid ${BORDER}`, backgroundColor: isToday ? "#EFF6FF" : "transparent" }}>
                       <span className="text-xs font-semibold" style={{ color: isToday ? PRIMARY : TEXT }}>{d.toLocaleDateString("en-NG",{weekday:"short"})}</span>
                       <span className="text-xs" style={{ color: isToday ? PRIMARY : SUBTLE }}>{d.getDate()}/{d.getMonth()+1}</span>
-                      {isToday && <span style={{ fontSize: 12, fontWeight: 800, color: PRIMARY, }}>Today</span>}
+                      {isToday && <span style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, }}>Today</span>}
                     </div>
                   );
                 })}
@@ -625,7 +624,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   // ── Mini-helpers ──────────────────────────────────────────────────────────
   const PASS_BG   = "#F9FAFB";
   const PASS_BORDER = "#E2E8F0";
-  const PASS_MUTED  = "#64748B";
+  const PASS_MUTED  = "#475569";
   const PASS_DASH   = "#CBD5E1";
 
   const PassNotch = () => (
@@ -640,10 +639,10 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
     ? <p className="flex items-center gap-1 mt-1.5 text-xs font-medium" style={{ color: ERROR }}><WarningCircle size={11} weight="bold" />{errors[field]}</p>
     : null;
   const SLabel = ({ children }: { children: React.ReactNode }) => (
-    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PASS_MUTED, letterSpacing: "0.1em" }}>{children}</p>
+    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PASS_MUTED }}>{children}</p>
   );
   const FLabel = ({ children, req }: { children: string; req?: boolean }) => (
-    <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED, letterSpacing: "0.08em" }}>
+    <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>
       {children}{req && <span style={{ color: ERROR }}> *</span>}
     </label>
   );
@@ -670,7 +669,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
           <div className="relative">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
               style={{ backgroundColor: `${TEAL}22`, border: `1.5px solid ${TEAL}55` }}>
-              <CheckCircle size={30} style={{ color: TEAL }} weight="bold" />
+              <CheckCircle size={30} style={{ color: TEAL_INK }} weight="bold" />
             </div>
             <p className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.38)" }}>Reservation confirmed</p>
             <p className="text-3xl font-bold text-white mb-1.5" style={{ fontFamily: mono }}>{confirmedId}</p>
@@ -716,7 +715,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
           </button>
         )}
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED, letterSpacing: "0.1em" }}>Step {step} of 6 · {STEPS[step - 1]}</p>
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Step {step} of 6 · {STEPS[step - 1]}</p>
           <h1 className="text-2xl font-bold leading-tight mt-0.5" style={{ color: TEXT }}>New Reservation</h1>
         </div>
       </div>
@@ -755,7 +754,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               </div>
 
               <SI size={24} style={{ color: active ? "white" : done ? PRIMARY : PASS_MUTED }} />
-              <p className="text-center mt-2 font-bold leading-tight" style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : PASS_MUTED, letterSpacing: "0.05em" }}>
+              <p className="text-center mt-2 font-bold leading-tight" style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : PASS_MUTED }}>
                 {label}
               </p>
             </button>
@@ -772,7 +771,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
             {/* Teal header band */}
             <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: PRIMARY }}>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ letterSpacing: "0.1em" }}>Step {step} of 6</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ }}>Step {step} of 6</p>
                 <p className="text-base font-bold text-white mt-0.5">{STEPS[step - 1]}</p>
               </div>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
@@ -810,7 +809,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                   </div>
                   {nights > 0 && form.checkout > form.checkin && (
                     <div className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
-                      style={{ backgroundColor: `${TEAL}14`, color: TEAL }}>
+                      style={{ backgroundColor: `${TEAL}14`, color: TEAL_INK }}>
                       <CalendarDots size={11} weight="bold" />{nights} night{nights !== 1 ? "s" : ""} selected
                     </div>
                   )}
@@ -897,7 +896,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm" style={{ color: sel ? PRIMARY : TEXT }}>{plan.name}</span>
-                              {idx === 0 && <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${TEAL}18`, color: TEAL }}>Recommended</span>}
+                              {idx === 0 && <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${TEAL}18`, color: TEAL_INK }}>Recommended</span>}
                             </div>
                             <p className="text-xs mt-1" style={{ color: MUTED }}>{plan.dates} · {plan.rooms.join(" · ")}</p>
                           </div>
@@ -957,7 +956,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               {/* ── STEP 3: Guest Details ───────────────────────────────── */}
               {step === 3 && (<>
                 <section>
-                  <SLabel><MagnifyingGlass size={13} style={{ display:"inline", marginRight:5, verticalAlign:"middle", color:TEAL }} weight="bold" />Returning guest</SLabel>
+                  <SLabel><MagnifyingGlass size={13} style={{ display:"inline", marginRight:5, verticalAlign:"middle", color:TEAL_INK }} weight="bold" />Returning guest</SLabel>
                   <div className="relative">
                     <MagnifyingGlass size={15} className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: SUBTLE }} weight="bold" />
                     <input value={guestSearchQ}
@@ -983,7 +982,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                             add({ type: "info", title: "Profile loaded", body: g.guest });
                           }}>
                           <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${TEAL}18` }}>
-                            <User size={16} style={{ color: TEAL }} weight="bold" />
+                            <User size={16} style={{ color: TEAL_INK }} weight="bold" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold" style={{ color: TEXT }}>{g.guest}</p>
@@ -1103,20 +1102,20 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
 
                 {form.extras.length > 0 && (
                   <section className="p-4 rounded-xl" style={{ backgroundColor: `${TEAL}08`, border: `1.5px solid ${TEAL}28` }}>
-                    <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{ color: TEAL }}>Selected · {form.extras.length} add-on{form.extras.length !== 1 ? "s" : ""}</p>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{ color: TEAL_INK }}>Selected · {form.extras.length} add-on{form.extras.length !== 1 ? "s" : ""}</p>
                     {form.extras.map(ex => {
                       const cat = EXTRAS_CATALOG.find(e => e.name === ex);
                       const lp = cat ? (cat.name === "Breakfast Included" ? cat.price * nights : cat.price) : 0;
                       return (
                         <div key={ex} className="flex justify-between text-xs mb-1.5">
                           <span style={{ color: TEXT }}>{ex}</span>
-                          <span style={{ color: TEAL, fontFamily: mono }}>{lp === 0 ? "Free" : `₦${lp.toLocaleString()}`}</span>
+                          <span style={{ color: TEAL_INK, fontFamily: mono }}>{lp === 0 ? "Free" : `₦${lp.toLocaleString()}`}</span>
                         </div>
                       );
                     })}
                     <div className="flex justify-between font-bold text-sm border-t pt-2 mt-1" style={{ borderColor: `${TEAL}28` }}>
-                      <span style={{ color: TEAL }}>Extras total</span>
-                      <span style={{ color: TEAL, fontFamily: mono }}>₦{extrasTotal.toLocaleString()}</span>
+                      <span style={{ color: TEAL_INK }}>Extras total</span>
+                      <span style={{ color: TEAL_INK, fontFamily: mono }}>₦{extrasTotal.toLocaleString()}</span>
                     </div>
                   </section>
                 )}
@@ -1165,7 +1164,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                   <p className="text-xs" style={{ color: "rgba(255,255,255,0.38)" }}>{form.depositPct}% of ₦{total.toLocaleString()} total</p>
                   <div className="flex justify-center gap-6 mt-3 text-xs">
                     <span style={{ color: "rgba(255,255,255,0.4)" }}>Room ₦{(baseRate * nights).toLocaleString()}</span>
-                    {extrasTotal > 0 && <span style={{ color: TEAL }}>Extras ₦{extrasTotal.toLocaleString()}</span>}
+                    {extrasTotal > 0 && <span style={{ color: TEAL_INK }}>Extras ₦{extrasTotal.toLocaleString()}</span>}
                     <span style={{ color: "rgba(255,255,255,0.4)" }}>VAT ₦{vat.toLocaleString()}</span>
                   </div>
                 </section>
@@ -1248,7 +1247,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                         <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3" style={{ backgroundColor: PASS_BG }}>
                           {sec.items.map(([k,v]) => (
                             <div key={k}>
-                              <p className="text-xs font-bold uppercase" style={{ color: PASS_MUTED, letterSpacing: "0.06em" }}>{k}</p>
+                              <p className="text-xs font-bold uppercase" style={{ color: PASS_MUTED }}>{k}</p>
                               <p className="text-xs font-semibold mt-0.5" style={{ color: TEXT }}>{v}</p>
                             </div>
                           ))}
@@ -1259,7 +1258,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                 </div>
 
                 <section className="p-4 rounded-xl" style={{ border: `1.5px dashed ${PASS_DASH}`, backgroundColor: "white" }}>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PASS_MUTED, letterSpacing: "0.1em" }}>Notifications & documents</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PASS_MUTED }}>Notifications & documents</p>
                   <div className="space-y-3">
                     {([
                       ["sendEmail","Send confirmation email"],
@@ -1288,7 +1287,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
             {/* Teal header band */}
             <div className="px-5 py-4 flex items-center justify-between" style={{ backgroundColor: PRIMARY }}>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ letterSpacing: "0.12em" }}>Summary</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ }}>Summary</p>
                 <p className="text-lg font-bold text-white mt-0.5">{form.guestName || "New Guest"}</p>
               </div>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
@@ -1307,7 +1306,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                   {form.guestName || "Guest name pending"}
                 </span>
               </div>
-              {form.vip && <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${ORANGE}18`, color: ORANGE }}>★ VIP</span>}
+              {form.vip && <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${ORANGE}18`, color: ORANGE_INK }}>★ VIP</span>}
               {!form.guestName && <span className="text-xs font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ backgroundColor: "#EFF6FF", color: PRIMARY, fontSize: 12 }}>STEP 3</span>}
             </div>
 
@@ -1329,7 +1328,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                 ["Guests",    `${form.adults} adults · ${form.children} children`],
               ] as [string,string][]).map(([k,v]) => (
                 <div key={k}>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: "#64748B", letterSpacing: "0.1em" }}>{k}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: "#64748B" }}>{k}</p>
                   <p className="font-bold text-sm" style={{ color: TEXT, fontFamily: k === "CHECK-IN" || k === "CHECK-OUT" ? mono : undefined }}>{v}</p>
                 </div>
               ))}
@@ -1344,7 +1343,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               {extrasTotal > 0 && (
                 <div className="flex justify-between">
                   <span style={{ color: "#64748B" }}>Extras ({form.extras.length})</span>
-                  <span style={{ color: TEAL, fontFamily: mono }}>₦{extrasTotal.toLocaleString()}</span>
+                  <span style={{ color: TEAL_INK, fontFamily: mono }}>₦{extrasTotal.toLocaleString()}</span>
                 </div>
               )}
               <div className="flex justify-between">
@@ -1357,8 +1356,8 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               </div>
               {Number(form.depositPct) > 0 && (
                 <div className="flex justify-between items-center px-3 py-2 rounded-lg" style={{ backgroundColor: `${TEAL}10` }}>
-                  <span className="text-xs font-medium" style={{ color: TEAL }}>Deposit {form.depositPct}% due</span>
-                  <span className="text-sm font-bold" style={{ color: TEAL, fontFamily: mono }}>₦{depositAmt.toLocaleString()}</span>
+                  <span className="text-xs font-medium" style={{ color: TEAL_INK }}>Deposit {form.depositPct}% due</span>
+                  <span className="text-sm font-bold" style={{ color: TEAL_INK, fontFamily: mono }}>₦{depositAmt.toLocaleString()}</span>
                 </div>
               )}
             </div>
@@ -1370,7 +1369,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                 <div className="flex flex-wrap gap-1.5">
                   {form.extras.map(ex => (
                     <span key={ex} className="text-xs px-2 py-0.5 rounded font-medium"
-                      style={{ backgroundColor: `${TEAL}12`, color: TEAL, border: `1px solid ${TEAL}28` }}>{ex}</span>
+                      style={{ backgroundColor: `${TEAL}12`, color: TEAL_INK, border: `1px solid ${TEAL}28` }}>{ex}</span>
                   ))}
                 </div>
               </div>
@@ -1422,7 +1421,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               </div>
               {/* Label */}
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: PASS_MUTED, fontSize: 12, letterSpacing: "0.1em" }}>Scan to verify</p>
+                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: PASS_MUTED, fontSize: 12 }}>Scan to verify</p>
                 <p className="font-bold text-xs leading-snug truncate" style={{ color: PRIMARY, fontFamily: mono }}>
                   {form.guestName || "Guest name pending"}
                 </p>
@@ -1579,7 +1578,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
   const CK_BG  = "#F9FAFB";
   const CK_BD  = "#E2E8F0";
   const CK_DSH = "#CBD5E1";
-  const CK_MUT = "#64748B";
+  const CK_MUT = "#475569";
 
   const Notch = () => (
     <div className="flex items-center px-5" style={{ margin: "-1px 0", position: "relative", zIndex: 2, backgroundColor: CK_BG }}>
@@ -1602,14 +1601,14 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-Out · {g.checkout}</p>
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT }}>Check-Out · {g.checkout}</p>
           <h1 className="text-2xl font-bold mt-0.5" style={{ color: TEXT }}>Guest Check-Out</h1>
         </div>
       </div>
       <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
         <div className="px-6 py-4 flex items-center justify-between" style={{ backgroundColor: PRIMARY }}>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Check-Out Complete · {g.id}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Check-Out Complete · {g.id}</p>
             <p className="text-base font-bold text-white mt-0.5">{g.guest} · Room {g.room}</p>
           </div>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
@@ -1687,7 +1686,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-Out & Settlement · Business date {fmtDate(BUSINESS_DATE)}</p>
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT }}>Check-Out & Settlement · Business date {fmtDate(BUSINESS_DATE)}</p>
           <h1 className="text-2xl font-bold mt-0.5" style={{ color: TEXT }}>Guest Check-Out</h1>
         </div>
       </div>
@@ -1696,7 +1695,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         {/* ── GUEST LIST PANEL ── */}
         <div className="w-full xl:w-64 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
           <div className="px-4 py-3.5" style={{ backgroundColor: PRIMARY }}>
-            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>In-House</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>In-House</p>
             <p className="text-sm font-bold text-white mt-0.5">{ALL_GUESTS.length} guests · {fmtDate(BUSINESS_DATE)}</p>
           </div>
           <div className="p-2.5 border-b" style={{ borderColor: CK_BD }}>
@@ -1720,8 +1719,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
             {filteredIH.length > 0 && (
               <div className={filteredDue.length > 0 ? "mt-3" : ""}>
                 <div className="flex items-center justify-between px-2 mb-1.5">
-                  <span className="font-bold uppercase" style={{ color: TEAL, fontSize: 12, letterSpacing: "0.1em" }}>In-House</span>
-                  <span className="font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${TEAL}15`, color: TEAL, fontSize: 12 }}>{filteredIH.length}</span>
+                  <span className="font-bold uppercase" style={{ color: TEAL_INK, fontSize: 12 }}>In-House</span>
+                  <span className="font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${TEAL}15`, color: TEAL_INK, fontSize: 12 }}>{filteredIH.length}</span>
                 </div>
                 {filteredIH.map(d => <GuestRow key={d.id} d={d} />)}
               </div>
@@ -1748,11 +1747,11 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4" style={{ backgroundColor: PRIMARY }}>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Folio · {g.id}</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Folio · {g.id}</p>
                 <p className="text-sm font-bold text-white mt-0.5">{g.guest} · Room {g.room} · {g.checkin}–{g.checkout}</p>
               </div>
               <div className="flex gap-2 flex-wrap justify-end">
-                <button onClick={() => setShowDiscount(true)} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: ORANGE, backgroundColor: `${ORANGE}20` }}>Apply discount</button>
+                <button onClick={() => setShowDiscount(true)} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: ORANGE_INK, backgroundColor: `${ORANGE}20` }}>Apply discount</button>
                 <button onClick={() => setShowLateCharge(true)} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>+ Late Charge</button>
                 <button onClick={() => { setSplitLines([]); setSplitTarget("Guest Folio B"); setSplitReference(""); setShowSplitFolio(true); }} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Split folio</button>
                 <button onClick={() => { setTransferLine(null); setTransferTarget("Guest Folio"); setTransferReference(""); setTransferReason(""); setShowTransferCharge(true); }} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Transfer</button>
@@ -1777,7 +1776,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                       <td className="px-3 py-3"><span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: (catColor[c.cat] ?? MUTED) + "18", color: catColor[c.cat] ?? MUTED }}>{c.cat}</span></td>
                       <td className="px-3 py-3 text-sm max-w-40" style={{ color: c.reversed || c.movedTo ? CK_MUT : TEXT }}>
                         {c.reversed ? <span className="line-through">{c.desc}</span> : c.desc}
-                        {c.movedTo && <span className="block text-xs font-semibold mt-0.5" style={{ color: TEAL }}>Moved → {c.movedTo}</span>}
+                        {c.movedTo && <span className="block text-xs font-semibold mt-0.5" style={{ color: TEAL_INK }}>Moved → {c.movedTo}</span>}
                       </td>
                       <td className="px-3 py-3 text-xs text-center" style={{ color: CK_MUT }}>{c.qty}</td>
                       <td className="px-3 py-3 text-xs" style={{ color: CK_MUT, fontFamily: mono }}>₦{c.unit.toLocaleString()}</td>
@@ -1799,8 +1798,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                 <div className="w-64 space-y-1.5 text-sm">
                   <div className="flex justify-between"><span style={{ color: CK_MUT }}>Charges subtotal</span><span style={{ fontFamily: mono }}>₦{subtotal.toLocaleString()}</span></div>
                   <div className="flex justify-between"><span style={{ color: CK_MUT }}>VAT (7.5%)</span><span style={{ fontFamily: mono }}>₦{taxTotal.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span style={{ color: CK_MUT }}>Deposit paid</span><span style={{ color: SUCCESS, fontFamily: mono }}>−₦{g.deposit.toLocaleString()}</span></div>
-                  {gDiscount > 0 && <div className="flex justify-between"><span style={{ color: CK_MUT }}>Discount</span><span style={{ color: SUCCESS, fontFamily: mono }}>−₦{gDiscount.toLocaleString()}</span></div>}
+                  <div className="flex justify-between"><span style={{ color: CK_MUT }}>Deposit paid</span><span style={{ color: TEXT, fontFamily: mono }}>−₦{g.deposit.toLocaleString()}</span></div>
+                  {gDiscount > 0 && <div className="flex justify-between"><span style={{ color: CK_MUT }}>Discount</span><span style={{ color: TEXT, fontFamily: mono }}>−₦{gDiscount.toLocaleString()}</span></div>}
                   <div className="flex justify-between font-black text-base border-t pt-2" style={{ borderColor: CK_BD, color: balance > 0 ? ERROR : SUCCESS }}>
                     <span>Balance due</span><span style={{ fontFamily: mono }}>₦{balance.toLocaleString()}</span>
                   </div>
@@ -1812,7 +1811,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           {/* Checkout checklist card */}
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
             <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Checkout checklist</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Checkout checklist</p>
             </div>
             <Notch />
             <div className="p-5 space-y-4">
@@ -1854,7 +1853,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                 {!gFeedback ? (
                   <div className="flex gap-2">
                     <button onClick={() => { setFeedbackStatus(p => ({ ...p, [selectedId]: "sent" })); add({ type: "success", title: "Feedback sent via WhatsApp", body: g.guest }); }}
-                      className="text-xs px-3 py-1.5 rounded-lg border font-bold" style={{ color: TEAL, borderColor: `${TEAL}40` }}>WhatsApp</button>
+                      className="text-xs px-3 py-1.5 rounded-lg border font-bold" style={{ color: TEAL_INK, borderColor: `${TEAL}40` }}>WhatsApp</button>
                     <button onClick={() => { setFeedbackStatus(p => ({ ...p, [selectedId]: "sent" })); add({ type: "success", title: "Feedback sent via Email", body: g.guest }); }}
                       className="text-xs px-3 py-1.5 rounded-lg border font-bold" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Email</button>
                     <button onClick={() => setFeedbackStatus(p => ({ ...p, [selectedId]: "skipped" }))}
@@ -1875,7 +1874,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
             <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Settlement</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Settlement</p>
             </div>
             <Notch />
             <div className="p-5">
@@ -1890,7 +1889,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
 
               {balance > 0 && (
                 <>
-                  <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: CK_MUT, letterSpacing: "0.08em" }}>Payment method</p>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: CK_MUT }}>Payment method</p>
                   <div className="space-y-2 mb-4">
                     {["Cash", "POS / Card", "Cash + POS", "Bank Transfer", "Corporate Account"].map(m => (
                       <button key={m} onClick={() => setPayMethod(m)}
@@ -1960,7 +1959,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                     <div className="p-3 rounded-xl mb-3 space-y-1.5 text-xs" style={{ backgroundColor: "white", border: `1.5px solid ${CK_DSH}` }}>
                       <div className="flex justify-between"><span style={{ color: CK_MUT }}>Total received</span><span className="font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{totalReceived.toLocaleString()}</span></div>
                       <div className="flex justify-between"><span style={{ color: CK_MUT }}>Balance due</span><span className="font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{balance.toLocaleString()}</span></div>
-                      {changeAmt > 0 && <div className="flex justify-between border-t pt-1.5" style={{ borderColor: CK_DSH }}><span style={{ color: CK_MUT }}>Change due</span><span className="font-bold" style={{ color: SUCCESS, fontFamily: mono }}>₦{changeAmt.toLocaleString()}</span></div>}
+                      {changeAmt > 0 && <div className="flex justify-between border-t pt-1.5" style={{ borderColor: CK_DSH }}><span style={{ color: CK_MUT }}>Change due</span><span className="font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{changeAmt.toLocaleString()}</span></div>}
                       {totalReceived < balance && <div className="flex justify-between border-t pt-1.5" style={{ borderColor: CK_DSH }}><span style={{ color: ERROR }}>Shortfall</span><span className="font-bold" style={{ color: ERROR, fontFamily: mono }}>₦{(balance - totalReceived).toLocaleString()}</span></div>}
                     </div>
                   )}
@@ -2003,7 +2002,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           {/* Guest summary card */}
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
             <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Guest</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Guest</p>
             </div>
             <Notch />
             <div className="p-5">
@@ -2146,7 +2145,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
               {transferLine !== null && charges[transferLine] && (
                 <div className="flex justify-between p-3 rounded-xl text-sm" style={{ backgroundColor: CK_BG, border: `1px solid ${CK_BD}` }}>
                   <span style={{ color: CK_MUT }}>Transfer total incl. tax</span>
-                  <span className="font-black" style={{ color: TEAL, fontFamily: mono }}>₦{(charges[transferLine].amount + charges[transferLine].tax).toLocaleString()}</span>
+                  <span className="font-black" style={{ color: TEAL_INK, fontFamily: mono }}>₦{(charges[transferLine].amount + charges[transferLine].tax).toLocaleString()}</span>
                 </div>
               )}
               <div className="flex gap-3">
@@ -2158,7 +2157,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                   setCharges(rows => rows.map((row, index) => index === transferLine ? { ...row, movedTo: destination } : row));
                   add({ type: "success", title: "Charge transferred", body: `${charge.desc} → ${transferReference.trim()} · ${transferReason.trim()}` });
                   setShowTransferCharge(false); setTransferLine(null); setTransferReference(""); setTransferReason("");
-                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: TEAL }}>Confirm transfer</button>
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: TEAL_INK }}>Confirm transfer</button>
               </div>
             </div>
           </div>
@@ -2515,7 +2514,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: g.vip ? ORANGE : PRIMARY }}><User size={14} weight="bold" /></div>
                       <div>
-                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{g.guest}</span>{g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE }} weight="bold" />}</div>
+                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{g.guest}</span>{g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE_INK }} weight="bold" />}</div>
                         <div className="text-xs" style={{ color: MUTED }}>Floor {Math.floor(Number(g.room)/100)}</div>
                       </div>
                     </div>
@@ -2818,7 +2817,7 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: g.vip ? "#FFF7ED" : "#EFF6FF", color: g.vip ? ORANGE : PRIMARY }}><User size={18} weight="fill" /></div>
                       <div>
-                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: g.blacklist ? ERROR : TEXT }}>{g.name}</span>{g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE }} weight="bold" />}</div>
+                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: g.blacklist ? ERROR : TEXT }}>{g.name}</span>{g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE_INK }} weight="bold" />}</div>
                         <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{g.id}</div>
                       </div>
                     </div>
@@ -2841,7 +2840,7 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                       {g.activeStay && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>In-house</span>}
                       {g.blacklist && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Blacklist</span>}
                       {g.balance > 0 && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>Balance</span>}
-                      {g.allergy && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE }}>Allergy</span>}
+                      {g.allergy && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE_INK }}>Allergy</span>}
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -2986,7 +2985,7 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
             <div key={p.id} className="flex items-center gap-4 px-5 py-3 border-t" style={{ borderColor: BORDER }}>
               <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{p.date}</div>
               <div className="flex-1 text-sm" style={{ color: TEXT }}>{p.desc} · {p.method}</div>
-              <div className="text-sm font-bold" style={{ color: SUCCESS, fontFamily: mono }}>−₦{p.amount.toLocaleString()}</div>
+              <div className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>−₦{p.amount.toLocaleString()}</div>
               <div className="text-xs" style={{ color: SUBTLE }}>{p.by}</div>
             </div>
           ))}
@@ -3107,7 +3106,7 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
                 <td className="px-3 py-3 text-sm font-bold" style={{ color: PRIMARY }}>{f.room}</td>
                 <td className="px-3 py-3 text-xs whitespace-nowrap" style={{ color: MUTED }}>{f.checkin} → {f.checkout}</td>
                 <td className="px-3 py-3 text-sm font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{f.charges.toLocaleString()}</td>
-                <td className="px-3 py-3 text-sm" style={{ color: SUCCESS, fontFamily: mono }}>₦{f.payments.toLocaleString()}</td>
+                <td className="px-3 py-3 text-sm" style={{ color: TEXT, fontFamily: mono }}>₦{f.payments.toLocaleString()}</td>
                 <td className="px-3 py-3">
                   {f.balance > 0 ? <span className="text-sm font-bold" style={{ color: f.flags.highBalance ? ERROR : TEXT, fontFamily: mono }}>₦{f.balance.toLocaleString()}</span> : <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: SUCCESS }}><CheckCircle size={11} weight="bold" />Settled</span>}
                 </td>
@@ -3118,7 +3117,7 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
                     {f.flags.highBalance && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>High ₦</span>}
                     {f.flags.noPayment && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>No Pay</span>}
                     {f.flags.creditLimit && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>CL</span>}
-                    {f.flags.unposted && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE }}>Unposted</span>}
+                    {f.flags.unposted && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE_INK }}>Unposted</span>}
                   </div>
                 </td>
                 <td className="px-3 py-3">

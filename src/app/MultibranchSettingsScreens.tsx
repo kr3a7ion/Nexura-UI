@@ -18,8 +18,7 @@ import {
 } from "recharts";
 import {
   type Toast, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR,
-  BORDER, TEXT, MUTED, SUBTLE,
-} from "./constants";
+  BORDER, TEXT, MUTED, SUBTLE, WARNING_INK } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO } from "./UIKit";
 import { TextOrDate } from "./DateInput";
 
@@ -568,7 +567,7 @@ export function SyncSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                   <input type={showKey ? "text" : "password"} defaultValue="sk_live_gp_abj_7x4m2qnr9c" className="w-full px-3 py-2 pr-8 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, fontFamily: mono }} readOnly />
                   <button onClick={() => setShowKey(p => !p)} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: MUTED }}>{showKey ? <EyeOff size={13} /> : <Eye size={13} />}</button>
                 </div>
-                <button onClick={rotateKey} disabled={rotating} className="flex items-center gap-1 px-3 py-2 rounded-xl border text-xs" style={{ borderColor: BORDER, color: WARNING }}>
+                <button onClick={rotateKey} disabled={rotating} className="flex items-center gap-1 px-3 py-2 rounded-xl border text-xs" style={{ borderColor: BORDER, color: WARNING_INK }}>
                   <RotateCcw size={12} className={rotating ? "animate-spin" : ""} />
                   {rotating ? "Rotating…" : "Rotate"}
                 </button>

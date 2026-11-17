@@ -20,8 +20,7 @@ import {
   type Toast, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR,
   BORDER, TEXT, MUTED, SUBTLE,
   ShiftProposalStore, type ShiftProposal,
-fmtDate, BUSINESS_DATE, stampNow
-} from "./constants";
+fmtDate, BUSINESS_DATE, stampNow, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO, Badge } from "./UIKit";
 import { DateInput } from "./DateInput";
 
@@ -419,7 +418,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-bold" style={{ color:"#5B21B6", fontFamily:mono }}>{t.id}</span>
-                        {t.priority === "Urgent" && <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ backgroundColor:"#FFF7ED", color:ORANGE }}>Urgent</span>}
+                        {t.priority === "Urgent" && <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ backgroundColor:"#FFF7ED", color:ORANGE_INK }}>Urgent</span>}
                         <span className="text-xs font-semibold" style={{ color:TEXT }}>{t.dept}</span>
                         <span className="text-xs" style={{ color:MUTED }}>· {t.requestedBy}</span>
                       </div>
@@ -499,7 +498,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
                             <span className="text-xs font-bold" style={{ color:TEXT }}>{t.scheduledTime}</span>
                             {t.vehicle && <span className="text-xs" style={{ color:SUBTLE, fontFamily:mono }}>{VEHICLES.find(v=>v.id===t.vehicle)?.plate ?? t.vehicle}</span>}
                           </div>
-                          {t.flight && <div className="text-xs mt-0.5" style={{ color:TEAL }}><Plane size={9} className="inline mr-0.5"/>{t.flight}</div>}
+                          {t.flight && <div className="text-xs mt-0.5" style={{ color:TEAL_INK }}><Plane size={9} className="inline mr-0.5"/>{t.flight}</div>}
                           {(col==="completed"||col==="cancelled") && <div className="text-xs mt-1.5 font-medium" style={{ color:PRIMARY }}>View detail →</div>}
                           {col!=="completed" && col!=="cancelled" && col!=="requested" && (
                             <div className="flex gap-1 mt-2">
@@ -581,7 +580,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
                   </div>
                   <div className="text-xs" style={{ color:MUTED }}>{d.vehicle ?? "Unassigned"} · {d.tripsToday} trip{d.tripsToday!==1?"s":""} today</div>
                   {d.licDaysLeft < 0 && <div className="text-xs font-semibold mt-0.5" style={{ color:ERROR }}>⚠ Licence expired</div>}
-                  {d.licDaysLeft >= 0 && d.licDaysLeft <= 30 && <div className="text-xs mt-0.5" style={{ color:WARNING }}>Lic. expires in {d.licDaysLeft}d</div>}
+                  {d.licDaysLeft >= 0 && d.licDaysLeft <= 30 && <div className="text-xs mt-0.5" style={{ color:WARNING_INK }}>Lic. expires in {d.licDaysLeft}d</div>}
                 </div>
               ))}
               {DRIVERS.filter(d=>d.onDuty).length === 0 && <div className="text-xs text-center py-3" style={{ color:SUBTLE }}>No drivers on duty</div>}
@@ -662,7 +661,7 @@ export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
               <div className="text-sm font-semibold mb-2" style={{ color:TEXT }}>Flight details</div>
               <div className="flex gap-6">
-                <div><div className="text-xs" style={{ color:MUTED }}>Flight</div><div className="text-sm font-bold" style={{ color:TEAL, fontFamily:mono }}>{trip.flight}</div></div>
+                <div><div className="text-xs" style={{ color:MUTED }}>Flight</div><div className="text-sm font-bold" style={{ color:TEAL_INK, fontFamily:mono }}>{trip.flight}</div></div>
                 {trip.terminal && <div><div className="text-xs" style={{ color:MUTED }}>Terminal</div><div className="text-sm font-bold" style={{ color:TEXT }}>{trip.terminal}</div></div>}
                 {trip.reservationRef && <div><div className="text-xs" style={{ color:MUTED }}>Reservation</div><div className="text-sm font-bold" style={{ color:TEXT, fontFamily:mono }}>{trip.reservationRef}</div></div>}
               </div>
@@ -689,7 +688,7 @@ export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
               <div><div className="text-xs" style={{ color:MUTED }}>Type</div><div className="text-sm font-bold" style={{ color:TEXT }}>{chargeLabel[trip.chargeType]}</div></div>
               <div><div className="text-xs" style={{ color:MUTED }}>Quoted</div><div className="text-sm font-bold" style={{ color:TEXT, fontFamily:mono }}>₦{trip.quotedFare.toLocaleString()}</div></div>
               {trip.finalFare && <div><div className="text-xs" style={{ color:MUTED }}>Final</div><div className="text-sm font-bold" style={{ color:TEXT, fontFamily:mono }}>₦{trip.finalFare.toLocaleString()}</div></div>}
-              {trip.waitingSurcharge && <div><div className="text-xs" style={{ color:MUTED }}>Wait surcharge</div><div className="text-sm font-bold" style={{ color:ORANGE, fontFamily:mono }}>₦{trip.waitingSurcharge.toLocaleString()}</div></div>}
+              {trip.waitingSurcharge && <div><div className="text-xs" style={{ color:MUTED }}>Wait surcharge</div><div className="text-sm font-bold" style={{ color:ORANGE_INK, fontFamily:mono }}>₦{trip.waitingSurcharge.toLocaleString()}</div></div>}
             </div>
             {trip.folioRef && (
               <div className="mt-3 pt-3 border-t flex items-center justify-between" style={{ borderColor:BORDER }}>
@@ -737,7 +736,7 @@ export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
               <div className="text-sm font-semibold mb-2" style={{ color:TEXT }}>Guest rating</div>
               <div className="flex items-center gap-2">
                 <div className="text-3xl font-bold" style={{ color:TEXT }}>{trip.rating}</div>
-                <div className="flex">{[1,2,3,4,5].map(s=><Star key={s} size={16} fill={s<=Math.round(trip.rating!)?WARNING:"none"} style={{ color:WARNING }}/>)}</div>
+                <div className="flex">{[1,2,3,4,5].map(s=><Star key={s} size={16} fill={s<=Math.round(trip.rating!)?WARNING:"none"} style={{ color:WARNING_INK }}/>)}</div>
               </div>
               {trip.feedback && <div className="text-xs mt-1.5" style={{ color:MUTED }}>"{trip.feedback}"</div>}
             </div>
@@ -1138,7 +1137,7 @@ const SHIFT_PILL: Record<HRShift,{bg:string;text:string}> = {
   Morning: { bg:"#DCFCE7", text:"#166534" },
   Evening: { bg:"#DBEAFE", text:"#1E40AF" },
   Night:   { bg:"#EDE9FE", text:"#6D28D9" },
-  Off:     { bg:"#F3F4F6", text:"#71717A" },
+  Off:     { bg:"#F3F4F6", text:"#52525B" },
 };
 
 const ROSTER_DAYS = ["Mon 13","Tue 14","Wed 15","Thu 16","Fri 17","Sat 18","Sun 19"] as const;
@@ -1572,12 +1571,12 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                         <td className="px-3 py-2.5">
                           <div className="flex flex-col gap-0.5">
                             <span className="px-2 py-0.5 rounded-full text-xs font-semibold w-fit" style={{ backgroundColor:SHIFT_PILL[d.hrShift].bg, color:SHIFT_PILL[d.hrShift].text }}>{d.hrShift}</span>
-                            {d.shiftOverride && <span className="text-xs" style={{ color:ORANGE, fontSize: 12 }}>⚡ override</span>}
+                            {d.shiftOverride && <span className="text-xs" style={{ color:ORANGE_INK, fontSize: 12 }}>⚡ override</span>}
                           </div>
                         </td>
                         <td className="px-3 py-2.5"><span className="px-2 py-0.5 rounded-full text-xs font-semibold capitalize" style={{ backgroundColor:sp.bg, color:sp.text }}>{d.status}</span></td>
                         <td className="px-3 py-2.5 text-xs font-bold" style={{ color:TEXT }}>{d.tripsMonth}</td>
-                        <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color:WARNING }} />{d.avgRating}</span></td>
+                        <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color:WARNING_INK }} />{d.avgRating}</span></td>
                         <td className="px-3 py-2.5">
                           <div className="flex gap-1 flex-wrap">
                             {!isSuspended && (
@@ -1686,7 +1685,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                   <th className="px-4 py-2.5 text-left text-xs font-semibold" style={{ color:MUTED, minWidth:150 }}>Driver</th>
                   {ROSTER_DAYS.map(day => (
                     <th key={day} className="px-2 py-2.5 text-center text-xs font-semibold" style={{ color:day==="Mon 13"?PRIMARY:MUTED, minWidth:88 }}>
-                      {day}{day==="Mon 13" && <span className="ml-1 font-normal" style={{ color:TEAL, fontSize: 12 }}>today</span>}
+                      {day}{day==="Mon 13" && <span className="ml-1 font-normal" style={{ color:TEAL_INK, fontSize: 12 }}>today</span>}
                     </th>
                   ))}
                 </tr>
@@ -1893,7 +1892,7 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                       <td className="px-3 py-2.5 text-xs" style={{ color:MUTED, fontFamily:mono }}>{v.km.toLocaleString()} km</td>
                       <td className="px-3 py-2.5 text-xs" style={{ color:TEXT, fontFamily:mono }}>₦{v.fuelCost.toLocaleString()}</td>
                       <td className="px-3 py-2.5 text-xs" style={{ color:TEXT, fontFamily:mono }}>₦{v.maintCost.toLocaleString()}</td>
-                      <td className="px-3 py-2.5 text-xs font-bold" style={{ color:SUCCESS, fontFamily:mono }}>₦{v.revTotal.toLocaleString()}</td>
+                      <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{v.revTotal.toLocaleString()}</td>
                       <td className="px-3 py-2.5 text-xs" style={{ color:MUTED, fontFamily:mono }}>{cpk==="—"?cpk:`₦${cpk}`}</td>
                       <td className="px-3 py-2.5 text-xs" style={{ color:MUTED, fontFamily:mono }}>{cpt==="—"?cpt:`₦${cpt}`}</td>
                       <td className="px-3 py-2.5 text-xs font-bold" style={{ color:parseFloat(margin)>=40?SUCCESS:parseFloat(margin)>=20?WARNING:ERROR }}>{margin==="—"?margin:`${margin}%`}</td>
@@ -1927,7 +1926,7 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                   <tr key={s.line} className="border-t hover:bg-slate-50" style={{ borderColor:BORDER }}>
                     <td className="px-3 py-2.5 text-xs font-bold" style={{ color:SL_COLOR[s.line as ServiceLine] }}>{s.line}</td>
                     <td className="px-3 py-2.5 text-xs font-bold" style={{ color:TEXT }}>{s.trips}</td>
-                    <td className="px-3 py-2.5 text-xs font-bold" style={{ color:SUCCESS, fontFamily:mono }}>₦{s.rev.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{s.rev.toLocaleString()}</td>
                     <td className="px-3 py-2.5 text-xs" style={{ color:ERROR, fontFamily:mono }}>₦{s.cost.toLocaleString()}</td>
                     <td className="px-3 py-2.5 text-xs font-bold" style={{ color:net>=0?SUCCESS:ERROR, fontFamily:mono }}>₦{net.toLocaleString()}</td>
                     <td className="px-3 py-2.5 text-xs font-bold" style={{ color:parseFloat(margin)>=30?SUCCESS:parseFloat(margin)>=0?WARNING:ERROR }}>{margin}%</td>
@@ -2205,7 +2204,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
       <div className="flex items-center gap-2.5">
         {syncing
           ? <div className="w-3.5 h-3.5 border-2 rounded-full animate-spin flex-shrink-0" style={{ borderColor: TEAL + "40", borderTopColor: TEAL }} />
-          : online ? <Wifi size={14} className="flex-shrink-0" style={{ color: SUCCESS }} /> : <WifiOff size={14} className="flex-shrink-0" style={{ color: ORANGE }} />
+          : online ? <Wifi size={14} className="flex-shrink-0" style={{ color: SUCCESS }} /> : <WifiOff size={14} className="flex-shrink-0" style={{ color: ORANGE_INK }} />
         }
         <div>
           <div className="text-xs font-bold" style={{ color: online ? "#166534" : "#9A3412" }}>
@@ -2352,7 +2351,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               </div>
             ) : (
               <div className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: "#FEF3C7", border: "1px solid #FDE68A" }}>
-                <AlertTriangle size={16} style={{ color: WARNING }} />
+                <AlertTriangle size={16} style={{ color: WARNING_INK }} />
                 <span className="text-sm font-semibold" style={{ color: "#92400E" }}>No vehicle assigned — contact Fleet Manager</span>
               </div>
             )}
@@ -2446,7 +2445,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                         <ArrowRight size={10} className="flex-shrink-0" />
                         <span className="truncate">{t.dropoff}</span>
                       </div>
-                      {t.flight && <div className="text-xs mb-2" style={{ color: TEAL }}>Flight: {t.flight}</div>}
+                      {t.flight && <div className="text-xs mb-2" style={{ color: TEAL_INK }}>Flight: {t.flight}</div>}
                       <div className="flex items-center gap-1.5 mb-3">
                         <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{
                           backgroundColor: st === "approved" ? "#DCFCE7" : st === "cancelled" ? "#FEE2E2" : st === "pending" ? "#FEF3C7" : "#EFF6FF",
@@ -2517,7 +2516,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: TEAL }} />
-                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: TEAL }}>Active trip</span>
+                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: TEAL_INK }}>Active trip</span>
                     <span className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{t.id}</span>
                     {t.tripMode === "round-trip" && (
                       <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: "#EDE9FE", color: "#5B21B6" }}>⇄ Round Trip</span>
@@ -2563,7 +2562,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               {t.stops.filter(s => s.leg !== "return").length > 0 && (
                 <div className="mb-2 pl-3 border-l-2" style={{ borderColor: TEAL + "60" }}>
                   {t.tripMode === "round-trip" && (
-                    <div className="text-xs font-semibold mb-1 flex items-center gap-1" style={{ color: TEAL }}>
+                    <div className="text-xs font-semibold mb-1 flex items-center gap-1" style={{ color: TEAL_INK }}>
                       <ArrowRight size={10} />Outbound stops
                     </div>
                   )}
@@ -2705,7 +2704,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: TEAL }} />
-                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: TEAL }}>Active trip</span>
+                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: TEAL_INK }}>Active trip</span>
                     <span className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{t.id}</span>
                     {t.tripMode === "round-trip" && (
                       <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: "#EDE9FE", color: "#5B21B6" }}>⇄ Round Trip</span>
@@ -2776,7 +2775,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                     <div className="text-xs" style={{ color: MUTED }}>{assignedVeh.plate} — {assignedVeh.make} {assignedVeh.model}</div>
                   )}
                 </div>
-                {!online && <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE }}>Offline — saves locally</span>}
+                {!online && <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE_INK }}>Offline — saves locally</span>}
               </div>
               <ChevronDown size={18} style={{ color: MUTED, transform: showStart ? "rotate(180deg)" : "none", transition: "0.2s" }} />
             </button>

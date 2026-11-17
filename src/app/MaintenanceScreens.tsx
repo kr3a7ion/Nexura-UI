@@ -31,8 +31,7 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-} from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { DateInput } from "./DateInput";
 // MX-02 Work Order Detail
@@ -48,8 +47,8 @@ export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }
 
   const TIMELINE = [
     { ts: "24 Jun 08:58", event: "Work order created", by: "John Abubakar", note: "AC unit in Room 207 not cooling. Guest complaint — hot room.", color: PRIMARY },
-    { ts: "24 Jun 09:05", event: "Assigned to technician", by: "Grace Mensah", note: "Assigned to Emeka Nwosu (HVAC specialist)", color: TEAL },
-    { ts: "24 Jun 09:15", event: "Status → In Progress", by: "Emeka Nwosu", note: "Checked unit — low refrigerant. Sourcing R-410A. Estimated 2h.", color: ORANGE },
+    { ts: "24 Jun 09:05", event: "Assigned to technician", by: "Grace Mensah", note: "Assigned to Emeka Nwosu (HVAC specialist)", color: TEAL_INK },
+    { ts: "24 Jun 09:15", event: "Status → In Progress", by: "Emeka Nwosu", note: "Checked unit — low refrigerant. Sourcing R-410A. Estimated 2h.", color: ORANGE_INK },
   ];
   const [timeline, setTimeline] = useState(TIMELINE);
 
@@ -108,7 +107,7 @@ export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }
 
           {/* Photo attachments — colored div placeholders */}
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Photo evidence</h3><button className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: TEAL, borderColor: `${TEAL}30` }} onClick={() => add({ type: "info", title: "Camera access requested" })}>+ Upload</button></div>
+            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Photo evidence</h3><button className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }} onClick={() => add({ type: "info", title: "Camera access requested" })}>+ Upload</button></div>
             <div className="flex gap-3">
               {[["#DBEAFE","AC Unit — External"],["#FEF3C7","Control Panel"],["#DCFCE7","Filter — clogged"]].map(([bg, label]) => (
                 <div key={label} className="flex-1 rounded-xl flex flex-col items-center justify-center gap-1.5 py-6 cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: bg, minHeight: 80 }}>
@@ -124,10 +123,10 @@ export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }
 
           {/* Parts consumed */}
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Parts consumed</h3><button onClick={() => add({ type: "info", title: "Log parts from stock" })} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>+ Log Parts</button></div>
+            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Parts consumed</h3><button onClick={() => add({ type: "info", title: "Log parts from stock" })} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>+ Log Parts</button></div>
             <table className="w-full mb-3">
               <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item","Qty","Unit cost","Total","Stock ref"].map(h=><th key={h} className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-              <tbody>{PARTS.map((p,i) => <tr key={i} className="border-t" style={{ borderColor: BORDER }}><td className="px-3 py-2.5 text-sm" style={{ color: TEXT }}>{p.item}</td><td className="px-3 py-2.5 text-sm" style={{ color: TEXT, fontFamily: mono }}>{p.qty}</td><td className="px-3 py-2.5 text-sm" style={{ color: TEXT, fontFamily: mono }}>₦{p.unit.toLocaleString()}</td><td className="px-3 py-2.5 text-sm font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{(p.qty*p.unit).toLocaleString()}</td><td className="px-3 py-2.5 text-xs" style={{ color: TEAL, fontFamily: mono }}>{p.ref}</td></tr>)}</tbody>
+              <tbody>{PARTS.map((p,i) => <tr key={i} className="border-t" style={{ borderColor: BORDER }}><td className="px-3 py-2.5 text-sm" style={{ color: TEXT }}>{p.item}</td><td className="px-3 py-2.5 text-sm" style={{ color: TEXT, fontFamily: mono }}>{p.qty}</td><td className="px-3 py-2.5 text-sm" style={{ color: TEXT, fontFamily: mono }}>₦{p.unit.toLocaleString()}</td><td className="px-3 py-2.5 text-sm font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{(p.qty*p.unit).toLocaleString()}</td><td className="px-3 py-2.5 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{p.ref}</td></tr>)}</tbody>
             </table>
             <div className="flex items-center gap-4 pt-3 border-t" style={{ borderColor: BORDER }}>
               <span className="text-xs" style={{ color: MUTED }}>Parts total: <span className="font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{partTotal.toLocaleString()}</span></span>
@@ -189,7 +188,7 @@ export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }
           </div>
 
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Follow-up PM</h3><button onClick={() => setShowFollowUp(true)} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Create</button></div>
+            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Follow-up PM</h3><button onClick={() => setShowFollowUp(true)} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Create</button></div>
             {showFollowUp ? (
               <div className="space-y-2">
                 <select className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }}><option>Monthly PM — AC Unit</option><option>Quarterly — AC full service</option></select>
@@ -279,7 +278,7 @@ export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <td className="px-3 py-3"><Badge label={a.status} colors={statusC[a.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
                   <td className="px-3 py-3">
                     <div className="flex gap-1">
-                      <button onClick={e=>{e.stopPropagation();add({type:"info",title:`Work order → ${a.name}` });}} className="text-xs px-2 py-1 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>WO</button>
+                      <button onClick={e=>{e.stopPropagation();add({type:"info",title:`Work order → ${a.name}` });}} className="text-xs px-2 py-1 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>WO</button>
                     </div>
                   </td>
                 </tr>
@@ -303,7 +302,7 @@ export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) 
             </div>
             <div className="space-y-2">
               <button onClick={() => add({ type: "info", title: `Work order → ${sel.name}` })} className="w-full py-2.5 rounded-xl text-sm font-semibold border" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Create work order</button>
-              <button onClick={() => add({ type: "success", title: `Service logged — ${sel.id}` })} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL }}>Log service</button>
+              <button onClick={() => add({ type: "success", title: `Service logged — ${sel.id}` })} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL_INK }}>Log service</button>
             </div>
           </div>
         </div>
@@ -393,7 +392,7 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
                       <div className="flex gap-1">
                         {st !== "Completed" && st !== "Skipped" && <>
                           <button onClick={() => { setShowDone(t.id); setMeter(""); }} className="text-xs px-2 py-1.5 rounded border font-medium whitespace-nowrap" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Mark done</button>
-                          <button onClick={() => add({ type: "info", title: `Work order → ${t.asset}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>WO</button>
+                          <button onClick={() => add({ type: "info", title: `Work order → ${t.asset}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>WO</button>
                           <button onClick={() => { setShowReschedule(t.id); setNewDate(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Reschedule</button>
                           <button onClick={() => { setShowSkip(t.id); setSkipReason(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Skip</button>
                         </>}
@@ -536,14 +535,14 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
                   <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{v.sla}</td>
                   <td className="px-3 py-3 text-xs font-semibold" style={{ color: v.contractExpiry < "Jul 2026" ? ERROR : v.contractExpiry < "Dec 2026" ? ORANGE : TEXT }}>{v.contractExpiry}</td>
                   <td className="px-3 py-3">
-                    <div className="flex items-center gap-1"><Star size={11} style={{ color: ORANGE }} /><span className="text-xs font-semibold" style={{ color: TEXT }}>{v.rating.toFixed(1)}</span></div>
+                    <div className="flex items-center gap-1"><Star size={11} style={{ color: ORANGE_INK }} /><span className="text-xs font-semibold" style={{ color: TEXT }}>{v.rating.toFixed(1)}</span></div>
                   </td>
                   <td className="px-3 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>{v.jobsDone}</td>
                   <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{v.avgResponse}</td>
                   <td className="px-3 py-3">
                     <div className="flex gap-1" onClick={e=>e.stopPropagation()}>
                       <button onClick={() => { setShowCall(v.id); setCallNotes(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Log call</button>
-                      <button onClick={() => add({ type: "info", title: `Work order → ${v.company}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>WO</button>
+                      <button onClick={() => add({ type: "info", title: `Work order → ${v.company}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>WO</button>
                     </div>
                   </td>
                 </tr>
@@ -576,7 +575,7 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
                   {JOB_HISTORY[sel.id].map((j,i) => (
                     <div key={i} className="rounded-lg p-2.5 border" style={{ borderColor: BORDER }}>
                       <div className="flex items-start justify-between"><span className="text-xs font-medium" style={{ color: TEXT }}>{j.desc}</span><span className="text-xs font-bold flex-shrink-0" style={{ color: PRIMARY, fontFamily: mono }}>₦{j.amount.toLocaleString()}</span></div>
-                      <div className="flex items-center gap-2 mt-1"><span className="text-xs" style={{ color: MUTED }}>{j.date}</span><span style={{ color: ORANGE }}>{"★".repeat(j.rating)}</span></div>
+                      <div className="flex items-center gap-2 mt-1"><span className="text-xs" style={{ color: MUTED }}>{j.date}</span><span style={{ color: ORANGE_INK }}>{"★".repeat(j.rating)}</span></div>
                     </div>
                   ))}
                 </div>

@@ -26,8 +26,7 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, REV_DATA,
   USERS_DATA, DEVICES, RATE_PLANS, PAYROLL_DATA, ALL_RES,
   ShiftProposalStore, type ShiftProposal,
-stampNow
-} from "./constants";
+stampNow, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
 import { DateInput } from "./DateInput";
 import { ARRIVALS as FO_ARRIVALS } from "./mock/frontOffice";
@@ -436,7 +435,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
     Morning: { bg:"#DCFCE7", text:"#166534" },
     Evening: { bg:"#DBEAFE", text:"#1E40AF" },
     Night:   { bg:"#EDE9FE", text:"#6D28D9" },
-    Off:     { bg:"#F3F4F6", text:"#71717A" },
+    Off:     { bg:"#F3F4F6", text:"#52525B" },
   };
 
   const [schedule, setSchedule] = useState(INIT_SCHEDULE);
@@ -497,7 +496,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
     Morning: { bg:"#DCFCE7", text:"#166534" },
     Evening: { bg:"#DBEAFE", text:"#1E40AF" },
     Night:   { bg:"#EDE9FE", text:"#6D28D9" },
-    Off:     { bg:"#F3F4F6", text:"#71717A" },
+    Off:     { bg:"#F3F4F6", text:"#52525B" },
   };
 
   return (
@@ -603,7 +602,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
             return (
               <div key={d} className="flex-1 text-center py-3 min-w-[90px]">
                 <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{d}</div>
-                {warn>0&&<div className="text-xs font-bold" style={{ color: WARNING }}>⚠ {warn}</div>}
+                {warn>0&&<div className="text-xs font-bold" style={{ color: WARNING_INK }}>⚠ {warn}</div>}
               </div>
             );
           })}
@@ -656,7 +655,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
             {SHIFT_TEMPLATES.map(t=>(
               <div key={t.name} className="flex items-center justify-between px-3 py-2.5 rounded-xl border hover:bg-[#F8FAFC] cursor-pointer" style={{ borderColor: BORDER }}>
                 <div><div className="text-sm font-medium" style={{ color: TEXT }}>{t.name}</div><div className="text-xs" style={{ color: MUTED }}>{t.desc}</div></div>
-                <button onClick={()=>add({type:"info",title:`Template applied: ${t.name}`})} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Apply</button>
+                <button onClick={()=>add({type:"info",title:`Template applied: ${t.name}`})} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Apply</button>
               </div>
             ))}
           </div>
@@ -859,7 +858,7 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
             </thead>
             <tbody>
               {filtered.map((r, idx) => {
-                const src = srcColors[r.source] ?? { bg: "#F1F5F9", text: "#475569", dot: "#94A3B8" };
+                const src = srcColors[r.source] ?? { bg: "#F1F5F9", text: "#475569", dot: "#64748B" };
                 const stC = resStC[r.status] ?? { bg: "#F4F4F5", text: "#374151" };
                 const tC = typeColors[r.type] ?? { bg: "#F1F5F9", text: "#475569" };
                 return (
@@ -1103,8 +1102,8 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
               <span className="text-base font-bold" style={{ color: TEXT }}>{res.guest}</span>
-              <Star size={13} fill={ORANGE} style={{ color: ORANGE }} />
-              <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor:`${ORANGE}15`, color:ORANGE }}>VIP</span>
+              <Star size={13} fill={ORANGE} style={{ color: ORANGE_INK }} />
+              <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor:`${ORANGE}15`, color:ORANGE_INK }}>VIP</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs" style={{ color: MUTED }}>
               <span style={{ fontFamily: mono }}>{res.id}</span>
@@ -1221,7 +1220,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                   </div>
                   {/* Special notes */}
                   <div className="p-4 rounded-xl border-l-4" style={{ backgroundColor:"#FFFBEB", borderLeftColor:ORANGE }}>
-                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: ORANGE }}>Special notes</p>
+                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: ORANGE_INK }}>Special notes</p>
                     <p className="text-sm" style={{ color: TEXT }}>Champagne on arrival · High floor preferred · Airport transfer booked for 26 Jun 11:30</p>
                   </div>
                 </div>
@@ -1299,7 +1298,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-base font-bold" style={{ color: TEXT }}>{res.guest}</span>
-                      <Star size={13} fill={ORANGE} style={{ color: ORANGE }} />
+                      <Star size={13} fill={ORANGE} style={{ color: ORANGE_INK }} />
                     </div>
                     <div className="text-xs" style={{ color: MUTED }}>VIP · 15 previous stays · Guest since 2019</div>
                     <div className="flex items-center gap-2 mt-1.5">
@@ -1344,7 +1343,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                   ))}
                 </div>
                 <div className="mt-4 p-3 rounded-xl" style={{ backgroundColor:`${TEAL}08`, border:`1px solid ${TEAL}25` }}>
-                  <p className="text-xs font-semibold" style={{ color: TEAL }}>Lifetime value: ₦561,125 across 18 stays</p>
+                  <p className="text-xs font-semibold" style={{ color: TEAL_INK }}>Lifetime value: ₦561,125 across 18 stays</p>
                 </div>
               </div>
             </div>
@@ -1507,7 +1506,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                 </div>
 
                 {pendingCount > 0 && (
-                  <div className="rounded-xl p-3 text-xs" style={{ backgroundColor:`${ORANGE}10`, color: ORANGE }}>
+                  <div className="rounded-xl p-3 text-xs" style={{ backgroundColor:`${ORANGE}10`, color: ORANGE_INK }}>
                     <span className="font-bold">{pendingCount} request{pendingCount>1?"s":""} pending</span> — action required before checkout.
                   </div>
                 )}
@@ -1842,7 +1841,7 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
                     <GripVertical size={16} style={{ color: SUBTLE }} />
                     <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: a.vip ? "#FFF7ED" : "#EFF6FF", color: a.vip ? ORANGE : PRIMARY }}><User size={19} /></div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-0.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{a.guest}</span>{a.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE }} />}</div>
+                      <div className="flex items-center gap-1.5 mb-0.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{a.guest}</span>{a.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE_INK }} />}</div>
                       <div className="text-xs" style={{ color: MUTED }}>{a.id} · {a.type} · ETA {a.eta} · {a.nights}n</div>
                     </div>
                     {isAssigned ? <Badge label={`Room ${assignedRoom}`} colors={{ bg: "#DCFCE7", text: "#166534" }} /> : isSel ? <Badge label="Selected" colors={{ bg: "#DBEAFE", text: PRIMARY }} /> : null}
@@ -1996,7 +1995,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <span className="text-lg font-bold" style={{ color: TEXT }}>{guest.name}</span>
-            {guest.tier && <><span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: "#F5F3FF", color: "#7C3AED" }}>{guest.tier}</span><Star size={14} fill={ORANGE} style={{ color: ORANGE }} /><span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#CCFBF1", color: "#0F766E" }}>VIP guest</span></>}
+            {guest.tier && <><span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: "#F5F3FF", color: "#7C3AED" }}>{guest.tier}</span><Star size={14} fill={ORANGE} style={{ color: ORANGE_INK }} /><span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#CCFBF1", color: "#0F766E" }}>VIP guest</span></>}
           </div>
           <div className="flex items-center gap-4 flex-wrap text-xs" style={{ color: MUTED }}>
             <span style={{ fontFamily: mono }}>{profileId}</span>
@@ -2023,7 +2022,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
             <div className="space-y-1.5">
               <div className="flex items-center justify-between"><span className="text-xs" style={{ color: MUTED }}>VIP</span>{guest.tier ? <Badge label={guest.tier} colors={{ bg: "#F5F3FF", text: "#7C3AED" }} /> : <span className="text-xs font-semibold" style={{ color: MUTED }}>Standard</span>}</div>
               <div className="flex items-center justify-between"><span className="text-xs" style={{ color: MUTED }}>Blacklist</span><span className="text-xs font-semibold" style={{ color: SUCCESS }}>Clear</span></div>
-              <div className="flex items-center justify-between"><span className="text-xs" style={{ color: MUTED }}>Allergy</span><span className="text-xs font-semibold" style={{ color: ORANGE }}>No shellfish</span></div>
+              <div className="flex items-center justify-between"><span className="text-xs" style={{ color: MUTED }}>Allergy</span><span className="text-xs font-semibold" style={{ color: ORANGE_INK }}>No shellfish</span></div>
               <div className="flex items-center justify-between"><span className="text-xs" style={{ color: MUTED }}>Marketing</span><span className="text-xs font-semibold" style={{ color: SUCCESS }}>Opted in</span></div>
             </div>
           </div>
@@ -2765,7 +2764,7 @@ export function TaxConfiguration({ add }: { add: (t: Omit<Toast, "id">) => void 
                 <div key={k}><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>{k}</label>
                 <div className="px-3 py-2.5 rounded-xl border text-sm" style={{ borderColor: BORDER, color: TEXT, fontFamily: k==="API Key"||k==="TIN"?mono:undefined }}>{v}</div></div>
               ))}
-              <button onClick={() => add({ type: "success", title: "FIRS connection tested — OK" })} className="w-full py-2.5 rounded-xl text-sm font-semibold border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Test connection</button>
+              <button onClick={() => add({ type: "success", title: "FIRS connection tested — OK" })} className="w-full py-2.5 rounded-xl text-sm font-semibold border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Test connection</button>
             </div>
           </div>
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
@@ -2849,7 +2848,7 @@ export function RefundProcessing({ add }: { add: (t: Omit<Toast, "id">) => void 
               {filtered.map(r=>(
                 <tr key={r.id} onClick={() => setSelected(r.id)} className="border-t hover:bg-[#F8FAFC] cursor-pointer transition-colors" style={{ borderColor: BORDER, backgroundColor: selected===r.id?"#EFF6FF":undefined }}>
                   <td className="px-3 py-3 text-xs font-semibold" style={{ color: MUTED, fontFamily: mono }}>{r.id}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{r.orig}</td>
+                  <td className="px-3 py-3 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{r.orig}</td>
                   <td className="px-3 py-3"><div className="text-sm font-medium" style={{ color: TEXT }}>{r.guest}</div><div className="text-xs" style={{ color: SUBTLE }}>Rm {r.room}</div></td>
                   <td className="px-3 py-3 text-sm font-semibold" style={{ color: MUTED, fontFamily: mono }}>₦{r.amount.toLocaleString()}</td>
                   <td className="px-3 py-3 text-sm" style={{ color: r.penalty>0?ERROR:SUBTLE, fontFamily: mono }}>{r.penalty>0?`−₦${r.penalty.toLocaleString()}`:"—"}</td>
@@ -2872,7 +2871,7 @@ export function RefundProcessing({ add }: { add: (t: Omit<Toast, "id">) => void 
       {/* Detail panel */}
       {sel && (
         <div className="w-72 flex-shrink-0 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="flex items-start justify-between mb-4"><div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL }}>{sel.orig}</div></div><button onClick={() => setSelected(null)} style={{ color: MUTED }}>✕</button></div>
+          <div className="flex items-start justify-between mb-4"><div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL_INK }}>{sel.orig}</div></div><button onClick={() => setSelected(null)} style={{ color: MUTED }}>✕</button></div>
           <div className="space-y-2 text-sm mb-4">
             {[["Guest", sel.guest],["Room", sel.room],["Original paid", `₦${sel.amount.toLocaleString()}`],["Cancellation penalty", sel.penalty>0?`−₦${sel.penalty.toLocaleString()}`:"₦0"],["Unpaid charges", sel.unpaid>0?`−₦${sel.unpaid.toLocaleString()}`:"₦0"],["Refundable", `₦${sel.refundable.toLocaleString()}`],["Method", sel.method],["Reason", sel.reason],["Raised", sel.raisedAt]].map(([k,v])=>(
               <div key={String(k)} className="flex justify-between gap-2"><span style={{ color: MUTED, flexShrink: 0 }}>{k}</span><span className="text-right font-semibold" style={{ color: TEXT, fontFamily: ["Original paid","Cancellation penalty","Unpaid charges","Refundable"].includes(String(k))?mono:undefined }}>{v}</span></div>
@@ -2964,7 +2963,7 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
       {tab === "history" ? (
         <div>
           <div className="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl" style={{ backgroundColor: "#FFFBEB", border: `1px solid #FDE68A` }}>
-            <AlertTriangle size={15} style={{ color: ORANGE }} />
+            <AlertTriangle size={15} style={{ color: ORANGE_INK }} />
             <span className="text-xs" style={{ color: "#92400E" }}>This is the fraud-detection view. All reversals are immutable and cannot be deleted.</span>
           </div>
           <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
@@ -2976,7 +2975,7 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
                     <td className="px-3 py-3 text-xs font-semibold" style={{ color: MUTED, fontFamily: mono }}>{r.id}</td>
                     <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{r.date}</td>
                     <td className="px-3 py-3"><Badge label={r.type} colors={r.type==="Full Void"?{bg:"#FEE2E2",text:"#991B1B"}:{bg:"#FEF3C7",text:"#92400E"}} /></td>
-                    <td className="px-3 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{r.charge}</td>
+                    <td className="px-3 py-3 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{r.charge}</td>
                     <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{r.folio}</td>
                     <td className="px-3 py-3 text-sm" style={{ color: MUTED, fontFamily: mono, textDecoration: "line-through" }}>₦{r.orig.toLocaleString()}</td>
                     <td className="px-3 py-3 text-sm font-bold" style={{ color: ERROR, fontFamily: mono }}>₦{r.reversed.toLocaleString()}</td>
@@ -2998,7 +2997,7 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
               <div className="space-y-2">
                 {SAMPLE_CHARGES.map(c=>(
                   <div key={c.id} onClick={() => { setSelectedCharge(c); setSubmitted(false); setAckText(""); setManagerPin(""); }} className="px-4 py-3 rounded-xl border cursor-pointer transition-colors" style={{ borderColor: selectedCharge.id===c.id?PRIMARY:BORDER, backgroundColor: selectedCharge.id===c.id?"#EFF6FF":"white" }}>
-                    <div className="flex items-center justify-between"><span className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{c.id}</span><span className="text-xs" style={{ color: TEAL }}>{c.folio}</span></div>
+                    <div className="flex items-center justify-between"><span className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{c.id}</span><span className="text-xs" style={{ color: TEAL_INK }}>{c.folio}</span></div>
                     <div className="text-sm font-medium mt-0.5" style={{ color: TEXT }}>{c.desc}</div>
                     <div className="flex items-center justify-between mt-1"><span className="text-xs" style={{ color: MUTED }}>Rm {c.room} — {c.guest}</span><span className="text-sm font-bold" style={{ color: PRIMARY, fontFamily: mono }}>₦{c.amount.toLocaleString()}</span></div>
                   </div>
@@ -3201,7 +3200,7 @@ export function AccountingExport({ add }: { add: (t: Omit<Toast, "id">) => void 
                 {JOURNAL_PREVIEW.map((j,i) => (
                   <tr key={i} className="border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER }}>
                     <td className="px-4 py-2.5 text-xs" style={{ color: MUTED }}>{j.date}</td>
-                    <td className="px-4 py-2.5 text-xs font-bold" style={{ color: TEAL, fontFamily: mono }}>{j.ref}</td>
+                    <td className="px-4 py-2.5 text-xs font-bold" style={{ color: TEAL_INK, fontFamily: mono }}>{j.ref}</td>
                     <td className="px-4 py-2.5 text-xs" style={{ color: TEXT }}>{j.desc}</td>
                     <td className="px-4 py-2.5 text-xs font-semibold" style={{ color: PRIMARY, fontFamily: mono }}>{j.account}</td>
                     <td className="px-4 py-2.5 text-sm" style={{ color: j.dr>0?TEXT:SUBTLE, fontFamily: mono }}>{j.dr>0?`₦${j.dr.toLocaleString()}`:"—"}</td>
@@ -3236,7 +3235,7 @@ export function AccountingExport({ add }: { add: (t: Omit<Toast, "id">) => void 
                   <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>{m.name}</td>
                   <td className="px-4 py-3"><input value={m.glAcc} onChange={e=>setMapping(prev=>prev.map((x,j)=>j===i?{...x,glAcc:e.target.value}:x))} className="px-2 py-1 rounded-lg border text-xs outline-none w-24" style={{ borderColor: BORDER, fontFamily: mono }} /></td>
                   <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{m.dept}</td>
-                  <td className="px-4 py-3 text-xs font-semibold" style={{ color: TEAL, fontFamily: mono }}>{m.costCenter}</td>
+                  <td className="px-4 py-3 text-xs font-semibold" style={{ color: TEAL_INK, fontFamily: mono }}>{m.costCenter}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => setMapping(prev=>prev.map((x,j)=>j===i?{...x,active:!x.active}:x))} className="text-xs px-2.5 py-1 rounded-xl font-semibold" style={{ backgroundColor: m.active?"#DCFCE7":"#F1F5F9", color: m.active?SUCCESS:MUTED }}>{m.active?"Active":"Inactive"}</button>
                   </td>
@@ -3355,7 +3354,7 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               {cns.map(cn => (
                 <tr key={cn.id} onClick={() => setSelected(cn.id)} className="border-t hover:bg-[#F8FAFC] cursor-pointer" style={{ borderColor: BORDER, backgroundColor: selected===cn.id?"#EFF6FF":undefined }}>
                   <td className="px-4 py-3 text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{cn.id}</td>
-                  <td className="px-4 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{cn.invRef}</td>
+                  <td className="px-4 py-3 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{cn.invRef}</td>
                   <td className="px-4 py-3 text-sm font-medium" style={{ color: TEXT }}>{cn.guest}</td>
                   <td className="px-4 py-3"><span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: cn.type==="Full"?"#FEE2E2":"#DBEAFE", color: cn.type==="Full"?ERROR:"#1E40AF" }}>{cn.type}</span></td>
                   <td className="px-4 py-3 text-sm font-bold" style={{ color: ERROR, fontFamily: mono }}>−₦{cn.amount.toLocaleString()}</td>
@@ -3366,7 +3365,7 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                     <div className="flex gap-1">
                       {cn.status==="Pending Approval" && <button onClick={() => setShowApprove(cn.id)} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: SUCCESS, borderColor:`${SUCCESS}30` }}>Approve</button>}
                       {cn.status==="Approved" && <button onClick={() => { setCns(prev=>prev.map(c=>c.id===cn.id?{...c,status:"Issued" as CNStatus}:c)); add({ type:"success", title:`${cn.id} issued` }); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: PRIMARY, borderColor:`${PRIMARY}30` }}>Issue</button>}
-                      {cn.status==="Issued" && <button onClick={() => { setCns(prev=>prev.map(c=>c.id===cn.id?{...c,status:"Applied" as CNStatus,applied:"24 Jun"}:c)); add({ type:"success", title:`${cn.id} applied to ${cn.invRef}` }); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Apply</button>}
+                      {cn.status==="Issued" && <button onClick={() => { setCns(prev=>prev.map(c=>c.id===cn.id?{...c,status:"Applied" as CNStatus,applied:"24 Jun"}:c)); add({ type:"success", title:`${cn.id} applied to ${cn.invRef}` }); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Apply</button>}
                       <button onClick={() => add({ type:"info", title:`Print ${cn.id}` })} className="text-xs px-2 py-1.5 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Print</button>
                     </div>
                   </td>
@@ -3510,7 +3509,7 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
         {[
           { label:"Open",       val:COMPLAINTS.filter(c=>c.status==="Open"||c.status==="In Progress").length, color:PRIMARY },
           { label:"SLA Breached",val:COMPLAINTS.filter(c=>c.slaRemMins<0&&c.status!=="Resolved"&&c.status!=="Closed").length, color:ERROR   },
-          { label:"Escalated",  val:COMPLAINTS.filter(c=>c.escalated).length,                                 color:WARNING },
+          { label:"Escalated",  val:COMPLAINTS.filter(c=>c.escalated).length,                                 color:WARNING_INK },
           { label:"Resolved Today",val:COMPLAINTS.filter(c=>c.status==="Resolved").length,                   color:SUCCESS },
         ].map(k=>(
           <div key={k.label} className="bg-white rounded-xl border px-4 py-3" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.07)" }}>
@@ -3599,7 +3598,7 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
 
             {/* Actions */}
             <div className="space-y-2">
-              <button onClick={()=>setShowComp(true)} className="w-full py-2.5 rounded-xl text-xs font-semibold border" style={{ color:TEAL, borderColor:`${TEAL}30` }}>Post compensation to folio</button>
+              <button onClick={()=>setShowComp(true)} className="w-full py-2.5 rounded-xl text-xs font-semibold border" style={{ color:TEAL_INK, borderColor:`${TEAL}30` }}>Post compensation to folio</button>
               <button onClick={()=>add({type:"warning",title:`${selected.id} escalated to management`})} className="w-full py-2.5 rounded-xl text-xs font-semibold border" style={{ color:ERROR, borderColor:`${ERROR}30` }}>Escalate</button>
               <button onClick={()=>add({type:"success",title:`${selected.id} resolved`})} className="w-full py-2.5 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor:SUCCESS }}>Mark resolved</button>
             </div>
@@ -3626,7 +3625,7 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
             </div>
             <div className="flex gap-3 mt-4">
               <button onClick={()=>setShowComp(false)} className="flex-1 py-2.5 rounded-xl text-sm border font-semibold" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
-              <button onClick={()=>{ add({type:"success",title:`₦${Number(compAmt).toLocaleString()} compensation posted to folio`}); setShowComp(false); setCompAmt(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:TEAL }}>Post credit</button>
+              <button onClick={()=>{ add({type:"success",title:`₦${Number(compAmt).toLocaleString()} compensation posted to folio`}); setShowComp(false); setCompAmt(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL_INK }}>Post credit</button>
             </div>
           </div>
         </>
@@ -3669,8 +3668,8 @@ export function ComplaintDashboard() {
         {[
           { label:"Open Complaints",  val:openCount,                           color:PRIMARY, suffix:"" },
           { label:"SLA At Risk / Breached",val:slaBreached,                   color:ERROR,   suffix:"" },
-          { label:"Avg. Resolution",  val:avgResolution,                       color:TEAL,    suffix:"h" },
-          { label:"Compensation (Jun)",val:`₦${(totalComp/1000).toFixed(0)}K`,color:WARNING, suffix:"" },
+          { label:"Avg. Resolution",  val:avgResolution,                       color:TEAL_INK,    suffix:"h" },
+          { label:"Compensation (Jun)",val:`₦${(totalComp/1000).toFixed(0)}K`,color:WARNING_INK, suffix:"" },
         ].map(k=>(
           <div key={k.label} className="bg-white rounded-xl border px-4 py-3" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.07)" }}>
             <div className="text-xs mb-1" style={{ color:MUTED }}>{k.label}</div>
@@ -3689,7 +3688,7 @@ export function ComplaintDashboard() {
               <XAxis dataKey="month" tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ fontSize:12 }} />
-              <Bar dataKey="Low"      stackId="a" fill="#94A3B8" radius={[0,0,0,0]} />
+              <Bar dataKey="Low"      stackId="a" fill="#64748B" radius={[0,0,0,0]} />
               <Bar dataKey="Medium"   stackId="a" fill={WARNING}  radius={[0,0,0,0]} />
               <Bar dataKey="High"     stackId="a" fill={ORANGE}   radius={[0,0,0,0]} />
               <Bar dataKey="Critical" stackId="a" fill={ERROR}    radius={[4,4,0,0]} />

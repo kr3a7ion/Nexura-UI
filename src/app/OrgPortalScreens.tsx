@@ -15,18 +15,21 @@ import {
 import { OrgBranchDirectory, OrgUsers } from "./OrgPortalExtensions";
 
 const PRIMARY = "#18181B";
-const TEAL = "#0EA5E9";
+const TEAL = "#1BA39C";
+const TEAL_INK = "#0F766E";
+const ORANGE_INK = "#C2410C";
+const WARNING_INK = "#B45309";
 const ORANGE = "#F57C00";
 const SUCCESS = "#2E7D32";
 const WARNING = "#FFA000";
 const ERROR = "#D32F2F";
 const BORDER = "#E4E4E7";
 const TEXT = "#18181B";
-const MUTED = "#71717A";
+const MUTED = "#52525B";
 const SUBTLE = "#A1A1AA";
 const NAV_BG = "#0C1A36";
 const sans = "'Inter', system-ui, sans-serif";
-const mono = "'JetBrains Mono', monospace";
+const mono = "'Inter', system-ui, sans-serif";
 
 function fmtN(v: number) {
   return v >= 1e6 ? `₦${(v / 1e6).toFixed(2)}M` : v >= 1e3 ? `₦${(v / 1e3).toFixed(0)}K` : `₦${v}`;
@@ -59,8 +62,8 @@ const occTrend = [
 
 const revCat = [
   { name: "Abuja", value: 50, color: PRIMARY },
-  { name: "Lagos", value: 35, color: TEAL },
-  { name: "Port Harcourt", value: 15, color: ORANGE },
+  { name: "Lagos", value: 35, color: TEAL_INK },
+  { name: "Port Harcourt", value: 15, color: ORANGE_INK },
 ];
 
 function Badge({ label, colors }: { label: string; colors: { bg: string; text: string } }) {
@@ -109,7 +112,7 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
           </div>
           <div>
             <span className="text-white font-semibold text-sm">Grand Palms group</span>
-            <span className="text-xs ml-2 px-2 py-0.5 rounded-full" style={{ backgroundColor: "rgba(27,163,156,0.2)", color: TEAL }}>Organization portal</span>
+            <span className="text-xs ml-2 px-2 py-0.5 rounded-full" style={{ backgroundColor: "rgba(27,163,156,0.2)", color: TEAL_INK }}>Organization portal</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -322,7 +325,7 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
                 <div className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>Fully synced</div>
               </div>
               <div className="bg-white rounded-xl p-5 border text-center" style={{ borderColor: BORDER }}>
-                <div className="text-2xl font-bold mb-1" style={{ color: WARNING }}>1</div>
+                <div className="text-2xl font-bold mb-1" style={{ color: WARNING_INK }}>1</div>
                 <div className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>Pending items</div>
               </div>
               <div className="bg-white rounded-xl p-5 border text-center" style={{ borderColor: BORDER }}>
@@ -333,7 +336,7 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
             <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
               <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "#F1F5F9" }}>
                 <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Branch sync status</h3>
-                <button onClick={() => showToast("Force sync triggered for all branches")} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border" style={{ color: TEAL, borderColor: `${TEAL}30` }}><RefreshCw size={13} />Force sync all</button>
+                <button onClick={() => showToast("Force sync triggered for all branches")} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}><RefreshCw size={13} />Force sync all</button>
               </div>
               {BRANCHES.map(b => (
                 <div key={b.id} className="flex items-center gap-4 px-5 py-4 border-b hover:bg-[#F9FAFB]" style={{ borderColor: "#F9FAFB" }}>

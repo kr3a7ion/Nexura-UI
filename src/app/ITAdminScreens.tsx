@@ -16,7 +16,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import { type Toast, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE } from "./constants";
+import { type Toast, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE, ORANGE_INK, WARNING_INK } from "./constants";
 import { Badge, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
@@ -221,8 +221,8 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
                   <div className="flex gap-1.5 flex-wrap">
                     <button onClick={() => add({ type: "info", title: "Edit role", body: `Editing ${u.name}` })} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: MUTED }} title="Edit role"><Edit3 size={11} /></button>
                     {u.locked && <button onClick={() => doAction(u.id, "unlock")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: SUCCESS }} title="Unlock"><Unlock size={11} /></button>}
-                    <button onClick={() => doAction(u.id, "force-pw")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: WARNING }} title="Force password change"><Key size={11} /></button>
-                    <button onClick={() => doAction(u.id, "reset-mfa")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: ORANGE }} title="Reset MFA"><Shield size={11} /></button>
+                    <button onClick={() => doAction(u.id, "force-pw")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: WARNING_INK }} title="Force password change"><Key size={11} /></button>
+                    <button onClick={() => doAction(u.id, "reset-mfa")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: ORANGE_INK }} title="Reset MFA"><Shield size={11} /></button>
                     {u.status === "active" && <button onClick={() => doAction(u.id, "deactivate")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: ERROR }} title="Deactivate"><UserX size={11} /></button>}
                   </div>
                 </td>
@@ -632,8 +632,8 @@ export function DeviceManagement({ add }: { add: (t: Omit<Toast, "id">) => void 
 
               <div className="text-xs font-semibold mb-2" style={{ color: TEXT }}>Actions</div>
               <div className="space-y-2">
-                <button onClick={() => doAction(sel.id, "remote-lock")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: WARNING }}><Lock size={13} /> Remote Lock</button>
-                <button onClick={() => doAction(sel.id, "revoke-session")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: ORANGE }}><Key size={13} /> Revoke Session</button>
+                <button onClick={() => doAction(sel.id, "remote-lock")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: WARNING_INK }}><Lock size={13} /> Remote Lock</button>
+                <button onClick={() => doAction(sel.id, "revoke-session")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: ORANGE_INK }}><Key size={13} /> Revoke Session</button>
                 {sel.cls === "E" && <button onClick={() => add({ type: "info", title: "Kiosk reset queued", body: "Checkout-reset queued for next unlock." })} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: PRIMARY }}><Monitor size={13} /> Reset Kiosk State</button>}
                 {sel.status !== "lost" && <button onClick={() => doAction(sel.id, "mark-lost")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: ERROR }}><AlertTriangle size={13} /> Mark as Lost</button>}
                 {sel.status !== "retired" && <button onClick={() => doAction(sel.id, "retire")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: MUTED }}><Archive size={13} /> Retire</button>}

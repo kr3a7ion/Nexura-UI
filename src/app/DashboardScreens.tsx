@@ -31,8 +31,7 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-} from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, LiveClock, SyncPill, Av } from "./UIKit";
 
@@ -53,9 +52,9 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
 
   const ALERTS = [
     { icon: Wrench, label: "2 work orders overdue", sub: "WO-0090 · WO-0088 — SLA breached", color: ERROR, screen: "work-orders", sl: "Work Orders" },
-    { icon: Package, label: "3 items below reorder level", sub: "Towels · Breakfast cereals · Diesel", color: ORANGE, screen: "stock-dashboard", sl: "Stock Dashboard" },
-    { icon: Truck, label: "Vehicle licence expiring", sub: "ABU-423-XK expiring in 8 days", color: WARNING, screen: "asset-register", sl: "Asset Register" },
-    { icon: Shield, label: "Backup age: 26 h", sub: "Last successful backup 24 Jun 07:14", color: ORANGE, screen: "backup-restore", sl: "Backup & Restore" },
+    { icon: Package, label: "3 items below reorder level", sub: "Towels · Breakfast cereals · Diesel", color: ORANGE_INK, screen: "stock-dashboard", sl: "Stock Dashboard" },
+    { icon: Truck, label: "Vehicle licence expiring", sub: "ABU-423-XK expiring in 8 days", color: WARNING_INK, screen: "asset-register", sl: "Asset Register" },
+    { icon: Shield, label: "Backup age: 26 h", sub: "Last successful backup 24 Jun 07:14", color: ORANGE_INK, screen: "backup-restore", sl: "Backup & Restore" },
     { icon: Globe, label: "Lagos branch sync lag: 45 min", sub: "Last snapshot received 24 Jun 10:12", color: MUTED, screen: "sync-status", sl: "Central Sync Status" },
   ];
 
@@ -97,7 +96,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                   </span>
                 )}
               </div>
-              <div className="text-xl font-bold tracking-tight mb-0.5" style={{ color: TEXT, fontFamily: "'JetBrains Mono', monospace" }}>{k.value}</div>
+              <div className="text-xl font-bold tracking-tight mb-0.5" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>{k.value}</div>
               <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: k.accent }}>{k.label}</div>
               <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{k.sub}</div>
             </div>
@@ -126,7 +125,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
               <XAxis dataKey="day" tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false}
                 ticks={[1, 6, 11, 16, 21, 26]} />
               <YAxis tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12, fontFamily: "'JetBrains Mono', monospace" }}
+              <Tooltip contentStyle={{ border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12, fontFamily: "'Inter', system-ui, sans-serif" }}
                 formatter={(v: any, n: any) => [n === "rev" ? `₦${v}K` : `${v}%`, n === "rev" ? "RevPAR" : "Occupancy"]} />
               <Area type="monotone" dataKey="occ" name="Occupancy" stroke={PRIMARY} strokeWidth={2} fill={PRIMARY + "18"} dot={false} />
               <Area type="monotone" dataKey="rev" name="Revenue" stroke={TEAL} strokeWidth={2} fill={TEAL + "18"} dot={false} />
@@ -149,7 +148,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
             {revCat.map(c => (
               <div key={c.name} className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: c.color }} />{c.name}</span>
-                <span className="font-semibold" style={{ color: TEXT, fontFamily: "'JetBrains Mono', monospace" }}>{c.value}%</span>
+                <span className="font-semibold" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>{c.value}%</span>
               </div>
             ))}
           </div>
@@ -159,14 +158,14 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         <div className="lg:col-span-3 bg-white rounded-xl p-5 border" style={{ borderColor: BORDER }}>
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-semibold" style={{ color: TEXT }}>Room status</div>
-            <button onClick={() => go("hk-board", "Housekeeping Board")} className="text-xs font-semibold" style={{ color: TEAL }}>Board →</button>
+            <button onClick={() => go("hk-board", "Housekeeping Board")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Board →</button>
           </div>
           <div className="space-y-2">
             {roomSt.map(r => (
               <div key={r.status}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-medium" style={{ color: TEXT }}>{r.status}</span>
-                  <span className="text-xs font-bold" style={{ color: r.color, fontFamily: "'JetBrains Mono', monospace" }}>{r.count}</span>
+                  <span className="text-xs font-bold" style={{ color: r.color, fontFamily: "'Inter', system-ui, sans-serif" }}>{r.count}</span>
                 </div>
                 <div className="h-1.5 rounded-full" style={{ backgroundColor: BORDER }}>
                   <div className="h-full rounded-full transition-all" style={{ width: `${(r.count / 100) * 100}%`, backgroundColor: r.color }} />
@@ -199,7 +198,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                     <div className="text-xs font-semibold" style={{ color: TEXT }}>{d.dept}</div>
                     <div className="text-xs" style={{ color: MUTED }}>{d.metric} · {d.sub}</div>
                   </div>
-                  <div className="text-sm font-bold flex-shrink-0" style={{ color: TEXT, fontFamily: "'JetBrains Mono', monospace" }}>{d.value}</div>
+                  <div className="text-sm font-bold flex-shrink-0" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>{d.value}</div>
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: sc.bg, color: sc.text }}>
                     {d.st === "error" ? "Alert" : d.st === "warning" ? "Attn" : "OK"}
@@ -214,7 +213,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         <div className="lg:col-span-4 bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
           <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: BORDER }}>
             <div className="text-sm font-semibold" style={{ color: TEXT }}>Live activity</div>
-            <button onClick={() => go("audit-log", "Audit Log")} className="text-xs font-semibold" style={{ color: TEAL }}>Full log →</button>
+            <button onClick={() => go("audit-log", "Audit Log")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Full log →</button>
           </div>
           <div className="divide-y" style={{ borderColor: BORDER }}>
             {recentAct.map((r, i) => (
@@ -227,7 +226,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                     <span className="text-xs" style={{ color: SUBTLE }}>Rm {r.room}</span>
                   </div>
                 </div>
-                <span className="text-xs flex-shrink-0 mt-0.5" style={{ color: SUBTLE, fontFamily: "'JetBrains Mono', monospace" }}>{r.time}</span>
+                <span className="text-xs flex-shrink-0 mt-0.5" style={{ color: SUBTLE, fontFamily: "'Inter', system-ui, sans-serif" }}>{r.time}</span>
               </div>
             ))}
           </div>
@@ -279,7 +278,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
               </span>
             </div>
             <div className="text-xs mb-3" style={{ color: MUTED }}>
-              Last run: <span style={{ fontFamily: "'JetBrains Mono', monospace", color: TEXT }}>23 Jun 2026 · 23:58</span>
+              Last run: <span style={{ fontFamily: "'Inter', system-ui, sans-serif", color: TEXT }}>23 Jun 2026 · 23:58</span>
             </div>
             {!auditRunning ? (
               <button onClick={() => { setAuditRunning(true); add({ type: "info", title: "Night audit started", body: `Processing business date ${fmtDate(BUSINESS_DATE)}…` }); setTimeout(() => { setAuditRunning(false); add({ type: "success", title: "Night audit complete", body: "Business date rolled to 25 Jun 2026." }); }, 4000); }}
@@ -288,7 +287,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                 Run Night Audit
               </button>
             ) : (
-              <div className="w-full py-2 rounded-xl text-xs font-semibold text-center" style={{ backgroundColor: `${TEAL}14`, color: TEAL }}>
+              <div className="w-full py-2 rounded-xl text-xs font-semibold text-center" style={{ backgroundColor: `${TEAL}14`, color: TEAL_INK }}>
                 Processing…
               </div>
             )}
@@ -303,18 +302,18 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
             <Car size={14} style={{ color: PRIMARY }} />
             <div className="text-sm font-semibold" style={{ color: TEXT }}>Fleet &amp; Transport</div>
           </div>
-          <button onClick={() => go("dispatch-board", "Dispatch Board")} className="text-xs font-semibold" style={{ color: TEAL }}>Dispatch Board →</button>
+          <button onClick={() => go("dispatch-board", "Dispatch Board")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Dispatch Board →</button>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-0 divide-x" style={{ borderColor: BORDER }}>
           {[
             { label:"Active Trips",    value:"3", sub:"en-route / in-transit",  color:PRIMARY   },
             { label:"Pending Approval",value:"1", sub:"awaiting sign-off",       color:ERROR     },
             { label:"Vehicles Active", value:"3/4",sub:"1 in maintenance",       color:SUCCESS   },
-            { label:"Doc Alerts",      value:"2", sub:"expired or expiring",      color:WARNING   },
-            { label:"Bulk Diesel Tank",value:"42%",sub:"≈14.2 days remaining",   color:ORANGE    },
+            { label:"Doc Alerts",      value:"2", sub:"expired or expiring",      color:WARNING_INK   },
+            { label:"Bulk Diesel Tank",value:"42%",sub:"≈14.2 days remaining",   color:ORANGE_INK    },
           ].map(item => (
             <div key={item.label} className="px-5 py-4 text-center">
-              <div className="text-2xl font-bold" style={{ color:item.color, fontFamily:"'JetBrains Mono', monospace" }}>{item.value}</div>
+              <div className="text-2xl font-bold" style={{ color:item.color, fontFamily:"'Inter', system-ui, sans-serif" }}>{item.value}</div>
               <div className="text-xs font-semibold uppercase tracking-wider mt-0.5" style={{ color:item.color }}>{item.label}</div>
               <div className="text-xs mt-0.5" style={{ color:SUBTLE }}>{item.sub}</div>
             </div>
@@ -341,7 +340,7 @@ function RoleKPI({ label, value, sub, accent, icon: Icon }: { label: string; val
       <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: `${accent}14` }}>
         <Icon size={16} style={{ color: accent }} />
       </div>
-      <div className="text-2xl font-bold mb-0.5" style={{ color: TEXT, fontFamily: "'JetBrains Mono', monospace" }}>{value}</div>
+      <div className="text-2xl font-bold mb-0.5" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>{value}</div>
       <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: accent }}>{label}</div>
       <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{sub}</div>
     </div>
@@ -444,7 +443,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: `${k.accent}14` }}>
                   <Icon size={14} style={{ color: k.accent }} />
                 </div>
-                <div className="text-2xl font-bold" style={{ color: TEXT, fontFamily: "'JetBrains Mono', monospace" }}>{k.value}</div>
+                <div className="text-2xl font-bold" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>{k.value}</div>
                 <div className="text-xs font-semibold uppercase tracking-wider mt-0.5" style={{ color: k.accent }}>{k.label}</div>
                 <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{k.sub}</div>
               </div>
@@ -480,7 +479,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
                       <span className="text-xs font-semibold truncate" style={{ color: TEXT }}>{g.guest}</span>
-                      {g.vip && <Star size={9} fill={ORANGE} style={{ color: ORANGE }} />}
+                      {g.vip && <Star size={9} fill={ORANGE} style={{ color: ORANGE_INK }} />}
                     </div>
                     <div className="text-xs" style={{ color: MUTED }}>
                       {g.room !== "—" ? `Rm ${g.room}` : "No room"} · {g.type} · ETA {g.eta}
@@ -491,7 +490,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               );
             })}
             <div className="px-4 py-2.5">
-              <button onClick={() => go("arrivals", "Arrivals")} className="text-xs font-semibold" style={{ color: TEAL }}>Full arrivals list →</button>
+              <button onClick={() => go("arrivals", "Arrivals")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Full arrivals list →</button>
             </div>
           </RoleCard>
 
@@ -511,13 +510,13 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                   </div>
                   <div className="text-right flex-shrink-0">
                     <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: sc.bg, color: sc.text }}>{sc.label}</span>
-                    {d.balance > 0 && <div className="text-xs font-bold mt-0.5" style={{ color: ERROR, fontFamily: "'JetBrains Mono', monospace" }}>₦{d.balance.toLocaleString()}</div>}
+                    {d.balance > 0 && <div className="text-xs font-bold mt-0.5" style={{ color: ERROR, fontFamily: "'Inter', system-ui, sans-serif" }}>₦{d.balance.toLocaleString()}</div>}
                   </div>
                 </div>
               );
             })}
             <div className="px-4 py-2.5">
-              <button onClick={() => go("departures", "Departures")} className="text-xs font-semibold" style={{ color: TEAL }}>Full departures list →</button>
+              <button onClick={() => go("departures", "Departures")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Full departures list →</button>
             </div>
           </RoleCard>
 
@@ -533,7 +532,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold" style={{ color: TEXT }}>{m.guest}</span>
-                      <span className="text-xs" style={{ color: SUBTLE, fontFamily: "'JetBrains Mono', monospace" }}>{m.time}</span>
+                      <span className="text-xs" style={{ color: SUBTLE, fontFamily: "'Inter', system-ui, sans-serif" }}>{m.time}</span>
                     </div>
                     <div className="text-xs" style={{ color: SUBTLE }}>Rm {m.room}</div>
                     <div className="text-xs mt-0.5 truncate" style={{ color: MUTED }}>{m.msg}</div>
@@ -541,7 +540,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                 </div>
               ))}
               <div className="px-4 py-2.5">
-                <button onClick={() => go("guest-messaging", "Guest Messaging")} className="text-xs font-semibold" style={{ color: TEAL }}>All messages →</button>
+                <button onClick={() => go("guest-messaging", "Guest Messaging")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>All messages →</button>
               </div>
             </RoleCard>
 
@@ -551,8 +550,8 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               <div className="space-y-2">
                 {[
                   { label:"New Reservation",    screen:"new-reservation", color:PRIMARY  },
-                  { label:"Guest Profiles",     screen:"guest-profiles",  color:TEAL     },
-                  { label:"Room Assignment",    screen:"room-assignment",  color:ORANGE   },
+                  { label:"Guest Profiles",     screen:"guest-profiles",  color:TEAL_INK     },
+                  { label:"Room Assignment",    screen:"room-assignment",  color:ORANGE_INK   },
                   { label:"Folio Management",   screen:"folio",           color:SUCCESS  },
                   { label:"Key Card Mgmt",      screen:"key-card",        color:MUTED    },
                   { label:"Lost & Found",       screen:"lost-found",      color:SUBTLE   },
@@ -677,7 +676,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}>
                 <div className="w-1.5 h-8 rounded-full flex-shrink-0" style={{ backgroundColor: pc }} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold" style={{ color: TEXT, fontFamily: "'JetBrains Mono', monospace" }}>{wo.id}</div>
+                  <div className="text-xs font-bold" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>{wo.id}</div>
                   <div className="text-xs" style={{ color: MUTED }}>{wo.location} · {wo.cat}</div>
                 </div>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: sc.bg, color: sc.text }}>{wo.status}</span>
@@ -686,7 +685,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
             );
           })}
           <div className="px-5 py-3">
-            <button onClick={() => go("work-orders", "Work Orders")} className="text-xs font-semibold" style={{ color: TEAL }}>All work orders →</button>
+            <button onClick={() => go("work-orders", "Work Orders")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>All work orders →</button>
           </div>
         </RoleCard>
 
@@ -695,10 +694,10 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
           <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Zap size={13} style={{ color: WARNING }} />
+                <Zap size={13} style={{ color: WARNING_INK }} />
                 <div className="text-sm font-semibold" style={{ color: TEXT }}>Generator status</div>
               </div>
-              <button onClick={() => go("generator-diesel", "Generator Diesel")} className="text-xs font-semibold" style={{ color: TEAL }}>Log diesel →</button>
+              <button onClick={() => go("generator-diesel", "Generator Diesel")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Log diesel →</button>
             </div>
             {[
               { name:"Main Generator",  kva:500, status:"standby", svcLeft:220 },
@@ -713,7 +712,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                     <div className="text-xs" style={{ color: MUTED }}>{g.kva} kVA · {g.svcLeft} hrs to service</div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {g.svcLeft <= 100 && <AlertTriangle size={11} style={{ color: WARNING }} />}
+                    {g.svcLeft <= 100 && <AlertTriangle size={11} style={{ color: WARNING_INK }} />}
                     <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full capitalize" style={{ backgroundColor: sc.bg, color: sc.text }}>{g.status}</span>
                   </div>
                 </div>
@@ -725,7 +724,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
           <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold" style={{ color: TEXT }}>PM Schedule — Next 7 Days</div>
-              <button onClick={() => go("preventive-schedule", "Preventive Schedule")} className="text-xs font-semibold" style={{ color: TEAL }}>Full schedule →</button>
+              <button onClick={() => go("preventive-schedule", "Preventive Schedule")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Full schedule →</button>
             </div>
             {[
               { asset:"HVAC Unit — Floor 3", due:"25 Jun", priority:"High",   status:"due"     },
@@ -784,12 +783,12 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
             const sc = o.status === "Ready" ? { bg: "#DCFCE7", text: "#166534" } : o.status === "Preparing" ? { bg: "#DBEAFE", text: "#1E40AF" } : { bg: "#FEF3C7", text: "#92400E" };
             return (
               <div key={o.order} className="flex items-start gap-4 px-5 py-3.5 border-b" style={{ borderColor: BORDER }}>
-                <div className="text-sm font-bold flex-shrink-0" style={{ color: TEXT, fontFamily: "'JetBrains Mono', monospace", minWidth: 40 }}>{o.order}</div>
+                <div className="text-sm font-bold flex-shrink-0" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif", minWidth: 40 }}>{o.order}</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs" style={{ color: MUTED }}>{o.items}</div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <div className="text-xs font-bold" style={{ color: Number(o.elapsed.split(":")[0]) > 5 ? ERROR : TEXT, fontFamily: "'JetBrains Mono', monospace" }}>{o.elapsed}</div>
+                  <div className="text-xs font-bold" style={{ color: Number(o.elapsed.split(":")[0]) > 5 ? ERROR : TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>{o.elapsed}</div>
                   <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: sc.bg, color: sc.text }}>{o.status}</span>
                 </div>
               </div>
@@ -809,7 +808,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                 <div className="text-xs font-semibold" style={{ color: TEXT }}>{t.item}</div>
                 <div className="text-xs" style={{ color: MUTED }}>{t.count} orders</div>
               </div>
-              <span className="text-xs font-bold" style={{ color: SUCCESS, fontFamily: "'JetBrains Mono', monospace" }}>{t.rev}</span>
+              <span className="text-xs font-bold" style={{ color: SUCCESS, fontFamily: "'Inter', system-ui, sans-serif" }}>{t.rev}</span>
             </div>
           ))}
         </RoleCard>
@@ -861,7 +860,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         <div className="bg-white rounded-xl border p-4 mb-4" style={{ borderColor: BORDER }}>
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-semibold" style={{ color: TEXT }}>Revenue vs Target — Last 7 Days</div>
-            <button onClick={() => go("revenue-reports", "Revenue Reports")} className="text-xs font-semibold" style={{ color: TEAL }}>Full report →</button>
+            <button onClick={() => go("revenue-reports", "Revenue Reports")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Full report →</button>
           </div>
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={FIN_WEEKLY} margin={{ left: -20 }}>
@@ -891,11 +890,11 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                   <div className="text-xs font-semibold" style={{ color: TEXT }}>{g.guest}</div>
                   <div className="text-xs" style={{ color: MUTED }}>Room {g.room} · Out {g.checkout}</div>
                 </div>
-                <span className="text-xs font-bold" style={{ color: ERROR, fontFamily: "'JetBrains Mono', monospace" }}>₦{g.balance.toLocaleString()}</span>
+                <span className="text-xs font-bold" style={{ color: ERROR, fontFamily: "'Inter', system-ui, sans-serif" }}>₦{g.balance.toLocaleString()}</span>
               </div>
             ))}
             <div className="px-5 py-3">
-              <button onClick={() => go("finance-folio", "Folio Management")} className="text-xs font-semibold" style={{ color: TEAL }}>All folios →</button>
+              <button onClick={() => go("finance-folio", "Folio Management")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>All folios →</button>
             </div>
           </RoleCard>
 
@@ -906,7 +905,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                 <div key={a.supplier} className="px-5 py-3 border-b" style={{ borderColor: BORDER }}>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold" style={{ color: TEXT }}>{a.supplier}</span>
-                    <span className="text-xs font-bold" style={{ color: a.status === "overdue" ? ERROR : TEXT, fontFamily: "'JetBrains Mono', monospace" }}>
+                    <span className="text-xs font-bold" style={{ color: a.status === "overdue" ? ERROR : TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>
                       ₦{a.amount.toLocaleString()}
                     </span>
                   </div>
@@ -918,7 +917,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               );
             })}
             <div className="px-5 py-3">
-              <button onClick={() => go("accounts-payable", "Accounts Payable")} className="text-xs font-semibold" style={{ color: TEAL }}>All payables →</button>
+              <button onClick={() => go("accounts-payable", "Accounts Payable")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>All payables →</button>
             </div>
           </RoleCard>
 
@@ -935,7 +934,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                     <div className="text-xs font-semibold" style={{ color: TEXT }}>{c.desc}</div>
                     <div className="text-xs" style={{ color: MUTED }}>{c.dept}</div>
                   </div>
-                  <span className="text-xs font-bold" style={{ color: ORANGE, fontFamily: "'JetBrains Mono', monospace" }}>{c.amount}</span>
+                  <span className="text-xs font-bold" style={{ color: ORANGE_INK, fontFamily: "'Inter', system-ui, sans-serif" }}>{c.amount}</span>
                 </div>
               ))}
             </RoleCard>
@@ -951,7 +950,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                 <button key={a.label} onClick={() => go(a.screen, a.label)}
                   className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium border mb-1.5 last:mb-0 hover:bg-[#F0F4F8] transition-colors"
                   style={{ borderColor: BORDER, color: TEXT }}>
-                  {a.label}<span style={{ color: TEAL }}>→</span>
+                  {a.label}<span style={{ color: TEAL_INK }}>→</span>
                 </button>
               ))}
             </div>
@@ -999,7 +998,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         <div className="bg-white rounded-xl border p-4 mb-4" style={{ borderColor: BORDER }}>
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-semibold" style={{ color: TEXT }}>7-Day Arrival / Departure Pipeline</div>
-            <button onClick={() => go("availability-board", "Availability Board")} className="text-xs font-semibold" style={{ color: TEAL }}>Availability Board →</button>
+            <button onClick={() => go("availability-board", "Availability Board")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Availability Board →</button>
           </div>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={RSV_PIPELINE} margin={{ left: -20 }}>
@@ -1033,7 +1032,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               </div>
             ))}
             <div className="px-5 py-3">
-              <button onClick={() => go("reservation-grid", "Reservation Grid")} className="text-xs font-semibold" style={{ color: TEAL }}>Full reservation grid →</button>
+              <button onClick={() => go("reservation-grid", "Reservation Grid")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Full reservation grid →</button>
             </div>
           </RoleCard>
 
@@ -1049,7 +1048,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               </div>
             ))}
             <div className="px-5 py-3">
-              <button onClick={() => go("waitlist", "Waitlist")} className="text-xs font-semibold" style={{ color: TEAL }}>Manage waitlist →</button>
+              <button onClick={() => go("waitlist", "Waitlist")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Manage waitlist →</button>
             </div>
           </RoleCard>
 
@@ -1064,7 +1063,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               ].map(c => (
                 <div key={c.id} className="py-2 border-b last:border-b-0" style={{ borderColor: BORDER }}>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: "'JetBrains Mono', monospace" }}>{c.id}</span>
+                    <span className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: "'Inter', system-ui, sans-serif" }}>{c.id}</span>
                     <span className="text-xs" style={{ color: MUTED }}>{c.date}</span>
                   </div>
                   <div className="text-xs" style={{ color: TEXT }}>{c.guest} · {c.type}</div>
@@ -1087,7 +1086,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                   className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium border mb-1.5 last:mb-0 transition-colors hover:bg-[#F0F4F8]"
                   style={{ borderColor: BORDER, color: TEXT }}>
                   <span dangerouslySetInnerHTML={{ __html: a.label }} />
-                  <span style={{ color: TEAL }}>→</span>
+                  <span style={{ color: TEAL_INK }}>→</span>
                 </button>
               ))}
             </div>
@@ -1217,7 +1216,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
             {pendingApproval.map(t => (
               <div key={t.id} className="flex items-center justify-between py-1.5">
                 <div className="text-xs" style={{ color:"#4C1D95" }}>
-                  <span className="font-bold" style={{ fontFamily:"'JetBrains Mono', monospace" }}>{t.id}</span> · {t.route} · {t.dept ?? t.passenger}
+                  <span className="font-bold" style={{ fontFamily:"'Inter', system-ui, sans-serif" }}>{t.id}</span> · {t.route} · {t.dept ?? t.passenger}
                 </div>
                 <button onClick={() => go("dispatch-board", "Dispatch Board")}
                   className="px-3 py-1 rounded-lg text-xs font-bold" style={{ backgroundColor:"#7C3AED", color:"white" }}>
@@ -1241,7 +1240,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                   onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-xs font-bold" style={{ color:PRIMARY, fontFamily:"'JetBrains Mono', monospace" }}>{t.id}</span>
+                      <span className="text-xs font-bold" style={{ color:PRIMARY, fontFamily:"'Inter', system-ui, sans-serif" }}>{t.id}</span>
                       <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor:sc.bg, color:sc.text }}>{sc.label}</span>
                     </div>
                     <div className="text-xs truncate" style={{ color:TEXT }}>{t.route}</div>
@@ -1251,7 +1250,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               );
             })}
             <div className="px-5 py-3">
-              <button onClick={() => go("dispatch-board", "Dispatch Board")} className="text-xs font-semibold" style={{ color:TEAL }}>
+              <button onClick={() => go("dispatch-board", "Dispatch Board")} className="text-xs font-semibold" style={{ color:TEAL_INK }}>
                 Full dispatch board →
               </button>
             </div>
@@ -1262,12 +1261,12 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
             <RoleCard title="Vehicle Readiness">
               {FLEET_VEHICLES.map(v => {
                 const stSc = v.status === "active" ? { bg:"#DCFCE7", text:"#166534" } : v.status === "maintenance" ? { bg:"#FEF3C7", text:"#92400E" } : { bg:"#FEE2E2", text:"#991B1B" };
-                const docSc = v.docSt === "valid" ? { color:SUCCESS } : v.docSt === "expiring-soon" ? { color:WARNING } : { color:ERROR };
+                const docSc = v.docSt === "valid" ? { color:SUCCESS } : v.docSt === "expiring-soon" ? { color:WARNING_INK } : { color:ERROR };
                 return (
                   <div key={v.id} className="flex items-center gap-3 px-5 py-3 border-b"
                     style={{ borderColor: BORDER }}>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-bold" style={{ color:TEXT, fontFamily:"'JetBrains Mono', monospace" }}>{v.plate}</div>
+                      <div className="text-xs font-bold" style={{ color:TEXT, fontFamily:"'Inter', system-ui, sans-serif" }}>{v.plate}</div>
                       <div className="text-xs" style={{ color:MUTED }}>{v.make} · {v.driver}</div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -1294,7 +1293,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full capitalize" style={{ backgroundColor:gSc.bg, color:gSc.text }}>{g.status}</span>
-                      {g.svcLeft <= 100 && <AlertTriangle size={12} style={{ color:WARNING }} />}
+                      {g.svcLeft <= 100 && <AlertTriangle size={12} style={{ color:WARNING_INK }} />}
                     </div>
                   </div>
                 );
@@ -1354,7 +1353,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               </div>
             ))}
             <div className="px-5 py-3">
-              <button onClick={() => go("driver-access-log", "Driver Access Log")} className="text-xs font-semibold" style={{ color: TEAL }}>My access log →</button>
+              <button onClick={() => go("driver-access-log", "Driver Access Log")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>My access log →</button>
             </div>
           </RoleCard>
           <div className="flex flex-col gap-4">
@@ -1383,7 +1382,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                 <button key={a.label} onClick={() => go(a.screen, a.label)}
                   className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium border mb-1.5 last:mb-0 hover:bg-[#F0F4F8] transition-colors"
                   style={{ borderColor: BORDER, color: TEXT }}>
-                  {a.label}<span style={{ color: TEAL }}>→</span>
+                  {a.label}<span style={{ color: TEAL_INK }}>→</span>
                 </button>
               ))}
             </div>
@@ -1440,10 +1439,10 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
               <Av gender={i % 2 === 0 ? "M" : "F"} size={32} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1"><span className="text-xs font-semibold" style={{ color: TEXT }}>{g.guest}</span>
-                  {g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE }} />}</div>
+                  {g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE_INK }} />}</div>
                 <div className="text-xs" style={{ color: MUTED }}>Room {g.room} · Out {g.checkout}</div>
               </div>
-              {g.balance > 0 ? <span className="text-xs font-bold" style={{ color: ERROR, fontFamily: "'JetBrains Mono', monospace" }}>₦{g.balance.toLocaleString()}</span>
+              {g.balance > 0 ? <span className="text-xs font-bold" style={{ color: ERROR, fontFamily: "'Inter', system-ui, sans-serif" }}>₦{g.balance.toLocaleString()}</span>
                 : <CheckCircle2 size={13} style={{ color: SUCCESS }} />}
             </div>
           ))}

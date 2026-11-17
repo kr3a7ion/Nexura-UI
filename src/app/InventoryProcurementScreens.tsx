@@ -31,8 +31,7 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-} from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { DateInput } from "./DateInput";
 // RT-07 Guest Room Charges
@@ -127,7 +126,7 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
               {filtered.map(c => (
                 <tr key={c.id} onClick={() => setSelected(c.id)} className="border-t hover:bg-[#F8FAFC] cursor-pointer transition-colors" style={{ borderColor: BORDER, backgroundColor: selected===c.id ? "#EFF6FF" : c.status==="Failed" ? "#FFF8F8" : c.status==="Disputed" ? "#FFFBEB" : undefined }}>
                   <td className="px-3 py-3 text-xs font-semibold" style={{ color: MUTED, fontFamily: mono }}>{c.id}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{c.folio}</td>
+                  <td className="px-3 py-3 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{c.folio}</td>
                   <td className="px-3 py-3">
                     <div className="text-sm font-bold" style={{ color: PRIMARY }}>{c.room}</div>
                     <div className="text-xs" style={{ color: MUTED }}>{c.guest}</div>
@@ -141,7 +140,7 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
                     <div className="flex gap-1">
                       {c.status === "Failed" && <button onClick={() => retry(c.id)} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Retry</button>}
                       {c.status === "Posted" && <button onClick={() => openDispute(c.id)} className="text-xs px-2.5 py-1.5 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Dispute</button>}
-                      {c.status === "Disputed" && <><button onClick={() => resolveDispute(c.id, "Reversed")} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: ORANGE, borderColor: `${ORANGE}30` }}>Reverse</button><button onClick={() => resolveDispute(c.id, "Posted")} className="text-xs px-2.5 py-1.5 rounded border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Dismiss</button></>}
+                      {c.status === "Disputed" && <><button onClick={() => resolveDispute(c.id, "Reversed")} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: ORANGE_INK, borderColor: `${ORANGE}30` }}>Reverse</button><button onClick={() => resolveDispute(c.id, "Posted")} className="text-xs px-2.5 py-1.5 rounded border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Dismiss</button></>}
                     </div>
                   </td>
                 </tr>
@@ -154,7 +153,7 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
       {/* Detail panel */}
       {sel && (
         <div className="w-72 flex-shrink-0 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="flex items-start justify-between mb-4"><div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL }}>{sel.folio}</div></div><button onClick={() => setSelected(null)} style={{ color: MUTED }}>✕</button></div>
+          <div className="flex items-start justify-between mb-4"><div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL_INK }}>{sel.folio}</div></div><button onClick={() => setSelected(null)} style={{ color: MUTED }}>✕</button></div>
           <div className="space-y-2 text-sm mb-4">
             <div className="flex justify-between"><span style={{ color: MUTED }}>Room</span><span className="font-bold" style={{ color: PRIMARY }}>{sel.room}</span></div>
             <div className="flex justify-between"><span style={{ color: MUTED }}>Guest</span><span style={{ color: TEXT }}>{sel.guest}</span></div>
@@ -164,12 +163,12 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
             <div className="flex justify-between"><span style={{ color: MUTED }}>Date/Time</span><span className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{sel.date}</span></div>
             <div className="flex justify-between"><span style={{ color: MUTED }}>Posted by</span><span style={{ color: TEXT }}>{sel.by}</span></div>
             <div className="flex justify-between items-center"><span style={{ color: MUTED }}>Status</span><Badge label={sel.status} colors={stColors[sel.status]} /></div>
-            {sel.ref && <div className="flex justify-between"><span style={{ color: MUTED }}>Reference</span><span style={{ color: TEAL, fontFamily: mono }}>{sel.ref}</span></div>}
+            {sel.ref && <div className="flex justify-between"><span style={{ color: MUTED }}>Reference</span><span style={{ color: TEAL_INK, fontFamily: mono }}>{sel.ref}</span></div>}
           </div>
           {sel.disputeNote && <div className="px-3 py-2 rounded-xl text-xs mb-4" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}><div className="font-semibold mb-0.5">Dispute note:</div>{sel.disputeNote}</div>}
           <div className="space-y-2">
             {sel.status === "Failed" && <button onClick={() => { retry(sel.id); setSelected(null); }} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Retry posting</button>}
-            {sel.status === "Posted" && <button onClick={() => { openDispute(sel.id); }} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: ORANGE, borderColor: `${ORANGE}30` }}>Raise dispute</button>}
+            {sel.status === "Posted" && <button onClick={() => { openDispute(sel.id); }} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: ORANGE_INK, borderColor: `${ORANGE}30` }}>Raise dispute</button>}
             {sel.status === "Disputed" && <>
               <button onClick={() => resolveDispute(sel.id, "Reversed")} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ORANGE }}>Reverse charge</button>
               <button onClick={() => resolveDispute(sel.id, "Posted")} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Dismiss dispute</button>
@@ -324,7 +323,7 @@ export function ProductsScreen({ add }: { add: (t: Omit<Toast, "id">) => void })
                     <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
                       <div className="flex gap-1">
                         <button onClick={()=>add({type:"info",title:`Edit ${p.sku}`})} className="text-xs px-2 py-1 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Edit</button>
-                        <button onClick={()=>setShowAdj(p.sku)} className="text-xs px-2 py-1 rounded border font-semibold" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Adjust</button>
+                        <button onClick={()=>setShowAdj(p.sku)} className="text-xs px-2 py-1 rounded border font-semibold" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Adjust</button>
                       </div>
                     </td>
                   </tr>
@@ -379,7 +378,7 @@ export function ProductsScreen({ add }: { add: (t: Omit<Toast, "id">) => void })
             </div>
             <div className="flex gap-3 mt-5">
               <BtnO label="Cancel" onClick={()=>{setShowAdj(null);setAdjQty("");setAdjReason("");setAdjPin("");}} />
-              <button onClick={()=>applyAdj(showAdj)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL }}>Apply adjustment</button>
+              <button onClick={()=>applyAdj(showAdj)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL_INK }}>Apply adjustment</button>
             </div>
           </div>
         </>
@@ -442,7 +441,7 @@ export function SuppliersScreen({ add }: { add: (t: Omit<Toast, "id">) => void }
                   <td className="px-3 py-3 text-xs font-semibold" style={{ color: s.outstanding>0?ERROR:SUBTLE, fontFamily: mono }}>{s.outstanding>0?`₦${s.outstanding.toLocaleString()}`:"—"}</td>
                   <td className="px-3 py-3 text-xs" style={{ color: s.activePOs>0?PRIMARY:SUBTLE }}>{s.activePOs}</td>
                   <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
-                    <button onClick={()=>add({type:"info",title:`Create PO — ${s.company}`})} className="text-xs px-2.5 py-1.5 rounded border font-semibold whitespace-nowrap" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Create PO</button>
+                    <button onClick={()=>add({type:"info",title:`Create PO — ${s.company}`})} className="text-xs px-2.5 py-1.5 rounded border font-semibold whitespace-nowrap" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Create PO</button>
                   </td>
                 </tr>
               ))}
@@ -608,7 +607,7 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
                 <td className="px-3 py-3 text-sm font-bold" style={{ color: t.qty<0?ERROR:t.qty>0?SUCCESS:SUBTLE, fontFamily: mono }}>{t.qty!==0?(t.qty>0?"+":"")+t.qty:"—"}</td>
                 <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{t.from||"—"}</td>
                 <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{t.to||"—"}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{t.ref}</td>
+                <td className="px-3 py-3 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{t.ref}</td>
                 <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{t.unitCost?`₦${t.unitCost.toLocaleString()}`:"—"}</td>
                 <td className="px-3 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>{t.value?`₦${t.value.toLocaleString()}`:"—"}</td>
                 <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{t.by}</td>
@@ -671,7 +670,7 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
             </div>
             <div className="flex items-center justify-between px-1 mb-4 text-xs">
               <span style={{ color: MUTED }}>{countItems.filter(c=>c.done).length}/{countItems.length} items counted</span>
-              {countItems.filter(c=>c.done&&c.system!==c.counted).length>0 && <span className="font-semibold" style={{ color: WARNING }}>{countItems.filter(c=>c.done&&c.system!==c.counted).length} variances found</span>}
+              {countItems.filter(c=>c.done&&c.system!==c.counted).length>0 && <span className="font-semibold" style={{ color: WARNING_INK }}>{countItems.filter(c=>c.done&&c.system!==c.counted).length} variances found</span>}
             </div>
             <div className="flex gap-3">
               <BtnO label="Cancel" onClick={()=>setShowCount(false)} />
@@ -787,7 +786,7 @@ export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void })
                     <div className="flex gap-1">
                       {po.status==="Pending Approval" && <button onClick={()=>setShowApprove(po.id)} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: SUCCESS, borderColor:`${SUCCESS}30` }}>Approve</button>}
                       {po.status==="Approved" && <button onClick={()=>{ setPos(prev=>prev.map(p=>p.id===po.id?{...p,status:"Sent" as POStatus}:p)); add({type:"success",title:`${po.id} sent to supplier`}); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: PRIMARY, borderColor:`${PRIMARY}30` }}>Send</button>}
-                      {(po.status==="Sent"||po.status==="Partially Received") && <button onClick={()=>{ setSelected(po.id); setShowGRN(po.id); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Receive</button>}
+                      {(po.status==="Sent"||po.status==="Partially Received") && <button onClick={()=>{ setSelected(po.id); setShowGRN(po.id); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Receive</button>}
                     </div>
                   </td>
                 </tr>
@@ -801,7 +800,7 @@ export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void })
       {sel && (
         <div className="w-72 flex-shrink-0 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <div className="flex items-start justify-between mb-4">
-            <div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL }}>{sel.supplier}</div></div>
+            <div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL_INK }}>{sel.supplier}</div></div>
             <button onClick={()=>setSelected(null)} style={{ color: MUTED }}>✕</button>
           </div>
           <div className="space-y-1.5 text-xs mb-4">

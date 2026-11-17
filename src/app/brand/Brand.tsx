@@ -24,7 +24,7 @@ export function BrandLockup({ size = 40, tone = "light" }: { size?: number; tone
       <div>
         <div
           className="font-extrabold leading-none"
-          style={{ color: foreground, fontFamily: `'Plus Jakarta Sans', ${display}`, fontSize: size * 0.55, letterSpacing: "-0.045em", fontWeight: 800 }}
+          style={{ color: foreground, fontFamily: `'Plus Jakarta Sans', ${display}`, fontSize: size * 0.55, letterSpacing: "-0.045em", fontWeight: 700 }}
         >
           {BRAND.name}
         </div>

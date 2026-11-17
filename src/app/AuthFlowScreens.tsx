@@ -5,8 +5,7 @@ import {
 } from "@phosphor-icons/react";
 import {
   PRIMARY, NAV_BG, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE, BG,
-  mono, sans, display,
-} from "./constants";
+  mono, sans, display, TEAL_INK } from "./constants";
 import { Badge, BtnO, BtnP, EmptyState, Inp } from "./UIKit";
 import { ACCESSIBLE_BRANCHES, AUTHENTICATOR_SECRET, GUEST_QR_RESERVATION, MFA_BACKUP_CODES } from "./mock/authFlow";
 
@@ -53,7 +52,7 @@ export function GuestAccessScreen({ qrLanding = false, onBack }: { qrLanding?: b
         {state === "error" && <div className="p-3 rounded-xl text-xs" style={{ backgroundColor: BG, color: ERROR, border: `1px solid ${ERROR}` }}>We couldn’t match those details. Check the reservation code and surname, then try again.</div>}
         <Inp label="Reservation code" value={code} onChange={event => { setCode(event.target.value.toUpperCase()); setState("form"); }} placeholder="BK-2860" mono />
         <Inp label="Surname" value={surname} onChange={event => { setSurname(event.target.value); setState("form"); }} placeholder="Okafor" />
-        <button onClick={findStay} className="w-full py-3 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL }}>Find my stay</button>
+        <button onClick={findStay} className="w-full py-3 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL_INK }}>Find my stay</button>
         <div className="flex items-center gap-2 justify-center text-xs" style={{ color: SUBTLE }}><LockKey size={13} />Your booking details are encrypted and private.</div>
       </div>}
     </AuthShell>

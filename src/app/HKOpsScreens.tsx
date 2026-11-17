@@ -32,8 +32,7 @@ import {
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-stampNow
-} from "./constants";
+stampNow, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 // HK-04 Inspection Log
 export function InspectionLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
@@ -93,7 +92,7 @@ export function InspectionLog({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <td className="px-4 py-3 text-sm font-bold" style={{ color: l.score/l.total >= 0.85 ? SUCCESS : l.score/l.total >= 0.7 ? ORANGE : ERROR }}>{l.score}/{l.total}</td>
                   <td className="px-4 py-3">{l.reclean && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Required</span>}</td>
                   <td className="px-4 py-3"><Badge label={l.status} colors={iC[l.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
-                  <td className="px-4 py-3"><button onClick={e => { e.stopPropagation(); add({ type: "info", title: `Re-inspect Room ${l.room}` }); }} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Re-inspect</button></td>
+                  <td className="px-4 py-3"><button onClick={e => { e.stopPropagation(); add({ type: "info", title: `Re-inspect Room ${l.room}` }); }} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Re-inspect</button></td>
                 </tr>
                 {expanded === l.id && (
                   <tr key={l.id + "-d"} style={{ backgroundColor: "#F8FAFC" }}>
@@ -180,7 +179,7 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <td className="px-4 py-3"><Badge label={st} colors={{ bg: c.bg, text: c.text }} /></td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      <button onClick={() => { setIssueItem(item.name); setShowIssue(true); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Issue</button>
+                      <button onClick={() => { setIssueItem(item.name); setShowIssue(true); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Issue</button>
                       <button onClick={() => add({ type: "info", title: `Restock requested: ${item.name}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Restock</button>
                     </div>
                   </td>
@@ -390,7 +389,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 <td className="px-4 py-3">
                   {c.status === "Active" ? (
                     <div className="flex gap-1">
-                      <button onClick={() => add({ type: "success", title: `Duplicate issued — Room ${c.room}`, body: `Insert blank card into encoder` })} disabled={encoderSt !== "connected"} className="text-xs px-2 py-1.5 rounded border disabled:opacity-40" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Duplicate</button>
+                      <button onClick={() => add({ type: "success", title: `Duplicate issued — Room ${c.room}`, body: `Insert blank card into encoder` })} disabled={encoderSt !== "connected"} className="text-xs px-2 py-1.5 rounded border disabled:opacity-40" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Duplicate</button>
                       <button onClick={() => { setRevokeId(c.id); setRevokeReason(""); }} className="text-xs px-2 py-1.5 rounded border" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Revoke</button>
                     </div>
                   ) : <span className="text-xs" style={{ color: SUBTLE }}>—</span>}
@@ -438,7 +437,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               )}
               {issueStep === "read" && (
                 <div className="py-6 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: `${TEAL}18` }}><CreditCard size={28} style={{ color: TEAL }} /></div>
+                  <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: `${TEAL}18` }}><CreditCard size={28} style={{ color: TEAL_INK }} /></div>
                   <h3 className="text-base font-bold" style={{ color: TEXT }}>Insert blank card into encoder</h3>
                   <p className="text-sm" style={{ color: MUTED }}>Waiting for card read… Do not remove card.</p>
                   <div className="flex justify-center gap-1">{[0,1,2,3,4].map(i => <div key={i} className="w-2 h-2 rounded-full" style={{ backgroundColor: TEAL, opacity: 0.3 + (i * 0.15), animation: `pulse ${0.8 + i * 0.1}s infinite` }} />)}</div>
@@ -464,7 +463,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                   <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: "#DCFCE7" }}><CheckCircle2 size={28} style={{ color: SUCCESS }} /></div>
                   <h3 className="text-base font-bold" style={{ color: TEXT }}>Card issued successfully</h3>
                   <p className="text-sm" style={{ color: MUTED }}>Room {issueRoom} · Serial <span style={{ fontFamily: mono }}>{serialRead}</span></p>
-                  {encoderSt !== "connected" && <p className="text-xs font-semibold" style={{ color: WARNING }}>Card registered offline — will activate on next sync.</p>}
+                  {encoderSt !== "connected" && <p className="text-xs font-semibold" style={{ color: WARNING_INK }}>Card registered offline — will activate on next sync.</p>}
                   <button onClick={() => setShowIssue(false)} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Done</button>
                 </div>
               )}
@@ -481,7 +480,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Revoke card</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>{cards.find(c=>c.id===revokeId)?.serial} · This card will stop working{encoderSt !== "connected" ? " on next lock sync" : " immediately"}.</p>
             <div className="space-y-2 mb-4">{["Lost / reported stolen","Guest requested replacement","Error issued","Security concern"].map(r => <label key={r} className="flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer" style={{ borderColor: revokeReason===r ? ERROR : BORDER, backgroundColor: revokeReason===r ? "#FEF2F2" : "white" }}><div className="w-4 h-4 rounded-full border-2 flex-shrink-0" style={{ borderColor: revokeReason===r ? ERROR : "#CBD5E1", backgroundColor: revokeReason===r ? ERROR : "transparent" }} /><input type="radio" className="hidden" onChange={() => setRevokeReason(r)} /><span className="text-sm" style={{ color: TEXT }}>{r}</span></label>)}</div>
-            {encoderSt !== "connected" && <p className="text-xs mb-3 font-semibold" style={{ color: WARNING }}>Encoder offline — revocation will queue and apply on next lock sync.</p>}
+            {encoderSt !== "connected" && <p className="text-xs mb-3 font-semibold" style={{ color: WARNING_INK }}>Encoder offline — revocation will queue and apply on next lock sync.</p>}
             <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setRevokeId(null)} /><button disabled={!revokeReason} onClick={revokeCard} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Confirm revoke</button></div>
           </div>
         </>
@@ -528,8 +527,8 @@ export function HKMyTasks({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         </div>
         <div className="flex gap-4 mt-3">
           <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: TEXT }}>{total - completed}</span> remaining</span>
-          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: ORANGE }}>{sorted.filter(r=>r.priority).length}</span> priority</span>
-          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: TEAL }}>{dndRooms.size}</span> DND active</span>
+          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: ORANGE_INK }}>{sorted.filter(r=>r.priority).length}</span> priority</span>
+          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: TEAL_INK }}>{dndRooms.size}</span> DND active</span>
         </div>
       </div>
       <div className="space-y-3">
@@ -549,7 +548,7 @@ export function HKMyTasks({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                       {isDND && <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>DND</span>}
                     </div>
                     <div className="text-sm mt-0.5" style={{ color: MUTED }}>{r.type} · Floor {r.floor} · {r.guestStatus}</div>
-                    {r.notes && <div className="text-sm mt-1 font-medium" style={{ color: ORANGE }}>{r.notes}</div>}
+                    {r.notes && <div className="text-sm mt-1 font-medium" style={{ color: ORANGE_INK }}>{r.notes}</div>}
                   </div>
                 </div>
                 <Badge label={st} colors={stC} />
@@ -563,7 +562,7 @@ export function HKMyTasks({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               </div>
               {/* Secondary actions */}
               <div className="flex gap-2 flex-wrap">
-                <button onClick={() => { setShowIssue(r.id); setIssueDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: ORANGE, borderColor: `${ORANGE}40`, minHeight: 44 }}>Report issue</button>
+                <button onClick={() => { setShowIssue(r.id); setIssueDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: ORANGE_INK, borderColor: `${ORANGE}40`, minHeight: 44 }}>Report issue</button>
                 <button onClick={() => { setDndRooms(p => { const n = new Set(p); isDND ? n.delete(r.id) : n.add(r.id); return n; }); add({ type: isDND ? "info" : "warning", title: isDND ? `DND cleared — Room ${r.id}` : `DND set — Room ${r.id}` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: isDND ? ERROR : MUTED, borderColor: isDND ? `${ERROR}40` : BORDER, minHeight: 44 }}>{isDND ? "Clear DND" : "Mark DND"}</button>
                 <button onClick={() => add({ type: "info", title: `Lost item logged — Room ${r.id}` })} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: MUTED, borderColor: BORDER, minHeight: 44 }}>Log L&F</button>
               </div>

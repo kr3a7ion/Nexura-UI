@@ -17,8 +17,7 @@ import {
   type Toast,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   fmtN,
-  occData, STAFF_RPT, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, INV_CONS, REV_DATA,
-} from "./constants";
+  occData, STAFF_RPT, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, INV_CONS, REV_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 import { Badge, StatCard, PageHeader, BtnO, BtnP } from "./UIKit";
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
@@ -156,8 +155,8 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
 
   const SOURCE_MIX = [
     { name: "Direct / Walk-in", value: 38, color: PRIMARY },
-    { name: "Online (OTA)",     value: 29, color: TEAL    },
-    { name: "Corporate",        value: 22, color: ORANGE  },
+    { name: "Online (OTA)",     value: 29, color: TEAL_INK    },
+    { name: "Corporate",        value: 22, color: ORANGE_INK  },
     { name: "Group",            value: 11, color: SUCCESS },
   ];
 
@@ -288,8 +287,8 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
 
   const PAYMENT_MIX = [
     { name: "Cash",       value: 31, color: PRIMARY },
-    { name: "Card/POS",   value: 42, color: TEAL    },
-    { name: "Transfer",   value: 18, color: ORANGE  },
+    { name: "Card/POS",   value: 42, color: TEAL_INK    },
+    { name: "Transfer",   value: 18, color: ORANGE_INK  },
     { name: "Corporate",  value:  9, color: SUCCESS },
   ];
 
@@ -605,7 +604,7 @@ export function GuestAnalytics({ add }: { add: (t: Omit<Toast, "id">) => void })
                 <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT }}>{g.stays}</td>
                 <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{g.ltv.toLocaleString()}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: MUTED }}>{g.lastStay}</td>
-                <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color: WARNING }} />{g.rating}</span></td>
+                <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color: WARNING_INK }} />{g.rating}</span></td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: SUBTLE }}>{drill === g.name ? "▲" : "▼"}</td>
               </tr>
             ))}
@@ -738,7 +737,7 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
                     <span className="font-bold" style={{ color: TEXT }}>{s.onTime}%</span>
                   </div>
                 </td>
-                <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color: WARNING }} />{s.quality}</span></td>
+                <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color: WARNING_INK }} />{s.quality}</span></td>
                 <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT }}>{s.orders}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: MUTED }}>{s.avgLead} days</td>
               </tr>
@@ -854,7 +853,7 @@ export function StaffReports({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 <td className="px-3 py-2.5 text-xs font-semibold" style={{ color: PRIMARY }}>{r.dept}</td>
                 <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT }}>{r.headcount}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: SUCCESS }}>{r.present}</td>
-                <td className="px-3 py-2.5 text-xs" style={{ color: WARNING }}>{r.late}</td>
+                <td className="px-3 py-2.5 text-xs" style={{ color: WARNING_INK }}>{r.late}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: ERROR }}>{r.absent}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: MUTED }}>{r.leave}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: r.ot > 10 ? ORANGE : MUTED }}>{r.ot}h</td>

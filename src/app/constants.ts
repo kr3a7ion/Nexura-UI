@@ -33,7 +33,8 @@ export type Screen =
   | "vehicle-register" | "vehicle-detail" | "fuel-log" | "generator-diesel";
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
-export const mono = "'JetBrains Mono', monospace";
+// Numbers and codes use the body font; a code font made every amount look heavy.
+export const mono = "'Inter', system-ui, sans-serif";
 export const sans = "'Inter', system-ui, sans-serif";
 export const display = "'Plus Jakarta Sans', system-ui, sans-serif";
 export const NAV_BG = "#111111";
@@ -43,10 +44,14 @@ export const ORANGE = "#F57C00";
 export const SUCCESS = "#2E7D32";
 export const WARNING = "#FFA000";
 export const ERROR = "#D32F2F";
+// Darker shades for text: the brand colours above are for fills and icons and are too light to read as text on white.
+export const TEAL_INK = "#0F766E";
+export const ORANGE_INK = "#C2410C";
+export const WARNING_INK = "#B45309";
 export const BORDER = "#E2E8F0";
-export const TEXT = "#0F172A";
-export const MUTED = "#64748B";
-export const SUBTLE = "#94A3B8";
+export const TEXT = "#1E293B";
+export const MUTED = "#475569";
+export const SUBTLE = "#64748B";
 export const BG = "#F0F4F8";
 
 export const PROPERTY_PROFILE = {
