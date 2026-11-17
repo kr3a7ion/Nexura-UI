@@ -29,13 +29,14 @@ import {
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
   HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ARRIVALS_DATA, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
 } from "./constants";
 import { TextOrDate } from "./DateInput";
+import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, balanceOf } from "./mock/frontOffice";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -1433,53 +1434,10 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   );
 }
 export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toast, "id">) => void; initialReservationId?: string }) {
-  type ChargeRow = { date: string; cat: string; desc: string; qty: number; unit: number; amount: number; by: string; tax: number; reversed: boolean; movedTo?: string };
 
-  const ALL_GUESTS = [
-    // Due today
-    { id: "BK-2848", guest: "Emmanuel Adeyemi",  av: "EA", room: "202", type: "Deluxe",   nights: 2, checkin: "22 Jun", checkout: "24 Jun", deposit: 55000, vip: false, phone: "+234 802 333 4444", visits: 3,  dueToday: true  },
-    { id: "BK-2846", guest: "Adaeze Okonkwo",    av: "AO", room: "101", type: "Deluxe",   nights: 3, checkin: "21 Jun", checkout: "24 Jun", deposit: 183825, vip: true,  phone: "+234 803 111 2222", visits: 5,  dueToday: true  },
-    { id: "BK-2843", guest: "Fatima Musa",        av: "FM", room: "203", type: "Suite",    nights: 3, checkin: "21 Jun", checkout: "24 Jun", deposit: 321425, vip: true,  phone: "+234 802 777 8888", visits: 8,  dueToday: true  },
-    { id: "BK-2852", guest: "Tunde Lawal",        av: "TL", room: "118", type: "Standard", nights: 1, checkin: "23 Jun", checkout: "24 Jun", deposit: 35000, vip: false, phone: "+234 807 444 2211", visits: 2,  dueToday: true  },
-    // In-house (early checkout candidates)
-    { id: "BK-2850", guest: "Chukwuemeka Obi",    av: "CO", room: "304", type: "Standard", nights: 4, checkin: "24 Jun", checkout: "28 Jun", deposit: 35000, vip: false, phone: "+234 805 555 6666", visits: 1,  dueToday: false },
-    { id: "BK-2845", guest: "Ibrahim Lawal",      av: "IL", room: "302", type: "Deluxe",   nights: 3, checkin: "23 Jun", checkout: "26 Jun", deposit: 182965, vip: false, phone: "+234 806 222 3333", visits: 2,  dueToday: false },
-    { id: "BK-2851", guest: "Dr. Chukwuemeka Bello", av: "CB", room: "501", type: "Suite", nights: 3, checkin: "24 Jun", checkout: "27 Jun", deposit: 301000, vip: true, phone: "+234 803 999 1111", visits: 12, dueToday: false },
-  ];
+  const ALL_GUESTS = checkoutGuests();
 
-  const BASE_CHARGES: Record<string, ChargeRow[]> = {
-    "BK-2848": [
-      { date: "22 Jun", cat: "Room",       desc: "Deluxe Room 202 × 2 nights",   qty: 2, unit: 55000, amount: 110000, by: "System",   tax: 8250,  reversed: false },
-      { date: "23 Jun", cat: "Restaurant", desc: "Room Service #RS-041",          qty: 1, unit: 8500,  amount: 8500,   by: "John A.",  tax: 638,   reversed: false },
-      { date: "24 Jun", cat: "Bar",        desc: "Minibar — 2× Water, 1× Juice", qty: 3, unit: 1200,  amount: 3600,   by: "System",   tax: 270,   reversed: false },
-      { date: "24 Jun", cat: "Laundry",    desc: "Express laundry — 3 items",    qty: 3, unit: 2000,  amount: 6000,   by: "HK Staff", tax: 450,   reversed: false },
-    ],
-    "BK-2846": [
-      { date: "21 Jun", cat: "Room",       desc: "Deluxe Room 101 × 3 nights",   qty: 3, unit: 55000, amount: 165000, by: "System",   tax: 12375, reversed: false },
-      { date: "23 Jun", cat: "Restaurant", desc: "Breakfast × 2 pax",            qty: 1, unit: 6000,  amount: 6000,   by: "F&B",      tax: 450,   reversed: false },
-    ],
-    "BK-2850": [
-      { date: "24 Jun", cat: "Room",       desc: "Standard Room 304 × 4 nights", qty: 4, unit: 35000, amount: 140000, by: "System",   tax: 10500,  reversed: false },
-      { date: "24 Jun", cat: "Bar",        desc: "Minibar consumption",           qty: 1, unit: 4500,  amount: 4500,   by: "System",   tax: 338,   reversed: false },
-    ],
-    "BK-2852": [
-      { date: "23 Jun", cat: "Room",       desc: "Standard Room 118 × 1 night",  qty: 1, unit: 35000, amount: 35000,  by: "System",   tax: 2625,  reversed: false },
-      { date: "23 Jun", cat: "Restaurant", desc: "Dinner and room service",        qty: 1, unit: 18500, amount: 18500,  by: "F&B",      tax: 1388,  reversed: false },
-    ],
-    "BK-2843": [
-      { date: "21 Jun", cat: "Room",       desc: "Suite Room 203 × 3 nights",    qty: 3, unit: 85000, amount: 255000, by: "System",   tax: 19125, reversed: false },
-      { date: "23 Jun", cat: "Restaurant", desc: "In-room dining × 3 meals",     qty: 3, unit: 12000, amount: 36000,  by: "F&B",      tax: 2700,  reversed: false },
-      { date: "24 Jun", cat: "Laundry",    desc: "Same-day laundry — VIP",       qty: 1, unit: 8000,  amount: 8000,   by: "HK Staff", tax: 600,   reversed: false },
-    ],
-    "BK-2845": [
-      { date: "23 Jun", cat: "Room",       desc: "Deluxe Room 302 × 3 nights",   qty: 3, unit: 55000, amount: 165000, by: "System",   tax: 12375, reversed: false },
-      { date: "24 Jun", cat: "Bar",        desc: "Minibar — assorted",            qty: 1, unit: 5200,  amount: 5200,   by: "System",   tax: 390,   reversed: false },
-    ],
-    "BK-2851": [
-      { date: "24 Jun", cat: "Room",       desc: "Suite Room 501 × 3 nights",    qty: 3, unit: 85000, amount: 255000, by: "System",   tax: 19125, reversed: false },
-      { date: "24 Jun", cat: "Restaurant", desc: "Welcome dinner — VIP",          qty: 1, unit: 25000, amount: 25000,  by: "F&B",      tax: 1875,  reversed: false },
-    ],
-  };
+  const BASE_CHARGES = CHARGES;
 
   const [selectedId, setSelectedId]         = useState("BK-2848");
   const [chargesMap, setChargesMap]         = useState<Record<string, ChargeRow[]>>(BASE_CHARGES);
@@ -2459,15 +2417,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
   const [ihSearch, setIhSearch] = useState("");
   const [ihFilter, setIhFilter] = useState("All");
   const [moreMenu, setMoreMenu] = useState<string | null>(null);
-  const [guests, setGuests] = useState([
-    { id: "BK-2846", room: "101", guest: "Adaeze Okonkwo", av: "AO", checkin: "21 Jun", checkout: "24 Jun", nights: 3, nightsLeft: 0, vip: true, balance: 0, dnd: false, requests: 0, complaints: 0, type: "Deluxe" },
-    { id: "BK-2848", room: "202", guest: "Emmanuel Adeyemi", av: "EA", checkin: "22 Jun", checkout: "24 Jun", nights: 2, nightsLeft: 0, vip: false, balance: 82708, dnd: false, requests: 1, complaints: 0, type: "Deluxe" },
-    { id: "BK-2843", room: "203", guest: "Fatima Musa", av: "FM", checkin: "21 Jun", checkout: "24 Jun", nights: 3, nightsLeft: 0, vip: true, balance: 0, dnd: true, requests: 0, complaints: 0, type: "Suite" },
-    { id: "BK-2850", room: "304", guest: "Chukwuemeka Obi", av: "CO", checkin: "24 Jun", checkout: "28 Jun", nights: 4, nightsLeft: 4, vip: false, balance: 120338, dnd: false, requests: 2, complaints: 1, type: "Standard" },
-    { id: "BK-2845", room: "302", guest: "Ibrahim Lawal", av: "IL", checkin: "23 Jun", checkout: "26 Jun", nights: 3, nightsLeft: 2, vip: false, balance: 0, dnd: false, requests: 0, complaints: 0, type: "Deluxe" },
-    { id: "BK-2851", room: "501", guest: "Dr. Chukwuemeka Bello", av: "CB", checkin: "24 Jun", checkout: "27 Jun", nights: 3, nightsLeft: 3, vip: true, balance: 0, dnd: false, requests: 1, complaints: 0, type: "Suite" },
-    { id: "BK-2852", room: "118", guest: "Tunde Lawal", av: "TL", checkin: "23 Jun", checkout: "24 Jun", nights: 1, nightsLeft: 0, vip: false, balance: 22513, dnd: false, requests: 0, complaints: 0, type: "Standard" },
-  ]);
+  const [guests, setGuests] = useState(inHouseGuests);
   type InHouseGuest = typeof guests[number];
   type GuestAction = "message" | "charge" | "extend" | "move" | "revoke";
   const [guestAction, setGuestAction] = useState<{ type: GuestAction; guestId: string } | null>(null);
@@ -2752,7 +2702,11 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
     { name: "Ngozi Adeyemi", av: "NA", id: "G-007", phone: "+234 807 654 3210", email: "n.adeyemi@email.com", nationality: "Nigerian", stays: 4, lastStay: "18 Jun", lifetimeValue: 210000, vip: false, vipTier: "", tag: "", activeStay: false, balance: 0, blacklist: false, allergy: "" },
     { name: "Chidi Eze", av: "CE", id: "G-008", phone: "+234 806 222 3333", email: "c.eze@example.com", nationality: "Nigerian", stays: 6, lastStay: "15 Jun", lifetimeValue: 480000, vip: true, vipTier: "Gold", tag: "VIP", activeStay: false, balance: 0, blacklist: false, allergy: "" },
     { name: "Amara Nwachukwu", av: "AN", id: "G-009", phone: "+234 811 444 5555", email: "a.nwachukwu@corp.ng", nationality: "Nigerian", stays: 0, lastStay: "—", lifetimeValue: 0, vip: false, vipTier: "", tag: "", activeStay: false, balance: 0, blacklist: true, allergy: "" },
-  ]);
+  ].map(g => {
+    // In-house status and balance come from the same stays the other Front Office screens use.
+    const stay = STAYS.find(x => x.guest === g.name);
+    return stay ? { ...g, activeStay: true, balance: balanceOf(stay) } : { ...g, activeStay: false };
+  }));
   const filtered = guests.filter(g => {
     const query = search.trim().toLowerCase();
     if (query && ![g.name, g.id, g.phone, g.email, g.nationality].some(value => value.toLowerCase().includes(query))) return false;
@@ -2906,12 +2860,8 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
   const [charge, setCharge] = useState({ cat: "Restaurant", desc: "", qty: "1", amount: "" });
   const [payAmt, setPayAmt] = useState("");
   const [payMethod, setPayMethod] = useState("Cash");
-  const FOLIO_LINES = [
-    { date: "22 Jun", cat: "Room", desc: "Deluxe Room 202 × 2 nights", qty: 2, unit: 55000, amount: 110000, tax: 8250, by: "System", reversed: false, id: 1 },
-    { date: "23 Jun", cat: "Restaurant", desc: "Room Service Order #RS-041", qty: 1, unit: 8500, amount: 8500, tax: 638, by: "John A.", reversed: false, id: 2 },
-    { date: "24 Jun", cat: "Bar", desc: "Minibar — 2× Water, 1× Juice", qty: 3, unit: 1200, amount: 3600, tax: 270, by: "System", reversed: false, id: 3 },
-    { date: "24 Jun", cat: "Laundry", desc: "Express laundry — 3 items", qty: 3, unit: 2000, amount: 6000, tax: 450, by: "HK Staff", reversed: false, id: 4 },
-  ];
+  const FOLIO_LINES = CHARGES["BK-2848"].map((c, i) => ({ date: c.date, cat: c.cat, desc: c.desc, qty: c.qty, unit: c.unit, amount: c.amount, tax: c.tax, by: c.by, reversed: c.reversed, id: i + 1 }));
+
   const PAYMENTS = [
     { date: "22 Jun", desc: "Check-in deposit", method: "Cash", amount: 55000, by: "John A.", id: "P1" },
   ];
@@ -3070,14 +3020,7 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selected, setSelected] = useState<string[]>([]);
-  const FOLIOS = [
-    { id: "FO-2840", res: "BK-2846", guest: "Adaeze Okonkwo", av: "AO", room: "101", checkin: "21 Jun", checkout: "24 Jun", charges: 183825, payments: 183825, balance: 0, daysOpen: 2, lastActivity: "Today 09:42", flags: { highBalance: false, noPayment: false, creditLimit: false, unposted: false } },
-    { id: "FO-2841", res: "BK-2848", guest: "Emmanuel Adeyemi", av: "EA", room: "202", checkin: "22 Jun", checkout: "24 Jun", charges: 137708, payments: 55000, balance: 82708, daysOpen: 1, lastActivity: "Today 08:30", flags: { highBalance: false, noPayment: false, creditLimit: false, unposted: true } },
-    { id: "FO-2842", res: "BK-2843", guest: "Fatima Musa", av: "FM", room: "203", checkin: "21 Jun", checkout: "24 Jun", charges: 321425, payments: 321425, balance: 0, daysOpen: 3, lastActivity: "24 Jun 11:05", flags: { highBalance: false, noPayment: false, creditLimit: false, unposted: false } },
-    { id: "FO-2843", res: "BK-2850", guest: "Chukwuemeka Obi", av: "CO", room: "304", checkin: "24 Jun", checkout: "28 Jun", charges: 155338, payments: 35000, balance: 120338, daysOpen: 1, lastActivity: "Today 07:55", flags: { highBalance: true, noPayment: false, creditLimit: true, unposted: true } },
-    { id: "FO-2844", res: "BK-2845", guest: "Ibrahim Lawal", av: "IL", room: "302", checkin: "23 Jun", checkout: "26 Jun", charges: 182965, payments: 182965, balance: 0, daysOpen: 2, lastActivity: "23 Jun 14:00", flags: { highBalance: false, noPayment: false, creditLimit: false, unposted: false } },
-    { id: "FO-2845", res: "BK-2851", guest: "Dr. Chukwuemeka Bello", av: "CB", room: "501", checkin: "24 Jun", checkout: "27 Jun", charges: 301000, payments: 301000, balance: 0, daysOpen: 1, lastActivity: "Today 14:10", flags: { highBalance: false, noPayment: false, creditLimit: false, unposted: false } },
-  ];
+  const FOLIOS = folios();
   const filtered = FOLIOS.filter(f => {
     const ms = !search || f.guest.toLowerCase().includes(search.toLowerCase()) || f.room.includes(search) || f.id.includes(search);
     const sf = statusFilter === "All" ? true : statusFilter === "Open" ? f.balance > 0 : statusFilter === "Settled" ? f.balance === 0 : statusFilter === "High Balance" ? f.flags.highBalance : statusFilter === "No Payment" ? f.flags.noPayment : true;

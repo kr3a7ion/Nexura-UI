@@ -321,12 +321,6 @@ export const ALL_RES = [
   { id: "BK-2843", guest: "Fatima Al-Hassan", room: "309", type: "Deluxe", checkin: "23 Jun", checkout: "24 Jun", status: "No Show", source: "Online", nights: 1, rate: 55000 },
   { id: "BK-2840", guest: "Tunde Bakare", room: "118", type: "Standard", checkin: "28 Jun", checkout: "30 Jun", status: "Confirmed", source: "Phone", nights: 2, rate: 35000 },
 ];
-export const ARRIVALS_DATA = [
-  { id: "BK-2855", guest: "Chief Emeka Okafor", type: "Suite 502", eta: "14:00", nights: 3, vip: true, requests: "Champagne + fruit basket", assigned: true, av: "EO" },
-  { id: "BK-2856", guest: "Aisha Mohammed", type: "Deluxe 303", eta: "15:30", nights: 2, vip: false, requests: "High floor preferred", assigned: true, av: "AM" },
-  { id: "BK-2857", guest: "Peter Okafor", type: "Standard", eta: "12:00", nights: 1, vip: false, requests: "—", assigned: false, av: "PO" },
-  { id: "BK-2858", guest: "Ngozi Adeyemi", type: "Deluxe", eta: "16:00", nights: 4, vip: true, requests: "Extra pillows, no smoking floor", assigned: false, av: "NA" },
-];
 export const ACCESS_CREDS = [
   { room: "101", guest: "Adaeze Okonkwo", cards: [{ serial: "XXXX-1A2B", issued: "22 Jun 14:03", by: "John A." }], pin: { hint: "74**12", issued: "22 Jun 14:05", by: "John A." }, validTo: "25 Jun 11:00", status: "Active" },
   { room: "202", guest: "Emmanuel Adeyemi", cards: [{ serial: "XXXX-3C4D", issued: "23 Jun 14:10", by: "John A." }, { serial: "XXXX-5E6F", issued: "23 Jun 14:12", by: "John A." }], pin: null, validTo: "26 Jun 11:00", status: "Active" },

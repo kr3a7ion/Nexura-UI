@@ -29,7 +29,7 @@ import {
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
   HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ARRIVALS_DATA, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
@@ -41,6 +41,7 @@ import {
 
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { TextOrDate } from "./DateInput";
+import { ARRIVALS as FO_ARRIVALS, departures } from "./mock/frontOffice";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
 function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
@@ -94,12 +95,8 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
   const STEP_SHORT = ["Reservation", "Identity", "Room", "Registration", "Payment", "Access", "Receipt"];
   const STEP_ICONS = [Ph.CalendarCheck, Ph.UserCheck, Ph.Bed, Ph.FileText, Ph.CreditCard, Ph.Key, Ph.DownloadSimple];
 
-  const ALL_ARRIVALS = [
-    { id: "BK-2855", guest: "Chief Emeka Okafor", av: "EO", room: "502", type: "Suite", eta: "14:00", nights: 3, rate: 85000, vip: true, deposit: 85000, requests: "Champagne + fruit basket" },
-    { id: "BK-2856", guest: "Aisha Mohammed", av: "AM", room: "303", type: "Deluxe", eta: "15:30", nights: 2, rate: 55000, vip: false, deposit: 55000, requests: "High floor preferred" },
-    { id: "BK-2857", guest: "Peter Okafor", av: "PO", room: "", type: "Standard", eta: "12:00", nights: 1, rate: 35000, vip: false, deposit: 35000, requests: "" },
-    { id: "BK-2858", guest: "Ngozi Adeyemi", av: "NA", room: "", type: "Deluxe", eta: "16:00", nights: 4, rate: 55000, vip: true, deposit: 55000, requests: "Extra pillows, no smoking floor" },
-  ];
+  const ALL_ARRIVALS = FO_ARRIVALS.map(a => ({ ...a, deposit: a.rate }));
+
   const ARRIVALS = searchQ.trim()
     ? ALL_ARRIVALS.filter(a => a.guest.toLowerCase().includes(searchQ.toLowerCase()) || a.id.toLowerCase().includes(searchQ.toLowerCase()))
     : ALL_ARRIVALS;
@@ -809,11 +806,9 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
   const [arSearch, setArSearch] = useState("");
   const [arTab, setArTab] = useState("All");
   const [arrivals, setArrivals] = useState([
+    // Already arrived today; still shown so the list reflects the whole day.
     { id: "BK-2851", guest: "Dr. Chukwuemeka Bello", type: "Suite", room: "501", nights: 3, eta: "14:00", rate: 85000, balance: 0, vip: true, assigned: true, group: false, requests: "Welcome dinner", status: "Checked In", risk: false },
-    { id: "BK-2855", guest: "Chief Emeka Okafor", type: "Suite", room: "502", nights: 3, eta: "14:00", rate: 85000, balance: 0, vip: true, assigned: true, group: false, requests: "Champagne + fruit basket", status: "Confirmed", risk: false },
-    { id: "BK-2856", guest: "Aisha Mohammed", type: "Deluxe", room: "303", nights: 2, eta: "15:30", rate: 55000, balance: 27500, vip: false, assigned: true, group: false, requests: "High floor preferred", status: "Confirmed", risk: false },
-    { id: "BK-2857", guest: "Peter Okafor", type: "Standard", room: "", nights: 1, eta: "12:00", rate: 35000, balance: 35000, vip: false, assigned: false, group: false, requests: "—", status: "Confirmed", risk: true },
-    { id: "BK-2858", guest: "Ngozi Adeyemi", type: "Deluxe", room: "", nights: 4, eta: "16:00", rate: 55000, balance: 0, vip: true, assigned: false, group: false, requests: "Extra pillows, no smoking floor", status: "Pending", risk: false },
+    ...FO_ARRIVALS.map(({ av, risk, ...a }) => ({ ...a, risk, assigned: !!a.room, group: false, requests: a.requests || "—" })),
     { id: "BK-2859", guest: "Lagos Corp Group (8 pax)", type: "Standard", room: "108–115", nights: 2, eta: "13:00", rate: 35000, balance: 0, vip: false, assigned: true, group: true, requests: "Meeting room required", status: "Confirmed", risk: false },
   ]);
   type Arrival = typeof arrivals[number];
@@ -959,12 +954,7 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
 }
 
 export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
-  const [dep, setDep] = useState([
-    { id: "BK-2846", room: "101", guest: "Adaeze Okonkwo", checkout: "11:00", nights: 3, balance: 0, method: "Card", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
-    { id: "BK-2848", room: "202", guest: "Emmanuel Adeyemi", checkout: "11:00", nights: 2, balance: 82708, method: "Cash", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
-    { id: "BK-2843", room: "203", guest: "Fatima Musa", checkout: "14:00", nights: 3, balance: 0, method: "Transfer", hkSt: "Occupied", lateFlag: true, overstay: false, status: "Pending" },
-    { id: "BK-2852", room: "118", guest: "Tunde Lawal", checkout: "11:00", nights: 1, balance: 22513, method: "Card", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
-  ]);
+  const [dep, setDep] = useState(departures);
   type Departure = typeof dep[number];
   const [depSearch, setDepSearch] = useState("");
   const [depFilter, setDepFilter] = useState("All");
