@@ -33,7 +33,8 @@ export type Screen =
   | "vehicle-register" | "vehicle-detail" | "fuel-log" | "generator-diesel";
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
-export const mono = "'JetBrains Mono', monospace";
+// Numbers and codes use the body font; a code font made every amount look heavy.
+export const mono = "'Inter', system-ui, sans-serif";
 export const sans = "'Inter', system-ui, sans-serif";
 export const display = "'Plus Jakarta Sans', system-ui, sans-serif";
 export const NAV_BG = "#111111";
@@ -43,10 +44,14 @@ export const ORANGE = "#F57C00";
 export const SUCCESS = "#2E7D32";
 export const WARNING = "#FFA000";
 export const ERROR = "#D32F2F";
+// Darker shades for text: the brand colours above are for fills and icons and are too light to read as text on white.
+export const TEAL_INK = "#0F766E";
+export const ORANGE_INK = "#C2410C";
+export const WARNING_INK = "#B45309";
 export const BORDER = "#E2E8F0";
-export const TEXT = "#0F172A";
-export const MUTED = "#64748B";
-export const SUBTLE = "#94A3B8";
+export const TEXT = "#1E293B";
+export const MUTED = "#475569";
+export const SUBTLE = "#64748B";
 export const BG = "#F0F4F8";
 
 export const PROPERTY_PROFILE = {
@@ -93,6 +98,9 @@ export const actBg = (t: string) => ({ checkin: "#F0FDF4", checkout: "#F8FAFC", 
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 export const uid = () => Math.random().toString(36).slice(2);
+// Design review: add ?state=loading|error|empty|offline to the address to see a screen in that state.
+export const DEMO_STATE = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("state");
+
 // Mock "today" for every screen until the hotel server supplies the business date.
 export const BUSINESS_DATE = new Date(2026, 5, 24);
 // One date format everywhere: "24 Jun 2026". Accepts a Date or an ISO "2026-06-24" string.
@@ -320,12 +328,6 @@ export const ALL_RES = [
   { id: "BK-2845", guest: "Ngozi Eze", room: "212", type: "Standard", checkin: "20 Jun", checkout: "22 Jun", status: "Checked Out", source: "Walk-in", nights: 2, rate: 35000 },
   { id: "BK-2843", guest: "Fatima Al-Hassan", room: "309", type: "Deluxe", checkin: "23 Jun", checkout: "24 Jun", status: "No Show", source: "Online", nights: 1, rate: 55000 },
   { id: "BK-2840", guest: "Tunde Bakare", room: "118", type: "Standard", checkin: "28 Jun", checkout: "30 Jun", status: "Confirmed", source: "Phone", nights: 2, rate: 35000 },
-];
-export const ARRIVALS_DATA = [
-  { id: "BK-2855", guest: "Chief Emeka Okafor", type: "Suite 502", eta: "14:00", nights: 3, vip: true, requests: "Champagne + fruit basket", assigned: true, av: "EO" },
-  { id: "BK-2856", guest: "Aisha Mohammed", type: "Deluxe 303", eta: "15:30", nights: 2, vip: false, requests: "High floor preferred", assigned: true, av: "AM" },
-  { id: "BK-2857", guest: "Peter Okafor", type: "Standard", eta: "12:00", nights: 1, vip: false, requests: "—", assigned: false, av: "PO" },
-  { id: "BK-2858", guest: "Ngozi Adeyemi", type: "Deluxe", eta: "16:00", nights: 4, vip: true, requests: "Extra pillows, no smoking floor", assigned: false, av: "NA" },
 ];
 export const ACCESS_CREDS = [
   { room: "101", guest: "Adaeze Okonkwo", cards: [{ serial: "XXXX-1A2B", issued: "22 Jun 14:03", by: "John A." }], pin: { hint: "74**12", issued: "22 Jun 14:05", by: "John A." }, validTo: "25 Jun 11:00", status: "Active" },

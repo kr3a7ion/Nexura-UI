@@ -27,13 +27,13 @@ import {
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
   HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ARRIVALS_DATA, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-} from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
+import { DateInput } from "./DateInput";
 // RT-07 Guest Room Charges
 export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   type ChargeStatus = "Posted" | "Pending" | "Failed" | "Disputed" | "Reversed";
@@ -105,12 +105,12 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
   return (
     <div className="flex gap-4">
       <div className="flex-1 min-w-0">
-        <PageHeader title="Guest Room Charges" sub="F&B and ancillary charges posted to room folios — retry, dispute, reverse" actions={<BtnP label="Post Charge" icon={Plus} onClick={() => setShowPost(true)} />} />
+        <PageHeader title="Guest Room Charges" sub="F&B and ancillary charges posted to room folios — retry, dispute, reverse" actions={<BtnP label="Post charge" icon={Plus} onClick={() => setShowPost(true)} />} />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Posted Today" value={`₦${total.toLocaleString()}`} sub="Revenue to folios" icon={DollarSign} accent={PRIMARY} />
+          <StatCard label="Posted today" value={`₦${total.toLocaleString()}`} sub="Revenue to folios" icon={DollarSign} accent={PRIMARY} />
           <StatCard label="Failed" value={String(charges.filter(c=>c.status==="Failed").length)} sub="Require retry" icon={AlertTriangle} accent={ERROR} />
           <StatCard label="Disputed" value={String(charges.filter(c=>c.status==="Disputed").length)} sub="Awaiting resolution" icon={AlertTriangle} accent={ORANGE} />
-          <StatCard label="Active Rooms" value={String(new Set(charges.filter(c=>!["Reversed"].includes(c.status)).map(c=>c.room)).size)} sub="With open charges" icon={BedDouble} accent={TEAL} />
+          <StatCard label="Active rooms" value={String(new Set(charges.filter(c=>!["Reversed"].includes(c.status)).map(c=>c.room)).size)} sub="With open charges" icon={BedDouble} accent={TEAL} />
         </div>
 
         <div className="flex items-center gap-2 mb-4 flex-wrap">
@@ -121,12 +121,12 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
 
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Charge ID","Folio","Room / Guest","Category","Description","Amount","Posted","Status",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Charge ID","Folio","Room / guest","Category","Description","Amount","Posted","Status",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(c => (
                 <tr key={c.id} onClick={() => setSelected(c.id)} className="border-t hover:bg-[#F8FAFC] cursor-pointer transition-colors" style={{ borderColor: BORDER, backgroundColor: selected===c.id ? "#EFF6FF" : c.status==="Failed" ? "#FFF8F8" : c.status==="Disputed" ? "#FFFBEB" : undefined }}>
                   <td className="px-3 py-3 text-xs font-semibold" style={{ color: MUTED, fontFamily: mono }}>{c.id}</td>
-                  <td className="px-3 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{c.folio}</td>
+                  <td className="px-3 py-3 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{c.folio}</td>
                   <td className="px-3 py-3">
                     <div className="text-sm font-bold" style={{ color: PRIMARY }}>{c.room}</div>
                     <div className="text-xs" style={{ color: MUTED }}>{c.guest}</div>
@@ -140,7 +140,7 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
                     <div className="flex gap-1">
                       {c.status === "Failed" && <button onClick={() => retry(c.id)} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Retry</button>}
                       {c.status === "Posted" && <button onClick={() => openDispute(c.id)} className="text-xs px-2.5 py-1.5 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Dispute</button>}
-                      {c.status === "Disputed" && <><button onClick={() => resolveDispute(c.id, "Reversed")} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: ORANGE, borderColor: `${ORANGE}30` }}>Reverse</button><button onClick={() => resolveDispute(c.id, "Posted")} className="text-xs px-2.5 py-1.5 rounded border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Dismiss</button></>}
+                      {c.status === "Disputed" && <><button onClick={() => resolveDispute(c.id, "Reversed")} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: ORANGE_INK, borderColor: `${ORANGE}30` }}>Reverse</button><button onClick={() => resolveDispute(c.id, "Posted")} className="text-xs px-2.5 py-1.5 rounded border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Dismiss</button></>}
                     </div>
                   </td>
                 </tr>
@@ -153,7 +153,7 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
       {/* Detail panel */}
       {sel && (
         <div className="w-72 flex-shrink-0 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="flex items-start justify-between mb-4"><div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL }}>{sel.folio}</div></div><button onClick={() => setSelected(null)} style={{ color: MUTED }}>✕</button></div>
+          <div className="flex items-start justify-between mb-4"><div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL_INK }}>{sel.folio}</div></div><button onClick={() => setSelected(null)} style={{ color: MUTED }}>✕</button></div>
           <div className="space-y-2 text-sm mb-4">
             <div className="flex justify-between"><span style={{ color: MUTED }}>Room</span><span className="font-bold" style={{ color: PRIMARY }}>{sel.room}</span></div>
             <div className="flex justify-between"><span style={{ color: MUTED }}>Guest</span><span style={{ color: TEXT }}>{sel.guest}</span></div>
@@ -163,15 +163,15 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
             <div className="flex justify-between"><span style={{ color: MUTED }}>Date/Time</span><span className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{sel.date}</span></div>
             <div className="flex justify-between"><span style={{ color: MUTED }}>Posted by</span><span style={{ color: TEXT }}>{sel.by}</span></div>
             <div className="flex justify-between items-center"><span style={{ color: MUTED }}>Status</span><Badge label={sel.status} colors={stColors[sel.status]} /></div>
-            {sel.ref && <div className="flex justify-between"><span style={{ color: MUTED }}>Reference</span><span style={{ color: TEAL, fontFamily: mono }}>{sel.ref}</span></div>}
+            {sel.ref && <div className="flex justify-between"><span style={{ color: MUTED }}>Reference</span><span style={{ color: TEAL_INK, fontFamily: mono }}>{sel.ref}</span></div>}
           </div>
           {sel.disputeNote && <div className="px-3 py-2 rounded-xl text-xs mb-4" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}><div className="font-semibold mb-0.5">Dispute note:</div>{sel.disputeNote}</div>}
           <div className="space-y-2">
-            {sel.status === "Failed" && <button onClick={() => { retry(sel.id); setSelected(null); }} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Retry Posting</button>}
-            {sel.status === "Posted" && <button onClick={() => { openDispute(sel.id); }} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: ORANGE, borderColor: `${ORANGE}30` }}>Raise Dispute</button>}
+            {sel.status === "Failed" && <button onClick={() => { retry(sel.id); setSelected(null); }} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Retry posting</button>}
+            {sel.status === "Posted" && <button onClick={() => { openDispute(sel.id); }} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: ORANGE_INK, borderColor: `${ORANGE}30` }}>Raise dispute</button>}
             {sel.status === "Disputed" && <>
-              <button onClick={() => resolveDispute(sel.id, "Reversed")} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ORANGE }}>Reverse Charge</button>
-              <button onClick={() => resolveDispute(sel.id, "Posted")} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Dismiss Dispute</button>
+              <button onClick={() => resolveDispute(sel.id, "Reversed")} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ORANGE }}>Reverse charge</button>
+              <button onClick={() => resolveDispute(sel.id, "Posted")} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Dismiss dispute</button>
             </>}
           </div>
         </div>
@@ -182,10 +182,10 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowDispute(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Raise Dispute</h3>
+            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Raise dispute</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>Charge {selected} — this will flag for manager review.</p>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Dispute Reason</label><textarea value={disputeNote} onChange={e=>setDisputeNote(e.target.value)} rows={3} placeholder="Explain the dispute…" aria-label="Explain the dispute" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowDispute(false)} /><button onClick={confirmDispute} disabled={!disputeNote.trim()} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ORANGE }}>Submit Dispute</button></div>
+            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Dispute reason</label><textarea value={disputeNote} onChange={e=>setDisputeNote(e.target.value)} rows={3} placeholder="Explain the dispute…" aria-label="Explain the dispute" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowDispute(false)} /><button onClick={confirmDispute} disabled={!disputeNote.trim()} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ORANGE }}>Submit dispute</button></div>
           </div>
         </>
       )}
@@ -195,7 +195,7 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowPost(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Post Room Charge</h3>
+            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Post room charge</h3>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Room</label><input aria-label="Room" value={postRoom} onChange={e=>setPostRoom(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
@@ -204,7 +204,7 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Description</label><input value={postDesc} onChange={e=>setPostDesc(e.target.value)} placeholder="Charge description…" aria-label="Charge description" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Amount (₦)</label><input type="number" value={postAmt} onChange={e=>setPostAmt(e.target.value)} placeholder="0" aria-label="0" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowPost(false)} /><button onClick={() => { add({ type: "success", title: `Charge posted to Room ${postRoom}`, body: `₦${Number(postAmt).toLocaleString()} — ${postDesc}` }); setShowPost(false); setPostAmt(""); setPostDesc(""); }} disabled={!postAmt||!postDesc} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Post to Folio</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowPost(false)} /><button onClick={() => { add({ type: "success", title: `Charge posted to Room ${postRoom}`, body: `₦${Number(postAmt).toLocaleString()} — ${postDesc}` }); setShowPost(false); setPostAmt(""); setPostDesc(""); }} disabled={!postAmt||!postDesc} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Post to folio</button></div>
           </div>
         </>
       )}
@@ -278,14 +278,14 @@ export function ProductsScreen({ add }: { add: (t: Omit<Toast, "id">) => void })
         <PageHeader title="Products & Items" sub="SKU · UoM · multi-location stock · cost history · expiry tracking" actions={
           <div className="flex gap-2">
             <BtnO label="Export" icon={Download} onClick={() => add({ type:"info", title:"Exporting product catalog" })} />
-            <BtnP label="Add Item" icon={Plus} onClick={() => add({ type:"info", title:"Add inventory item" })} />
+            <BtnP label="Add item" icon={Plus} onClick={() => add({ type:"info", title:"Add inventory item" })} />
           </div>
         } />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <StatCard label="Total SKUs"      value={String(items.length)}                                                    sub="In catalog"          icon={Package}      accent={PRIMARY} />
-          <StatCard label="Below Reorder"   value={String(items.filter(p=>p.stock<=p.reorder).length)}                     sub="Need replenishment"  icon={AlertTriangle} accent={ERROR}   />
+          <StatCard label="Below reorder"   value={String(items.filter(p=>p.stock<=p.reorder).length)}                     sub="Need replenishment"  icon={AlertTriangle} accent={ERROR}   />
           <StatCard label="Perishable"      value={String(items.filter(p=>p.perishable).length)}                           sub="With expiry tracking" icon={Clock}         accent={WARNING} />
-          <StatCard label="Total On-Hand ₦" value={`₦${(items.reduce((s,p)=>s+p.stock*p.unitCost,0)/1000).toFixed(0)}K`} sub="Inventory value"     icon={DollarSign}    accent={SUCCESS} />
+          <StatCard label="Total on-Hand ₦" value={`₦${(items.reduce((s,p)=>s+p.stock*p.unitCost,0)/1000).toFixed(0)}K`} sub="Inventory value"     icon={DollarSign}    accent={SUCCESS} />
         </div>
 
         <div className="flex items-center gap-3 mb-4">
@@ -297,7 +297,7 @@ export function ProductsScreen({ add }: { add: (t: Omit<Toast, "id">) => void })
 
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["SKU","Name","Cat","UoM","Location","Stock","Par","Reorder","Unit Cost","Avg Cost","Expiry",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["SKU","Name","Cat","UoM","Location","Stock","Par","Reorder","Unit cost","Avg cost","Expiry",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(p => {
                 const low   = p.stock <= p.reorder;
@@ -323,7 +323,7 @@ export function ProductsScreen({ add }: { add: (t: Omit<Toast, "id">) => void })
                     <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
                       <div className="flex gap-1">
                         <button onClick={()=>add({type:"info",title:`Edit ${p.sku}`})} className="text-xs px-2 py-1 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Edit</button>
-                        <button onClick={()=>setShowAdj(p.sku)} className="text-xs px-2 py-1 rounded border font-semibold" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Adjust</button>
+                        <button onClick={()=>setShowAdj(p.sku)} className="text-xs px-2 py-1 rounded border font-semibold" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Adjust</button>
                       </div>
                     </td>
                   </tr>
@@ -351,7 +351,7 @@ export function ProductsScreen({ add }: { add: (t: Omit<Toast, "id">) => void })
           </div>
           {MOVEMENT_HISTORY[sel.sku] && (
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Movement History</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Movement history</h4>
               {MOVEMENT_HISTORY[sel.sku].map((m,i) => (
                 <div key={i} className="flex items-start gap-2 mb-2.5">
                   <span className="text-xs px-1.5 py-0.5 rounded font-semibold mt-0.5 whitespace-nowrap" style={{ backgroundColor: txnTypeColor[m.type]?.bg||"#F4F4F5", color: txnTypeColor[m.type]?.text||TEXT }}>{m.type}</span>
@@ -378,7 +378,7 @@ export function ProductsScreen({ add }: { add: (t: Omit<Toast, "id">) => void })
             </div>
             <div className="flex gap-3 mt-5">
               <BtnO label="Cancel" onClick={()=>{setShowAdj(null);setAdjQty("");setAdjReason("");setAdjPin("");}} />
-              <button onClick={()=>applyAdj(showAdj)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL }}>Apply Adjustment</button>
+              <button onClick={()=>applyAdj(showAdj)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: TEAL_INK }}>Apply adjustment</button>
             </div>
           </div>
         </>
@@ -414,14 +414,14 @@ export function SuppliersScreen({ add }: { add: (t: Omit<Toast, "id">) => void }
         <PageHeader title="Suppliers" sub="Vendor directory · ratings · spend · lead times · outstanding balances" actions={
           <div className="flex gap-2">
             <BtnO label="Export" icon={Download} onClick={() => add({ type:"info", title:"Exporting supplier list" })} />
-            <BtnP label="Add Supplier" icon={Plus} onClick={() => add({ type:"info", title:"Add supplier" })} />
+            <BtnP label="Add supplier" icon={Plus} onClick={() => add({ type:"info", title:"Add supplier" })} />
           </div>
         } />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Total Suppliers"   value={String(SUPPLIERS.length)}                                              sub="Registered vendors"    icon={Truck}         accent={PRIMARY} />
+          <StatCard label="Total suppliers"   value={String(SUPPLIERS.length)}                                              sub="Registered vendors"    icon={Truck}         accent={PRIMARY} />
           <StatCard label="Active POs"        value={String(SUPPLIERS.reduce((s,v)=>s+v.activePOs,0))}                     sub="Outstanding orders"    icon={FileText}      accent={TEAL}    />
           <StatCard label="Outstanding AP"    value={`₦${SUPPLIERS.reduce((s,v)=>s+v.outstanding,0).toLocaleString()}`}   sub="Unpaid balances"       icon={AlertCircle}   accent={ERROR}   />
-          <StatCard label="Total Spend (YTD)" value={`₦${(SUPPLIERS.reduce((s,v)=>s+v.totalSpend,0)/1000).toFixed(0)}K`} sub="All vendors year-to-date" icon={DollarSign} accent={SUCCESS} />
+          <StatCard label="Total spend (YTD)" value={`₦${(SUPPLIERS.reduce((s,v)=>s+v.totalSpend,0)/1000).toFixed(0)}K`} sub="All vendors year-to-date" icon={DollarSign} accent={SUCCESS} />
         </div>
 
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
@@ -441,7 +441,7 @@ export function SuppliersScreen({ add }: { add: (t: Omit<Toast, "id">) => void }
                   <td className="px-3 py-3 text-xs font-semibold" style={{ color: s.outstanding>0?ERROR:SUBTLE, fontFamily: mono }}>{s.outstanding>0?`₦${s.outstanding.toLocaleString()}`:"—"}</td>
                   <td className="px-3 py-3 text-xs" style={{ color: s.activePOs>0?PRIMARY:SUBTLE }}>{s.activePOs}</td>
                   <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
-                    <button onClick={()=>add({type:"info",title:`Create PO — ${s.company}`})} className="text-xs px-2.5 py-1.5 rounded border font-semibold whitespace-nowrap" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Create PO</button>
+                    <button onClick={()=>add({type:"info",title:`Create PO — ${s.company}`})} className="text-xs px-2.5 py-1.5 rounded border font-semibold whitespace-nowrap" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Create PO</button>
                   </td>
                 </tr>
               ))}
@@ -573,29 +573,29 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
     <div>
       <PageHeader title="Stock Transactions" sub="Receipts · issues · transfers · adjustments · wastage · stock counts" actions={
         <div className="flex gap-2">
-          <BtnO label="Stock Count" icon={ClipboardList} onClick={()=>setShowCount(true)} />
+          <BtnO label="Stock count" icon={ClipboardList} onClick={()=>setShowCount(true)} />
           <BtnO label="Export" icon={Download} onClick={()=>add({type:"info",title:"Exporting transactions"})} />
-          <BtnP label="Log Movement" icon={Plus} onClick={()=>setShowNew(true)} />
+          <BtnP label="Log movement" icon={Plus} onClick={()=>setShowNew(true)} />
         </div>
       } />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Receipts Today"   value={String(txns.filter(t=>t.type==="Receipt"&&t.date.includes("24 Jun")).length)} sub="Items received"     icon={TrendingUp}    accent={SUCCESS} />
-        <StatCard label="Issues Today"     value={String(txns.filter(t=>t.type==="Issue"&&t.date.includes("24 Jun")).length)}   sub="Items consumed"     icon={TrendingDown}  accent={ORANGE}  />
+        <StatCard label="Receipts today"   value={String(txns.filter(t=>t.type==="Receipt"&&t.date.includes("24 Jun")).length)} sub="Items received"     icon={TrendingUp}    accent={SUCCESS} />
+        <StatCard label="Issues today"     value={String(txns.filter(t=>t.type==="Issue"&&t.date.includes("24 Jun")).length)}   sub="Items consumed"     icon={TrendingDown}  accent={ORANGE}  />
         <StatCard label="Adjustments"      value={String(txns.filter(t=>t.type==="Adjustment").length)}                         sub="Corrections (need reason)" icon={Edit3}   accent={WARNING} />
-        <StatCard label="Wastage Value"    value={`₦${txns.filter(t=>t.type==="Wastage").reduce((s,t)=>s+t.value,0).toLocaleString()}`} sub="Written-off" icon={Trash2}  accent={ERROR}   />
+        <StatCard label="Wastage value"    value={`₦${txns.filter(t=>t.type==="Wastage").reduce((s,t)=>s+t.value,0).toLocaleString()}`} sub="Written-off" icon={Trash2}  accent={ERROR}   />
       </div>
 
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         {ALL_TYPES.map(t=>(
           <button key={t} onClick={()=>setTypeFilter(t)} className="text-xs px-3 py-1.5 rounded-xl border" style={{ backgroundColor: typeFilter===t?PRIMARY:"white", color: typeFilter===t?"white":MUTED, borderColor: typeFilter===t?PRIMARY:BORDER }}>{t}</button>
         ))}
-        <input type="date" value={dateFilter} onChange={e=>setDateFilter(e.target.value)} className="ml-auto px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER }} />
+        <DateInput type="date" value={dateFilter} onChange={e=>setDateFilter(e.target.value)} className="ml-auto px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER }} />
       </div>
 
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Txn ID","Date","Item","SKU","Type","Qty","From","To","Ref","Unit Cost","Value","By",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Txn ID","Date","Item","SKU","Type","Qty","From","To","Ref","Unit cost","Value","By",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(t => (
               <tr key={t.id} className="border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER }}>
@@ -607,7 +607,7 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
                 <td className="px-3 py-3 text-sm font-bold" style={{ color: t.qty<0?ERROR:t.qty>0?SUCCESS:SUBTLE, fontFamily: mono }}>{t.qty!==0?(t.qty>0?"+":"")+t.qty:"—"}</td>
                 <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{t.from||"—"}</td>
                 <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{t.to||"—"}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{t.ref}</td>
+                <td className="px-3 py-3 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{t.ref}</td>
                 <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{t.unitCost?`₦${t.unitCost.toLocaleString()}`:"—"}</td>
                 <td className="px-3 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>{t.value?`₦${t.value.toLocaleString()}`:"—"}</td>
                 <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{t.by}</td>
@@ -623,26 +623,26 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>setShowNew(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Log Stock Movement</h3>
+            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Log stock movement</h3>
             <div className="grid grid-cols-2 gap-3 mb-3">
-              <div className="col-span-2"><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Movement Type</label>
+              <div className="col-span-2"><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Movement type</label>
                 <div className="flex flex-wrap gap-1.5">
                   {(["Receipt","Issue","Transfer","Adjustment","Wastage","Return"] as TxnType[]).map(t=>(
                     <button key={t} onClick={()=>setNewType(t)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold" style={{ backgroundColor: newType===t?PRIMARY:"white", color: newType===t?"white":MUTED, borderColor: newType===t?PRIMARY:BORDER }}>{t}</button>
                   ))}
                 </div>
               </div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Item Name</label><input value={newItem} onChange={e=>setNewItem(e.target.value)} placeholder="Item name" aria-label="Item name" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Item name</label><input value={newItem} onChange={e=>setNewItem(e.target.value)} placeholder="Item name" aria-label="Item name" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Quantity</label><input aria-label="Quantity" type="number" value={newQty} onChange={e=>setNewQty(e.target.value)} placeholder={newType==="Issue"||newType==="Wastage"?"−qty":"+qty"} className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>From Location</label><input value={newFrom} onChange={e=>setNewFrom(e.target.value)} placeholder="Store, supplier…" aria-label="Store, supplier" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>To Location</label><input value={newTo} onChange={e=>setNewTo(e.target.value)} placeholder="Kitchen, room…" aria-label="Kitchen, room" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>From location</label><input value={newFrom} onChange={e=>setNewFrom(e.target.value)} placeholder="Store, supplier…" aria-label="Store, supplier" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>To location</label><input value={newTo} onChange={e=>setNewTo(e.target.value)} placeholder="Kitchen, room…" aria-label="Kitchen, room" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               <div className="col-span-2"><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Reference</label><input value={newRef} onChange={e=>setNewRef(e.target.value)} placeholder="PO number, work order…" aria-label="PO number, work order" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
               {needsReason && <div className="col-span-2"><label className="text-xs font-medium block mb-1.5" style={{ color: ERROR }}>Reason (required for {newType})</label><input value={newReason} onChange={e=>setNewReason(e.target.value)} placeholder="State reason clearly…" aria-label="State reason clearly" className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor: ERROR }} /></div>}
               {needsPin && <div className="col-span-2"><label className="text-xs font-medium block mb-1.5" style={{ color: MUTED }}>Manager PIN (required for {newType})</label><input type="password" maxLength={4} value={newPin} onChange={e=>setNewPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>}
             </div>
             <div className="flex gap-3">
               <BtnO label="Cancel" onClick={()=>setShowNew(false)} />
-              <button onClick={logTxn} disabled={!newItem||!newQty} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Log Movement</button>
+              <button onClick={logTxn} disabled={!newItem||!newQty} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Log movement</button>
             </div>
           </div>
         </>
@@ -653,7 +653,7 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>setShowCount(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Stock Count Session</h3>
+            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Stock count session</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>Enter physical counts. Variance = System − Counted.</p>
             <div className="space-y-2 mb-4">
               {countItems.map((ci,i) => {
@@ -670,11 +670,11 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
             </div>
             <div className="flex items-center justify-between px-1 mb-4 text-xs">
               <span style={{ color: MUTED }}>{countItems.filter(c=>c.done).length}/{countItems.length} items counted</span>
-              {countItems.filter(c=>c.done&&c.system!==c.counted).length>0 && <span className="font-semibold" style={{ color: WARNING }}>{countItems.filter(c=>c.done&&c.system!==c.counted).length} variances found</span>}
+              {countItems.filter(c=>c.done&&c.system!==c.counted).length>0 && <span className="font-semibold" style={{ color: WARNING_INK }}>{countItems.filter(c=>c.done&&c.system!==c.counted).length} variances found</span>}
             </div>
             <div className="flex gap-3">
               <BtnO label="Cancel" onClick={()=>setShowCount(false)} />
-              <button onClick={()=>{ add({ type:"success", title:"Stock count saved — variance report generated" }); setShowCount(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save Count & Report</button>
+              <button onClick={()=>{ add({ type:"success", title:"Stock count saved — variance report generated" }); setShowCount(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save count & report</button>
             </div>
           </div>
         </>
@@ -755,8 +755,8 @@ export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void })
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <StatCard label="Total POs"        value={String(pos.length)}                                                        sub="This period"        icon={FileText}      accent={PRIMARY} />
           <StatCard label="Pending Approval" value={String(pos.filter(p=>p.status==="Pending Approval").length)}                sub="Awaiting sign-off"  icon={AlertTriangle} accent={WARNING} />
-          <StatCard label="In Transit"       value={String(pos.filter(p=>p.status==="Sent"||p.status==="Approved").length)}    sub="Sent / approved"    icon={Truck}         accent={TEAL}    />
-          <StatCard label="Total Committed"  value={`₦${pos.filter(p=>!["Received","Cancelled"].includes(p.status)).reduce((s,p)=>s+p.total,0).toLocaleString()}`} sub="Open orders" icon={DollarSign} accent={ORANGE} />
+          <StatCard label="In transit"       value={String(pos.filter(p=>p.status==="Sent"||p.status==="Approved").length)}    sub="Sent / approved"    icon={Truck}         accent={TEAL}    />
+          <StatCard label="Total committed"  value={`₦${pos.filter(p=>!["Received","Cancelled"].includes(p.status)).reduce((s,p)=>s+p.total,0).toLocaleString()}`} sub="Open orders" icon={DollarSign} accent={ORANGE} />
         </div>
 
         <div className="flex items-center gap-2 mb-4 flex-wrap">
@@ -767,7 +767,7 @@ export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void })
 
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["PO #","Supplier","Raised By","Date","Expected","Status","Total","Received",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["PO #","Supplier","Raised by","Date","Expected","Status","Total","Received",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(po => (
                 <tr key={po.id} onClick={()=>setSelected(po.id)} className="border-t hover:bg-[#F8FAFC] cursor-pointer" style={{ borderColor: BORDER, backgroundColor: selected===po.id?"#EFF6FF":undefined }}>
@@ -786,7 +786,7 @@ export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void })
                     <div className="flex gap-1">
                       {po.status==="Pending Approval" && <button onClick={()=>setShowApprove(po.id)} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: SUCCESS, borderColor:`${SUCCESS}30` }}>Approve</button>}
                       {po.status==="Approved" && <button onClick={()=>{ setPos(prev=>prev.map(p=>p.id===po.id?{...p,status:"Sent" as POStatus}:p)); add({type:"success",title:`${po.id} sent to supplier`}); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: PRIMARY, borderColor:`${PRIMARY}30` }}>Send</button>}
-                      {(po.status==="Sent"||po.status==="Partially Received") && <button onClick={()=>{ setSelected(po.id); setShowGRN(po.id); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Receive</button>}
+                      {(po.status==="Sent"||po.status==="Partially Received") && <button onClick={()=>{ setSelected(po.id); setShowGRN(po.id); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Receive</button>}
                     </div>
                   </td>
                 </tr>
@@ -800,7 +800,7 @@ export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void })
       {sel && (
         <div className="w-72 flex-shrink-0 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <div className="flex items-start justify-between mb-4">
-            <div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL }}>{sel.supplier}</div></div>
+            <div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL_INK }}>{sel.supplier}</div></div>
             <button onClick={()=>setSelected(null)} style={{ color: MUTED }}>✕</button>
           </div>
           <div className="space-y-1.5 text-xs mb-4">
@@ -809,7 +809,7 @@ export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void })
             ))}
           </div>
           <div className="border rounded-xl overflow-hidden mb-4" style={{ borderColor: BORDER }}>
-            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ backgroundColor:"#F9FAFB", color: MUTED }}>Line Items</div>
+            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ backgroundColor:"#F9FAFB", color: MUTED }}>Line items</div>
             {sel.lines.map((l,i) => {
               const outstanding = l.ordered - l.received;
               return (
@@ -876,7 +876,7 @@ export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void })
             </div>
             <div className="flex gap-3">
               <BtnO label="Cancel" onClick={()=>{setShowGRN(null);setGrnQtys({});}} />
-              <button onClick={()=>receiveGRN(showGRN)} disabled={Object.values(grnQtys).every(v=>v===0)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>Record Receipt & Update Stock</button>
+              <button onClick={()=>receiveGRN(showGRN)} disabled={Object.values(grnQtys).every(v=>v===0)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>Record receipt & update stock</button>
             </div>
           </div>
         </>

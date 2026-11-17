@@ -1,7 +1,7 @@
 // Batch 17 — IT Admin & Devices (7 screens)
 // UserManagement, SystemHealth, SchemaUpdateStatus, DeviceManagement,
 // BackupRestore, AuditLog, ErrorLog
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import {
   Users, Shield, Server, HardDrive, Activity, Database,
   Cpu, Wifi, WifiOff, CheckCircle2, AlertTriangle, XCircle,
@@ -16,7 +16,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import { type Toast, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE } from "./constants";
+import { type Toast, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE, ORANGE_INK, WARNING_INK } from "./constants";
 import { Badge, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
@@ -122,15 +122,15 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
   return (
     <div>
       <PageHeader title="User Management" sub="Staff accounts, roles, MFA, and access control"
-        actions={<BtnP label="Invite User" icon={Plus} onClick={() => setInviteOpen(true)} />}
+        actions={<BtnP label="Invite user" icon={Plus} onClick={() => setInviteOpen(true)} />}
       />
 
       {/* Invite panel */}
       {inviteOpen && (
         <div className="mb-5 p-4 bg-white rounded-xl border" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Invite New User</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Invite new user</div>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-            <Inp label="Full Name" placeholder="e.g. Emeka Chukwu" defaultValue={invite.name} />
+            <Inp label="Full name" placeholder="e.g. Emeka Chukwu" defaultValue={invite.name} />
             <Inp label="Email" placeholder="user@hotel.ng" type="email" defaultValue={invite.email} />
             <div>
               <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Role</div>
@@ -140,7 +140,7 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
               </select>
             </div>
             <div className="flex items-end gap-2">
-              <BtnP label="Send Invite" icon={Mail} onClick={doInvite} />
+              <BtnP label="Send invite" icon={Mail} onClick={doInvite} />
               <BtnO label="Cancel" onClick={() => setInviteOpen(false)} />
             </div>
           </div>
@@ -182,9 +182,9 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Total Users"    value={String(users.length)}                         sub="All branches" icon={Users}      accent={PRIMARY} />
+        <StatCard label="Total users"    value={String(users.length)}                         sub="All branches" icon={Users}      accent={PRIMARY} />
         <StatCard label="Active"         value={String(users.filter(u => u.status==="active").length)}   sub="Currently active" icon={UserCheck} accent={SUCCESS} />
-        <StatCard label="MFA Enrolled"   value={String(users.filter(u => u.mfa).length)}       sub={`of ${users.length} users`}   icon={ShieldCheck} accent={TEAL}    />
+        <StatCard label="MFA enrolled"   value={String(users.filter(u => u.mfa).length)}       sub={`of ${users.length} users`}   icon={ShieldCheck} accent={TEAL}    />
         <StatCard label="Locked"         value={String(users.filter(u => u.locked).length)}   sub="Failed logins" icon={ShieldAlert} accent={ERROR}  />
       </div>
 
@@ -221,8 +221,8 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
                   <div className="flex gap-1.5 flex-wrap">
                     <button onClick={() => add({ type: "info", title: "Edit role", body: `Editing ${u.name}` })} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: MUTED }} title="Edit role"><Edit3 size={11} /></button>
                     {u.locked && <button onClick={() => doAction(u.id, "unlock")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: SUCCESS }} title="Unlock"><Unlock size={11} /></button>}
-                    <button onClick={() => doAction(u.id, "force-pw")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: WARNING }} title="Force password change"><Key size={11} /></button>
-                    <button onClick={() => doAction(u.id, "reset-mfa")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: ORANGE }} title="Reset MFA"><Shield size={11} /></button>
+                    <button onClick={() => doAction(u.id, "force-pw")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: WARNING_INK }} title="Force password change"><Key size={11} /></button>
+                    <button onClick={() => doAction(u.id, "reset-mfa")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: ORANGE_INK }} title="Reset MFA"><Shield size={11} /></button>
                     {u.status === "active" && <button onClick={() => doAction(u.id, "deactivate")} className="px-2 py-1 rounded-lg text-xs border hover:bg-slate-50" style={{ borderColor: BORDER, color: ERROR }} title="Deactivate"><UserX size={11} /></button>}
                   </div>
                 </td>
@@ -292,15 +292,15 @@ export function SystemHealth({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <StatCard label="Uptime"         value="99.97%"  sub="Last 30 days"        icon={Activity}  accent={SUCCESS} />
-        <StatCard label="DB Size"        value="2.4 GB"  sub="WAL: 180 MB"         icon={Database}  accent={PRIMARY} />
+        <StatCard label="DB size"        value="2.4 GB"  sub="WAL: 180 MB"         icon={Database}  accent={PRIMARY} />
         <StatCard label="Connections"    value="14 / 50" sub="Active DB sessions"   icon={Layers}    accent={TEAL}    />
-        <StatCard label="Error Rate"     value="0.04%"   sub="Last 1 hour"         icon={AlertCircle} accent={WARNING} />
+        <StatCard label="Error rate"     value="0.04%"   sub="Last 1 hour"         icon={AlertCircle} accent={WARNING} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {/* Resources */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Resource Utilisation</div>
+          <div className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Resource utilisation</div>
           <HealthBar label="CPU" pct={38} color={SUCCESS} />
           <HealthBar label="Memory" pct={61} color={TEAL} />
           <HealthBar label="Disk (Free: 47.2 GB)" pct={53} color={53 > 85 ? ERROR : 53 > 70 ? WARNING : PRIMARY} />
@@ -313,7 +313,7 @@ export function SystemHealth({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
         {/* Charts */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-2" style={{ color: TEXT }}>Request Latency (ms)</div>
+          <div className="text-sm font-semibold mb-2" style={{ color: TEXT }}>Request latency (ms)</div>
           <ResponsiveContainer width="100%" height={120}>
             <LineChart data={LATENCY_DATA} margin={{ left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
@@ -338,19 +338,19 @@ export function SystemHealth({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       {/* Service checks */}
       <div className="bg-white rounded-xl border overflow-hidden mb-5" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold" style={{ color: TEXT }}>Service Checks</div>
+          <div className="text-sm font-semibold" style={{ color: TEXT }}>Service checks</div>
         </div>
         <ServiceCheck label="Database" detail="PostgreSQL 15.4 — writable, replication OK" ok={true} />
-        <ServiceCheck label="Lock Provider" detail="Dormakaba DCOM — gateway reachable, 68 locks online" ok={true} />
-        <ServiceCheck label="Central Sync Server" detail="api.nexura.ng — last ping 12s ago" ok={true} />
-        <ServiceCheck label="Thermal Printer" detail="Receipt printer (192.168.1.45) — online, paper OK" ok={true} />
-        <ServiceCheck label="Folio Printer" detail="Network printer (192.168.1.46) — offline" ok={false} />
+        <ServiceCheck label="Lock provider" detail="Dormakaba DCOM — gateway reachable, 68 locks online" ok={true} />
+        <ServiceCheck label="Central sync server" detail="api.nexura.ng — last ping 12s ago" ok={true} />
+        <ServiceCheck label="Thermal printer" detail="Receipt printer (192.168.1.45) — online, paper OK" ok={true} />
+        <ServiceCheck label="Folio printer" detail="Network printer (192.168.1.46) — offline" ok={false} />
       </div>
 
       {/* Recent errors */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold" style={{ color: TEXT }}>Recent Error Log Entries</div>
+          <div className="text-sm font-semibold" style={{ color: TEXT }}>Recent error log entries</div>
         </div>
         {[
           { ts: "10:09:41", sev: "WARN",  module: "sync",    msg: "Central sync response delayed 3.2s — retrying" },
@@ -403,7 +403,7 @@ export function SchemaUpdateStatus({ add }: { add: (t: Omit<Toast, "id">) => voi
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {/* Schema status */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Database Schema</div>
+          <div className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Database schema</div>
           <div className="flex items-center gap-3 mb-4 p-3 rounded-xl" style={{ backgroundColor: "#F0FDF4" }}>
             <CheckCircle2 size={20} style={{ color: SUCCESS }} />
             <div><div className="text-xs font-semibold" style={{ color: SUCCESS }}>Schema up to date</div><div className="text-xs" style={{ color: MUTED }}>Version: <span style={{ fontFamily: mono }}>schema_v42</span></div></div>
@@ -418,7 +418,7 @@ export function SchemaUpdateStatus({ add }: { add: (t: Omit<Toast, "id">) => voi
               ))}
             </div>
           )}
-          <div className="text-xs font-semibold mb-2" style={{ color: TEXT }}>Applied Migrations</div>
+          <div className="text-xs font-semibold mb-2" style={{ color: TEXT }}>Applied migrations</div>
           {MIGRATIONS.map(m => (
             <div key={m.id} className="flex items-start justify-between py-2 border-b last:border-b-0 cursor-pointer" style={{ borderColor: BORDER }} onClick={() => setExpanded(expanded === m.id ? null : m.id)}>
               <div>
@@ -433,7 +433,7 @@ export function SchemaUpdateStatus({ add }: { add: (t: Omit<Toast, "id">) => voi
 
         {/* App version */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Application Version</div>
+          <div className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Application version</div>
           <div className="space-y-2.5 mb-4">
             {[
               ["Current version",       "v2.14.1"],
@@ -455,7 +455,7 @@ export function SchemaUpdateStatus({ add }: { add: (t: Omit<Toast, "id">) => voi
             <BtnP label={applying ? "Applying…" : "Apply Update"} icon={Upload} onClick={applyUpdate} />
           </div>
 
-          <div className="text-xs font-semibold mb-2" style={{ color: TEXT }}>Update History</div>
+          <div className="text-xs font-semibold mb-2" style={{ color: TEXT }}>Update history</div>
           <table className="w-full">
             <thead><TH cols={["Version", "Date", "Ring", "Result"]} /></thead>
             <tbody>
@@ -537,12 +537,12 @@ export function DeviceManagement({ add }: { add: (t: Omit<Toast, "id">) => void 
   return (
     <div>
       <PageHeader title="Device Management" sub="Enrolment, assignment, remote actions, and Class E kiosk control"
-        actions={<BtnP label="Enrol Device" icon={Plus} onClick={() => setEnrollOpen(true)} />}
+        actions={<BtnP label="Enrol device" icon={Plus} onClick={() => setEnrollOpen(true)} />}
       />
 
       {enrollOpen && (
         <div className="mb-5 p-4 bg-white rounded-xl border" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Enrol New Device</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Enrol new device</div>
           <div className="flex items-center gap-6">
             <div className="flex-1 text-xs" style={{ color: MUTED }}>
               On the device, open the Nexura app → Settings → Enrolment → scan the QR code below, or enter the pairing code manually.
@@ -557,7 +557,7 @@ export function DeviceManagement({ add }: { add: (t: Omit<Toast, "id">) => void 
             </div>
           </div>
           <div className="mt-3 flex gap-2">
-            <BtnO label="Regenerate Code" icon={RefreshCw} onClick={() => add({ type: "info", title: "New code generated" })} />
+            <BtnO label="Regenerate code" icon={RefreshCw} onClick={() => add({ type: "info", title: "New code generated" })} />
             <BtnO label="Close" onClick={() => setEnrollOpen(false)} />
           </div>
         </div>
@@ -632,8 +632,8 @@ export function DeviceManagement({ add }: { add: (t: Omit<Toast, "id">) => void 
 
               <div className="text-xs font-semibold mb-2" style={{ color: TEXT }}>Actions</div>
               <div className="space-y-2">
-                <button onClick={() => doAction(sel.id, "remote-lock")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: WARNING }}><Lock size={13} /> Remote Lock</button>
-                <button onClick={() => doAction(sel.id, "revoke-session")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: ORANGE }}><Key size={13} /> Revoke Session</button>
+                <button onClick={() => doAction(sel.id, "remote-lock")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: WARNING_INK }}><Lock size={13} /> Remote Lock</button>
+                <button onClick={() => doAction(sel.id, "revoke-session")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: ORANGE_INK }}><Key size={13} /> Revoke Session</button>
                 {sel.cls === "E" && <button onClick={() => add({ type: "info", title: "Kiosk reset queued", body: "Checkout-reset queued for next unlock." })} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: PRIMARY }}><Monitor size={13} /> Reset Kiosk State</button>}
                 {sel.status !== "lost" && <button onClick={() => doAction(sel.id, "mark-lost")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: ERROR }}><AlertTriangle size={13} /> Mark as Lost</button>}
                 {sel.status !== "retired" && <button onClick={() => doAction(sel.id, "retire")} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-xs hover:bg-slate-50" style={{ borderColor: BORDER, color: MUTED }}><Archive size={13} /> Retire</button>}
@@ -706,29 +706,29 @@ export function BackupRestore({ add }: { add: (t: Omit<Toast, "id">) => void }) 
       {/* Config panels */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Schedule & Retention</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Schedule & retention</div>
           <div className="space-y-2.5 text-xs">
             {[["Frequency", "Daily at 02:00"], ["Retention (scheduled)", "30 days"], ["Retention (pre-migration)", "90 days"], ["Retention (manual)", "60 days"]].map(([k, v]) => (
               <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span className="font-semibold" style={{ color: TEXT }}>{v}</span></div>
             ))}
           </div>
-          <div className="mt-3"><BtnO label="Edit Schedule" icon={Edit3} onClick={() => add({ type: "info", title: "Edit backup schedule" })} /></div>
+          <div className="mt-3"><BtnO label="Edit schedule" icon={Edit3} onClick={() => add({ type: "info", title: "Edit backup schedule" })} /></div>
         </div>
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Offsite Target</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Offsite target</div>
           <div className="space-y-2.5 text-xs">
             {[["Provider", "Nexura Cloud (ng-south-1)"], ["Last transfer", "Today 02:04"], ["Transfer status", "OK — all replicated"], ["Encryption", "AES-256, key managed locally"]].map(([k, v]) => (
               <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span className="font-semibold text-right" style={{ color: TEXT }}>{v}</span></div>
             ))}
           </div>
-          <div className="mt-3"><BtnO label="Configure Offsite" icon={Globe} onClick={() => add({ type: "info", title: "Configure offsite target" })} /></div>
+          <div className="mt-3"><BtnO label="Configure offsite" icon={Globe} onClick={() => add({ type: "info", title: "Configure offsite target" })} /></div>
         </div>
       </div>
 
       {/* Backup table */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold" style={{ color: TEXT }}>Backup History</div>
+          <div className="text-sm font-semibold" style={{ color: TEXT }}>Backup history</div>
         </div>
         <table className="w-full">
           <thead><TH cols={["Backup ID", "Timestamp", "Size", "Type", "Enc", "Checksum", "Location", "Restore Test", "Actions"]} /></thead>
@@ -810,7 +810,7 @@ export function AuditLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <thead><TH cols={["Timestamp", "Actor", "Role", "Action", "Entity", "IP", "Device", ""]} /></thead>
           <tbody>
             {filtered.map((e, i) => (
-              <>
+              <Fragment key={i}>
                 <tr key={i} className="border-t cursor-pointer hover:bg-slate-50" style={{ borderColor: BORDER }} onClick={() => setExpandedRow(expandedRow === e.ts ? null : e.ts)}>
                   <td className="px-3 py-2.5 text-xs" style={{ color: MUTED, fontFamily: mono, whiteSpace: "nowrap" }}>{e.ts}</td>
                   <td className="px-3 py-2.5 text-xs font-semibold" style={{ color: TEXT }}>{e.actor}</td>
@@ -826,7 +826,7 @@ export function AuditLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                     <td colSpan={8} className="px-4 py-2.5 text-xs" style={{ color: MUTED }}><strong style={{ color: TEXT }}>Detail:</strong> {e.detail}</td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>
@@ -880,8 +880,8 @@ export function ErrorLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Open Errors"   value={String(openCount)}  sub="Unresolved" icon={AlertTriangle} accent={ERROR}   />
-        <StatCard label="Error Events"  value={String(errorCount)} sub="Severity: ERROR" icon={XCircle}  accent={ERROR}   />
+        <StatCard label="Open errors"   value={String(openCount)}  sub="Unresolved" icon={AlertTriangle} accent={ERROR}   />
+        <StatCard label="Error events"  value={String(errorCount)} sub="Severity: ERROR" icon={XCircle}  accent={ERROR}   />
         <StatCard label="Warnings"      value={String(logs.filter(e=>e.sev==="WARN").length)} sub="Severity: WARN" icon={TriangleAlert} accent={WARNING} />
         <StatCard label="Resolved"      value={String(logs.filter(e=>e.resolved).length)} sub="This period" icon={CheckCircle2} accent={SUCCESS} />
       </div>

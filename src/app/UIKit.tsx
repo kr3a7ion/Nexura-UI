@@ -5,7 +5,7 @@ import {
   SquaresFour, CalendarDots, Key, Bed, Wrench,
   ForkKnife, Chat, CurrencyDollar, Package, Users,
   Buildings, ChartBar, GearSix, CaretLeft, CaretRight,
-  Bell, SignOut, User, CaretDown, TrendUp, TrendDown,
+  Bell, SignOut, Receipt, User, CaretDown, TrendUp, TrendDown,
   Warning, CheckCircle, WifiSlash, Plus, MagnifyingGlass, Funnel,
   DotsThree, ArrowRight, House, Stack, XCircle, Lock, Globe,
   ClipboardText, CalendarCheck, Star, WarningCircle, Clock,
@@ -24,17 +24,18 @@ import {
 } from "recharts";
 import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
-  mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
+  mono, display, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
   HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ARRIVALS_DATA, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-} from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK } from "./constants";
+import { TextOrDate } from "./DateInput";
+import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, balanceOf } from "./mock/frontOffice";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -42,9 +43,32 @@ import {
 export function Badge({ label, colors }: { label: string; colors: { bg: string; text: string } }) {
   return (
     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
-      style={{ backgroundColor: colors.bg, color: colors.text, letterSpacing: "0.01em" }}>
+      style={{ backgroundColor: colors.bg, color: colors.text }}>
       {label}
     </span>
+  );
+}
+
+// Shown while a screen's data is on its way from the hotel server.
+export function ScreenLoading() {
+  const bar = (w: string, h = 12) => <div className="rounded-md animate-pulse" style={{ width: w, height: h, backgroundColor: "#E4E4E7" }} />;
+  return (
+    <div role="status" aria-label="Loading" className="space-y-6">
+      <div className="space-y-2">{bar("220px", 22)}{bar("320px")}</div>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{[0, 1, 2, 3].map(i => <div key={i} className="space-y-3 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>{bar("36px", 36)}{bar("60%", 20)}{bar("40%")}</div>)}</div>
+      <div className="space-y-4 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>{[0, 1, 2, 3, 4, 5].map(i => <div key={i} className="flex items-center gap-4">{bar("32px", 32)}{bar("30%")}{bar("15%")}{bar("20%")}</div>)}</div>
+    </div>
+  );
+}
+
+// Shown when the hotel server cannot be reached from this computer.
+export function ScreenError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div role="alert" className="mx-auto mt-16 max-w-md rounded-2xl border bg-white p-8 text-center" style={{ borderColor: BORDER }}>
+      <h1 className="text-lg font-semibold" style={{ color: TEXT }}>Can't reach the hotel server</h1>
+      <p className="mt-2 text-sm leading-relaxed" style={{ color: MUTED }}>This computer has lost its connection to the server in the back office. Check the network cable or Wi-Fi, then try again. Nothing you saved has been lost.</p>
+      <button onClick={onRetry} className="mt-5 h-11 rounded-[10px] px-5 text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Try again</button>
+    </div>
   );
 }
 
@@ -101,7 +125,7 @@ export function LiveClock() {
   const p = (n: number) => String(n).padStart(2, "0");
   return (
     <div className="text-right">
-      <div className="text-sm font-semibold text-white leading-none tracking-wide" style={{ fontFamily: mono, letterSpacing: "0.05em" }}>
+      <div className="text-sm font-semibold text-white leading-none tracking-wide" style={{ fontFamily: mono }}>
         {p(t.getHours())}:{p(t.getMinutes())}:{p(t.getSeconds())}
       </div>
       <div className="text-xs mt-0.5" style={{ color: "#A1A1AA", fontFamily: mono }}>
@@ -144,7 +168,7 @@ export function StatCard({ label, value, sub, delta, deltaPositive, icon: Icon, 
         )}
       </div>
       <div className="text-3xl font-bold leading-none mb-1.5 tracking-tight" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 700, letterSpacing: "-0.02em" }}>{value}</div>
-      <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: MUTED, letterSpacing: "0.08em" }}>{label}</div>
+      <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: MUTED }}>{label}</div>
       <div className="text-xs" style={{ color: SUBTLE }}>{sub}</div>
     </div>
   );
@@ -154,7 +178,7 @@ export function PageHeader({ title, sub, actions }: { title: string; sub?: strin
   return (
     <div className="flex items-center justify-between mb-6">
       <div>
-        <h1 className="font-bold tracking-tight" style={{ color: TEXT, fontSize: 22, fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 700, letterSpacing: "-0.02em" }}>{title}</h1>
+        <h1 style={{ color: TEXT, fontSize: 24, lineHeight: "30px", fontFamily: display, fontWeight: 600, letterSpacing: "-0.01em" }}>{title}</h1>
         {sub && <p className="text-sm mt-0.5" style={{ color: MUTED }}>{sub}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -189,7 +213,7 @@ export function Inp({ label, placeholder, type, defaultValue, value, onChange, r
   return (
     <div>
       {label && <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>{label}</label>}
-      <input
+      <TextOrDate
         aria-label={label ?? placeholder}
         type={type ?? "text"}
         placeholder={placeholder}
@@ -198,7 +222,7 @@ export function Inp({ label, placeholder, type, defaultValue, value, onChange, r
         onChange={e => onChange?.({ target: { value: e.target.value } })}
         readOnly={readOnly}
         className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none"
-        style={{ borderColor: BORDER, color: TEXT, fontFamily: monoFont ? "'JetBrains Mono', monospace" : undefined }}
+        style={{ borderColor: BORDER, color: TEXT, fontFamily: monoFont ? "'Inter', system-ui, sans-serif" : undefined }}
       />
     </div>
   );
@@ -366,7 +390,7 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
           </div>
           <div className="bg-white rounded-xl border p-3" style={{ borderColor: BORDER }}>
             <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Legend</div>
-            {[{ label:"Checked In", color:SUCCESS }, { label:"Confirmed", color:TEAL }, { label:"Pending", color:ORANGE }, { label:"Checked Out", color:SUBTLE }].map(l => (
+            {[{ label:"Checked In", color:SUCCESS }, { label:"Confirmed", color:TEAL_INK }, { label:"Pending", color:ORANGE_INK }, { label:"Checked Out", color:SUBTLE }].map(l => (
               <div key={l.label} className="flex items-center gap-2 text-xs mb-1.5" style={{ color: TEXT }}>
                 <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: l.color }} />{l.label}
               </div>
@@ -396,7 +420,7 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
                     <div key={i} className="flex-shrink-0 flex flex-col items-center justify-center py-1.5" style={{ width: DW, borderRight: `1px solid ${BORDER}`, backgroundColor: isToday ? "#EFF6FF" : "transparent" }}>
                       <span className="text-xs font-semibold" style={{ color: isToday ? PRIMARY : TEXT }}>{d.toLocaleDateString("en-NG",{weekday:"short"})}</span>
                       <span className="text-xs" style={{ color: isToday ? PRIMARY : SUBTLE }}>{d.getDate()}/{d.getMonth()+1}</span>
-                      {isToday && <span style={{ fontSize: 12, fontWeight: 800, color: PRIMARY, }}>Today</span>}
+                      {isToday && <span style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, }}>Today</span>}
                     </div>
                   );
                 })}
@@ -600,7 +624,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   // ── Mini-helpers ──────────────────────────────────────────────────────────
   const PASS_BG   = "#F9FAFB";
   const PASS_BORDER = "#E2E8F0";
-  const PASS_MUTED  = "#64748B";
+  const PASS_MUTED  = "#475569";
   const PASS_DASH   = "#CBD5E1";
 
   const PassNotch = () => (
@@ -615,17 +639,17 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
     ? <p className="flex items-center gap-1 mt-1.5 text-xs font-medium" style={{ color: ERROR }}><WarningCircle size={11} weight="bold" />{errors[field]}</p>
     : null;
   const SLabel = ({ children }: { children: React.ReactNode }) => (
-    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PASS_MUTED, letterSpacing: "0.1em" }}>{children}</p>
+    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PASS_MUTED }}>{children}</p>
   );
   const FLabel = ({ children, req }: { children: string; req?: boolean }) => (
-    <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED, letterSpacing: "0.08em" }}>
+    <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>
       {children}{req && <span style={{ color: ERROR }}> *</span>}
     </label>
   );
   const Input = ({ type = "text", value, onChange, placeholder, err, mono: isMono }: {
     type?: string; value: string; onChange: (v: string) => void; placeholder?: string; err?: boolean; mono?: boolean;
   }) => (
-    <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+    <TextOrDate type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
       className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
       style={{ borderColor: err ? ERROR : PASS_DASH, border: `1.5px solid ${err ? ERROR : PASS_DASH}`, backgroundColor: "white", fontFamily: isMono ? mono : undefined }} />
   );
@@ -645,7 +669,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
           <div className="relative">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
               style={{ backgroundColor: `${TEAL}22`, border: `1.5px solid ${TEAL}55` }}>
-              <CheckCircle size={30} style={{ color: TEAL }} weight="bold" />
+              <CheckCircle size={30} style={{ color: TEAL_INK }} weight="bold" />
             </div>
             <p className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.38)" }}>Reservation confirmed</p>
             <p className="text-3xl font-bold text-white mb-1.5" style={{ fontFamily: mono }}>{confirmedId}</p>
@@ -691,7 +715,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
           </button>
         )}
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED, letterSpacing: "0.1em" }}>Step {step} of 6 · {STEPS[step - 1]}</p>
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Step {step} of 6 · {STEPS[step - 1]}</p>
           <h1 className="text-2xl font-bold leading-tight mt-0.5" style={{ color: TEXT }}>New Reservation</h1>
         </div>
       </div>
@@ -730,7 +754,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               </div>
 
               <SI size={24} style={{ color: active ? "white" : done ? PRIMARY : PASS_MUTED }} />
-              <p className="text-center mt-2 font-bold leading-tight" style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : PASS_MUTED, letterSpacing: "0.05em" }}>
+              <p className="text-center mt-2 font-bold leading-tight" style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : PASS_MUTED }}>
                 {label}
               </p>
             </button>
@@ -747,7 +771,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
             {/* Teal header band */}
             <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: PRIMARY }}>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ letterSpacing: "0.1em" }}>Step {step} of 6</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ }}>Step {step} of 6</p>
                 <p className="text-base font-bold text-white mt-0.5">{STEPS[step - 1]}</p>
               </div>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
@@ -785,7 +809,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                   </div>
                   {nights > 0 && form.checkout > form.checkin && (
                     <div className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
-                      style={{ backgroundColor: `${TEAL}14`, color: TEAL }}>
+                      style={{ backgroundColor: `${TEAL}14`, color: TEAL_INK }}>
                       <CalendarDots size={11} weight="bold" />{nights} night{nights !== 1 ? "s" : ""} selected
                     </div>
                   )}
@@ -872,7 +896,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm" style={{ color: sel ? PRIMARY : TEXT }}>{plan.name}</span>
-                              {idx === 0 && <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${TEAL}18`, color: TEAL }}>Recommended</span>}
+                              {idx === 0 && <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${TEAL}18`, color: TEAL_INK }}>Recommended</span>}
                             </div>
                             <p className="text-xs mt-1" style={{ color: MUTED }}>{plan.dates} · {plan.rooms.join(" · ")}</p>
                           </div>
@@ -932,7 +956,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               {/* ── STEP 3: Guest Details ───────────────────────────────── */}
               {step === 3 && (<>
                 <section>
-                  <SLabel><MagnifyingGlass size={13} style={{ display:"inline", marginRight:5, verticalAlign:"middle", color:TEAL }} weight="bold" />Returning guest</SLabel>
+                  <SLabel><MagnifyingGlass size={13} style={{ display:"inline", marginRight:5, verticalAlign:"middle", color:TEAL_INK }} weight="bold" />Returning guest</SLabel>
                   <div className="relative">
                     <MagnifyingGlass size={15} className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: SUBTLE }} weight="bold" />
                     <input value={guestSearchQ}
@@ -958,7 +982,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                             add({ type: "info", title: "Profile loaded", body: g.guest });
                           }}>
                           <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${TEAL}18` }}>
-                            <User size={16} style={{ color: TEAL }} weight="bold" />
+                            <User size={16} style={{ color: TEAL_INK }} weight="bold" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold" style={{ color: TEXT }}>{g.guest}</p>
@@ -1078,20 +1102,20 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
 
                 {form.extras.length > 0 && (
                   <section className="p-4 rounded-xl" style={{ backgroundColor: `${TEAL}08`, border: `1.5px solid ${TEAL}28` }}>
-                    <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{ color: TEAL }}>Selected · {form.extras.length} add-on{form.extras.length !== 1 ? "s" : ""}</p>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{ color: TEAL_INK }}>Selected · {form.extras.length} add-on{form.extras.length !== 1 ? "s" : ""}</p>
                     {form.extras.map(ex => {
                       const cat = EXTRAS_CATALOG.find(e => e.name === ex);
                       const lp = cat ? (cat.name === "Breakfast Included" ? cat.price * nights : cat.price) : 0;
                       return (
                         <div key={ex} className="flex justify-between text-xs mb-1.5">
                           <span style={{ color: TEXT }}>{ex}</span>
-                          <span style={{ color: TEAL, fontFamily: mono }}>{lp === 0 ? "Free" : `₦${lp.toLocaleString()}`}</span>
+                          <span style={{ color: TEAL_INK, fontFamily: mono }}>{lp === 0 ? "Free" : `₦${lp.toLocaleString()}`}</span>
                         </div>
                       );
                     })}
                     <div className="flex justify-between font-bold text-sm border-t pt-2 mt-1" style={{ borderColor: `${TEAL}28` }}>
-                      <span style={{ color: TEAL }}>Extras total</span>
-                      <span style={{ color: TEAL, fontFamily: mono }}>₦{extrasTotal.toLocaleString()}</span>
+                      <span style={{ color: TEAL_INK }}>Extras total</span>
+                      <span style={{ color: TEAL_INK, fontFamily: mono }}>₦{extrasTotal.toLocaleString()}</span>
                     </div>
                   </section>
                 )}
@@ -1140,7 +1164,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                   <p className="text-xs" style={{ color: "rgba(255,255,255,0.38)" }}>{form.depositPct}% of ₦{total.toLocaleString()} total</p>
                   <div className="flex justify-center gap-6 mt-3 text-xs">
                     <span style={{ color: "rgba(255,255,255,0.4)" }}>Room ₦{(baseRate * nights).toLocaleString()}</span>
-                    {extrasTotal > 0 && <span style={{ color: TEAL }}>Extras ₦{extrasTotal.toLocaleString()}</span>}
+                    {extrasTotal > 0 && <span style={{ color: TEAL_INK }}>Extras ₦{extrasTotal.toLocaleString()}</span>}
                     <span style={{ color: "rgba(255,255,255,0.4)" }}>VAT ₦{vat.toLocaleString()}</span>
                   </div>
                 </section>
@@ -1223,7 +1247,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                         <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3" style={{ backgroundColor: PASS_BG }}>
                           {sec.items.map(([k,v]) => (
                             <div key={k}>
-                              <p className="text-xs font-bold uppercase" style={{ color: PASS_MUTED, letterSpacing: "0.06em" }}>{k}</p>
+                              <p className="text-xs font-bold uppercase" style={{ color: PASS_MUTED }}>{k}</p>
                               <p className="text-xs font-semibold mt-0.5" style={{ color: TEXT }}>{v}</p>
                             </div>
                           ))}
@@ -1234,7 +1258,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                 </div>
 
                 <section className="p-4 rounded-xl" style={{ border: `1.5px dashed ${PASS_DASH}`, backgroundColor: "white" }}>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PASS_MUTED, letterSpacing: "0.1em" }}>Notifications & documents</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PASS_MUTED }}>Notifications & documents</p>
                   <div className="space-y-3">
                     {([
                       ["sendEmail","Send confirmation email"],
@@ -1263,7 +1287,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
             {/* Teal header band */}
             <div className="px-5 py-4 flex items-center justify-between" style={{ backgroundColor: PRIMARY }}>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ letterSpacing: "0.12em" }}>Summary</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ }}>Summary</p>
                 <p className="text-lg font-bold text-white mt-0.5">{form.guestName || "New Guest"}</p>
               </div>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
@@ -1282,7 +1306,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                   {form.guestName || "Guest name pending"}
                 </span>
               </div>
-              {form.vip && <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${ORANGE}18`, color: ORANGE }}>★ VIP</span>}
+              {form.vip && <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${ORANGE}18`, color: ORANGE_INK }}>★ VIP</span>}
               {!form.guestName && <span className="text-xs font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ backgroundColor: "#EFF6FF", color: PRIMARY, fontSize: 12 }}>STEP 3</span>}
             </div>
 
@@ -1304,7 +1328,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                 ["Guests",    `${form.adults} adults · ${form.children} children`],
               ] as [string,string][]).map(([k,v]) => (
                 <div key={k}>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: "#64748B", letterSpacing: "0.1em" }}>{k}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: "#64748B" }}>{k}</p>
                   <p className="font-bold text-sm" style={{ color: TEXT, fontFamily: k === "CHECK-IN" || k === "CHECK-OUT" ? mono : undefined }}>{v}</p>
                 </div>
               ))}
@@ -1319,7 +1343,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               {extrasTotal > 0 && (
                 <div className="flex justify-between">
                   <span style={{ color: "#64748B" }}>Extras ({form.extras.length})</span>
-                  <span style={{ color: TEAL, fontFamily: mono }}>₦{extrasTotal.toLocaleString()}</span>
+                  <span style={{ color: TEAL_INK, fontFamily: mono }}>₦{extrasTotal.toLocaleString()}</span>
                 </div>
               )}
               <div className="flex justify-between">
@@ -1332,8 +1356,8 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               </div>
               {Number(form.depositPct) > 0 && (
                 <div className="flex justify-between items-center px-3 py-2 rounded-lg" style={{ backgroundColor: `${TEAL}10` }}>
-                  <span className="text-xs font-medium" style={{ color: TEAL }}>Deposit {form.depositPct}% due</span>
-                  <span className="text-sm font-bold" style={{ color: TEAL, fontFamily: mono }}>₦{depositAmt.toLocaleString()}</span>
+                  <span className="text-xs font-medium" style={{ color: TEAL_INK }}>Deposit {form.depositPct}% due</span>
+                  <span className="text-sm font-bold" style={{ color: TEAL_INK, fontFamily: mono }}>₦{depositAmt.toLocaleString()}</span>
                 </div>
               )}
             </div>
@@ -1345,7 +1369,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                 <div className="flex flex-wrap gap-1.5">
                   {form.extras.map(ex => (
                     <span key={ex} className="text-xs px-2 py-0.5 rounded font-medium"
-                      style={{ backgroundColor: `${TEAL}12`, color: TEAL, border: `1px solid ${TEAL}28` }}>{ex}</span>
+                      style={{ backgroundColor: `${TEAL}12`, color: TEAL_INK, border: `1px solid ${TEAL}28` }}>{ex}</span>
                   ))}
                 </div>
               </div>
@@ -1397,7 +1421,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               </div>
               {/* Label */}
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: PASS_MUTED, fontSize: 12, letterSpacing: "0.1em" }}>Scan to verify</p>
+                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: PASS_MUTED, fontSize: 12 }}>Scan to verify</p>
                 <p className="font-bold text-xs leading-snug truncate" style={{ color: PRIMARY, fontFamily: mono }}>
                   {form.guestName || "Guest name pending"}
                 </p>
@@ -1432,53 +1456,10 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   );
 }
 export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toast, "id">) => void; initialReservationId?: string }) {
-  type ChargeRow = { date: string; cat: string; desc: string; qty: number; unit: number; amount: number; by: string; tax: number; reversed: boolean; movedTo?: string };
 
-  const ALL_GUESTS = [
-    // Due today
-    { id: "BK-2848", guest: "Emmanuel Adeyemi",  av: "EA", room: "202", type: "Deluxe",   nights: 2, checkin: "22 Jun", checkout: "24 Jun", deposit: 55000, vip: false, phone: "+234 802 333 4444", visits: 3,  dueToday: true  },
-    { id: "BK-2846", guest: "Adaeze Okonkwo",    av: "AO", room: "101", type: "Deluxe",   nights: 3, checkin: "21 Jun", checkout: "24 Jun", deposit: 183825, vip: true,  phone: "+234 803 111 2222", visits: 5,  dueToday: true  },
-    { id: "BK-2843", guest: "Fatima Musa",        av: "FM", room: "203", type: "Suite",    nights: 3, checkin: "21 Jun", checkout: "24 Jun", deposit: 321425, vip: true,  phone: "+234 802 777 8888", visits: 8,  dueToday: true  },
-    { id: "BK-2852", guest: "Tunde Lawal",        av: "TL", room: "118", type: "Standard", nights: 1, checkin: "23 Jun", checkout: "24 Jun", deposit: 35000, vip: false, phone: "+234 807 444 2211", visits: 2,  dueToday: true  },
-    // In-house (early checkout candidates)
-    { id: "BK-2850", guest: "Chukwuemeka Obi",    av: "CO", room: "304", type: "Standard", nights: 4, checkin: "24 Jun", checkout: "28 Jun", deposit: 35000, vip: false, phone: "+234 805 555 6666", visits: 1,  dueToday: false },
-    { id: "BK-2845", guest: "Ibrahim Lawal",      av: "IL", room: "302", type: "Deluxe",   nights: 3, checkin: "23 Jun", checkout: "26 Jun", deposit: 182965, vip: false, phone: "+234 806 222 3333", visits: 2,  dueToday: false },
-    { id: "BK-2851", guest: "Dr. Chukwuemeka Bello", av: "CB", room: "501", type: "Suite", nights: 3, checkin: "24 Jun", checkout: "27 Jun", deposit: 301000, vip: true, phone: "+234 803 999 1111", visits: 12, dueToday: false },
-  ];
+  const ALL_GUESTS = checkoutGuests();
 
-  const BASE_CHARGES: Record<string, ChargeRow[]> = {
-    "BK-2848": [
-      { date: "22 Jun", cat: "Room",       desc: "Deluxe Room 202 × 2 nights",   qty: 2, unit: 55000, amount: 110000, by: "System",   tax: 8250,  reversed: false },
-      { date: "23 Jun", cat: "Restaurant", desc: "Room Service #RS-041",          qty: 1, unit: 8500,  amount: 8500,   by: "John A.",  tax: 638,   reversed: false },
-      { date: "24 Jun", cat: "Bar",        desc: "Minibar — 2× Water, 1× Juice", qty: 3, unit: 1200,  amount: 3600,   by: "System",   tax: 270,   reversed: false },
-      { date: "24 Jun", cat: "Laundry",    desc: "Express laundry — 3 items",    qty: 3, unit: 2000,  amount: 6000,   by: "HK Staff", tax: 450,   reversed: false },
-    ],
-    "BK-2846": [
-      { date: "21 Jun", cat: "Room",       desc: "Deluxe Room 101 × 3 nights",   qty: 3, unit: 55000, amount: 165000, by: "System",   tax: 12375, reversed: false },
-      { date: "23 Jun", cat: "Restaurant", desc: "Breakfast × 2 pax",            qty: 1, unit: 6000,  amount: 6000,   by: "F&B",      tax: 450,   reversed: false },
-    ],
-    "BK-2850": [
-      { date: "24 Jun", cat: "Room",       desc: "Standard Room 304 × 4 nights", qty: 4, unit: 35000, amount: 140000, by: "System",   tax: 10500,  reversed: false },
-      { date: "24 Jun", cat: "Bar",        desc: "Minibar consumption",           qty: 1, unit: 4500,  amount: 4500,   by: "System",   tax: 338,   reversed: false },
-    ],
-    "BK-2852": [
-      { date: "23 Jun", cat: "Room",       desc: "Standard Room 118 × 1 night",  qty: 1, unit: 35000, amount: 35000,  by: "System",   tax: 2625,  reversed: false },
-      { date: "23 Jun", cat: "Restaurant", desc: "Dinner and room service",        qty: 1, unit: 18500, amount: 18500,  by: "F&B",      tax: 1388,  reversed: false },
-    ],
-    "BK-2843": [
-      { date: "21 Jun", cat: "Room",       desc: "Suite Room 203 × 3 nights",    qty: 3, unit: 85000, amount: 255000, by: "System",   tax: 19125, reversed: false },
-      { date: "23 Jun", cat: "Restaurant", desc: "In-room dining × 3 meals",     qty: 3, unit: 12000, amount: 36000,  by: "F&B",      tax: 2700,  reversed: false },
-      { date: "24 Jun", cat: "Laundry",    desc: "Same-day laundry — VIP",       qty: 1, unit: 8000,  amount: 8000,   by: "HK Staff", tax: 600,   reversed: false },
-    ],
-    "BK-2845": [
-      { date: "23 Jun", cat: "Room",       desc: "Deluxe Room 302 × 3 nights",   qty: 3, unit: 55000, amount: 165000, by: "System",   tax: 12375, reversed: false },
-      { date: "24 Jun", cat: "Bar",        desc: "Minibar — assorted",            qty: 1, unit: 5200,  amount: 5200,   by: "System",   tax: 390,   reversed: false },
-    ],
-    "BK-2851": [
-      { date: "24 Jun", cat: "Room",       desc: "Suite Room 501 × 3 nights",    qty: 3, unit: 85000, amount: 255000, by: "System",   tax: 19125, reversed: false },
-      { date: "24 Jun", cat: "Restaurant", desc: "Welcome dinner — VIP",          qty: 1, unit: 25000, amount: 25000,  by: "F&B",      tax: 1875,  reversed: false },
-    ],
-  };
+  const BASE_CHARGES = CHARGES;
 
   const [selectedId, setSelectedId]         = useState("BK-2848");
   const [chargesMap, setChargesMap]         = useState<Record<string, ChargeRow[]>>(BASE_CHARGES);
@@ -1538,7 +1519,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
     date.setDate(date.getDate() + days);
     return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   };
-  const baseGuest = ALL_GUESTS.find(d => d.id === selectedId) ?? ALL_GUESTS[0];
+  // A quiet day has nobody to check out; the placeholder keeps the hooks below in order.
+  const baseGuest = ALL_GUESTS.find(d => d.id === selectedId) ?? ALL_GUESTS[0] ?? { id: "", guest: "", av: "", room: "", type: "", nights: 0, checkin: "", checkout: "", deposit: 0, vip: false, phone: "", visits: 0, dueToday: false };
   const addedNights = extensionMap[selectedId] ?? 0;
   const g = {
     ...baseGuest,
@@ -1596,7 +1578,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
   const CK_BG  = "#F9FAFB";
   const CK_BD  = "#E2E8F0";
   const CK_DSH = "#CBD5E1";
-  const CK_MUT = "#64748B";
+  const CK_MUT = "#475569";
 
   const Notch = () => (
     <div className="flex items-center px-5" style={{ margin: "-1px 0", position: "relative", zIndex: 2, backgroundColor: CK_BG }}>
@@ -1607,18 +1589,26 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
   );
 
   // ── POST-CHECKOUT SUCCESS STATE ─────────────────────────────────────────
+  if (ALL_GUESTS.length === 0) return (
+    <div>
+      <PageHeader title="Guest Check-Out" sub={`Business date ${fmtDate(BUSINESS_DATE)}`} />
+      <div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
+        <EmptyState icon={SignOut} message="Nobody is checked in, so there is no one to check out. Guests appear here once they check in." />
+      </div>
+    </div>
+  );
   if (isCheckedOut) return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-Out · {g.checkout}</p>
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT }}>Check-Out · {g.checkout}</p>
           <h1 className="text-2xl font-bold mt-0.5" style={{ color: TEXT }}>Guest Check-Out</h1>
         </div>
       </div>
       <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
         <div className="px-6 py-4 flex items-center justify-between" style={{ backgroundColor: PRIMARY }}>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Check-Out Complete · {g.id}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Check-Out Complete · {g.id}</p>
             <p className="text-base font-bold text-white mt-0.5">{g.guest} · Room {g.room}</p>
           </div>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
@@ -1696,7 +1686,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-Out & Settlement · Business date {fmtDate(BUSINESS_DATE)}</p>
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT }}>Check-Out & Settlement · Business date {fmtDate(BUSINESS_DATE)}</p>
           <h1 className="text-2xl font-bold mt-0.5" style={{ color: TEXT }}>Guest Check-Out</h1>
         </div>
       </div>
@@ -1705,7 +1695,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         {/* ── GUEST LIST PANEL ── */}
         <div className="w-full xl:w-64 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
           <div className="px-4 py-3.5" style={{ backgroundColor: PRIMARY }}>
-            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>In-House</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>In-House</p>
             <p className="text-sm font-bold text-white mt-0.5">{ALL_GUESTS.length} guests · {fmtDate(BUSINESS_DATE)}</p>
           </div>
           <div className="p-2.5 border-b" style={{ borderColor: CK_BD }}>
@@ -1729,8 +1719,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
             {filteredIH.length > 0 && (
               <div className={filteredDue.length > 0 ? "mt-3" : ""}>
                 <div className="flex items-center justify-between px-2 mb-1.5">
-                  <span className="font-bold uppercase" style={{ color: TEAL, fontSize: 12, letterSpacing: "0.1em" }}>In-House</span>
-                  <span className="font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${TEAL}15`, color: TEAL, fontSize: 12 }}>{filteredIH.length}</span>
+                  <span className="font-bold uppercase" style={{ color: TEAL_INK, fontSize: 12 }}>In-House</span>
+                  <span className="font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${TEAL}15`, color: TEAL_INK, fontSize: 12 }}>{filteredIH.length}</span>
                 </div>
                 {filteredIH.map(d => <GuestRow key={d.id} d={d} />)}
               </div>
@@ -1757,11 +1747,11 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4" style={{ backgroundColor: PRIMARY }}>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Folio · {g.id}</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Folio · {g.id}</p>
                 <p className="text-sm font-bold text-white mt-0.5">{g.guest} · Room {g.room} · {g.checkin}–{g.checkout}</p>
               </div>
               <div className="flex gap-2 flex-wrap justify-end">
-                <button onClick={() => setShowDiscount(true)} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: ORANGE, backgroundColor: `${ORANGE}20` }}>Apply discount</button>
+                <button onClick={() => setShowDiscount(true)} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: ORANGE_INK, backgroundColor: `${ORANGE}20` }}>Apply discount</button>
                 <button onClick={() => setShowLateCharge(true)} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>+ Late Charge</button>
                 <button onClick={() => { setSplitLines([]); setSplitTarget("Guest Folio B"); setSplitReference(""); setShowSplitFolio(true); }} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Split folio</button>
                 <button onClick={() => { setTransferLine(null); setTransferTarget("Guest Folio"); setTransferReference(""); setTransferReason(""); setShowTransferCharge(true); }} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Transfer</button>
@@ -1786,7 +1776,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                       <td className="px-3 py-3"><span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: (catColor[c.cat] ?? MUTED) + "18", color: catColor[c.cat] ?? MUTED }}>{c.cat}</span></td>
                       <td className="px-3 py-3 text-sm max-w-40" style={{ color: c.reversed || c.movedTo ? CK_MUT : TEXT }}>
                         {c.reversed ? <span className="line-through">{c.desc}</span> : c.desc}
-                        {c.movedTo && <span className="block text-xs font-semibold mt-0.5" style={{ color: TEAL }}>Moved → {c.movedTo}</span>}
+                        {c.movedTo && <span className="block text-xs font-semibold mt-0.5" style={{ color: TEAL_INK }}>Moved → {c.movedTo}</span>}
                       </td>
                       <td className="px-3 py-3 text-xs text-center" style={{ color: CK_MUT }}>{c.qty}</td>
                       <td className="px-3 py-3 text-xs" style={{ color: CK_MUT, fontFamily: mono }}>₦{c.unit.toLocaleString()}</td>
@@ -1808,8 +1798,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                 <div className="w-64 space-y-1.5 text-sm">
                   <div className="flex justify-between"><span style={{ color: CK_MUT }}>Charges subtotal</span><span style={{ fontFamily: mono }}>₦{subtotal.toLocaleString()}</span></div>
                   <div className="flex justify-between"><span style={{ color: CK_MUT }}>VAT (7.5%)</span><span style={{ fontFamily: mono }}>₦{taxTotal.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span style={{ color: CK_MUT }}>Deposit paid</span><span style={{ color: SUCCESS, fontFamily: mono }}>−₦{g.deposit.toLocaleString()}</span></div>
-                  {gDiscount > 0 && <div className="flex justify-between"><span style={{ color: CK_MUT }}>Discount</span><span style={{ color: SUCCESS, fontFamily: mono }}>−₦{gDiscount.toLocaleString()}</span></div>}
+                  <div className="flex justify-between"><span style={{ color: CK_MUT }}>Deposit paid</span><span style={{ color: TEXT, fontFamily: mono }}>−₦{g.deposit.toLocaleString()}</span></div>
+                  {gDiscount > 0 && <div className="flex justify-between"><span style={{ color: CK_MUT }}>Discount</span><span style={{ color: TEXT, fontFamily: mono }}>−₦{gDiscount.toLocaleString()}</span></div>}
                   <div className="flex justify-between font-black text-base border-t pt-2" style={{ borderColor: CK_BD, color: balance > 0 ? ERROR : SUCCESS }}>
                     <span>Balance due</span><span style={{ fontFamily: mono }}>₦{balance.toLocaleString()}</span>
                   </div>
@@ -1821,7 +1811,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           {/* Checkout checklist card */}
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
             <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Checkout checklist</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Checkout checklist</p>
             </div>
             <Notch />
             <div className="p-5 space-y-4">
@@ -1863,7 +1853,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                 {!gFeedback ? (
                   <div className="flex gap-2">
                     <button onClick={() => { setFeedbackStatus(p => ({ ...p, [selectedId]: "sent" })); add({ type: "success", title: "Feedback sent via WhatsApp", body: g.guest }); }}
-                      className="text-xs px-3 py-1.5 rounded-lg border font-bold" style={{ color: TEAL, borderColor: `${TEAL}40` }}>WhatsApp</button>
+                      className="text-xs px-3 py-1.5 rounded-lg border font-bold" style={{ color: TEAL_INK, borderColor: `${TEAL}40` }}>WhatsApp</button>
                     <button onClick={() => { setFeedbackStatus(p => ({ ...p, [selectedId]: "sent" })); add({ type: "success", title: "Feedback sent via Email", body: g.guest }); }}
                       className="text-xs px-3 py-1.5 rounded-lg border font-bold" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Email</button>
                     <button onClick={() => setFeedbackStatus(p => ({ ...p, [selectedId]: "skipped" }))}
@@ -1884,7 +1874,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
             <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Settlement</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Settlement</p>
             </div>
             <Notch />
             <div className="p-5">
@@ -1899,7 +1889,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
 
               {balance > 0 && (
                 <>
-                  <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: CK_MUT, letterSpacing: "0.08em" }}>Payment method</p>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: CK_MUT }}>Payment method</p>
                   <div className="space-y-2 mb-4">
                     {["Cash", "POS / Card", "Cash + POS", "Bank Transfer", "Corporate Account"].map(m => (
                       <button key={m} onClick={() => setPayMethod(m)}
@@ -1969,7 +1959,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                     <div className="p-3 rounded-xl mb-3 space-y-1.5 text-xs" style={{ backgroundColor: "white", border: `1.5px solid ${CK_DSH}` }}>
                       <div className="flex justify-between"><span style={{ color: CK_MUT }}>Total received</span><span className="font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{totalReceived.toLocaleString()}</span></div>
                       <div className="flex justify-between"><span style={{ color: CK_MUT }}>Balance due</span><span className="font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{balance.toLocaleString()}</span></div>
-                      {changeAmt > 0 && <div className="flex justify-between border-t pt-1.5" style={{ borderColor: CK_DSH }}><span style={{ color: CK_MUT }}>Change due</span><span className="font-bold" style={{ color: SUCCESS, fontFamily: mono }}>₦{changeAmt.toLocaleString()}</span></div>}
+                      {changeAmt > 0 && <div className="flex justify-between border-t pt-1.5" style={{ borderColor: CK_DSH }}><span style={{ color: CK_MUT }}>Change due</span><span className="font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{changeAmt.toLocaleString()}</span></div>}
                       {totalReceived < balance && <div className="flex justify-between border-t pt-1.5" style={{ borderColor: CK_DSH }}><span style={{ color: ERROR }}>Shortfall</span><span className="font-bold" style={{ color: ERROR, fontFamily: mono }}>₦{(balance - totalReceived).toLocaleString()}</span></div>}
                     </div>
                   )}
@@ -2012,7 +2002,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           {/* Guest summary card */}
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
             <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Guest</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Guest</p>
             </div>
             <Notch />
             <div className="p-5">
@@ -2155,7 +2145,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
               {transferLine !== null && charges[transferLine] && (
                 <div className="flex justify-between p-3 rounded-xl text-sm" style={{ backgroundColor: CK_BG, border: `1px solid ${CK_BD}` }}>
                   <span style={{ color: CK_MUT }}>Transfer total incl. tax</span>
-                  <span className="font-black" style={{ color: TEAL, fontFamily: mono }}>₦{(charges[transferLine].amount + charges[transferLine].tax).toLocaleString()}</span>
+                  <span className="font-black" style={{ color: TEAL_INK, fontFamily: mono }}>₦{(charges[transferLine].amount + charges[transferLine].tax).toLocaleString()}</span>
                 </div>
               )}
               <div className="flex gap-3">
@@ -2167,7 +2157,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                   setCharges(rows => rows.map((row, index) => index === transferLine ? { ...row, movedTo: destination } : row));
                   add({ type: "success", title: "Charge transferred", body: `${charge.desc} → ${transferReference.trim()} · ${transferReason.trim()}` });
                   setShowTransferCharge(false); setTransferLine(null); setTransferReference(""); setTransferReason("");
-                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: TEAL }}>Confirm transfer</button>
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: TEAL_INK }}>Confirm transfer</button>
               </div>
             </div>
           </div>
@@ -2458,15 +2448,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
   const [ihSearch, setIhSearch] = useState("");
   const [ihFilter, setIhFilter] = useState("All");
   const [moreMenu, setMoreMenu] = useState<string | null>(null);
-  const [guests, setGuests] = useState([
-    { id: "BK-2846", room: "101", guest: "Adaeze Okonkwo", av: "AO", checkin: "21 Jun", checkout: "24 Jun", nights: 3, nightsLeft: 0, vip: true, balance: 0, dnd: false, requests: 0, complaints: 0, type: "Deluxe" },
-    { id: "BK-2848", room: "202", guest: "Emmanuel Adeyemi", av: "EA", checkin: "22 Jun", checkout: "24 Jun", nights: 2, nightsLeft: 0, vip: false, balance: 82708, dnd: false, requests: 1, complaints: 0, type: "Deluxe" },
-    { id: "BK-2843", room: "203", guest: "Fatima Musa", av: "FM", checkin: "21 Jun", checkout: "24 Jun", nights: 3, nightsLeft: 0, vip: true, balance: 0, dnd: true, requests: 0, complaints: 0, type: "Suite" },
-    { id: "BK-2850", room: "304", guest: "Chukwuemeka Obi", av: "CO", checkin: "24 Jun", checkout: "28 Jun", nights: 4, nightsLeft: 4, vip: false, balance: 120338, dnd: false, requests: 2, complaints: 1, type: "Standard" },
-    { id: "BK-2845", room: "302", guest: "Ibrahim Lawal", av: "IL", checkin: "23 Jun", checkout: "26 Jun", nights: 3, nightsLeft: 2, vip: false, balance: 0, dnd: false, requests: 0, complaints: 0, type: "Deluxe" },
-    { id: "BK-2851", room: "501", guest: "Dr. Chukwuemeka Bello", av: "CB", checkin: "24 Jun", checkout: "27 Jun", nights: 3, nightsLeft: 3, vip: true, balance: 0, dnd: false, requests: 1, complaints: 0, type: "Suite" },
-    { id: "BK-2852", room: "118", guest: "Tunde Lawal", av: "TL", checkin: "23 Jun", checkout: "24 Jun", nights: 1, nightsLeft: 0, vip: false, balance: 22513, dnd: false, requests: 0, complaints: 0, type: "Standard" },
-  ]);
+  const [guests, setGuests] = useState(inHouseGuests);
   type InHouseGuest = typeof guests[number];
   type GuestAction = "message" | "charge" | "extend" | "move" | "revoke";
   const [guestAction, setGuestAction] = useState<{ type: GuestAction; guestId: string } | null>(null);
@@ -2515,10 +2497,10 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         {["All", "VIP", "Outstanding", "DND", "Attention", "Departing"].map(f => <button key={f} onClick={() => setIhFilter(f)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold transition-all" style={{ backgroundColor: ihFilter===f ? PRIMARY : "white", color: ihFilter===f ? "white" : MUTED, borderColor: ihFilter===f ? PRIMARY : BORDER }}>{f}</button>)}
         <span className="ml-auto text-xs" style={{ color: SUBTLE }}>{filtered.length} of {guests.length}</span>
       </div>
-      {filtered.length === 0 ? <EmptyState icon={Users} message="No guests match your filters" /> : (
+      {filtered.length === 0 ? <EmptyState icon={Users} message={guests.length === 0 ? "Nobody is checked in. Guests appear here once they check in." : "No guests match your filters"} cta={guests.length === 0 ? "Go to Check-In" : undefined} onCta={() => nav?.("check-in", "Check-In")} /> : (
         <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full min-w-[1050px]">
-            <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Room", "Guest", "Check-in", "Check-out", "Nights Left", "Balance", "Flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Room", "Guest", "Check-in", "Check-out", "Nights left", "Balance", "Flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(g => (
                 <tr key={g.room} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER }}>
@@ -2532,7 +2514,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: g.vip ? ORANGE : PRIMARY }}><User size={14} weight="bold" /></div>
                       <div>
-                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{g.guest}</span>{g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE }} weight="bold" />}</div>
+                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{g.guest}</span>{g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE_INK }} weight="bold" />}</div>
                         <div className="text-xs" style={{ color: MUTED }}>Floor {Math.floor(Number(g.room)/100)}</div>
                       </div>
                     </div>
@@ -2751,7 +2733,11 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
     { name: "Ngozi Adeyemi", av: "NA", id: "G-007", phone: "+234 807 654 3210", email: "n.adeyemi@email.com", nationality: "Nigerian", stays: 4, lastStay: "18 Jun", lifetimeValue: 210000, vip: false, vipTier: "", tag: "", activeStay: false, balance: 0, blacklist: false, allergy: "" },
     { name: "Chidi Eze", av: "CE", id: "G-008", phone: "+234 806 222 3333", email: "c.eze@example.com", nationality: "Nigerian", stays: 6, lastStay: "15 Jun", lifetimeValue: 480000, vip: true, vipTier: "Gold", tag: "VIP", activeStay: false, balance: 0, blacklist: false, allergy: "" },
     { name: "Amara Nwachukwu", av: "AN", id: "G-009", phone: "+234 811 444 5555", email: "a.nwachukwu@corp.ng", nationality: "Nigerian", stays: 0, lastStay: "—", lifetimeValue: 0, vip: false, vipTier: "", tag: "", activeStay: false, balance: 0, blacklist: true, allergy: "" },
-  ]);
+  ].map(g => {
+    // In-house status and balance come from the same stays the other Front Office screens use.
+    const stay = STAYS.find(x => x.guest === g.name);
+    return stay ? { ...g, activeStay: true, balance: balanceOf(stay) } : { ...g, activeStay: false };
+  }));
   const filtered = guests.filter(g => {
     const query = search.trim().toLowerCase();
     if (query && ![g.name, g.id, g.phone, g.email, g.nationality].some(value => value.toLowerCase().includes(query))) return false;
@@ -2823,7 +2809,7 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
       {filtered.length === 0 ? <EmptyState icon={User} message={`No guest profiles match ${search ? `"${search}"` : `the ${filterTab} filter`}.`} cta="Clear filters" onCta={() => { setSearch(""); setFilterTab("All"); }} /> : (
         <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full min-w-[920px]">
-            <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Guest", "Contact", "Stays / Last Stay", "Lifetime Value", "Tier / Flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Guest", "Contact", "Stays / last stay", "Lifetime value", "Tier / flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(g => (
                 <tr key={g.id} className="border-t hover:bg-[#F8FAFC] transition-colors cursor-pointer" style={{ borderColor: BORDER }} onClick={() => nav && nav("guest-profile-detail", g.name, g.id)}>
@@ -2831,7 +2817,7 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: g.vip ? "#FFF7ED" : "#EFF6FF", color: g.vip ? ORANGE : PRIMARY }}><User size={18} weight="fill" /></div>
                       <div>
-                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: g.blacklist ? ERROR : TEXT }}>{g.name}</span>{g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE }} weight="bold" />}</div>
+                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: g.blacklist ? ERROR : TEXT }}>{g.name}</span>{g.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE_INK }} weight="bold" />}</div>
                         <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{g.id}</div>
                       </div>
                     </div>
@@ -2854,7 +2840,7 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                       {g.activeStay && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>In-house</span>}
                       {g.blacklist && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Blacklist</span>}
                       {g.balance > 0 && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>Balance</span>}
-                      {g.allergy && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE }}>Allergy</span>}
+                      {g.allergy && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE_INK }}>Allergy</span>}
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -2905,12 +2891,8 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
   const [charge, setCharge] = useState({ cat: "Restaurant", desc: "", qty: "1", amount: "" });
   const [payAmt, setPayAmt] = useState("");
   const [payMethod, setPayMethod] = useState("Cash");
-  const FOLIO_LINES = [
-    { date: "22 Jun", cat: "Room", desc: "Deluxe Room 202 × 2 nights", qty: 2, unit: 55000, amount: 110000, tax: 8250, by: "System", reversed: false, id: 1 },
-    { date: "23 Jun", cat: "Restaurant", desc: "Room Service Order #RS-041", qty: 1, unit: 8500, amount: 8500, tax: 638, by: "John A.", reversed: false, id: 2 },
-    { date: "24 Jun", cat: "Bar", desc: "Minibar — 2× Water, 1× Juice", qty: 3, unit: 1200, amount: 3600, tax: 270, by: "System", reversed: false, id: 3 },
-    { date: "24 Jun", cat: "Laundry", desc: "Express laundry — 3 items", qty: 3, unit: 2000, amount: 6000, tax: 450, by: "HK Staff", reversed: false, id: 4 },
-  ];
+  const FOLIO_LINES = CHARGES["BK-2848"].map((c, i) => ({ date: c.date, cat: c.cat, desc: c.desc, qty: c.qty, unit: c.unit, amount: c.amount, tax: c.tax, by: c.by, reversed: c.reversed, id: i + 1 }));
+
   const PAYMENTS = [
     { date: "22 Jun", desc: "Check-in deposit", method: "Cash", amount: 55000, by: "John A.", id: "P1" },
   ];
@@ -2934,6 +2916,14 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
     setShowCharge(false); setCharge({ cat: "Restaurant", desc: "", qty: "1", amount: "" });
     add({ type: "success", title: "Charge posted", body: `${charge.cat} · ₦${total.toLocaleString()}` });
   };
+  if (STAYS.length === 0) return (
+    <div>
+      <PageHeader title="Folio Management" sub="Open guest folios" />
+      <div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
+        <EmptyState icon={Receipt} message="No open folios. A folio opens when a guest checks in." cta="Go to Check-In" onCta={() => nav?.("check-in", "Check-In")} />
+      </div>
+    </div>
+  );
   return (
     <div>
       <PageHeader title="Folio — BK-2848" sub="Emmanuel Adeyemi · Room 202 · 22–24 Jun 2026"
@@ -2955,7 +2945,7 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
           <span className="ml-auto text-xs" style={{ color: SUBTLE }}>Posted charges are reversal-only — no direct editing</span>
         </div>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Date", "Cat", "Description", "Qty", "Unit (₦)", "Amount (₦)", "Tax (₦)", "Running Bal", "By", ""].map((h,i) => <th key={i} className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Date", "Cat", "Description", "Qty", "Unit (₦)", "Amount (₦)", "Tax (₦)", "Running bal", "By", ""].map((h,i) => <th key={i} className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {visibleLines.map((l) => {
               if (!l.reversed) runningBal -= l.amount + l.tax; else runningBal += l.amount + l.tax;
@@ -2995,7 +2985,7 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
             <div key={p.id} className="flex items-center gap-4 px-5 py-3 border-t" style={{ borderColor: BORDER }}>
               <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{p.date}</div>
               <div className="flex-1 text-sm" style={{ color: TEXT }}>{p.desc} · {p.method}</div>
-              <div className="text-sm font-bold" style={{ color: SUCCESS, fontFamily: mono }}>−₦{p.amount.toLocaleString()}</div>
+              <div className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>−₦{p.amount.toLocaleString()}</div>
               <div className="text-xs" style={{ color: SUBTLE }}>{p.by}</div>
             </div>
           ))}
@@ -3069,14 +3059,7 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selected, setSelected] = useState<string[]>([]);
-  const FOLIOS = [
-    { id: "FO-2840", res: "BK-2846", guest: "Adaeze Okonkwo", av: "AO", room: "101", checkin: "21 Jun", checkout: "24 Jun", charges: 183825, payments: 183825, balance: 0, daysOpen: 2, lastActivity: "Today 09:42", flags: { highBalance: false, noPayment: false, creditLimit: false, unposted: false } },
-    { id: "FO-2841", res: "BK-2848", guest: "Emmanuel Adeyemi", av: "EA", room: "202", checkin: "22 Jun", checkout: "24 Jun", charges: 137708, payments: 55000, balance: 82708, daysOpen: 1, lastActivity: "Today 08:30", flags: { highBalance: false, noPayment: false, creditLimit: false, unposted: true } },
-    { id: "FO-2842", res: "BK-2843", guest: "Fatima Musa", av: "FM", room: "203", checkin: "21 Jun", checkout: "24 Jun", charges: 321425, payments: 321425, balance: 0, daysOpen: 3, lastActivity: "24 Jun 11:05", flags: { highBalance: false, noPayment: false, creditLimit: false, unposted: false } },
-    { id: "FO-2843", res: "BK-2850", guest: "Chukwuemeka Obi", av: "CO", room: "304", checkin: "24 Jun", checkout: "28 Jun", charges: 155338, payments: 35000, balance: 120338, daysOpen: 1, lastActivity: "Today 07:55", flags: { highBalance: true, noPayment: false, creditLimit: true, unposted: true } },
-    { id: "FO-2844", res: "BK-2845", guest: "Ibrahim Lawal", av: "IL", room: "302", checkin: "23 Jun", checkout: "26 Jun", charges: 182965, payments: 182965, balance: 0, daysOpen: 2, lastActivity: "23 Jun 14:00", flags: { highBalance: false, noPayment: false, creditLimit: false, unposted: false } },
-    { id: "FO-2845", res: "BK-2851", guest: "Dr. Chukwuemeka Bello", av: "CB", room: "501", checkin: "24 Jun", checkout: "27 Jun", charges: 301000, payments: 301000, balance: 0, daysOpen: 1, lastActivity: "Today 14:10", flags: { highBalance: false, noPayment: false, creditLimit: false, unposted: false } },
-  ];
+  const FOLIOS = folios();
   const filtered = FOLIOS.filter(f => {
     const ms = !search || f.guest.toLowerCase().includes(search.toLowerCase()) || f.room.includes(search) || f.id.includes(search);
     const sf = statusFilter === "All" ? true : statusFilter === "Open" ? f.balance > 0 : statusFilter === "Settled" ? f.balance === 0 : statusFilter === "High Balance" ? f.flags.highBalance : statusFilter === "No Payment" ? f.flags.noPayment : true;
@@ -3104,7 +3087,7 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
         <table className="w-full">
           <thead><tr style={{ backgroundColor: "#F9FAFB" }}>
             <th className="px-4 py-3 w-8"><input type="checkbox" onChange={e => setSelected(e.target.checked ? filtered.map(f=>f.id) : [])} /></th>
-            {["Folio / Res", "Guest", "Room", "Dates", "Charges", "Payments", "Balance", "Days Open", "Last Pulse", "Flags", ""].map((h,i) => <th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}
+            {["Folio / res", "Guest", "Room", "Dates", "Charges", "Payments", "Balance", "Days open", "Last pulse", "Flags", ""].map((h,i) => <th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}
           </tr></thead>
           <tbody>
             {filtered.map(f => (
@@ -3123,7 +3106,7 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
                 <td className="px-3 py-3 text-sm font-bold" style={{ color: PRIMARY }}>{f.room}</td>
                 <td className="px-3 py-3 text-xs whitespace-nowrap" style={{ color: MUTED }}>{f.checkin} → {f.checkout}</td>
                 <td className="px-3 py-3 text-sm font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{f.charges.toLocaleString()}</td>
-                <td className="px-3 py-3 text-sm" style={{ color: SUCCESS, fontFamily: mono }}>₦{f.payments.toLocaleString()}</td>
+                <td className="px-3 py-3 text-sm" style={{ color: TEXT, fontFamily: mono }}>₦{f.payments.toLocaleString()}</td>
                 <td className="px-3 py-3">
                   {f.balance > 0 ? <span className="text-sm font-bold" style={{ color: f.flags.highBalance ? ERROR : TEXT, fontFamily: mono }}>₦{f.balance.toLocaleString()}</span> : <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: SUCCESS }}><CheckCircle size={11} weight="bold" />Settled</span>}
                 </td>
@@ -3134,7 +3117,7 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
                     {f.flags.highBalance && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>High ₦</span>}
                     {f.flags.noPayment && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>No Pay</span>}
                     {f.flags.creditLimit && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>CL</span>}
-                    {f.flags.unposted && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE }}>Unposted</span>}
+                    {f.flags.unposted && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE_INK }}>Unposted</span>}
                   </div>
                 </td>
                 <td className="px-3 py-3">

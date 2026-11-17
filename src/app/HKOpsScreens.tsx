@@ -27,13 +27,12 @@ import {
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
   HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ARRIVALS_DATA, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-stampNow
-} from "./constants";
+stampNow, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 // HK-04 Inspection Log
 export function InspectionLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
@@ -55,12 +54,12 @@ export function InspectionLog({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   });
   return (
     <div>
-      <PageHeader title="Inspection Log" sub="Supervisor inspections with per-item checklist results" actions={<BtnP label="New Inspection" icon={Plus} />} />
+      <PageHeader title="Inspection Log" sub="Supervisor inspections with per-item checklist results" actions={<BtnP label="New inspection" icon={Plus} />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Inspected Today" value={String(LOGS.filter(l=>l.ts.startsWith("Today")).length)} sub="Rooms checked" icon={CheckCircle2} accent={SUCCESS} />
-        <StatCard label="Re-clean Required" value={String(LOGS.filter(l=>l.reclean).length)} sub="Failed inspection" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Pass Rate" value={`${Math.round(LOGS.filter(l=>l.status==="Passed").length/LOGS.length*100)}%`} sub="All inspections" icon={Activity} accent={PRIMARY} />
-        <StatCard label="Avg Score" value={`${Math.round(LOGS.reduce((s,l)=>s+(l.score/l.total*100),0)/LOGS.length)}%`} sub="All attendants" icon={Star} accent={TEAL} />
+        <StatCard label="Inspected today" value={String(LOGS.filter(l=>l.ts.startsWith("Today")).length)} sub="Rooms checked" icon={CheckCircle2} accent={SUCCESS} />
+        <StatCard label="Re-clean required" value={String(LOGS.filter(l=>l.reclean).length)} sub="Failed inspection" icon={AlertTriangle} accent={ERROR} />
+        <StatCard label="Pass rate" value={`${Math.round(LOGS.filter(l=>l.status==="Passed").length/LOGS.length*100)}%`} sub="All inspections" icon={Activity} accent={PRIMARY} />
+        <StatCard label="Avg score" value={`${Math.round(LOGS.reduce((s,l)=>s+(l.score/l.total*100),0)/LOGS.length)}%`} sub="All attendants" icon={Star} accent={TEAL} />
       </div>
       <div className="grid grid-cols-3 gap-4 mb-5">
         {attScores.map(a => (
@@ -93,7 +92,7 @@ export function InspectionLog({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <td className="px-4 py-3 text-sm font-bold" style={{ color: l.score/l.total >= 0.85 ? SUCCESS : l.score/l.total >= 0.7 ? ORANGE : ERROR }}>{l.score}/{l.total}</td>
                   <td className="px-4 py-3">{l.reclean && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Required</span>}</td>
                   <td className="px-4 py-3"><Badge label={l.status} colors={iC[l.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
-                  <td className="px-4 py-3"><button onClick={e => { e.stopPropagation(); add({ type: "info", title: `Re-inspect Room ${l.room}` }); }} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Re-inspect</button></td>
+                  <td className="px-4 py-3"><button onClick={e => { e.stopPropagation(); add({ type: "info", title: `Re-inspect Room ${l.room}` }); }} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Re-inspect</button></td>
                 </tr>
                 {expanded === l.id && (
                   <tr key={l.id + "-d"} style={{ backgroundColor: "#F8FAFC" }}>
@@ -142,20 +141,20 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   const filtered = floorFilter === "All" ? ITEMS : ITEMS.filter(i => i.floor === floorFilter || i.floor === "All");
   return (
     <div>
-      <PageHeader title="Linen & Supplies" sub="Par levels, soiled counts, and issue tracking by floor" actions={<><BtnO label="Export" icon={Download} /><BtnP label="Issue to Attendant" icon={Plus} onClick={() => setShowIssue(true)} /></>} />
+      <PageHeader title="Linen & Supplies" sub="Par levels, soiled counts, and issue tracking by floor" actions={<><BtnO label="Export" icon={Download} /><BtnP label="Issue to attendant" icon={Plus} onClick={() => setShowIssue(true)} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Critical Items" value={String(ITEMS.filter(i=>statusOf(i)==="Critical").length)} sub="Below reorder point" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Low Stock" value={String(ITEMS.filter(i=>statusOf(i)==="Low").length)} sub="Below 60% of par" icon={TrendingDown} accent={WARNING} />
-        <StatCard label="Soiled Today" value={String(ITEMS.reduce((s,i)=>s+i.soiled,0))} sub="Awaiting laundry" icon={Package} accent={MUTED} />
-        <StatCard label="Ok Items" value={String(ITEMS.filter(i=>statusOf(i)==="Ok").length)} sub="Adequately stocked" icon={CheckCircle2} accent={SUCCESS} />
+        <StatCard label="Critical items" value={String(ITEMS.filter(i=>statusOf(i)==="Critical").length)} sub="Below reorder point" icon={AlertTriangle} accent={ERROR} />
+        <StatCard label="Low stock" value={String(ITEMS.filter(i=>statusOf(i)==="Low").length)} sub="Below 60% of par" icon={TrendingDown} accent={WARNING} />
+        <StatCard label="Soiled today" value={String(ITEMS.reduce((s,i)=>s+i.soiled,0))} sub="Awaiting laundry" icon={Package} accent={MUTED} />
+        <StatCard label="Ok items" value={String(ITEMS.filter(i=>statusOf(i)==="Ok").length)} sub="Adequately stocked" icon={CheckCircle2} accent={SUCCESS} />
       </div>
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
         <div className="flex items-center gap-3 px-5 py-3 border-b flex-wrap" style={{ backgroundColor: "#F8FAFC", borderColor: BORDER }}>
-          <span className="text-sm font-semibold" style={{ color: TEXT }}>Stock by Item</span>
+          <span className="text-sm font-semibold" style={{ color: TEXT }}>Stock by item</span>
           <div className="flex gap-1.5 ml-2">{["All","1","2","3"].map(f => <button key={f} onClick={() => setFloorFilter(f)} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ backgroundColor: floorFilter===f ? PRIMARY : "white", color: floorFilter===f ? "white" : MUTED, borderColor: floorFilter===f ? PRIMARY : BORDER }}>Floor {f}</button>)}</div>
         </div>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item", "Category", "Current / Par", "Soiled", "Lost", "Reorder Point", "Status", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item", "Category", "Current / par", "Soiled", "Lost", "Reorder point", "Status", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(item => {
               const st = statusOf(item);
@@ -180,7 +179,7 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <td className="px-4 py-3"><Badge label={st} colors={{ bg: c.bg, text: c.text }} /></td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      <button onClick={() => { setIssueItem(item.name); setShowIssue(true); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Issue</button>
+                      <button onClick={() => { setIssueItem(item.name); setShowIssue(true); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Issue</button>
                       <button onClick={() => add({ type: "info", title: `Restock requested: ${item.name}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Restock</button>
                     </div>
                   </td>
@@ -194,7 +193,7 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowIssue(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border: `1px solid ${BORDER}` }}>
-            <div className="flex items-center justify-between mb-4"><h3 className="text-base font-bold" style={{ color: TEXT }}>Issue to Attendant</h3><button aria-label="Close" onClick={() => setShowIssue(false)} style={{ color: SUBTLE }}><X size={18} /></button></div>
+            <div className="flex items-center justify-between mb-4"><h3 className="text-base font-bold" style={{ color: TEXT }}>Issue to attendant</h3><button aria-label="Close" onClick={() => setShowIssue(false)} style={{ color: SUBTLE }}><X size={18} /></button></div>
             <div className="space-y-3">
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Item</label><select aria-label="Item" value={issueItem} onChange={e => setIssueItem(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option value="">Select item…</option>{ITEMS.map(i => <option key={i.name}>{i.name}</option>)}</select></div>
               <div className="grid grid-cols-2 gap-3">
@@ -237,11 +236,11 @@ export function HousekeepingSchedule({ add }: { add: (t: Omit<Toast, "id">) => v
   const MAX_LOAD = 6;
   return (
     <div>
-      <PageHeader title="Housekeeping Schedule" sub="Room assignments per attendant · Click cell to assign" actions={<><BtnO label="Balance Workload" icon={RefreshCw} onClick={autoBalance} /><BtnP label={published ? "Published ✓" : "Publish Schedule"} icon={published ? CheckCircle2 : Send} onClick={() => { setPublished(true); add({ type: "success", title: "Schedule published", body: "Field devices notified" }); }} /></>} />
+      <PageHeader title="Housekeeping Schedule" sub="Room assignments per attendant · Click cell to assign" actions={<><BtnO label="Balance workload" icon={RefreshCw} onClick={autoBalance} /><BtnP label={published ? "Published ✓" : "Publish Schedule"} icon={published ? CheckCircle2 : Send} onClick={() => { setPublished(true); add({ type: "success", title: "Schedule published", body: "Field devices notified" }); }} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Rooms Scheduled" value={String(ROOMS.filter(r=>assignments[r]).length)} sub={`of ${ROOMS.length} total`} icon={CalendarDays} accent={PRIMARY} />
+        <StatCard label="Rooms scheduled" value={String(ROOMS.filter(r=>assignments[r]).length)} sub={`of ${ROOMS.length} total`} icon={CalendarDays} accent={PRIMARY} />
         <StatCard label="Unassigned" value={String(ROOMS.filter(r=>!assignments[r]).length)} sub="Need assignment" icon={AlertTriangle} accent={WARNING} />
-        <StatCard label="Staff on Duty" value={String(ATTENDANTS.length)} sub="This shift" icon={Users} accent={TEAL} />
+        <StatCard label="Staff on duty" value={String(ATTENDANTS.length)} sub="This shift" icon={Users} accent={TEAL} />
         <StatCard label="Shift" value={shift.split(" ")[0]} sub={shift.split(" ")[1] ?? ""} icon={Clock} accent={ORANGE} />
       </div>
       {/* Shift selector */}
@@ -346,11 +345,11 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   return (
     <div>
       <PageHeader title="Key Card Management" sub="Issue, duplicate, replace and revoke physical room key cards"
-        actions={<><BtnO label="Key Card Log" icon={ClipboardList} /><BtnP label="Issue Card" icon={Plus} onClick={() => { setShowIssue(true); setIssueStep("lookup"); setSerialRead(""); }} /></>} />
+        actions={<><BtnO label="Key Card Log" icon={ClipboardList} /><BtnP label="Issue card" icon={Plus} onClick={() => { setShowIssue(true); setIssueStep("lookup"); setSerialRead(""); }} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Active Cards" value={String(cards.filter(c=>c.status==="Active").length)} sub="Currently issued" icon={CreditCard} accent={SUCCESS} />
-        <StatCard label="Issued Today" value="4" sub="New issuances" icon={Activity} accent={PRIMARY} />
-        <StatCard label="Revoked Today" value={String(cards.filter(c=>c.status==="Revoked").length)} sub="Deactivated" icon={AlertTriangle} accent={ERROR} />
+        <StatCard label="Active cards" value={String(cards.filter(c=>c.status==="Active").length)} sub="Currently issued" icon={CreditCard} accent={SUCCESS} />
+        <StatCard label="Issued today" value="4" sub="New issuances" icon={Activity} accent={PRIMARY} />
+        <StatCard label="Revoked today" value={String(cards.filter(c=>c.status==="Revoked").length)} sub="Deactivated" icon={AlertTriangle} accent={ERROR} />
         <StatCard label="Duplicates" value={String(cards.filter(c=>c.duplicate&&c.status==="Active").length)} sub="Spare cards active" icon={Layers} accent={TEAL} />
       </div>
       {/* Encoder status bar */}
@@ -361,7 +360,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         </div>
         {encoderSt === "disconnected" && <span className="text-xs px-2.5 py-1 rounded-lg font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>⚠ Cards will queue offline</span>}
         <div className="ml-auto flex gap-2">
-          <button onClick={() => { setEncoderSt("encoding"); setTimeout(() => setEncoderSt("connected"), 1200); add({ type: "info", title: "Encoder test complete — 1 device found" }); }} className="text-xs px-3 py-1.5 rounded-lg border font-medium" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Test Encoder</button>
+          <button onClick={() => { setEncoderSt("encoding"); setTimeout(() => setEncoderSt("connected"), 1200); add({ type: "info", title: "Encoder test complete — 1 device found" }); }} className="text-xs px-3 py-1.5 rounded-lg border font-medium" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Test encoder</button>
           <button onClick={() => setEncoderSt(p => p === "connected" ? "disconnected" : "connected")} className="text-xs px-3 py-1.5 rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}>{encoderSt === "connected" ? "Simulate Offline" : "Go Online"}</button>
         </div>
       </div>
@@ -372,7 +371,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <span className="ml-auto text-xs" style={{ color: SUBTLE }}>{cards.length} credentials</span>
         </div>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Guest / Reservation", "Serial", "Issued", "Valid To", "Status", "Flags", "By", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Guest / reservation", "Serial", "Issued", "Valid to", "Status", "Flags", "By", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {cards.map(c => (
               <tr key={c.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER, opacity: c.status === "Revoked" ? 0.55 : 1 }}>
@@ -390,7 +389,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 <td className="px-4 py-3">
                   {c.status === "Active" ? (
                     <div className="flex gap-1">
-                      <button onClick={() => add({ type: "success", title: `Duplicate issued — Room ${c.room}`, body: `Insert blank card into encoder` })} disabled={encoderSt !== "connected"} className="text-xs px-2 py-1.5 rounded border disabled:opacity-40" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Duplicate</button>
+                      <button onClick={() => add({ type: "success", title: `Duplicate issued — Room ${c.room}`, body: `Insert blank card into encoder` })} disabled={encoderSt !== "connected"} className="text-xs px-2 py-1.5 rounded border disabled:opacity-40" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Duplicate</button>
                       <button onClick={() => { setRevokeId(c.id); setRevokeReason(""); }} className="text-xs px-2 py-1.5 rounded border" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Revoke</button>
                     </div>
                   ) : <span className="text-xs" style={{ color: SUBTLE }}>—</span>}
@@ -419,7 +418,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <div className="p-6">
               {issueStep === "lookup" && (
                 <div className="space-y-3">
-                  <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Select Reservation</h3>
+                  <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Select reservation</h3>
                   <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reservation</label><select aria-label="Reservation" value={issueRes} onChange={e => setIssueRes(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>BK-2845 — Adaeze Okonkwo · Room 101</option><option>BK-2848 — Emmanuel Adeyemi · Room 202</option><option>BK-2852 — Chukwuemeka Obi · Room 304</option><option>BK-2854 — Dr. Chukwuemeka Bello · Room 501</option></select></div>
                   <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Room</label><input aria-label="Room" value={issueRoom} onChange={e => setIssueRoom(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
                   <button onClick={() => setIssueStep("config")} className="w-full mt-2 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Continue</button>
@@ -427,7 +426,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               )}
               {issueStep === "config" && (
                 <div className="space-y-3">
-                  <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Card Configuration</h3>
+                  <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Card configuration</h3>
                   <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Number of Cards (max {MAX_CARDS})</label>
                     <div className="flex items-center gap-3"><button onClick={() => setCardCount(p => Math.max(1, p-1))} className="w-9 h-9 rounded-xl border flex items-center justify-center font-bold" style={{ borderColor: BORDER, color: TEXT }}>−</button><span className="text-xl font-bold w-8 text-center" style={{ color: TEXT, fontFamily: mono }}>{cardCount}</span><button onClick={() => setCardCount(p => Math.min(MAX_CARDS, p+1))} className="w-9 h-9 rounded-xl border flex items-center justify-center font-bold" style={{ borderColor: BORDER, color: TEXT }}>+</button></div>
                   </div>
@@ -438,7 +437,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               )}
               {issueStep === "read" && (
                 <div className="py-6 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: `${TEAL}18` }}><CreditCard size={28} style={{ color: TEAL }} /></div>
+                  <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: `${TEAL}18` }}><CreditCard size={28} style={{ color: TEAL_INK }} /></div>
                   <h3 className="text-base font-bold" style={{ color: TEXT }}>Insert blank card into encoder</h3>
                   <p className="text-sm" style={{ color: MUTED }}>Waiting for card read… Do not remove card.</p>
                   <div className="flex justify-center gap-1">{[0,1,2,3,4].map(i => <div key={i} className="w-2 h-2 rounded-full" style={{ backgroundColor: TEAL, opacity: 0.3 + (i * 0.15), animation: `pulse ${0.8 + i * 0.1}s infinite` }} />)}</div>
@@ -446,7 +445,7 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               )}
               {issueStep === "register" && (
                 <div className="space-y-4">
-                  <h3 className="text-base font-bold" style={{ color: TEXT }}>Register with Lock Provider</h3>
+                  <h3 className="text-base font-bold" style={{ color: TEXT }}>Register with lock provider</h3>
                   <div className="p-4 rounded-xl" style={{ backgroundColor: "#F0FDF4", border: `1px solid #BBF7D0` }}>
                     <div className="flex items-center gap-2 mb-2"><CheckCircle2 size={16} style={{ color: SUCCESS }} /><span className="text-sm font-semibold" style={{ color: SUCCESS }}>Card serial read</span></div>
                     <div className="text-sm font-mono font-bold" style={{ color: TEXT, fontFamily: mono }}>{serialRead}</div>
@@ -456,15 +455,15 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                       <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span className="font-semibold" style={{ color: TEXT, fontFamily: ["Room","Reservation","Cards","Valid for"].includes(k) ? "inherit" : mono }}>{v}</span></div>
                     ))}
                   </div>
-                  <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setShowIssue(false)} /><button onClick={finishIssue} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Register & Encode</button></div>
+                  <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setShowIssue(false)} /><button onClick={finishIssue} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Register & encode</button></div>
                 </div>
               )}
               {issueStep === "done" && (
                 <div className="py-4 text-center space-y-4">
                   <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center" style={{ backgroundColor: "#DCFCE7" }}><CheckCircle2 size={28} style={{ color: SUCCESS }} /></div>
-                  <h3 className="text-base font-bold" style={{ color: TEXT }}>Card Issued Successfully</h3>
+                  <h3 className="text-base font-bold" style={{ color: TEXT }}>Card issued successfully</h3>
                   <p className="text-sm" style={{ color: MUTED }}>Room {issueRoom} · Serial <span style={{ fontFamily: mono }}>{serialRead}</span></p>
-                  {encoderSt !== "connected" && <p className="text-xs font-semibold" style={{ color: WARNING }}>Card registered offline — will activate on next sync.</p>}
+                  {encoderSt !== "connected" && <p className="text-xs font-semibold" style={{ color: WARNING_INK }}>Card registered offline — will activate on next sync.</p>}
                   <button onClick={() => setShowIssue(false)} className="w-full py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Done</button>
                 </div>
               )}
@@ -478,11 +477,11 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setRevokeId(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Revoke Card</h3>
+            <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Revoke card</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>{cards.find(c=>c.id===revokeId)?.serial} · This card will stop working{encoderSt !== "connected" ? " on next lock sync" : " immediately"}.</p>
             <div className="space-y-2 mb-4">{["Lost / reported stolen","Guest requested replacement","Error issued","Security concern"].map(r => <label key={r} className="flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer" style={{ borderColor: revokeReason===r ? ERROR : BORDER, backgroundColor: revokeReason===r ? "#FEF2F2" : "white" }}><div className="w-4 h-4 rounded-full border-2 flex-shrink-0" style={{ borderColor: revokeReason===r ? ERROR : "#CBD5E1", backgroundColor: revokeReason===r ? ERROR : "transparent" }} /><input type="radio" className="hidden" onChange={() => setRevokeReason(r)} /><span className="text-sm" style={{ color: TEXT }}>{r}</span></label>)}</div>
-            {encoderSt !== "connected" && <p className="text-xs mb-3 font-semibold" style={{ color: WARNING }}>Encoder offline — revocation will queue and apply on next lock sync.</p>}
-            <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setRevokeId(null)} /><button disabled={!revokeReason} onClick={revokeCard} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Confirm Revoke</button></div>
+            {encoderSt !== "connected" && <p className="text-xs mb-3 font-semibold" style={{ color: WARNING_INK }}>Encoder offline — revocation will queue and apply on next lock sync.</p>}
+            <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setRevokeId(null)} /><button disabled={!revokeReason} onClick={revokeCard} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Confirm revoke</button></div>
           </div>
         </>
       )}
@@ -528,8 +527,8 @@ export function HKMyTasks({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         </div>
         <div className="flex gap-4 mt-3">
           <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: TEXT }}>{total - completed}</span> remaining</span>
-          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: ORANGE }}>{sorted.filter(r=>r.priority).length}</span> priority</span>
-          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: TEAL }}>{dndRooms.size}</span> DND active</span>
+          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: ORANGE_INK }}>{sorted.filter(r=>r.priority).length}</span> priority</span>
+          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: TEAL_INK }}>{dndRooms.size}</span> DND active</span>
         </div>
       </div>
       <div className="space-y-3">
@@ -549,21 +548,21 @@ export function HKMyTasks({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                       {isDND && <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>DND</span>}
                     </div>
                     <div className="text-sm mt-0.5" style={{ color: MUTED }}>{r.type} · Floor {r.floor} · {r.guestStatus}</div>
-                    {r.notes && <div className="text-sm mt-1 font-medium" style={{ color: ORANGE }}>{r.notes}</div>}
+                    {r.notes && <div className="text-sm mt-1 font-medium" style={{ color: ORANGE_INK }}>{r.notes}</div>}
                   </div>
                 </div>
                 <Badge label={st} colors={stC} />
               </div>
               {/* Primary action */}
               <div className="flex gap-2 flex-wrap mb-2">
-                {st === "Dirty" && <button onClick={() => setStatus(r.id, "In Progress")} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY, minHeight: 52 }}>Start Cleaning</button>}
-                {st === "In Progress" && <button onClick={() => setStatus(r.id, "Clean")} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: SUCCESS, minHeight: 52 }}>Mark Cleaned</button>}
-                {st === "Clean" && <button onClick={() => setShowInspect(r.id)} className="flex-1 py-3 rounded-xl text-sm font-bold" style={{ backgroundColor: "#DCFCE7", color: SUCCESS, minHeight: 52 }}>Request Inspection</button>}
+                {st === "Dirty" && <button onClick={() => setStatus(r.id, "In Progress")} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY, minHeight: 52 }}>Start cleaning</button>}
+                {st === "In Progress" && <button onClick={() => setStatus(r.id, "Clean")} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: SUCCESS, minHeight: 52 }}>Mark cleaned</button>}
+                {st === "Clean" && <button onClick={() => setShowInspect(r.id)} className="flex-1 py-3 rounded-xl text-sm font-bold" style={{ backgroundColor: "#DCFCE7", color: SUCCESS, minHeight: 52 }}>Request inspection</button>}
                 {st === "Inspected" && <div className="flex-1 py-3 rounded-xl text-sm font-bold text-center flex items-center justify-center" style={{ backgroundColor: "#EFF6FF", color: PRIMARY, minHeight: 52 }}>✓ Inspected</div>}
               </div>
               {/* Secondary actions */}
               <div className="flex gap-2 flex-wrap">
-                <button onClick={() => { setShowIssue(r.id); setIssueDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: ORANGE, borderColor: `${ORANGE}40`, minHeight: 44 }}>Report Issue</button>
+                <button onClick={() => { setShowIssue(r.id); setIssueDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: ORANGE_INK, borderColor: `${ORANGE}40`, minHeight: 44 }}>Report issue</button>
                 <button onClick={() => { setDndRooms(p => { const n = new Set(p); isDND ? n.delete(r.id) : n.add(r.id); return n; }); add({ type: isDND ? "info" : "warning", title: isDND ? `DND cleared — Room ${r.id}` : `DND set — Room ${r.id}` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: isDND ? ERROR : MUTED, borderColor: isDND ? `${ERROR}40` : BORDER, minHeight: 44 }}>{isDND ? "Clear DND" : "Mark DND"}</button>
                 <button onClick={() => add({ type: "info", title: `Lost item logged — Room ${r.id}` })} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: MUTED, borderColor: BORDER, minHeight: 44 }}>Log L&F</button>
               </div>

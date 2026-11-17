@@ -17,8 +17,7 @@ import {
   type Toast,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   fmtN,
-  occData, STAFF_RPT, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, INV_CONS, REV_DATA,
-} from "./constants";
+  occData, STAFF_RPT, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, INV_CONS, REV_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 import { Badge, StatCard, PageHeader, BtnO, BtnP } from "./UIKit";
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
@@ -156,8 +155,8 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
 
   const SOURCE_MIX = [
     { name: "Direct / Walk-in", value: 38, color: PRIMARY },
-    { name: "Online (OTA)",     value: 29, color: TEAL    },
-    { name: "Corporate",        value: 22, color: ORANGE  },
+    { name: "Online (OTA)",     value: 29, color: TEAL_INK    },
+    { name: "Corporate",        value: 22, color: ORANGE_INK  },
     { name: "Group",            value: 11, color: SUCCESS },
   ];
 
@@ -173,13 +172,13 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
         <StatCard label="Occupancy (Jun)" value="88.0%" sub="vs 85.3% May" icon={Building2} accent={PRIMARY} delta="+2.7pp" deltaPositive />
         <StatCard label="ADR (Jun)"       value="₦55,417" sub="vs ₦54,000 May" icon={DollarSign} accent={TEAL} delta="+2.6%" deltaPositive />
         <StatCard label="RevPAR (Jun)"    value="₦48,767" sub="vs ₦45,900 May" icon={TrendingUp} accent={SUCCESS} delta="+6.2%" deltaPositive />
-        <StatCard label="No-Show Rate"    value="3.2%"    sub="−0.4pp vs May" icon={AlertTriangle} accent={WARNING} delta="−0.4pp" deltaPositive />
+        <StatCard label="No-show rate"    value="3.2%"    sub="−0.4pp vs May" icon={AlertTriangle} accent={WARNING} delta="−0.4pp" deltaPositive />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {/* Monthly trend */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Monthly Occupancy & RevPAR</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Monthly occupancy & RevPAR</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={MONTHLY} margin={{ left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
@@ -195,7 +194,7 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
 
         {/* Source mix */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Source Mix (Jun)</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Source mix (Jun)</div>
           <div className="flex gap-4 items-center">
             <ResponsiveContainer width={140} height={140}>
               <PieChart>
@@ -219,7 +218,7 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
 
       {/* LOS distribution */}
       <div className="bg-white rounded-xl border p-4 mb-5" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Length of Stay Distribution (Jun)</div>
+        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Length of stay distribution (Jun)</div>
         <div className="flex items-end gap-4">
           {LOS_DIST.map(l => (
             <div key={l.nights} className="flex-1 flex flex-col items-center gap-1.5">
@@ -234,7 +233,7 @@ export function OccupancyReports({ add }: { add: (t: Omit<Toast, "id">) => void 
       {/* Drillable table by room type */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold" style={{ color: TEXT }}>By Room Type</div>
+          <div className="text-sm font-semibold" style={{ color: TEXT }}>By room type</div>
           <span className="text-xs" style={{ color: MUTED }}>Click row to drill down</span>
         </div>
         <table className="w-full">
@@ -288,8 +287,8 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
 
   const PAYMENT_MIX = [
     { name: "Cash",       value: 31, color: PRIMARY },
-    { name: "Card/POS",   value: 42, color: TEAL    },
-    { name: "Transfer",   value: 18, color: ORANGE  },
+    { name: "Card/POS",   value: 42, color: TEAL_INK    },
+    { name: "Transfer",   value: 18, color: ORANGE_INK  },
     { name: "Corporate",  value:  9, color: SUCCESS },
   ];
 
@@ -318,16 +317,16 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
     >
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Total Revenue (Jun)"  value={`₦${(totalOct / 1000000).toFixed(2)}M`} sub={`vs ₦${(totalSep / 1000000).toFixed(2)}M May`} icon={DollarSign} accent={PRIMARY} delta={`+${(((totalOct - totalSep) / totalSep) * 100).toFixed(1)}%`} deltaPositive />
-        <StatCard label="YTD Revenue"           value={`₦${(totalYTD / 1000000).toFixed(1)}M`} sub="Jan–Jun 2026" icon={TrendingUp} accent={TEAL} delta="+11.4% vs 2024" deltaPositive />
-        <StatCard label="Tax Collected (Jun)"   value={`₦${((TAX.reduce((s,t)=>s+t.amt,0))/1000).toFixed(0)}K`} sub="VAT + Consumption + Service" icon={FileText} accent={WARNING} />
-        <StatCard label="Discounts & Comps"     value="₦94,000" sub="4 approvals this month" icon={AlertTriangle} accent={ERROR} delta="+12% vs May" deltaPositive={false} />
+        <StatCard label="Total revenue (Jun)"  value={`₦${(totalOct / 1000000).toFixed(2)}M`} sub={`vs ₦${(totalSep / 1000000).toFixed(2)}M May`} icon={DollarSign} accent={PRIMARY} delta={`+${(((totalOct - totalSep) / totalSep) * 100).toFixed(1)}%`} deltaPositive />
+        <StatCard label="YTD revenue"           value={`₦${(totalYTD / 1000000).toFixed(1)}M`} sub="Jan–Jun 2026" icon={TrendingUp} accent={TEAL} delta="+11.4% vs 2024" deltaPositive />
+        <StatCard label="Tax collected (Jun)"   value={`₦${((TAX.reduce((s,t)=>s+t.amt,0))/1000).toFixed(0)}K`} sub="VAT + Consumption + Service" icon={FileText} accent={WARNING} />
+        <StatCard label="Discounts & comps"     value="₦94,000" sub="4 approvals this month" icon={AlertTriangle} accent={ERROR} delta="+12% vs May" deltaPositive={false} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
         {/* Monthly trend */}
         <div className="lg:col-span-2 bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Monthly Revenue Trend (₦M)</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Monthly revenue trend (₦M)</div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={monthlyChart} margin={{ left: -20 }}>
               <defs>
@@ -347,7 +346,7 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
 
         {/* Payment mix */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Payment Mix</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Payment mix</div>
           <ResponsiveContainer width="100%" height={130}>
             <PieChart>
               <Pie data={PAYMENT_MIX} cx="50%" cy="50%" outerRadius={55} paddingAngle={3} dataKey="value" stroke="none">
@@ -369,7 +368,7 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
 
       {/* Tax summary */}
       <div className="bg-white rounded-xl border p-4 mb-5" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Tax Collected (Jun 2026)</div>
+        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Tax collected (Jun 2026)</div>
         <div className="flex gap-6 flex-wrap">
           {TAX.map(t => (
             <div key={t.name}>
@@ -377,7 +376,7 @@ export function RevenueReports({ add }: { add: (t: Omit<Toast, "id">) => void })
               <div className="text-xl font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{t.amt.toLocaleString()}</div>
             </div>
           ))}
-          <div><div className="text-xs" style={{ color: MUTED }}>Total Tax</div><div className="text-xl font-bold" style={{ color: PRIMARY, fontFamily: mono }}>₦{TAX.reduce((s, t) => s + t.amt, 0).toLocaleString()}</div></div>
+          <div><div className="text-xs" style={{ color: MUTED }}>Total tax</div><div className="text-xl font-bold" style={{ color: PRIMARY, fontFamily: mono }}>₦{TAX.reduce((s, t) => s + t.amt, 0).toLocaleString()}</div></div>
         </div>
       </div>
 
@@ -488,7 +487,7 @@ export function DepartmentReports({ add }: { add: (t: Omit<Toast, "id">) => void
         </div>
 
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Incidents & Flags</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Incidents & flags</div>
           {d.incidents.length === 0
             ? <div className="text-xs text-center mt-8" style={{ color: SUBTLE }}>No incidents this period.</div>
             : d.incidents.map((inc, i) => (
@@ -530,10 +529,10 @@ export function GuestAnalytics({ add }: { add: (t: Omit<Toast, "id">) => void })
   return (
     <ReportShell title="Guest Analytics" sub="Repeat rate, nationality mix, lifetime value, satisfaction" add={add}>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Repeat Guest Rate" value="42.1%" sub="+7pp vs May" icon={Users} accent={PRIMARY} delta="+7pp" deltaPositive />
-        <StatCard label="New Guests (Jun)"  value="127"   sub="First-time arrivals" icon={UserCheck} accent={TEAL} />
-        <StatCard label="Avg Lifetime Value" value="₦1.23M" sub="All active guests" icon={DollarSign} accent={SUCCESS} delta="+8.4% vs last yr" deltaPositive />
-        <StatCard label="Guest Satisfaction" value="4.7/5" sub="34 reviews this month" icon={Star} accent={WARNING} delta="+0.2 vs May" deltaPositive />
+        <StatCard label="Repeat guest rate" value="42.1%" sub="+7pp vs May" icon={Users} accent={PRIMARY} delta="+7pp" deltaPositive />
+        <StatCard label="New guests (Jun)"  value="127"   sub="First-time arrivals" icon={UserCheck} accent={TEAL} />
+        <StatCard label="Avg lifetime value" value="₦1.23M" sub="All active guests" icon={DollarSign} accent={SUCCESS} delta="+8.4% vs last yr" deltaPositive />
+        <StatCard label="Guest satisfaction" value="4.7/5" sub="34 reviews this month" icon={Star} accent={WARNING} delta="+0.2 vs May" deltaPositive />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
@@ -554,7 +553,7 @@ export function GuestAnalytics({ add }: { add: (t: Omit<Toast, "id">) => void })
 
         {/* Nationality */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Nationality Mix</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Nationality mix</div>
           <div className="flex gap-4 items-center">
             <ResponsiveContainer width={130} height={130}>
               <PieChart>
@@ -578,7 +577,7 @@ export function GuestAnalytics({ add }: { add: (t: Omit<Toast, "id">) => void })
 
       {/* Satisfaction trend */}
       <div className="bg-white rounded-xl border p-4 mb-5" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Guest Satisfaction Score Trend</div>
+        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Guest satisfaction score trend</div>
         <ResponsiveContainer width="100%" height={140}>
           <LineChart data={SATISFACTION} margin={{ left: -20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
@@ -593,7 +592,7 @@ export function GuestAnalytics({ add }: { add: (t: Omit<Toast, "id">) => void })
       {/* VIP table */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold" style={{ color: TEXT }}>Top Guests by Lifetime Value</div>
+          <div className="text-sm font-semibold" style={{ color: TEXT }}>Top guests by lifetime value</div>
         </div>
         <table className="w-full">
           <thead><TableHeader cols={["Guest", "Tier", "Stays", "Lifetime Value", "Last Stay", "Satisfaction", ""]} /></thead>
@@ -605,7 +604,7 @@ export function GuestAnalytics({ add }: { add: (t: Omit<Toast, "id">) => void })
                 <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT }}>{g.stays}</td>
                 <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{g.ltv.toLocaleString()}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: MUTED }}>{g.lastStay}</td>
-                <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color: WARNING }} />{g.rating}</span></td>
+                <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color: WARNING_INK }} />{g.rating}</span></td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: SUBTLE }}>{drill === g.name ? "▲" : "▼"}</td>
               </tr>
             ))}
@@ -646,16 +645,16 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
   return (
     <ReportShell title="Inventory Reports" sub="Consumption, wastage, stock turn, and supplier performance" add={add}>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Total Stock Value"   value="₦1.84M" sub="Current inventory"      icon={Package}      accent={PRIMARY} />
-        <StatCard label="F&B Consumption"     value="₦312K"  sub="June"                icon={TrendingUp}   accent={TEAL}    delta="+5.2% vs May" deltaPositive />
+        <StatCard label="Total stock value"   value="₦1.84M" sub="Current inventory"      icon={Package}      accent={PRIMARY} />
+        <StatCard label="F&B consumption"     value="₦312K"  sub="June"                icon={TrendingUp}   accent={TEAL}    delta="+5.2% vs May" deltaPositive />
         <StatCard label="Wastage (Jun)"        value="₦27.5K" sub="1.4% of consumption"   icon={AlertTriangle} accent={WARNING} delta="−0.3pp vs May" deltaPositive />
-        <StatCard label="Critical Stock Items" value="2"      sub="Reorder immediately"   icon={AlertTriangle} accent={ERROR}  />
+        <StatCard label="Critical stock items" value="2"      sub="Reorder immediately"   icon={AlertTriangle} accent={ERROR}  />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {/* F&B consumption trend */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>F&B Consumption Trend (₦K)</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>F&B consumption trend (₦K)</div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={INV_CONS} margin={{ left: -20 }}>
               <defs>
@@ -675,7 +674,7 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
 
         {/* Wastage by category */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Wastage by Category (Jun)</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Wastage by category (Jun)</div>
           {CATS.map(c => (
             <div key={c.cat} className="mb-3">
               <div className="flex justify-between text-xs mb-1"><span style={{ color: TEXT }}>{c.cat}</span><span className="font-bold" style={{ color: c.wastage > 10000 ? ERROR : MUTED }}>₦{c.wastage.toLocaleString()}</span></div>
@@ -690,7 +689,7 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
       {/* Category table */}
       <div className="bg-white rounded-xl border overflow-hidden mb-5" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold" style={{ color: TEXT }}>Consumption by Category</div>
+          <div className="text-sm font-semibold" style={{ color: TEXT }}>Consumption by category</div>
         </div>
         <table className="w-full">
           <thead><TableHeader cols={["Category", "Consumed (Jun)", "Wastage", "Wastage %", "Stock Turn", "Top Supplier", ""]} /></thead>
@@ -722,7 +721,7 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
       {/* Supplier performance */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold" style={{ color: TEXT }}>Supplier Performance</div>
+          <div className="text-sm font-semibold" style={{ color: TEXT }}>Supplier performance</div>
         </div>
         <table className="w-full">
           <thead><TableHeader cols={["Supplier", "On-Time %", "Quality Rating", "Orders (Jun)", "Avg Lead (days)"]} /></thead>
@@ -738,7 +737,7 @@ export function InventoryReports({ add }: { add: (t: Omit<Toast, "id">) => void 
                     <span className="font-bold" style={{ color: TEXT }}>{s.onTime}%</span>
                   </div>
                 </td>
-                <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color: WARNING }} />{s.quality}</span></td>
+                <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color: WARNING_INK }} />{s.quality}</span></td>
                 <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT }}>{s.orders}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: MUTED }}>{s.avgLead} days</td>
               </tr>
@@ -782,16 +781,16 @@ export function StaffReports({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   return (
     <ReportShell title="Staff Reports" sub="Attendance, overtime, productivity, leave utilisation" add={add}>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Overall Attendance"  value="94.1%" sub="All departments"     icon={UserCheck}    accent={PRIMARY} delta="+0.8pp vs May" deltaPositive />
-        <StatCard label="Total Hours Worked"  value="1,642h" sub="June 2026"       icon={Clock}        accent={TEAL}    />
+        <StatCard label="Overall attendance"  value="94.1%" sub="All departments"     icon={UserCheck}    accent={PRIMARY} delta="+0.8pp vs May" deltaPositive />
+        <StatCard label="Total hours worked"  value="1,642h" sub="June 2026"       icon={Clock}        accent={TEAL}    />
         <StatCard label="Overtime (Jun)"      value="48h"    sub="5 departments"      icon={TrendingUp}   accent={WARNING} delta="+12h vs May" deltaPositive={false} />
-        <StatCard label="Leave Requests Open" value="4"      sub="Pending approval"   icon={Calendar}     accent={MUTED}   />
+        <StatCard label="Leave requests open" value="4"      sub="Pending approval"   icon={Calendar}     accent={MUTED}   />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         {/* Hours by dept */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Hours Worked by Department (Jun)</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Hours worked by department (Jun)</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={weeklyHours} layout="vertical" margin={{ right: 20, left: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
@@ -805,7 +804,7 @@ export function StaffReports({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
         {/* Leave utilisation */}
         <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Leave Utilisation (Avg per Staff)</div>
+          <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Leave utilisation (avg per staff)</div>
           {LEAVE_USE.map(l => (
             <div key={l.type} className="mb-3">
               <div className="flex justify-between text-xs mb-1">
@@ -822,7 +821,7 @@ export function StaffReports({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
       {/* Productivity metrics */}
       <div className="bg-white rounded-xl border p-4 mb-5" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
-        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Productivity vs Benchmark</div>
+        <div className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Productivity vs benchmark</div>
         <table className="w-full">
           <thead><TableHeader cols={["Metric", "Dept", "Actual", "Benchmark", "Status"]} /></thead>
           <tbody>
@@ -844,7 +843,7 @@ export function StaffReports({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       {/* Attendance by dept */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold" style={{ color: TEXT }}>Attendance Detail by Department</div>
+          <div className="text-sm font-semibold" style={{ color: TEXT }}>Attendance detail by department</div>
         </div>
         <table className="w-full">
           <thead><TableHeader cols={["Dept", "Headcount", "Present", "Late", "Absent", "On Leave", "Overtime", "Rate", ""]} /></thead>
@@ -854,7 +853,7 @@ export function StaffReports({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 <td className="px-3 py-2.5 text-xs font-semibold" style={{ color: PRIMARY }}>{r.dept}</td>
                 <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT }}>{r.headcount}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: SUCCESS }}>{r.present}</td>
-                <td className="px-3 py-2.5 text-xs" style={{ color: WARNING }}>{r.late}</td>
+                <td className="px-3 py-2.5 text-xs" style={{ color: WARNING_INK }}>{r.late}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: ERROR }}>{r.absent}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: MUTED }}>{r.leave}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: r.ot > 10 ? ORANGE : MUTED }}>{r.ot}h</td>

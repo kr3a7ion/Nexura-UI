@@ -15,18 +15,21 @@ import {
 import { OrgBranchDirectory, OrgUsers } from "./OrgPortalExtensions";
 
 const PRIMARY = "#18181B";
-const TEAL = "#0EA5E9";
+const TEAL = "#1BA39C";
+const TEAL_INK = "#0F766E";
+const ORANGE_INK = "#C2410C";
+const WARNING_INK = "#B45309";
 const ORANGE = "#F57C00";
 const SUCCESS = "#2E7D32";
 const WARNING = "#FFA000";
 const ERROR = "#D32F2F";
 const BORDER = "#E4E4E7";
 const TEXT = "#18181B";
-const MUTED = "#71717A";
+const MUTED = "#52525B";
 const SUBTLE = "#A1A1AA";
 const NAV_BG = "#0C1A36";
 const sans = "'Inter', system-ui, sans-serif";
-const mono = "'JetBrains Mono', monospace";
+const mono = "'Inter', system-ui, sans-serif";
 
 function fmtN(v: number) {
   return v >= 1e6 ? `₦${(v / 1e6).toFixed(2)}M` : v >= 1e3 ? `₦${(v / 1e3).toFixed(0)}K` : `₦${v}`;
@@ -59,8 +62,8 @@ const occTrend = [
 
 const revCat = [
   { name: "Abuja", value: 50, color: PRIMARY },
-  { name: "Lagos", value: 35, color: TEAL },
-  { name: "Port Harcourt", value: 15, color: ORANGE },
+  { name: "Lagos", value: 35, color: TEAL_INK },
+  { name: "Port Harcourt", value: 15, color: ORANGE_INK },
 ];
 
 function Badge({ label, colors }: { label: string; colors: { bg: string; text: string } }) {
@@ -108,8 +111,8 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 21h18M4 21V8l8-5 8 5v13M9 21v-6h6v6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </div>
           <div>
-            <span className="text-white font-semibold text-sm">Grand Palms Group</span>
-            <span className="text-xs ml-2 px-2 py-0.5 rounded-full" style={{ backgroundColor: "rgba(27,163,156,0.2)", color: TEAL }}>Organization Portal</span>
+            <span className="text-white font-semibold text-sm">Grand Palms group</span>
+            <span className="text-xs ml-2 px-2 py-0.5 rounded-full" style={{ backgroundColor: "rgba(27,163,156,0.2)", color: TEAL_INK }}>Organization portal</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -174,8 +177,8 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
         {tab === "overview" && (
           <>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Stat label="Total Revenue Today" value={fmtN(totalRev)} sub="Across 3 branches" delta="+12.4% vs yesterday" deltaPositive color={SUCCESS} />
-              <Stat label="Avg Occupancy" value={`${avgOcc}%`} sub="Weighted across all rooms" delta="+3% vs last week" deltaPositive color={PRIMARY} />
+              <Stat label="Total revenue today" value={fmtN(totalRev)} sub="Across 3 branches" delta="+12.4% vs yesterday" deltaPositive color={SUCCESS} />
+              <Stat label="Avg occupancy" value={`${avgOcc}%`} sub="Weighted across all rooms" delta="+3% vs last week" deltaPositive color={PRIMARY} />
               <Stat label="Active Guests" value={totalGuests.toString()} sub="Checked in right now" />
               <Stat label="Open Issues" value={BRANCHES.reduce((s, b) => s + b.issues, 0).toString()} sub="Across all branches" color={WARNING} />
             </div>
@@ -251,7 +254,7 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
                 </ResponsiveContainer>
               </div>
               <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-                <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Revenue Share by Branch</h3>
+                <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Revenue share by branch</h3>
                 <ResponsiveContainer width="100%" height={160}>
                   <PieChart>
                     <Pie key="portal-pie" data={revCat} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value" stroke="none">
@@ -271,7 +274,7 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
               </div>
             </div>
             <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
-              <div className="px-5 py-4 border-b" style={{ borderColor: "#F1F5F9" }}><h3 className="text-sm font-semibold" style={{ color: TEXT }}>KPI Comparison Table</h3></div>
+              <div className="px-5 py-4 border-b" style={{ borderColor: "#F1F5F9" }}><h3 className="text-sm font-semibold" style={{ color: TEXT }}>KPI comparison table</h3></div>
               <table className="w-full">
                 <thead><tr style={{ backgroundColor: "#F9FAFB" }}><th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Metric</th>{BRANCHES.map(b => <th key={b.id} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{b.name}</th>)}</tr></thead>
                 <tbody>
@@ -319,21 +322,21 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
             <div className="grid grid-cols-3 gap-4 mb-5">
               <div className="bg-white rounded-xl p-5 border text-center" style={{ borderColor: BORDER }}>
                 <div className="text-2xl font-bold mb-1" style={{ color: SUCCESS }}>2/3</div>
-                <div className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>Fully Synced</div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>Fully synced</div>
               </div>
               <div className="bg-white rounded-xl p-5 border text-center" style={{ borderColor: BORDER }}>
-                <div className="text-2xl font-bold mb-1" style={{ color: WARNING }}>1</div>
-                <div className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>Pending Items</div>
+                <div className="text-2xl font-bold mb-1" style={{ color: WARNING_INK }}>1</div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>Pending items</div>
               </div>
               <div className="bg-white rounded-xl p-5 border text-center" style={{ borderColor: BORDER }}>
                 <div className="text-2xl font-bold mb-1" style={{ color: TEXT }}>45m</div>
-                <div className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>Max Sync Lag</div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>Max sync lag</div>
               </div>
             </div>
             <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
               <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "#F1F5F9" }}>
-                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Branch Sync Status</h3>
-                <button onClick={() => showToast("Force sync triggered for all branches")} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border" style={{ color: TEAL, borderColor: `${TEAL}30` }}><RefreshCw size={13} />Force Sync All</button>
+                <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Branch sync status</h3>
+                <button onClick={() => showToast("Force sync triggered for all branches")} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}><RefreshCw size={13} />Force sync all</button>
               </div>
               {BRANCHES.map(b => (
                 <div key={b.id} className="flex items-center gap-4 px-5 py-4 border-b hover:bg-[#F9FAFB]" style={{ borderColor: "#F9FAFB" }}>
@@ -351,7 +354,7 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
                     <div className="text-xs" style={{ color: SUBTLE }}>Last sync: {b.lastSync}</div>
                   </div>
                   <Badge label={b.status === "synced" ? "Synced" : "Pending"} colors={b.status === "synced" ? { bg: "#DCFCE7", text: "#166534" } : { bg: "#FEF3C7", text: "#92400E" }} />
-                  <button onClick={() => showToast(`Force sync — ${b.name}`)} className="text-xs px-3 py-1.5 rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}>Force Sync</button>
+                  <button onClick={() => showToast(`Force sync — ${b.name}`)} className="text-xs px-3 py-1.5 rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}>Force sync</button>
                 </div>
               ))}
             </div>
@@ -361,7 +364,7 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
         {tab === "settings" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Organization Profile</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Organization profile</h3>
               <div className="space-y-3">
                 {[["Organization Name", "Grand Palms Group"], ["Owner", "Alhaji Musa Ibrahim"], ["Email", "owner@grandpalms.ng"], ["Subscription", "Business Plan · 3 branches"]].map(([k, v]) => (
                   <div key={k}><label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>{k}</label><div className="px-3 py-2.5 rounded-xl border text-sm" style={{ borderColor: BORDER, color: TEXT }}>{v}</div></div>
@@ -369,9 +372,9 @@ export default function OrgPortal({ onLogout }: { onLogout: () => void }) {
               </div>
             </div>
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Remote Access</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Remote access</h3>
               <div className="p-4 rounded-xl mb-4" style={{ backgroundColor: "#FFF7ED", border: "1px solid #FED7AA" }}>
-                <div className="text-sm font-semibold mb-1" style={{ color: "#92400E" }}>Live Branch Access</div>
+                <div className="text-sm font-semibold mb-1" style={{ color: "#92400E" }}>Live branch access</div>
                 <p className="text-xs" style={{ color: "#92400E" }}>This portal shows synced data only. For live operational access (real-time reservation grid, live check-ins), connect via VPN to the hotel LAN and navigate to http://hms.local</p>
               </div>
               <button onClick={() => showToast("VPN configuration guide sent to owner@grandpalms.ng")} className="w-full py-2.5 rounded-xl text-sm font-medium border" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>

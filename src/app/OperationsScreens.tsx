@@ -27,14 +27,14 @@ import {
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
   HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ARRIVALS_DATA, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-} from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, Av } from "./UIKit";
+import { DateInput } from "./DateInput";
 
 const HK_STATUS_CYCLE = ["Dirty", "In Progress", "Clean", "Inspected"] as const;
 
@@ -86,7 +86,7 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
   return (
     <div>
       <PageHeader title="Housekeeping Board" sub="Floor-by-floor room status · Click advance button to update"
-        actions={<><BtnO label="Print Report" icon={Download} /><BtnP label="Assign Rooms" icon={Plus} onClick={() => add({ type: "info", title: "Open schedule to assign rooms" })} /></>} />
+        actions={<><BtnO label="Print report" icon={Download} /><BtnP label="Assign rooms" icon={Plus} onClick={() => add({ type: "info", title: "Open schedule to assign rooms" })} /></>} />
       {/* Counts strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         {COLS.map(c => { const n = rooms.filter(r => r.hkSt === c.id).length; const pri = rooms.filter(r => r.hkSt === c.id && r.priority).length; return (
@@ -290,8 +290,8 @@ export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; 
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowBulkAssign(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Bulk Assign — {selected.length} work orders</h3>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Assign to Technician</label>
-            <select aria-label="Assign to Technician" value={bulkTech} onChange={e => setBulkTech(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
+            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Assign to technician</label>
+            <select aria-label="Assign to technician" value={bulkTech} onChange={e => setBulkTech(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
               {["Emeka Nwosu","Chidi Ike","External Vendor"].map(t => <option key={t}>{t}</option>)}
             </select></div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowBulkAssign(false)} /><button onClick={() => { add({ type: "success", title: `${selected.length} WOs assigned to ${bulkTech}` }); setSelected([]); setShowBulkAssign(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Assign</button></div>
@@ -306,7 +306,7 @@ export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; 
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border: `1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h3 className="text-base font-bold" style={{ color: TEXT }}>New Work Order</h3>
+                <h3 className="text-base font-bold" style={{ color: TEXT }}>New work order</h3>
                 <p className="text-xs mt-0.5" style={{ color: MUTED }}>Report a maintenance issue across the property</p>
               </div>
               <button aria-label="Close" onClick={() => setShowNew(false)} style={{ color: SUBTLE }}><X size={18} /></button>
@@ -345,7 +345,7 @@ export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; 
             </div>
             <div className="flex gap-3 mt-5">
               <BtnO label="Cancel" onClick={() => setShowNew(false)} />
-              <BtnP label="Create Work Order" icon={CheckCircle2} onClick={submitWO} />
+              <BtnP label="Create work order" icon={CheckCircle2} onClick={submitWO} />
             </div>
           </div>
         </>
@@ -431,7 +431,7 @@ export function InternalChat({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 {ch.unread > 0 && <span className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: ERROR, fontSize: 12 }}>{ch.unread}</span>}
               </button>
             ))}
-            <div className="px-3 pt-3 pb-1 mt-1 border-t text-xs font-semibold uppercase tracking-wider" style={{ color: SUBTLE, borderColor: BORDER }}>Direct Messages</div>
+            <div className="px-3 pt-3 pb-1 mt-1 border-t text-xs font-semibold uppercase tracking-wider" style={{ color: SUBTLE, borderColor: BORDER }}>Direct messages</div>
             {DMS.map(dm => (
               <button key={dm.name} onClick={() => { setActiveDM(dm.name); setActiveView("dm"); }}
                 className="w-full flex items-center gap-2 px-3 py-2"
@@ -603,8 +603,8 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <StatCard label="Today's Revenue" value="₦184,500" sub="POS transactions" icon={DollarSign} accent={PRIMARY} />
         <StatCard label="Orders" value="42" sub="Completed today" icon={ClipboardList} accent={TEAL} />
-        <StatCard label="Avg Order" value="₦4,393" sub="Per ticket" icon={TrendingUp} accent={SUCCESS} />
-        <StatCard label="Open Tabs" value="3" sub="Room folio charges" icon={FileText} accent={ORANGE} />
+        <StatCard label="Avg order" value="₦4,393" sub="Per ticket" icon={TrendingUp} accent={SUCCESS} />
+        <StatCard label="Open tabs" value="3" sub="Room folio charges" icon={FileText} accent={ORANGE} />
       </div>
 
       <div className="flex gap-3" style={{ height: 600 }}>
@@ -622,7 +622,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
                     <div className="text-sm font-semibold mb-1 leading-tight" style={{ color: item.avail ? TEXT : SUBTLE }}>{item.name}</div>
                     <div className="text-base font-bold" style={{ color: item.avail ? PRIMARY : SUBTLE }}>₦{item.price.toLocaleString()}</div>
                     {!item.avail && <div className="text-xs mt-1 font-semibold" style={{ color: ERROR }}>86'd</div>}
-                    {inOrder && <div className="text-xs mt-1 font-semibold" style={{ color: TEAL }}>×{inOrder.qty} added</div>}
+                    {inOrder && <div className="text-xs mt-1 font-semibold" style={{ color: TEAL_INK }}>×{inOrder.qty} added</div>}
                   </button>
                 );
               })}
@@ -634,7 +634,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
         <div className="w-72 flex-shrink-0 bg-white rounded-xl border flex flex-col" style={{ borderColor: BORDER }}>
           <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: BORDER, backgroundColor: "#F9FAFB" }}>
             <div><div className="text-sm font-bold" style={{ color: TEXT }}>{activeTable} · Current Order</div><div className="text-xs" style={{ color: SUBTLE }}>{order.reduce((s,o)=>s+o.qty,0)} items</div></div>
-            {order.length > 0 && <button onClick={() => { setHeld(true); add({ type: "info", title: `${activeTable} order held` }); }} className="text-xs px-2 py-1.5 rounded-lg border" style={{ color: ORANGE, borderColor: `${ORANGE}30` }}>Hold</button>}
+            {order.length > 0 && <button onClick={() => { setHeld(true); add({ type: "info", title: `${activeTable} order held` }); }} className="text-xs px-2 py-1.5 rounded-lg border" style={{ color: ORANGE_INK, borderColor: `${ORANGE}30` }}>Hold</button>}
           </div>
           <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
             {order.length === 0
@@ -682,7 +682,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
                   <span>Total</span><span style={{ fontFamily: mono }}>₦{total.toLocaleString()}</span>
                 </div>
               </div>
-              <BtnP label="Send to Kitchen" icon={UtensilsCrossed} onClick={sendToKitchen} />
+              <BtnP label="Send to kitchen" icon={UtensilsCrossed} onClick={sendToKitchen} />
             </div>
           )}
         </div>
@@ -706,7 +706,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
             {/* Cash change calculator */}
             {payMethod === "cash" && (
               <div className="mb-3 p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC" }}>
-                <div className="text-xs font-semibold mb-1.5" style={{ color: MUTED }}>Cash Tendered</div>
+                <div className="text-xs font-semibold mb-1.5" style={{ color: MUTED }}>Cash tendered</div>
                 <input value={cashIn} onChange={e=>setCashIn(e.target.value)} placeholder="0" aria-label="0" className="w-full px-3 py-2 rounded-xl border text-sm font-bold outline-none" style={{ borderColor: BORDER, fontFamily: mono }} />
                 {cashInNum > 0 && <div className="mt-2 flex justify-between text-xs"><span style={{ color: MUTED }}>Change</span><span className="font-bold" style={{ color: change >= 0 ? SUCCESS : ERROR, fontFamily: mono }}>₦{change.toLocaleString()}</span></div>}
               </div>
@@ -715,7 +715,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
             {/* Room charge picker */}
             {payMethod === "room" && (
               <div className="mb-3">
-                <div className="text-xs font-semibold mb-1.5" style={{ color: MUTED }}>Guest Room</div>
+                <div className="text-xs font-semibold mb-1.5" style={{ color: MUTED }}>Guest room</div>
                 <button onClick={() => setShowRoomPicker(p=>!p)} className="w-full px-3 py-2 rounded-xl border text-xs text-left flex items-center justify-between" style={{ borderColor: BORDER }}>
                   <span style={{ color: TEXT }}>Room {selectedRoom}</span>
                   <ChevronDown size={12} style={{ color: SUBTLE }} />
@@ -739,8 +739,8 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
             {/* Order total summary */}
             {order.length > 0 && (
               <div className="p-3 rounded-xl mb-3" style={{ backgroundColor: "#F0FDF4", border: `1px solid #BBF7D0` }}>
-                <div className="text-xs font-semibold mb-1" style={{ color: SUCCESS }}>Order Total</div>
-                <div className="text-xl font-black" style={{ color: SUCCESS, fontFamily: mono }}>₦{total.toLocaleString()}</div>
+                <div className="text-xs font-semibold mb-1" style={{ color: SUCCESS }}>Order total</div>
+                <div className="text-xl font-black" style={{ color: TEXT, fontFamily: mono }}>₦{total.toLocaleString()}</div>
               </div>
             )}
           </div>
@@ -748,7 +748,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
             <button disabled={order.length === 0} onClick={handlePayment} className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>
               Charge ₦{total.toLocaleString()}
             </button>
-            <button onClick={() => { add({ type: "info", title: `${activeTable} order held` }); setHeld(true); }} disabled={order.length === 0} className="w-full py-2.5 rounded-xl text-xs font-semibold border disabled:opacity-40" style={{ color: ORANGE, borderColor: `${ORANGE}30` }}>
+            <button onClick={() => { add({ type: "info", title: `${activeTable} order held` }); setHeld(true); }} disabled={order.length === 0} className="w-full py-2.5 rounded-xl text-xs font-semibold border disabled:opacity-40" style={{ color: ORANGE_INK, borderColor: `${ORANGE}30` }}>
               Hold Order
             </button>
           </div>
@@ -817,7 +817,7 @@ export function TableManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => v
         <StatCard label="Occupied" value={String(tables.filter(t=>t.status==="Occupied").length)} sub="Currently serving" icon={UtensilsCrossed} accent={ORANGE} />
         <StatCard label="Available" value={String(tables.filter(t=>t.status==="Available").length)} sub="Ready for seating" icon={CheckCircle2} accent={SUCCESS} />
         <StatCard label="Reserved" value={String(tables.filter(t=>t.status==="Reserved").length)} sub="Upcoming bookings" icon={CalendarDays} accent={TEAL} />
-        <StatCard label="On Floor" value={`₦${tables.filter(t=>t.status==="Occupied").reduce((s,t)=>s+(t.orderValue??0),0).toLocaleString()}`} sub="Open tab value" icon={DollarSign} accent={PRIMARY} />
+        <StatCard label="On floor" value={`₦${tables.filter(t=>t.status==="Occupied").reduce((s,t)=>s+(t.orderValue??0),0).toLocaleString()}`} sub="Open tab value" icon={DollarSign} accent={PRIMARY} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Floor plan */}
@@ -856,19 +856,19 @@ export function TableManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => v
                 ))}
               </div>
               <div className="space-y-2">
-                {sel.status === "Available" && <BtnP label="Seat Party" icon={Users} onClick={() => setShowSeat(true)} />}
+                {sel.status === "Available" && <BtnP label="Seat party" icon={Users} onClick={() => setShowSeat(true)} />}
                 {sel.status === "Occupied" && <>
                   <BtnP label="Open POS / Check" icon={FileText} onClick={() => nav && nav("pos-terminal", "POS")} />
-                  <BtnO label="Transfer Table" icon={ArrowRight} onClick={() => { setShowTransfer(true); setTransferTo(""); }} />
+                  <BtnO label="Transfer table" icon={ArrowRight} onClick={() => { setShowTransfer(true); setTransferTo(""); }} />
                   <BtnO label="Mark Dirty / Cleared" icon={AlertCircle} onClick={() => markDirty(sel.id)} />
                 </>}
                 {sel.status === "Dirty" && <BtnP label="Mark Clean ✓" icon={CheckCircle2} onClick={() => { markClean(sel.id); setSelected(null); }} color={SUCCESS} />}
-                {sel.status === "Reserved" && <BtnP label="Seat Walk-in" icon={Users} onClick={() => setShowSeat(true)} />}
+                {sel.status === "Reserved" && <BtnP label="Seat walk-in" icon={Users} onClick={() => setShowSeat(true)} />}
                 {/* Assign server */}
                 {sel.status === "Occupied" && (
                   <div className="pt-2">
-                    <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Assign Server</label>
-                    <select aria-label="Assign Server" className="w-full px-3 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }} defaultValue={sel.server ?? ""} onChange={e => { setTables(p => p.map(t => t.id === sel.id ? { ...t, server: e.target.value } : t)); add({ type: "info", title: `Server updated — ${sel.id}` }); }}>
+                    <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Assign server</label>
+                    <select aria-label="Assign server" className="w-full px-3 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }} defaultValue={sel.server ?? ""} onChange={e => { setTables(p => p.map(t => t.id === sel.id ? { ...t, server: e.target.value } : t)); add({ type: "info", title: `Server updated — ${sel.id}` }); }}>
                       {SERVERS.map(s => <option key={s}>{s}</option>)}
                     </select>
                   </div>
@@ -886,8 +886,8 @@ export function TableManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => v
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Seat Party — Table {selected}</h3>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Party Size</label>
-              <select aria-label="Party Size" value={seatParty.size} onChange={e=>setSeatParty(p=>({...p,size:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Party size</label>
+              <select aria-label="Party size" value={seatParty.size} onChange={e=>setSeatParty(p=>({...p,size:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
                 {["1","2","3","4","5","6","7","8"].map(n=><option key={n}>{n}</option>)}
               </select></div>
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Server</label>
@@ -895,7 +895,7 @@ export function TableManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => v
                 {SERVERS.map(s=><option key={s}>{s}</option>)}
               </select></div>
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowSeat(false)} /><button onClick={seat} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Seat Party</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowSeat(false)} /><button onClick={seat} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Seat party</button></div>
           </div>
         </>
       )}
@@ -957,12 +957,12 @@ export function StaffDirectory({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
       <PageHeader title="Staff Directory" sub={`${filtered.length} of ${STAFF_FULL.length} staff members`} actions={
         <div className="flex gap-2">
           <BtnO label="Export" icon={Download} onClick={() => add({ type:"info", title:"Exporting staff list" })} />
-          <BtnP label="Add Staff" icon={Plus} onClick={() => add({ type:"info", title:"Add staff member" })} />
+          <BtnP label="Add staff" icon={Plus} onClick={() => add({ type:"info", title:"Add staff member" })} />
         </div>
       } />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Total Staff"  value={String(STAFF_FULL.length)}                                          sub="All employment types" icon={Users}         accent={PRIMARY} />
-        <StatCard label="On Shift"     value={String(STAFF_FULL.filter(s=>s.status==="Active").length)}            sub="Currently active"    icon={CheckCircle2}  accent={SUCCESS} />
+        <StatCard label="Total staff"  value={String(STAFF_FULL.length)}                                          sub="All employment types" icon={Users}         accent={PRIMARY} />
+        <StatCard label="On shift"     value={String(STAFF_FULL.filter(s=>s.status==="Active").length)}            sub="Currently active"    icon={CheckCircle2}  accent={SUCCESS} />
         <StatCard label="On Leave"     value={String(STAFF_FULL.filter(s=>s.status==="On Leave").length)}          sub="Approved leave"      icon={CalendarCheck} accent={WARNING} />
         <StatCard label="Departments"  value={String(new Set(STAFF_FULL.map(s=>s.dept)).size)}                     sub="Active departments"  icon={Building2}     accent={TEAL}    />
       </div>
@@ -1011,7 +1011,7 @@ export function StaffDirectory({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
       ) : (
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["ID","Name","Role","Dept","Type","Hire Date","Shift","Status",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["ID","Name","Role","Dept","Type","Hire date","Shift","Status",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map((s,i) => {
                 const dc = deptColors[s.dept]??PRIMARY;
@@ -1027,7 +1027,7 @@ export function StaffDirectory({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
                     <td className="px-3 py-3"><Badge label={s.status} colors={stColors[s.status]} /></td>
                     <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
                       <div className="flex gap-1">
-                        <button onClick={()=>add({type:"info",title:`Invite sent — ${s.name}`})} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Invite</button>
+                        <button onClick={()=>add({type:"info",title:`Invite sent — ${s.name}`})} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Invite</button>
                         {s.status==="Active"&&<button onClick={()=>add({type:"warning",title:`${s.name} deactivated`})} className="text-xs px-2 py-1 rounded border" style={{ color: ERROR, borderColor:`${ERROR}30` }}>Deactivate</button>}
                       </div>
                     </td>
@@ -1089,9 +1089,9 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             {dayStatus === "Closed" && <Lock size={12} />}{dayStatus}
             {closedBy && <span className="opacity-70"> · {closedBy}</span>}
           </div>
-          {dayStatus === "Open" && <BtnP label="Close Day" icon={Lock} onClick={() => setShowClose(true)} />}
-          {dayStatus === "Closed" && <button onClick={() => setShowReopen(true)} className="text-xs px-3 py-2 rounded-xl border font-medium" style={{ color: MUTED, borderColor: BORDER }}>Reopen (Auth)</button>}
-          {dayStatus === "Reopened" && <BtnP label="Re-close Day" icon={Lock} onClick={() => setShowClose(true)} />}
+          {dayStatus === "Open" && <BtnP label="Close day" icon={Lock} onClick={() => setShowClose(true)} />}
+          {dayStatus === "Closed" && <button onClick={() => setShowReopen(true)} className="text-xs px-3 py-2 rounded-xl border font-medium" style={{ color: MUTED, borderColor: BORDER }}>Reopen (auth)</button>}
+          {dayStatus === "Reopened" && <BtnP label="Re-close day" icon={Lock} onClick={() => setShowClose(true)} />}
           <BtnO label="Export" icon={Download} onClick={() => add({ type: "info", title: "Exporting daily summary PDF" })} />
         </div>
       } />
@@ -1104,8 +1104,8 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Total Revenue" value={fmtN(total)} sub={`Tax excl. · ${cats.reduce((s,c)=>s+c.txn,0)} txns`} icon={TrendingUp} accent={SUCCESS} delta={`${variance>=0?"+":""}${fmtN(variance)} vs yesterday`} deltaPositive={variance>=0} />
-        <StatCard label="Tax Collected" value={fmtN(totalTax)} sub="VAT + service charge" icon={DollarSign} accent={TEAL} />
+        <StatCard label="Total revenue" value={fmtN(total)} sub={`Tax excl. · ${cats.reduce((s,c)=>s+c.txn,0)} txns`} icon={TrendingUp} accent={SUCCESS} delta={`${variance>=0?"+":""}${fmtN(variance)} vs yesterday`} deltaPositive={variance>=0} />
+        <StatCard label="Tax collected" value={fmtN(totalTax)} sub="VAT + service charge" icon={DollarSign} accent={TEAL} />
         <StatCard label="Discounts / Comp" value="₦45,000" sub="6 manager approvals" icon={TrendingDown} accent={WARNING} />
         <StatCard label="Outstanding" value="₦284,500" sub="3 open folios" icon={AlertTriangle} accent={ERROR} />
       </div>
@@ -1176,7 +1176,7 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           </div>
           {/* Payments by method */}
           <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Payments by Method</h3>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Payments by method</h3>
             {payments.map(p => (
               <div key={p.method} className="flex items-center gap-2.5 mb-2.5">
                 <p.icon size={14} style={{ color: MUTED }} />
@@ -1195,7 +1195,7 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             {[{ desc: "VIP comp — Suite 501", amt: 25000, by: "Tunde A." },{ desc: "Loyalty discount — Room 202", amt: 12000, by: "Grace M." },{ desc: "Rate adjustment — Room 311", amt: 8000, by: "Nkechi O." }].map((d,i)=>(
               <div key={i} className="flex items-start justify-between gap-2 mb-2">
                 <div><div className="text-xs font-medium" style={{ color: TEXT }}>{d.desc}</div><div className="text-xs" style={{ color: SUBTLE }}>{d.by}</div></div>
-                <span className="text-xs font-bold flex-shrink-0" style={{ color: ORANGE, fontFamily: mono }}>₦{d.amt.toLocaleString()}</span>
+                <span className="text-xs font-bold flex-shrink-0" style={{ color: ORANGE_INK, fontFamily: mono }}>₦{d.amt.toLocaleString()}</span>
               </div>
             ))}
           </div>
@@ -1207,10 +1207,10 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowClose(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-2" style={{ color: TEXT }}>Close Business Day</h3>
+            <h3 className="text-base font-bold mb-2" style={{ color: TEXT }}>Close business day</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>Closing <strong>{BDATE}</strong>. This will freeze revenue figures. Run Night Audit first to ensure all charges are posted.</p>
             <div className="px-3 py-2.5 rounded-xl text-xs mb-4" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}>Ensure Night Audit has run successfully before closing the day.</div>
-            <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setShowClose(false)} /><button onClick={() => { const now = new Date(); setClosedAt(`${now.getHours()}:${String(now.getMinutes()).padStart(2,"0")}`); setClosedBy("Grace Mensah"); setDayStatus("Closed"); setShowClose(false); add({ type: "success", title: `Day closed — ${BDATE}`, body: "Revenue frozen. Night audit reference created." }); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Close Day</button></div>
+            <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setShowClose(false)} /><button onClick={() => { const now = new Date(); setClosedAt(`${now.getHours()}:${String(now.getMinutes()).padStart(2,"0")}`); setClosedBy("Grace Mensah"); setDayStatus("Closed"); setShowClose(false); add({ type: "success", title: `Day closed — ${BDATE}`, body: "Revenue frozen. Night audit reference created." }); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Close day</button></div>
           </div>
         </>
       )}
@@ -1220,13 +1220,13 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowReopen(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Reopen Business Day</h3>
+            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Reopen business day</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>This action is audited and requires manager authorisation.</p>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason for Reopening</label><textarea value={reopenReason} onChange={e=>setReopenReason(e.target.value)} rows={2} placeholder="State the reason…" aria-label="State the reason" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason for reopening</label><textarea value={reopenReason} onChange={e=>setReopenReason(e.target.value)} rows={2} placeholder="State the reason…" aria-label="State the reason" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" maxLength={4} value={reopenPin} onChange={e=>setReopenPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowReopen(false)} /><button onClick={() => { if (reopenPin !== "1234" || !reopenReason.trim()) { add({ type: "error", title: "Invalid PIN or missing reason" }); return; } setDayStatus("Reopened"); setShowReopen(false); add({ type: "warning", title: `Day reopened — ${BDATE}`, body: reopenReason }); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ORANGE }}>Reopen Day</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowReopen(false)} /><button onClick={() => { if (reopenPin !== "1234" || !reopenReason.trim()) { add({ type: "error", title: "Invalid PIN or missing reason" }); return; } setDayStatus("Reopened"); setShowReopen(false); add({ type: "warning", title: `Day reopened — ${BDATE}`, body: reopenReason }); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ORANGE }}>Reopen day</button></div>
           </div>
         </>
       )}
@@ -1269,31 +1269,31 @@ export function StockDashboard({ add }: { add: (t: Omit<Toast, "id">) => void })
       <PageHeader title="Stock Dashboard" sub="Live inventory overview · Grand Palms Hotel, Abuja" actions={
         <div className="flex gap-2">
           <BtnO label="Export" icon={Download} onClick={() => add({ type:"info", title:"Exporting inventory report" })} />
-          <BtnP label="Log Transaction" icon={Plus} onClick={() => add({ type:"info", title:"New stock transaction" })} />
+          <BtnP label="Log transaction" icon={Plus} onClick={() => add({ type:"info", title:"New stock transaction" })} />
         </div>
       } />
       {pending.length > 0 && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl mb-5" style={{ backgroundColor:"#FEF2F2", border:"1px solid #FECACA" }}>
           <AlertTriangle size={15} style={{ color: ERROR, flexShrink:0 }} />
           <div className="flex-1 text-sm" style={{ color: ERROR }}><span className="font-semibold">{pending.length} items at or below reorder point</span><span className="ml-2 font-normal text-xs" style={{ color:"#991B1B" }}>{pending.map(p=>p.name).join(" · ")}</span></div>
-          <button onClick={() => add({ type:"info", title:"Creating reorder POs" })} className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0" style={{ backgroundColor: ERROR }}>Create Reorder POs</button>
+          <button onClick={() => add({ type:"info", title:"Creating reorder POs" })} className="text-xs font-semibold px-3 py-1.5 rounded-xl text-white flex-shrink-0" style={{ backgroundColor: ERROR }}>Create reorder POs</button>
         </div>
       )}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
-        <StatCard label="Total Stock Value"   value={`₦${(totalVal/1000).toFixed(0)}K`}  sub="Current on-hand value"        icon={DollarSign}    accent={SUCCESS}  />
-        <StatCard label="Below Reorder"       value={String(pending.length)}               sub="Need replenishment now"       icon={AlertTriangle} accent={ERROR}    />
-        <StatCard label="Out of Stock"        value={String(critical.length)}              sub="Zero on-hand"                 icon={XCircle}       accent={ERROR}    />
-        <StatCard label="Expiring Soon"       value={String(expiring.length)}              sub="Within 7 days"                icon={Clock}         accent={WARNING}  />
+        <StatCard label="Total stock value"   value={`₦${(totalVal/1000).toFixed(0)}K`}  sub="Current on-hand value"        icon={DollarSign}    accent={SUCCESS}  />
+        <StatCard label="Below reorder"       value={String(pending.length)}               sub="Need replenishment now"       icon={AlertTriangle} accent={ERROR}    />
+        <StatCard label="Out of stock"        value={String(critical.length)}              sub="Zero on-hand"                 icon={XCircle}       accent={ERROR}    />
+        <StatCard label="Expiring soon"       value={String(expiring.length)}              sub="Within 7 days"                icon={Clock}         accent={WARNING}  />
         <StatCard label="Pending POs"         value="3"                                    sub="Awaiting delivery"            icon={Truck}         accent={TEAL}     />
       </div>
       <div className="grid grid-cols-3 gap-5 mb-5">
         <div className="col-span-2 bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Reorder Suggestions</h3>
+            <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Reorder suggestions</h3>
             <span className="text-xs" style={{ color: MUTED }}>{pending.length} items</span>
           </div>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Item","Cat","On Hand","Reorder Pt","Suggest Qty","Est. Cost",""].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Item","Cat","On hand","Reorder pt","Suggest qty","Est. cost",""].map((h,i)=><th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {pending.map(p => {
                 const pct   = Math.round((p.current/p.par)*100);
@@ -1306,7 +1306,7 @@ export function StockDashboard({ add }: { add: (t: Omit<Toast, "id">) => void })
                     <td className="px-4 py-3 text-sm" style={{ color: MUTED, fontFamily: mono }}>{p.reorder}</td>
                     <td className="px-4 py-3 text-sm font-semibold" style={{ color: PRIMARY, fontFamily: mono }}>{p.reorderQty} {p.unit}</td>
                     <td className="px-4 py-3 text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{(p.reorderQty*p.cost).toLocaleString()}</td>
-                    <td className="px-4 py-3"><button onClick={() => add({ type:"info", title:`PO draft — ${p.name}` })} className="text-xs px-2.5 py-1.5 rounded border font-semibold whitespace-nowrap" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Draft PO</button></td>
+                    <td className="px-4 py-3"><button onClick={() => add({ type:"info", title:`PO draft — ${p.name}` })} className="text-xs px-2.5 py-1.5 rounded border font-semibold whitespace-nowrap" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Draft PO</button></td>
                   </tr>
                 );
               })}
@@ -1314,7 +1314,7 @@ export function StockDashboard({ add }: { add: (t: Omit<Toast, "id">) => void })
           </table>
         </div>
         <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Value by Category</h3>
+          <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Value by category</h3>
           <ResponsiveContainer width="100%" height={160}>
             <PieChart>
               <Pie data={CAT_VALS} dataKey="value" cx="50%" cy="50%" outerRadius={72} innerRadius={40}>
@@ -1337,7 +1337,7 @@ export function StockDashboard({ add }: { add: (t: Omit<Toast, "id">) => void })
       <div className="grid grid-cols-2 gap-5">
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Recent Movements</h3>
+            <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Recent movements</h3>
             <span className="text-xs" style={{ color: MUTED }}>Last 24h</span>
           </div>
           <div className="divide-y" style={{ borderColor: BORDER }}>
@@ -1353,7 +1353,7 @@ export function StockDashboard({ add }: { add: (t: Omit<Toast, "id">) => void })
         <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
           <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Fast / Slow Movers</h3>
           <div className="mb-3">
-            <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: SUCCESS }}>Fast Movers</div>
+            <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: SUCCESS }}>Fast movers</div>
             {PRODUCTS_SD.filter(p=>p.fast).slice(0,4).map(p => (
               <div key={p.sku} className="flex items-center gap-2 mb-1.5">
                 <div className="flex-1 text-xs" style={{ color: TEXT }}>{p.name}</div>
@@ -1363,7 +1363,7 @@ export function StockDashboard({ add }: { add: (t: Omit<Toast, "id">) => void })
             ))}
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: SUBTLE }}>Slow Movers</div>
+            <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: SUBTLE }}>Slow movers</div>
             {PRODUCTS_SD.filter(p=>!p.fast).slice(0,3).map(p => (
               <div key={p.sku} className="flex items-center gap-2 mb-1.5">
                 <div className="flex-1 text-xs" style={{ color: TEXT }}>{p.name}</div>
@@ -1599,9 +1599,9 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Room Types"  value={String(roomTypes.length)}  sub="Configured categories" icon={BedDouble}    accent={PRIMARY} />
-        <StatCard label="Total Rooms" value={String(roomTypes.reduce((s,t)=>s+t.count,0))}     sub="All inventory"     icon={BedDouble}    accent={TEAL}    />
+        <StatCard label="Total rooms" value={String(roomTypes.reduce((s,t)=>s+t.count,0))}     sub="All inventory"     icon={BedDouble}    accent={TEAL}    />
         <StatCard label="Available"   value={String(roomTypes.reduce((s,t)=>s+t.available,0))} sub="Ready to sell"     icon={CheckCircle2} accent={SUCCESS} />
-        <StatCard label="Avg Rate"    value={roomTypes.length ? `₦${Math.round(roomTypes.reduce((s,t)=>s+t.base,0)/roomTypes.length).toLocaleString()}` : "—"} sub="Base rate / night" icon={DollarSign} accent={ORANGE} />
+        <StatCard label="Avg rate"    value={roomTypes.length ? `₦${Math.round(roomTypes.reduce((s,t)=>s+t.base,0)/roomTypes.length).toLocaleString()}` : "—"} sub="Base rate / night" icon={DollarSign} accent={ORANGE} />
       </div>
 
       <div className="flex gap-5 items-start">
@@ -1785,7 +1785,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
           {/* Assigned rooms */}
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>Assigned Rooms</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>Assigned rooms</h3>
               <button onClick={()=>setShowManage(true)} className="text-xs font-semibold px-2.5 py-1 rounded-lg border" style={{ color: tC(selected.code), borderColor:`${tC(selected.code)}30` }}>Manage</button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -1882,8 +1882,8 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
               {assignedRooms(roomTypes.find(r=>r.code===confirmDelete.code)!).length > 0 && (
                 <div className="mt-4 flex items-start gap-2.5 text-left p-3 rounded-xl w-full"
                   style={{ backgroundColor:`${WARNING}10`, border:`1px solid ${WARNING}30` }}>
-                  <AlertTriangle size={14} style={{ color: WARNING, flexShrink:0, marginTop:1 }}/>
-                  <p className="text-xs" style={{ color: WARNING }}>
+                  <AlertTriangle size={14} style={{ color: WARNING_INK, flexShrink:0, marginTop:1 }}/>
+                  <p className="text-xs" style={{ color: WARNING_INK }}>
                     <strong>{assignedRooms(roomTypes.find(r=>r.code===confirmDelete.code)!).length} room{assignedRooms(roomTypes.find(r=>r.code===confirmDelete.code)!).length!==1?"s":""}</strong> are currently assigned to this type and will become unassigned.
                   </p>
                 </div>
@@ -1919,17 +1919,17 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
                 <input type="number" value={editVals.base} onChange={e=>setEditVals(p=>({...p,base:e.target.value}))} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER, fontFamily:mono }} />
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Max Occupancy</label>
+                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Max occupancy</label>
                 <select aria-label="Max Occupancy" value={editVals.maxOcc} onChange={e=>setEditVals(p=>({...p,maxOcc:e.target.value}))} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
                   {["1","2","3","4","5","6","8","10"].map(v=><option key={v}>{v}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Room Size</label>
+                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Room size</label>
                 <input value={editVals.size} onChange={e=>setEditVals(p=>({...p,size:e.target.value}))} placeholder="e.g. 38 m²" aria-label="e.g. 38 m²" className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} />
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Bed Configuration</label>
+                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Bed configuration</label>
                 <input value={editVals.beds} onChange={e=>setEditVals(p=>({...p,beds:e.target.value}))} placeholder="e.g. 1 King + Sofa Bed" aria-label="e.g. 1 King + Sofa Bed" className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} />
               </div>
               <div className="col-span-2">
@@ -1940,7 +1940,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
           </div>
           <div className="flex gap-3 px-6 py-4 border-t" style={{ borderColor: BORDER }}>
             <button onClick={()=>setShowEdit(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
-            <button onClick={saveEdit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: tC(selected.code) }}>Save Changes</button>
+            <button onClick={saveEdit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: tC(selected.code) }}>Save changes</button>
           </div>
         </ModalShell>
       )}
@@ -1953,7 +1953,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
             <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: PRIMARY }}>
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity:0.6 }}>Room Types</p>
-                <p className="text-base font-bold text-white mt-0.5">Add Room Type</p>
+                <p className="text-base font-bold text-white mt-0.5">Add room type</p>
               </div>
               <button aria-label="Close" onClick={()=>setShowAddType(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor:"rgba(255,255,255,0.18)" }}>
                 <X size={16} color="white" />
@@ -1964,7 +1964,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Type Code <span style={{ color:ERROR }}>*</span></label>
                   <input value={newType.code} onChange={e=>setNewType(p=>({...p,code:e.target.value.toUpperCase().slice(0,4)}))} placeholder="e.g. PEN" aria-label="e.g. PEN" maxLength={4}
-                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white", fontFamily:mono, letterSpacing:"0.1em" }} />
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white", fontFamily:mono }} />
                   <p className="text-xs mt-1" style={{ color:SUBTLE }}>Unique 2–4 char identifier</p>
                 </div>
                 <div>
@@ -1978,19 +1978,19 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white", fontFamily:mono }} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Max Occupancy</label>
+                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Max occupancy</label>
                   <select aria-label="Max Occupancy" value={newType.maxOcc} onChange={e=>setNewType(p=>({...p,maxOcc:e.target.value}))}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}>
                     {["1","2","3","4","5","6","8","10"].map(v=><option key={v}>{v}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Room Size</label>
+                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Room size</label>
                   <input value={newType.size} onChange={e=>setNewType(p=>({...p,size:e.target.value}))} placeholder="e.g. 80 m²" aria-label="e.g. 80 m²"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Bed Configuration</label>
+                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Bed configuration</label>
                   <input value={newType.beds} onChange={e=>setNewType(p=>({...p,beds:e.target.value}))} placeholder="e.g. 2 King beds" aria-label="e.g. 2 King beds"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }} />
                 </div>
@@ -2017,7 +2017,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
         <ModalShell title="Manage Amenities" sub={selected.name} onClose={()=>{ setShowAmenity(false); setNewAmenity(""); }}>
           <div className="px-6 py-5">
             {/* Custom input */}
-            <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color:MUTED }}>Add Custom Amenity</label>
+            <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color:MUTED }}>Add custom amenity</label>
             <div className="flex gap-2 mb-5">
               <input value={newAmenity} onChange={e=>setNewAmenity(e.target.value)}
                 onKeyDown={e=>{ if(e.key==="Enter"){ doAddAmenity(newAmenity); } }}
@@ -2027,7 +2027,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
             </div>
 
             {/* Quick-add presets */}
-            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color:MUTED }}>Quick Add</p>
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color:MUTED }}>Quick add</p>
             <div className="flex flex-wrap gap-2 mb-5">
               {PRESETS.filter(a=>!selected.amenities.includes(a)).map(a=>(
                 <button key={a} onClick={()=>doAddAmenity(a)}
@@ -2235,7 +2235,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       <PageHeader title="Rate Calendar"
         sub={`${viewDays}-day view · click to select · click STOP to lift · ${overrides} override${overrides!==1?"s":""} pending`}
         actions={<>
-          <BtnO label="Copy Forward" icon={CalendarDays}
+          <BtnO label="Copy forward" icon={CalendarDays}
             onClick={()=>add({type:"success",title:"Rates copied 30 days forward",body:`${overrides} override${overrides!==1?"s":""} included`})} />
           <BtnP label={overrides>0?`Publish (${overrides})`:"Publish Rates"} icon={CheckCircle2}
             onClick={()=>{ add({type:"success",title:"Rates published",body:`${overrides} custom rate${overrides!==1?"s":""} pushed live`}); setCellRates({}); }} />
@@ -2243,9 +2243,9 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Active Plans"    value={String(RATE_PLANS.filter(r=>r.active).length)} sub="Rate plans available"  icon={DollarSign}    accent={PRIMARY} />
+        <StatCard label="Active plans"    value={String(RATE_PLANS.filter(r=>r.active).length)} sub="Rate plans available"  icon={DollarSign}    accent={PRIMARY} />
         <StatCard label="Stop-Sell"       value={String(stopSell.length)}  sub={stopSell.length>0?"Tap STOP cell to lift":"No closures"}   icon={AlertTriangle} accent={stopSell.length>0?ERROR:SUCCESS} />
-        <StatCard label="Rate Overrides"  value={String(overrides)}        sub={overrides>0?"Unpublished changes":"In sync with plan"}       icon={Edit3}         accent={overrides>0?ORANGE:TEAL} />
+        <StatCard label="Rate overrides"  value={String(overrides)}        sub={overrides>0?"Unpublished changes":"In sync with plan"}       icon={Edit3}         accent={overrides>0?ORANGE:TEAL} />
         <StatCard label="Avg Occupancy"   value={`${avgOcc}%`}             sub={`Next ${viewDays} days · live`}                             icon={TrendingUp}    accent={avgOcc>=80?ERROR:avgOcc>=60?ORANGE:SUCCESS} />
       </div>
 
@@ -2334,7 +2334,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 {/* Date header */}
                 <div className="flex sticky top-0 z-10" style={{ backgroundColor:"#F8FAFC", borderBottom:`1px solid ${BORDER}` }}>
                   <div className="flex-shrink-0 flex items-center px-4" style={{ width:LABEL_W, borderRight:`1px solid ${BORDER}` }}>
-                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color:MUTED }}>Room Type</span>
+                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color:MUTED }}>Room type</span>
                   </div>
                   {days.map((d,i)=>{
                     const isToday   = i===todayIdx;
@@ -2349,7 +2349,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                           {d.toLocaleDateString("en-NG",{weekday:"short"}).slice(0,3)}
                         </span>
                         <div className="flex flex-col items-center">
-                          <span style={{ fontSize: viewDays===7?18:14, fontWeight:800, lineHeight:1, color:isToday?PRIMARY:isWeekend?"#475569":TEXT }}>
+                          <span style={{ fontSize: viewDays===7?18:14, fontWeight: 700, lineHeight:1, color:isToday?PRIMARY:isWeekend?"#475569":TEXT }}>
                             {d.getDate()}
                           </span>
                           {(i===0||d.getDate()===1) && (
@@ -2411,7 +2411,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor:"#FEE2E2" }}>
                                 <MinusCircle size={14} style={{ color:ERROR }}/>
                               </div>
-                              <span style={{ fontSize: 12, fontWeight:800, color:ERROR, letterSpacing:"0.08em" }}>CLOSED</span>
+                              <span style={{ fontSize: 12, fontWeight: 700, color:ERROR }}>CLOSED</span>
                               <span style={{ fontSize: 12, color:"#F87171" }}>tap to lift</span>
                             </div>
                           ) : (
@@ -2419,7 +2419,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                             <div className="absolute inset-0 flex flex-col justify-between p-2">
                               {/* Rate */}
                               <div className="flex items-start justify-between">
-                                <span style={{ fontSize: viewDays===7?15:12, fontWeight:800, color:rateColor, fontFamily:mono, lineHeight:1 }}>
+                                <span style={{ fontSize: viewDays===7?15:12, fontWeight: 700, color:rateColor, fontFamily:mono, lineHeight:1 }}>
                                   ₦{(rate/1000).toFixed(rate%1000===0?0:1)}k
                                 </span>
                                 {hasOvr && (
@@ -2496,7 +2496,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 <div key={rt.code} className="flex items-center gap-3">
                   {/* Badge */}
                   <div className="flex-shrink-0 w-10 h-7 rounded flex items-center justify-center text-white"
-                    style={{ backgroundColor:TYPE_COLOR[rt.code], fontSize: 12, fontWeight:800, letterSpacing:"0.04em" }}>
+                    style={{ backgroundColor:TYPE_COLOR[rt.code], fontSize: 12, fontWeight: 700 }}>
                     {rt.code}
                   </div>
                   {/* Cells */}
@@ -2600,8 +2600,8 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               </div>
             </div>
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color:MUTED }}>Min Stay</label>
-              <select aria-label="Min Stay" value={minStay} onChange={e=>setMinStay(e.target.value)}
+              <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color:MUTED }}>Min stay</label>
+              <select aria-label="Min stay" value={minStay} onChange={e=>setMinStay(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg text-sm outline-none" style={{ borderColor:BORDER }}>
                 {["No restriction","1 night","2 nights","3 nights","5 nights","7 nights"].map(v=><option key={v}>{v}</option>)}
               </select>
@@ -2633,14 +2633,14 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           {overrides>0 && (
             <div className="rounded-xl border p-4" style={{ borderColor:`${ORANGE}30`, backgroundColor:`${ORANGE}06` }}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color:ORANGE }}>Pending</span>
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color:ORANGE_INK }}>Pending</span>
                 <button onClick={()=>{ setCellRates({}); add({type:"info",title:"Overrides cleared"}); }}
                   className="text-xs px-2 py-0.5 rounded border" style={{ color:MUTED, borderColor:BORDER, backgroundColor:"white" }}>
                   Clear
                 </button>
               </div>
-              <p className="text-2xl font-black" style={{ color:ORANGE, fontFamily:mono }}>{overrides}</p>
-              <p className="text-xs" style={{ color:ORANGE }}>override{overrides!==1?"s":""} · publish to go live</p>
+              <p className="text-2xl font-black" style={{ color:ORANGE_INK, fontFamily:mono }}>{overrides}</p>
+              <p className="text-xs" style={{ color:ORANGE_INK }}>override{overrides!==1?"s":""} · publish to go live</p>
             </div>
           )}
         </div>
@@ -2670,8 +2670,8 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
   const days    = Array.from({ length: DAYS }, (_, i) => { const d = new Date(TODAY); d.setDate(TODAY.getDate()+offset+i); return d; });
   const TYPES   = [
     { code:"STD", name:"Standard", total:10, color:PRIMARY },
-    { code:"DLX", name:"Deluxe",   total:8,  color:TEAL   },
-    { code:"STE", name:"Suite",    total:4,  color:ORANGE },
+    { code:"DLX", name:"Deluxe",   total:8,  color:TEAL_INK   },
+    { code:"STE", name:"Suite",    total:4,  color:ORANGE_INK },
   ];
   const totalInv  = TYPES.reduce((s,t)=>s+t.total, 0);
   const todayIdx  = days.findIndex(d=>d.toDateString()===TODAY.toDateString());
@@ -2712,14 +2712,14 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
       <PageHeader title="Availability Board" sub="Inventory, sold, and available rooms by type × date"
         actions={<>
           <BtnO label="Export" icon={Download} onClick={()=>add({type:"info",title:"Availability report exported",body:"CSV download started"})} />
-          <BtnP label="Add Group Block" icon={Plus} onClick={()=>setShowGroup(true)} />
+          <BtnP label="Add group block" icon={Plus} onClick={()=>setShowGroup(true)} />
         </>} />
 
       {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Total Inventory" value={String(totalInv)}  sub="All room types"  icon={BedDouble}    accent={PRIMARY} />
         <StatCard label="Avg Occupancy"   value={`${avgOcc7}%`}     sub="Next 7 days"    icon={TrendingUp}   accent={TEAL} />
-        <StatCard label="Group Blocks"    value={String(new Set(groupBlocks.map(g=>g.name)).size)} sub="Active blocks" icon={Users} accent={ORANGE} />
+        <StatCard label="Group blocks"    value={String(new Set(groupBlocks.map(g=>g.name)).size)} sub="Active blocks" icon={Users} accent={ORANGE} />
         <StatCard label="Stop-Sells"      value={String(stopSells.length)} sub={stopSells.length>0?"Cells closed":"No restrictions"} icon={stopSells.length>0?MinusCircle:CheckCircle2} accent={stopSells.length>0?ERROR:SUCCESS} />
       </div>
 
@@ -2775,7 +2775,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
               {/* Date header */}
               <div className="flex sticky top-0 z-10" style={{ backgroundColor:"#F9FAFB", borderBottom:`1px solid ${BORDER}` }}>
                 <div className="flex-shrink-0 px-4 py-2 flex items-center" style={{ width:LABEL_W, borderRight:`1px solid ${BORDER}` }}>
-                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color:MUTED }}>Room Type</span>
+                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color:MUTED }}>Room type</span>
                 </div>
                 {days.map((d,i)=>{
                   const isToday   = i===todayIdx;
@@ -2787,7 +2787,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                       <span style={{ fontSize: 12, fontWeight:700, color:isToday?PRIMARY:isWeekend?MUTED:SUBTLE }}>
                         {d.toLocaleDateString("en-NG",{weekday:"short"}).slice(0,3)}
                       </span>
-                      <span style={{ fontSize:viewDays===7?17:14, fontWeight:800, lineHeight:1, color:isToday?PRIMARY:isWeekend?"#475569":TEXT }}>
+                      <span style={{ fontSize:viewDays===7?17:14, fontWeight: 700, lineHeight:1, color:isToday?PRIMARY:isWeekend?"#475569":TEXT }}>
                         {d.getDate()}
                       </span>
                       {(i===0||d.getDate()===1) && (
@@ -2810,7 +2810,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                     style={{ width:LABEL_W, borderRight:`1px solid ${BORDER}`, minHeight:ROW_H }}>
                     <div className="w-2 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor:rt.color }}/>
                     <div className="w-9 h-7 rounded flex items-center justify-center text-white flex-shrink-0"
-                      style={{ backgroundColor:rt.color, fontSize: 12, fontWeight:800 }}>{rt.code}</div>
+                      style={{ backgroundColor:rt.color, fontSize: 12, fontWeight: 700 }}>{rt.code}</div>
                     <div>
                       <div className="text-xs font-bold" style={{ color:TEXT }}>{rt.name}</div>
                       <div className="text-xs mt-0.5" style={{ color:MUTED }}>{rt.total} rooms</div>
@@ -2849,7 +2849,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor:"#FEE2E2" }}>
                               <MinusCircle size={14} style={{ color:ERROR }}/>
                             </div>
-                            <span style={{ fontSize: 12, fontWeight:800, color:ERROR, letterSpacing:"0.06em" }}>STOP SELL</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color:ERROR }}>STOP SELL</span>
                             <span style={{ fontSize: 12, color:"#F87171" }}>tap to lift</span>
                           </div>
                         ) : viewDays===7 ? (
@@ -2858,11 +2858,11 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                             {/* Avail + Sold side by side */}
                             <div className="flex items-end justify-between">
                               <div className="flex flex-col items-start">
-                                <span style={{ fontSize:26, fontWeight:900, lineHeight:1, color:avail===0?ERROR:avail<=2?ORANGE:avail<=4?AVAIL_LOW:TEXT, fontFamily:mono }}>{avail}</span>
+                                <span style={{ fontSize:26, fontWeight: 700, lineHeight:1, color:avail===0?ERROR:avail<=2?ORANGE:avail<=4?AVAIL_LOW:TEXT, fontFamily:mono }}>{avail}</span>
                                 <span style={{ fontSize: 12, color:MUTED, marginTop:1 }}>available</span>
                               </div>
                               <div className="flex flex-col items-end">
-                                <span style={{ fontSize:16, fontWeight:800, lineHeight:1, color:sold===rt.total?ERROR:MUTED, fontFamily:mono }}>{sold}</span>
+                                <span style={{ fontSize:16, fontWeight: 700, lineHeight:1, color:sold===rt.total?ERROR:MUTED, fontFamily:mono }}>{sold}</span>
                                 <span style={{ fontSize: 12, color:SUBTLE, marginTop:1 }}>sold</span>
                               </div>
                             </div>
@@ -2870,7 +2870,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                             <div>
                               {grpBlock && (
                                 <div className="mb-1.5 px-1.5 py-0.5 rounded text-white inline-block max-w-full truncate"
-                                  style={{ backgroundColor:TEAL, fontSize: 12, fontWeight:800 }}>
+                                  style={{ backgroundColor:TEAL, fontSize: 12, fontWeight: 700 }}>
                                   {grpBlock.name} · {grpBlock.rooms}rm
                                 </div>
                               )}
@@ -2879,7 +2879,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                               </div>
                               <div className="flex justify-between items-center">
                                 <span style={{ fontSize: 12, color:MUTED }}>{rt.total} total</span>
-                                <span style={{ fontSize: 12, fontWeight:800, color:barColor, fontFamily:mono }}>{Math.round(pct*100)}%</span>
+                                <span style={{ fontSize: 12, fontWeight: 700, color:barColor, fontFamily:mono }}>{Math.round(pct*100)}%</span>
                               </div>
                             </div>
                           </div>
@@ -2888,11 +2888,11 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                           <div className="absolute inset-0 flex flex-col justify-between p-2">
                             <div className="flex items-start justify-between">
                               <div className="flex items-baseline gap-0.5">
-                                <span style={{ fontSize:16, fontWeight:900, lineHeight:1, color:avail===0?ERROR:avail<=2?ORANGE:avail<=4?AVAIL_LOW:TEXT, fontFamily:mono }}>{avail}</span>
+                                <span style={{ fontSize:16, fontWeight: 700, lineHeight:1, color:avail===0?ERROR:avail<=2?ORANGE:avail<=4?AVAIL_LOW:TEXT, fontFamily:mono }}>{avail}</span>
                                 <span style={{ fontSize: 12, color:MUTED }}>free</span>
                               </div>
                               {grpBlock && (
-                                <div className="px-1 py-0.5 rounded text-white flex-shrink-0" style={{ backgroundColor:TEAL, fontSize: 12, fontWeight:800 }}>
+                                <div className="px-1 py-0.5 rounded text-white flex-shrink-0" style={{ backgroundColor: TEAL_INK, fontSize: 12, fontWeight: 700 }}>
                                   GRP·{grpBlock.rooms}
                                 </div>
                               )}
@@ -2925,7 +2925,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                   return (
                     <div key={i} className="flex flex-col items-center justify-center py-2.5 gap-1"
                       style={{ flex:1, minWidth:62, borderRight:`1px solid ${BORDER}`, backgroundColor:i===todayIdx?"#EFF6FF":"transparent" }}>
-                      <span style={{ fontSize:viewDays===7?15:13, fontWeight:800, color:c, fontFamily:mono }}>{occ}%</span>
+                      <span style={{ fontSize:viewDays===7?15:13, fontWeight: 700, color:c, fontFamily:mono }}>{occ}%</span>
                       <div className="rounded-full overflow-hidden" style={{ width:"72%", height:5, backgroundColor:"#E2E8F0" }}>
                         <div className="h-full rounded-full" style={{ width:`${occ}%`, backgroundColor:c }}/>
                       </div>
@@ -2945,7 +2945,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
               </span>
             ))}
             <span className="flex items-center gap-1.5 text-xs" style={{ color:MUTED }}>
-              <span className="px-1 rounded text-white inline-block" style={{ backgroundColor:TEAL, fontSize: 12, fontWeight:800 }}>GRP·N</span> Group block
+              <span className="px-1 rounded text-white inline-block" style={{ backgroundColor: TEAL_INK, fontSize: 12, fontWeight: 700 }}>GRP·N</span> Group block
             </span>
             <span className="ml-auto text-xs" style={{ color:SUBTLE }}>Click any cell to inspect · click stop-sell cell to lift</span>
           </div>
@@ -3018,7 +3018,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                         <div className="text-xs" style={{ color:MUTED, fontFamily:mono }}>{r.id} · {r.checkin}–{r.checkout}</div>
                       </div>
                       <button onClick={()=>nav?nav("reservation-detail",r.guest,r.id):add({type:"info",title:r.id})}
-                        className="text-xs px-2 py-1 rounded-lg border flex-shrink-0" style={{ color:TEAL, borderColor:`${TEAL}30` }}>View</button>
+                        className="text-xs px-2 py-1 rounded-lg border flex-shrink-0" style={{ color:TEAL_INK, borderColor:`${TEAL}30` }}>View</button>
                     </div>
                   ))}
                   {drillCell.sold===0 && <div className="text-xs text-center py-3" style={{ color:MUTED }}>No reservations for this cell</div>}
@@ -3053,7 +3053,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
             /* Default summary panel */
             <div className="space-y-3">
               <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER }}>
-                <h3 className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color:MUTED }}>Property Snapshot</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color:MUTED }}>Property snapshot</h3>
                 <div className="space-y-3.5">
                   {TYPES.map(rt=>{
                     const avgSold = Array.from({length:Math.min(7,DAYS)},(_,i)=>getSold(rt.code,i)).reduce((a,b)=>a+b,0)/Math.min(7,DAYS);
@@ -3062,7 +3062,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                       <div key={rt.code}>
                         <div className="flex justify-between items-center mb-1">
                           <div className="flex items-center gap-2">
-                            <div className="w-9 h-5 rounded flex items-center justify-center text-white" style={{ backgroundColor:rt.color, fontSize: 12, fontWeight:800 }}>{rt.code}</div>
+                            <div className="w-9 h-5 rounded flex items-center justify-center text-white" style={{ backgroundColor:rt.color, fontSize: 12, fontWeight: 700 }}>{rt.code}</div>
                             <span className="text-xs font-semibold" style={{ color:TEXT }}>{rt.name}</span>
                           </div>
                           <span className="text-xs font-black" style={{ color:heatC(occ), fontFamily:mono }}>{occ}%</span>
@@ -3095,7 +3095,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                     </div>
                   ))}
                   <div className="flex items-center gap-2.5 pt-2 border-t" style={{ borderColor:BORDER }}>
-                    <div className="px-1.5 py-0.5 rounded text-white flex-shrink-0" style={{ backgroundColor:TEAL, fontSize: 12, fontWeight:800 }}>GRP·N</div>
+                    <div className="px-1.5 py-0.5 rounded text-white flex-shrink-0" style={{ backgroundColor: TEAL_INK, fontSize: 12, fontWeight: 700 }}>GRP·N</div>
                     <div>
                       <div className="text-xs font-semibold" style={{ color:TEXT }}>Group block</div>
                       <div style={{ fontSize: 12, color:SUBTLE }}>N rooms held for a group</div>
@@ -3120,7 +3120,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
             <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: PRIMARY }}>
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity:0.6 }}>Availability Board</p>
-                <p className="text-base font-bold text-white mt-0.5">Add Group Block</p>
+                <p className="text-base font-bold text-white mt-0.5">Add group block</p>
               </div>
               <button aria-label="Close" onClick={()=>setShowGroup(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor:"rgba(255,255,255,0.18)" }}>
                 <X size={16} color="white" />
@@ -3136,8 +3136,8 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Room Type</label>
-                  <select aria-label="Room Type" value={grpForm.type} onChange={e=>setGrpForm(f=>({...f,type:e.target.value}))}
+                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Room type</label>
+                  <select aria-label="Room type" value={grpForm.type} onChange={e=>setGrpForm(f=>({...f,type:e.target.value}))}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}>
                     <option value="STD">Standard</option>
@@ -3146,8 +3146,8 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Number of Rooms</label>
-                  <input aria-label="Number of Rooms" value={grpForm.rooms} onChange={e=>setGrpForm(f=>({...f,rooms:e.target.value}))}
+                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Number of rooms</label>
+                  <input aria-label="Number of rooms" value={grpForm.rooms} onChange={e=>setGrpForm(f=>({...f,rooms:e.target.value}))}
                     type="number" min="1" max="20"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}/>
@@ -3155,14 +3155,14 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Check-in Date</label>
-                  <input aria-label="Check-in Date" value={grpForm.checkin} onChange={e=>setGrpForm(f=>({...f,checkin:e.target.value}))}
+                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Check-in date</label>
+                  <DateInput aria-label="Check-in date" value={grpForm.checkin} onChange={e=>setGrpForm(f=>({...f,checkin:e.target.value}))}
                     type="date" className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}/>
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Check-out Date</label>
-                  <input aria-label="Check-out Date" value={grpForm.checkout} onChange={e=>setGrpForm(f=>({...f,checkout:e.target.value}))}
+                  <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Check-out date</label>
+                  <DateInput aria-label="Check-out date" value={grpForm.checkout} onChange={e=>setGrpForm(f=>({...f,checkout:e.target.value}))}
                     type="date" className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}/>
                 </div>
@@ -3171,7 +3171,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
             <div className="px-6 pb-6 flex gap-3">
               <button onClick={saveGroupBlock}
                 className="flex-1 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2"
-                style={{ backgroundColor:PRIMARY }}><Plus size={15}/>Create Block</button>
+                style={{ backgroundColor:PRIMARY }}><Plus size={15}/>Create block</button>
               <button onClick={()=>setShowGroup(false)}
                 className="px-5 py-3 rounded-xl text-sm font-bold"
                 style={{ border:`1.5px solid ${BORDER}`, color:MUTED }}>Cancel</button>

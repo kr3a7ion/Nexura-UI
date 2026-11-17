@@ -1,6 +1,6 @@
 // Batch 19 — Fleet Operations (5 screens)
 // DispatchBoard, TripDetail, NewTripRequest, DriverRoster, FleetCosting
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import {
   Car, Navigation, Users, Clock, MapPin, Flag, CheckCircle2,
   AlertTriangle, Plus, Search, Filter, Download, Phone,
@@ -20,9 +20,9 @@ import {
   type Toast, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR,
   BORDER, TEXT, MUTED, SUBTLE,
   ShiftProposalStore, type ShiftProposal,
-fmtDate, BUSINESS_DATE, stampNow
-} from "./constants";
+fmtDate, BUSINESS_DATE, stampNow, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO, Badge } from "./UIKit";
+import { DateInput } from "./DateInput";
 
 // ─── Shared fleet data ────────────────────────────────────────────────────────
 
@@ -256,7 +256,7 @@ function VehicleStatusPill({ status }: { status: Vehicle["status"] }) {
 function ExportBtn({ add, label }: { add: (t: Omit<Toast,"id">) => void; label: string }) {
   const [st, setSt] = useState<"idle"|"gen"|"ready">("idle");
   if (st==="gen") return <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs" style={{ backgroundColor:"#EFF6FF", color:PRIMARY }}><div className="w-3 h-3 border-2 rounded-full animate-spin" style={{ borderColor:`${PRIMARY}40`, borderTopColor:PRIMARY }} />Generating…</div>;
-  if (st==="ready") return <button onClick={()=>{add({type:"success",title:`${label} exported`});setSt("idle");}} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold" style={{ backgroundColor:"#DCFCE7", color:"#166534" }}><Download size={12}/>Download Ready</button>;
+  if (st==="ready") return <button onClick={()=>{add({type:"success",title:`${label} exported`});setSt("idle");}} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold" style={{ backgroundColor:"#DCFCE7", color:"#166534" }}><Download size={12}/>Download ready</button>;
   return <button onClick={()=>{setSt("gen");setTimeout(()=>setSt("ready"),1600);}} className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs" style={{ borderColor:BORDER, color:MUTED }}><Download size={12}/>Export</button>;
 }
 
@@ -363,15 +363,15 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
   return (
     <div>
       <PageHeader title="Dispatch Board" sub="Real-time trip management — assign, advance, and track all active trips"
-        actions={<BtnP label="New Trip" icon={Plus} onClick={() => nav?.("new-trip", "New Trip Request")} />}
+        actions={<BtnP label="New trip" icon={Plus} onClick={() => nav?.("new-trip", "New Trip Request")} />}
       />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Active Trips"     value={String(trips.filter(t=>!["cancelled","completed"].includes(t.status)).length)} sub="Pending + in progress" icon={Car}          accent={PRIMARY} />
+        <StatCard label="Active trips"     value={String(trips.filter(t=>!["cancelled","completed"].includes(t.status)).length)} sub="Pending + in progress" icon={Car}          accent={PRIMARY} />
         <StatCard label="Pending Approval" value={String(pendingApproval.length)} sub={pendingApproval.length>0?"Needs manager action":"All clear"} icon={AlertCircle} accent={pendingApproval.length>0?"#5B21B6":SUCCESS} />
-        <StatCard label="Vehicles Active"  value={String(VEHICLES.filter(v=>v.status==="on-trip").length)} sub={`of ${VEHICLES.length} total`} icon={Truck} accent={TEAL} />
-        <StatCard label="Drivers On Duty"  value={String(DRIVERS.filter(d=>d.onDuty).length)} sub={`of ${DRIVERS.length} total`} icon={Users} accent={ORANGE} />
+        <StatCard label="Vehicles active"  value={String(VEHICLES.filter(v=>v.status==="on-trip").length)} sub={`of ${VEHICLES.length} total`} icon={Truck} accent={TEAL} />
+        <StatCard label="Drivers on duty"  value={String(DRIVERS.filter(d=>d.onDuty).length)} sub={`of ${DRIVERS.length} total`} icon={Users} accent={ORANGE} />
       </div>
 
       {/* Cancel modal */}
@@ -395,8 +395,8 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
               </div>
             </div>
             <div className="flex gap-2 px-5 py-4 border-t" style={{ borderColor:BORDER }}>
-              <button onClick={()=>setCancelTarget(null)} className="flex-1 py-2.5 rounded-xl text-sm border" style={{ borderColor:BORDER, color:MUTED }}>Keep Trip</button>
-              <button onClick={doCancel} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor:ERROR }}>Confirm Cancel</button>
+              <button onClick={()=>setCancelTarget(null)} className="flex-1 py-2.5 rounded-xl text-sm border" style={{ borderColor:BORDER, color:MUTED }}>Keep trip</button>
+              <button onClick={doCancel} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor:ERROR }}>Confirm cancel</button>
             </div>
           </div>
         </div>
@@ -418,7 +418,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-bold" style={{ color:"#5B21B6", fontFamily:mono }}>{t.id}</span>
-                        {t.priority === "Urgent" && <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ backgroundColor:"#FFF7ED", color:ORANGE }}>Urgent</span>}
+                        {t.priority === "Urgent" && <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ backgroundColor:"#FFF7ED", color:ORANGE_INK }}>Urgent</span>}
                         <span className="text-xs font-semibold" style={{ color:TEXT }}>{t.dept}</span>
                         <span className="text-xs" style={{ color:MUTED }}>· {t.requestedBy}</span>
                       </div>
@@ -498,7 +498,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
                             <span className="text-xs font-bold" style={{ color:TEXT }}>{t.scheduledTime}</span>
                             {t.vehicle && <span className="text-xs" style={{ color:SUBTLE, fontFamily:mono }}>{VEHICLES.find(v=>v.id===t.vehicle)?.plate ?? t.vehicle}</span>}
                           </div>
-                          {t.flight && <div className="text-xs mt-0.5" style={{ color:TEAL }}><Plane size={9} className="inline mr-0.5"/>{t.flight}</div>}
+                          {t.flight && <div className="text-xs mt-0.5" style={{ color:TEAL_INK }}><Plane size={9} className="inline mr-0.5"/>{t.flight}</div>}
                           {(col==="completed"||col==="cancelled") && <div className="text-xs mt-1.5 font-medium" style={{ color:PRIMARY }}>View detail →</div>}
                           {col!=="completed" && col!=="cancelled" && col!=="requested" && (
                             <div className="flex gap-1 mt-2">
@@ -544,7 +544,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
                 </select>
               </div>
               <div className="flex gap-2">
-                <button onClick={doAssign} className="flex-1 py-2 rounded-xl text-xs font-bold text-white" style={{ backgroundColor:PRIMARY }}>Confirm Assignment</button>
+                <button onClick={doAssign} className="flex-1 py-2 rounded-xl text-xs font-bold text-white" style={{ backgroundColor:PRIMARY }}>Confirm assignment</button>
                 <button onClick={()=>{setCancelTarget(selectedTripObj.id);setSelectedTrip(null);}} className="px-3 py-2 rounded-xl text-xs border" style={{ borderColor:"#FCA5A5", color:ERROR }} title="Cancel this trip"><XCircle size={13}/></button>
               </div>
             </div>
@@ -552,7 +552,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
 
           {/* Vehicles */}
           <div className="bg-white rounded-xl border p-3" style={{ borderColor:BORDER }}>
-            <div className="text-xs font-bold mb-2" style={{ color:TEXT }}>Fleet Status</div>
+            <div className="text-xs font-bold mb-2" style={{ color:TEXT }}>Fleet status</div>
             <div className="space-y-1.5">
               {VEHICLES.map(v => (
                 <div key={v.id} className="px-2 py-1.5 rounded-lg" style={{ backgroundColor:"#F9FAFB" }}>
@@ -570,7 +570,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
 
           {/* Drivers */}
           <div className="bg-white rounded-xl border p-3" style={{ borderColor:BORDER }}>
-            <div className="text-xs font-bold mb-2" style={{ color:TEXT }}>Drivers On Duty</div>
+            <div className="text-xs font-bold mb-2" style={{ color:TEXT }}>Drivers on duty</div>
             <div className="space-y-1.5">
               {DRIVERS.filter(d=>d.onDuty).map(d => (
                 <div key={d.id} className="px-2 py-1.5 rounded-lg" style={{ backgroundColor:"#F9FAFB" }}>
@@ -580,7 +580,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
                   </div>
                   <div className="text-xs" style={{ color:MUTED }}>{d.vehicle ?? "Unassigned"} · {d.tripsToday} trip{d.tripsToday!==1?"s":""} today</div>
                   {d.licDaysLeft < 0 && <div className="text-xs font-semibold mt-0.5" style={{ color:ERROR }}>⚠ Licence expired</div>}
-                  {d.licDaysLeft >= 0 && d.licDaysLeft <= 30 && <div className="text-xs mt-0.5" style={{ color:WARNING }}>Lic. expires in {d.licDaysLeft}d</div>}
+                  {d.licDaysLeft >= 0 && d.licDaysLeft <= 30 && <div className="text-xs mt-0.5" style={{ color:WARNING_INK }}>Lic. expires in {d.licDaysLeft}d</div>}
                 </div>
               ))}
               {DRIVERS.filter(d=>d.onDuty).length === 0 && <div className="text-xs text-center py-3" style={{ color:SUBTLE }}>No drivers on duty</div>}
@@ -659,9 +659,9 @@ export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
           {/* Flight (guest trips) */}
           {trip.flight && (
             <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
-              <div className="text-sm font-semibold mb-2" style={{ color:TEXT }}>Flight Details</div>
+              <div className="text-sm font-semibold mb-2" style={{ color:TEXT }}>Flight details</div>
               <div className="flex gap-6">
-                <div><div className="text-xs" style={{ color:MUTED }}>Flight</div><div className="text-sm font-bold" style={{ color:TEAL, fontFamily:mono }}>{trip.flight}</div></div>
+                <div><div className="text-xs" style={{ color:MUTED }}>Flight</div><div className="text-sm font-bold" style={{ color:TEAL_INK, fontFamily:mono }}>{trip.flight}</div></div>
                 {trip.terminal && <div><div className="text-xs" style={{ color:MUTED }}>Terminal</div><div className="text-sm font-bold" style={{ color:TEXT }}>{trip.terminal}</div></div>}
                 {trip.reservationRef && <div><div className="text-xs" style={{ color:MUTED }}>Reservation</div><div className="text-sm font-bold" style={{ color:TEXT, fontFamily:mono }}>{trip.reservationRef}</div></div>}
               </div>
@@ -671,7 +671,7 @@ export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
           {/* Dept info */}
           {isDept && (
             <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
-              <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Department Request</div>
+              <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Department request</div>
               <div className="grid grid-cols-2 gap-3">
                 {[["Department",trip.dept!],["Requested By",trip.requestedBy!],["Supervisor",trip.supervisor!],["Cost Centre",trip.costCentre!]].filter(([,v])=>v).map(([k,v])=>(
                   <div key={k}><div className="text-xs" style={{ color:MUTED }}>{k}</div><div className="text-sm font-semibold" style={{ color:TEXT, fontFamily:k==="Cost Centre"?mono:undefined }}>{v}</div></div>
@@ -683,19 +683,19 @@ export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
 
           {/* Charge */}
           <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
-            <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Charge & Billing</div>
+            <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Charge & billing</div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <div><div className="text-xs" style={{ color:MUTED }}>Type</div><div className="text-sm font-bold" style={{ color:TEXT }}>{chargeLabel[trip.chargeType]}</div></div>
               <div><div className="text-xs" style={{ color:MUTED }}>Quoted</div><div className="text-sm font-bold" style={{ color:TEXT, fontFamily:mono }}>₦{trip.quotedFare.toLocaleString()}</div></div>
               {trip.finalFare && <div><div className="text-xs" style={{ color:MUTED }}>Final</div><div className="text-sm font-bold" style={{ color:TEXT, fontFamily:mono }}>₦{trip.finalFare.toLocaleString()}</div></div>}
-              {trip.waitingSurcharge && <div><div className="text-xs" style={{ color:MUTED }}>Wait surcharge</div><div className="text-sm font-bold" style={{ color:ORANGE, fontFamily:mono }}>₦{trip.waitingSurcharge.toLocaleString()}</div></div>}
+              {trip.waitingSurcharge && <div><div className="text-xs" style={{ color:MUTED }}>Wait surcharge</div><div className="text-sm font-bold" style={{ color:ORANGE_INK, fontFamily:mono }}>₦{trip.waitingSurcharge.toLocaleString()}</div></div>}
             </div>
             {trip.folioRef && (
               <div className="mt-3 pt-3 border-t flex items-center justify-between" style={{ borderColor:BORDER }}>
                 <div className="text-xs" style={{ color:MUTED }}>Folio: <span className="font-semibold" style={{ color:PRIMARY, fontFamily:mono }}>{trip.folioRef}</span></div>
                 {trip.postedToFolio
                   ? <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor:"#DCFCE7", color:"#166534" }}>Posted ✓</span>
-                  : <button onClick={()=>add({type:"success",title:"Charge posted to folio",body:`₦${(trip.finalFare??trip.quotedFare).toLocaleString()} → ${trip.folioRef}`})} className="px-2.5 py-1 rounded-lg text-xs font-bold" style={{ backgroundColor:PRIMARY, color:"white" }}>Post to Folio</button>
+                  : <button onClick={()=>add({type:"success",title:"Charge posted to folio",body:`₦${(trip.finalFare??trip.quotedFare).toLocaleString()} → ${trip.folioRef}`})} className="px-2.5 py-1 rounded-lg text-xs font-bold" style={{ backgroundColor:PRIMARY, color:"white" }}>Post to folio</button>
                 }
               </div>
             )}
@@ -707,7 +707,7 @@ export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
           {/* Cancel info */}
           {trip.status === "cancelled" && trip.cancelReason && (
             <div className="p-3 rounded-xl" style={{ backgroundColor:"#FEF2F2", border:`1px solid #FECACA` }}>
-              <div className="text-xs font-bold mb-1" style={{ color:ERROR }}>Trip Cancelled</div>
+              <div className="text-xs font-bold mb-1" style={{ color:ERROR }}>Trip cancelled</div>
               <div className="text-xs" style={{ color:"#7F1D1D" }}>Reason: {trip.cancelReason}{trip.cancelNote ? ` — ${trip.cancelNote}` : ""}</div>
             </div>
           )}
@@ -716,7 +716,7 @@ export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
         {/* Right: crew, rating, timeline */}
         <div className="space-y-4">
           <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
-            <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Vehicle & Driver</div>
+            <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Vehicle & driver</div>
             {veh
               ? [["Plate",veh.plate],["Type",`${veh.make} ${veh.model}`],["Seats",String(veh.type)],].map(([k,v])=>(
                   <div key={k} className="flex justify-between py-1.5 border-b last:border-b-0 text-xs" style={{ borderColor:BORDER }}><span style={{ color:MUTED }}>{k}</span><span className="font-semibold" style={{ color:TEXT, fontFamily:k==="Plate"?mono:undefined }}>{v}</span></div>
@@ -733,17 +733,17 @@ export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
 
           {trip.rating && (
             <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
-              <div className="text-sm font-semibold mb-2" style={{ color:TEXT }}>Guest Rating</div>
+              <div className="text-sm font-semibold mb-2" style={{ color:TEXT }}>Guest rating</div>
               <div className="flex items-center gap-2">
                 <div className="text-3xl font-bold" style={{ color:TEXT }}>{trip.rating}</div>
-                <div className="flex">{[1,2,3,4,5].map(s=><Star key={s} size={16} fill={s<=Math.round(trip.rating!)?WARNING:"none"} style={{ color:WARNING }}/>)}</div>
+                <div className="flex">{[1,2,3,4,5].map(s=><Star key={s} size={16} fill={s<=Math.round(trip.rating!)?WARNING:"none"} style={{ color:WARNING_INK }}/>)}</div>
               </div>
               {trip.feedback && <div className="text-xs mt-1.5" style={{ color:MUTED }}>"{trip.feedback}"</div>}
             </div>
           )}
 
           <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
-            <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Event Timeline</div>
+            <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Event timeline</div>
             <div className="space-y-2.5">
               {trip.events.map((e,i)=>(
                 <div key={i} className="flex gap-2.5">
@@ -938,7 +938,7 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
                   </div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Reservation (optional)</div><input placeholder="Search reservation or guest…" aria-label="Search reservation or guest" className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Guest Name *</div><input placeholder="e.g. Dr. Amaka Osei" aria-label="e.g. Dr. Amaka Osei" className={inp} style={{ borderColor:BORDER }} /></div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Flight Number</div><input placeholder="e.g. DL421" aria-label="e.g. DL421" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Flight number</div><input placeholder="e.g. DL421" aria-label="e.g. DL421" className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Arrival / Departure Time *</div><input aria-label="Arrival / Departure Time " type="time" defaultValue="14:30" className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Terminal</div><select aria-label="Terminal" className={inp} style={{ borderColor:BORDER }}><option>International</option><option>Domestic</option></select></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Passengers</div><input aria-label="Passengers" type="number" defaultValue="1" min={1} max={20} className={inp} style={{ borderColor:BORDER }} /></div>
@@ -949,15 +949,15 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
               {guestType === "Guest Charter" && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Guest / Client *</div><input placeholder="Guest name or company" aria-label="Guest name or company" className={inp} style={{ borderColor:BORDER }} /></div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Duration Basis</div><select aria-label="Duration Basis" className={inp} style={{ borderColor:BORDER }}><option>Hourly</option><option>Half-day (4h)</option><option>Full day (8h)</option></select></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Duration basis</div><select aria-label="Duration basis" className={inp} style={{ borderColor:BORDER }}><option>Hourly</option><option>Half-day (4h)</option><option>Full day (8h)</option></select></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Start Date & Time *</div><input aria-label="Start Date & Time " type="datetime-local" className={inp} style={{ borderColor:BORDER }} /></div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Estimated End</div><input aria-label="Estimated End" type="datetime-local" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Estimated end</div><input aria-label="Estimated end" type="datetime-local" className={inp} style={{ borderColor:BORDER }} /></div>
                   <div className="lg:col-span-2"><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Destination / Itinerary</div><input placeholder="e.g. Aso Rock → National Assembly → CBD" aria-label="e.g. Aso Rock → National Assembly → CBD" className={inp} style={{ borderColor:BORDER }} /></div>
                 </div>
               )}
 
               <div className="pt-2 border-t" style={{ borderColor:BORDER }}>
-                <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Special Instructions</div>
+                <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Special instructions</div>
                 <textarea rows={2} placeholder="VIP handling, accessibility needs, extra stops…" aria-label="VIP handling, accessibility needs, extra stops" className={"resize-none " + inp} style={{ borderColor:BORDER }} />
               </div>
             </div>
@@ -968,7 +968,7 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
             <>
               {/* Requestor info */}
               <div className="bg-white rounded-xl border p-4 space-y-3" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(0,0,0,0.06)" }}>
-                <div className="text-sm font-semibold" style={{ color:TEXT }}>Request Details</div>
+                <div className="text-sm font-semibold" style={{ color:TEXT }}>Request details</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Department</div>
@@ -988,7 +988,7 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
                     <input value={df.supervisor} onChange={e => setDf(f => ({ ...f, supervisor: e.target.value }))} placeholder="Name of approving supervisor" aria-label="Name of approving supervisor" className={inp} style={{ borderColor:BORDER }} />
                   </div>
                   <div>
-                    <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Cost Centre</div>
+                    <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Cost centre</div>
                     <input value={df.costCentre} onChange={e => setDf(f => ({ ...f, costCentre: e.target.value }))} placeholder="e.g. FB-OPS-001" aria-label="e.g. FB-OPS-001" className={inp} style={{ borderColor:BORDER }} />
                   </div>
                 </div>
@@ -1010,11 +1010,11 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Date Needed *</div>
-                    <input aria-label="Date Needed " type="date" value={df.dateNeeded} onChange={e => setDf(f => ({ ...f, dateNeeded: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
+                    <DateInput aria-label="Date Needed " type="date" value={df.dateNeeded} onChange={e => setDf(f => ({ ...f, dateNeeded: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
                   </div>
                   <div>
-                    <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Time Needed</div>
-                    <input aria-label="Time Needed" type="time" value={df.timeNeeded} onChange={e => setDf(f => ({ ...f, timeNeeded: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
+                    <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Time needed</div>
+                    <input aria-label="Time needed" type="time" value={df.timeNeeded} onChange={e => setDf(f => ({ ...f, timeNeeded: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Departure / From</div>
@@ -1039,7 +1039,7 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Additional Notes for Driver</div>
+                  <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Additional notes for driver</div>
                   <textarea rows={2} value={df.notes} onChange={e => setDf(f => ({ ...f, notes: e.target.value }))} placeholder="Loading bay access, contact at destination, time constraints…" aria-label="Loading bay access, contact at destination, time constraints" className={"resize-none " + inp} style={{ borderColor:BORDER }} />
                 </div>
               </div>
@@ -1052,8 +1052,8 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
           <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(0,0,0,0.06)" }}>
             <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Vehicle & {group==="dept"?"Class Preference":"Rate"}</div>
             <div className="mb-3">
-              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Vehicle Class</div>
-              <select aria-label="Vehicle Class" value={vehicleType} onChange={e=>setVehicleType(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
+              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Vehicle class</div>
+              <select aria-label="Vehicle class" value={vehicleType} onChange={e=>setVehicleType(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
                 {VEHICLE_RATES.map(r=><option key={r.type}>{r.type}</option>)}
               </select>
             </div>
@@ -1061,16 +1061,16 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
             {group === "guest" && (
               <>
                 <div className="mb-3">
-                  <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Estimated Distance (km)</div>
-                  <input aria-label="Estimated Distance (km)" type="number" value={estKm} onChange={e=>setEstKm(Number(e.target.value))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
+                  <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Estimated distance (km)</div>
+                  <input aria-label="Estimated distance (km)" type="number" value={estKm} onChange={e=>setEstKm(Number(e.target.value))} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }} />
                 </div>
                 <div className="p-3 rounded-xl space-y-1.5 mb-3" style={{ backgroundColor:"#F9FAFB" }}>
-                  <div className="text-xs font-semibold mb-1" style={{ color:MUTED }}>Quote Breakdown</div>
+                  <div className="text-xs font-semibold mb-1" style={{ color:MUTED }}>Quote breakdown</div>
                   {[["Base rate",`₦${rate.baseRate.toLocaleString()}`],[`Per km (${estKm} km)`,`₦${(rate.perKm*estKm).toLocaleString()}`],["Waiting time","Metered at ₦"+rate.waiting+"/15min"]].map(([k,v])=>(
                     <div key={k} className="flex justify-between text-xs"><span style={{ color:MUTED }}>{k}</span><span style={{ color:TEXT }}>{v}</span></div>
                   ))}
                   <div className="flex justify-between text-sm font-bold pt-1.5 border-t" style={{ borderColor:BORDER }}>
-                    <span style={{ color:TEXT }}>Quoted Total</span>
+                    <span style={{ color:TEXT }}>Quoted total</span>
                     <span style={{ color:PRIMARY, fontFamily:mono }}>₦{total.toLocaleString()}</span>
                   </div>
                 </div>
@@ -1084,7 +1084,7 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
             )}
 
             <div>
-              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Charge Type</div>
+              <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Charge type</div>
               <div className="grid grid-cols-2 gap-1.5">
                 {(["folio","complimentary","cost-centre","cash"] as ChargeType[]).map(ct=>(
                   <button key={ct} onClick={()=>setChargeType(ct)} className="py-1.5 rounded-lg text-xs font-medium border" style={{ borderColor:chargeType===ct?PRIMARY:BORDER, backgroundColor:chargeType===ct?"#F8FAFF":"white", color:chargeType===ct?PRIMARY:MUTED }}>
@@ -1137,7 +1137,7 @@ const SHIFT_PILL: Record<HRShift,{bg:string;text:string}> = {
   Morning: { bg:"#DCFCE7", text:"#166534" },
   Evening: { bg:"#DBEAFE", text:"#1E40AF" },
   Night:   { bg:"#EDE9FE", text:"#6D28D9" },
-  Off:     { bg:"#F3F4F6", text:"#71717A" },
+  Off:     { bg:"#F3F4F6", text:"#52525B" },
 };
 
 const ROSTER_DAYS = ["Mon 13","Tue 14","Wed 15","Thu 16","Fri 17","Sat 18","Sun 19"] as const;
@@ -1308,7 +1308,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
         actions={
           <div className="flex gap-2">
             <BtnO label="Sync from HR" icon={RefreshCw} onClick={syncFromHR} />
-            <BtnP label="Add Driver" icon={Plus} onClick={() => setShowAddDriver(true)} />
+            <BtnP label="Add driver" icon={Plus} onClick={() => setShowAddDriver(true)} />
           </div>
         }
       />
@@ -1320,7 +1320,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
               <div>
-                <div className="text-sm font-bold" style={{ color:TEXT }}>Add Driver to Roster</div>
+                <div className="text-sm font-bold" style={{ color:TEXT }}>Add driver to roster</div>
                 <div className="text-xs mt-0.5" style={{ color:MUTED }}>Step {addStep} of 2 — {addStep===1?"Select existing staff":"Enter driving credentials"}</div>
               </div>
               <button aria-label="Close" onClick={closeModal} className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ color:MUTED, backgroundColor:"#F1F5F9" }}>
@@ -1385,7 +1385,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                       <div className="text-xs" style={{ color:MUTED }}>{pickedStaff.dept} · {pickedStaff.empId}</div>
                     </div>
                     <div className="ml-auto text-right">
-                      <div className="text-xs" style={{ color:MUTED }}>HR Shift</div>
+                      <div className="text-xs" style={{ color:MUTED }}>HR shift</div>
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full"
                         style={{ backgroundColor: SHIFT_PILL[HR_DRIVER_SHIFTS[pickedStaff.id] ?? "Off"].bg, color: SHIFT_PILL[HR_DRIVER_SHIFTS[pickedStaff.id] ?? "Off"].text }}>
                         {HR_DRIVER_SHIFTS[pickedStaff.id] ?? "Off"}
@@ -1400,27 +1400,27 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                         placeholder="e.g. FCT/DL/2023/12345" aria-label="e.g. FCT/DL/2023/12345" className={inp} style={{ borderColor:BORDER }} />
                     </div>
                     <div>
-                      <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Licence Class</div>
-                      <select aria-label="Licence Class" value={nf.licClass} onChange={e => setNf(f => ({ ...f, licClass: e.target.value }))} className={inp} style={{ borderColor:BORDER }}>
+                      <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Licence class</div>
+                      <select aria-label="Licence class" value={nf.licClass} onChange={e => setNf(f => ({ ...f, licClass: e.target.value }))} className={inp} style={{ borderColor:BORDER }}>
                         {["A","B","C","D","E"].map(c => <option key={c}>Class {c}</option>)}
                       </select>
                     </div>
                     <div>
                       <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Licence Expiry *</div>
-                      <input aria-label="Licence Expiry " type="date" value={nf.licExpiry} onChange={e => setNf(f => ({ ...f, licExpiry: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
+                      <DateInput aria-label="Licence Expiry " type="date" value={nf.licExpiry} onChange={e => setNf(f => ({ ...f, licExpiry: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
                     </div>
                     <div>
                       <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Medical Cert. Expiry *</div>
-                      <input aria-label="Medical Cert. Expiry " type="date" value={nf.medExpiry} onChange={e => setNf(f => ({ ...f, medExpiry: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
+                      <DateInput aria-label="Medical Cert. Expiry " type="date" value={nf.medExpiry} onChange={e => setNf(f => ({ ...f, medExpiry: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
                     </div>
                     <div>
-                      <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Permit Reference</div>
+                      <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Permit reference</div>
                       <input value={nf.permitRef} onChange={e => setNf(f => ({ ...f, permitRef: e.target.value }))}
                         placeholder="Auto-generated if blank" aria-label="Auto-generated if blank" className={inp} style={{ borderColor:BORDER }} />
                     </div>
                     <div className="col-span-2">
-                      <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Assign Vehicle (optional)</div>
-                      <select aria-label="Assign Vehicle (optional)" value={nf.vehicleId} onChange={e => setNf(f => ({ ...f, vehicleId: e.target.value }))} className={inp} style={{ borderColor:BORDER }}>
+                      <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Assign vehicle (optional)</div>
+                      <select aria-label="Assign vehicle (optional)" value={nf.vehicleId} onChange={e => setNf(f => ({ ...f, vehicleId: e.target.value }))} className={inp} style={{ borderColor:BORDER }}>
                         <option value="">No vehicle yet</option>
                         {VEHICLES.filter(v => v.status !== "maintenance").map(v => (
                           <option key={v.id} value={v.id}>{v.plate} — {v.make} {v.model}</option>
@@ -1461,7 +1461,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
           <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor:BORDER }}>
               <div>
-                <div className="text-sm font-bold" style={{ color:TEXT }}>Propose Shift Change</div>
+                <div className="text-sm font-bold" style={{ color:TEXT }}>Propose shift change</div>
                 <div className="text-xs mt-0.5" style={{ color:MUTED }}>{shiftModal.driverName} · {shiftModal.day}</div>
               </div>
               <button aria-label="Close" onClick={() => { setShiftModal(null); setProposalReason(""); }} className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ color:MUTED, backgroundColor:"#F1F5F9" }}>
@@ -1531,7 +1531,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
         <>
           {drivers.some(d=>d.licDaysLeft<0||d.medDaysLeft<0||d.status==="suspended") && (
             <div className="mb-4 p-3 rounded-xl" style={{ backgroundColor:"#FEF3C7", border:`1px solid #FDE68A` }}>
-              <div className="text-xs font-bold mb-1" style={{ color:"#92400E" }}>Compliance & Status Alerts</div>
+              <div className="text-xs font-bold mb-1" style={{ color:"#92400E" }}>Compliance & status alerts</div>
               {drivers.filter(d=>d.status==="suspended").map(d=><div key={d.id+"s"} className="text-xs font-semibold" style={{ color:ERROR }}>🚫 {d.name} — SUSPENDED. Cannot be dispatched.</div>)}
               {drivers.filter(d=>d.licDaysLeft<0).map(d=><div key={d.id+"l"} className="text-xs" style={{ color:"#92400E" }}>⚠ {d.name} — Licence EXPIRED ({d.licExpiry}). Remove from duty immediately.</div>)}
               {drivers.filter(d=>d.medDaysLeft<0).map(d=><div key={d.id+"m"} className="text-xs" style={{ color:"#92400E" }}>⚠ {d.name} — Medical certificate EXPIRED ({d.medExpiry}).</div>)}
@@ -1540,8 +1540,8 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
           )}
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-            <StatCard label="Total Drivers"    value={String(drivers.length)}                                    sub="On roster"         icon={Users}         accent={PRIMARY} />
-            <StatCard label="On Duty"          value={String(drivers.filter(d=>d.onDuty).length)}                sub="Available/On trip" icon={UserCheck}     accent={SUCCESS} />
+            <StatCard label="Total drivers"    value={String(drivers.length)}                                    sub="On roster"         icon={Users}         accent={PRIMARY} />
+            <StatCard label="On duty"          value={String(drivers.filter(d=>d.onDuty).length)}                sub="Available/On trip" icon={UserCheck}     accent={SUCCESS} />
             <StatCard label="Suspended"        value={String(drivers.filter(d=>d.status==="suspended").length)}  sub="Cannot dispatch"   icon={XCircle}       accent={ERROR}   />
             <StatCard label="Trips This Month" value={String(drivers.reduce((s,d)=>s+d.tripsMonth,0))}          sub="All drivers"       icon={Car}           accent={TEAL}    />
           </div>
@@ -1556,7 +1556,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                   const sp = DRIVER_STATUS_PILL[d.status];
                   const rowBg = isSuspended ? "#FFFAF0" : "white";
                   return (
-                    <>
+                    <Fragment key={d.id}>
                       <tr key={d.id} className="border-t cursor-pointer hover:bg-slate-50" style={{ borderColor:BORDER, backgroundColor:rowBg }} onClick={() => setSelected(sel ? null : d.id)}>
                         <td className="px-3 py-2.5">
                           <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white mb-0.5" style={{ backgroundColor:isSuspended?"#DC2626":PRIMARY }}>
@@ -1571,12 +1571,12 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                         <td className="px-3 py-2.5">
                           <div className="flex flex-col gap-0.5">
                             <span className="px-2 py-0.5 rounded-full text-xs font-semibold w-fit" style={{ backgroundColor:SHIFT_PILL[d.hrShift].bg, color:SHIFT_PILL[d.hrShift].text }}>{d.hrShift}</span>
-                            {d.shiftOverride && <span className="text-xs" style={{ color:ORANGE, fontSize: 12 }}>⚡ override</span>}
+                            {d.shiftOverride && <span className="text-xs" style={{ color:ORANGE_INK, fontSize: 12 }}>⚡ override</span>}
                           </div>
                         </td>
                         <td className="px-3 py-2.5"><span className="px-2 py-0.5 rounded-full text-xs font-semibold capitalize" style={{ backgroundColor:sp.bg, color:sp.text }}>{d.status}</span></td>
                         <td className="px-3 py-2.5 text-xs font-bold" style={{ color:TEXT }}>{d.tripsMonth}</td>
-                        <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color:WARNING }} />{d.avgRating}</span></td>
+                        <td className="px-3 py-2.5 text-xs"><span className="flex items-center gap-1"><Star size={11} style={{ color:WARNING_INK }} />{d.avgRating}</span></td>
                         <td className="px-3 py-2.5">
                           <div className="flex gap-1 flex-wrap">
                             {!isSuspended && (
@@ -1619,7 +1619,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                                 style={{ borderColor:ERROR }}
                                 onKeyDown={e => e.key === "Enter" && confirmSuspend(d.id)}
                               />
-                              <button onClick={() => confirmSuspend(d.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor:ERROR }}>Confirm Suspend</button>
+                              <button onClick={() => confirmSuspend(d.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor:ERROR }}>Confirm suspend</button>
                               <button onClick={() => { setSuspendTarget(null); setSuspendReason(""); }} className="px-3 py-1.5 rounded-lg text-xs" style={{ backgroundColor:"#F1F5F9", color:MUTED }}>Cancel</button>
                             </div>
                           </td>
@@ -1660,7 +1660,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -1685,7 +1685,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                   <th className="px-4 py-2.5 text-left text-xs font-semibold" style={{ color:MUTED, minWidth:150 }}>Driver</th>
                   {ROSTER_DAYS.map(day => (
                     <th key={day} className="px-2 py-2.5 text-center text-xs font-semibold" style={{ color:day==="Mon 13"?PRIMARY:MUTED, minWidth:88 }}>
-                      {day}{day==="Mon 13" && <span className="ml-1 font-normal" style={{ color:TEAL, fontSize: 12 }}>today</span>}
+                      {day}{day==="Mon 13" && <span className="ml-1 font-normal" style={{ color:TEAL_INK, fontSize: 12 }}>today</span>}
                     </th>
                   ))}
                 </tr>
@@ -1735,7 +1735,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
           {/* Proposals log */}
           <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
             <div className="px-5 py-3 border-b flex items-center gap-2" style={{ borderColor:BORDER }}>
-              <div className="text-sm font-bold" style={{ color:TEXT }}>Shift Change Proposals</div>
+              <div className="text-sm font-bold" style={{ color:TEXT }}>Shift change proposals</div>
               {proposals.filter(p=>p.status==="pending").length>0 && (
                 <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ backgroundColor:"#F59E0B" }}>
                   {proposals.filter(p=>p.status==="pending").length} pending HR review
@@ -1828,9 +1828,9 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Total Revenue (Jun)" value={`₦${(totalRev/1000000).toFixed(2)}M`} sub="All service lines" icon={DollarSign} accent={SUCCESS} delta="+7.5% vs Sep" deltaPositive />
-        <StatCard label="Total Costs (Jun)"   value={`₦${(totalCost/1000).toFixed(0)}K`}   sub="Fuel + maintenance" icon={Activity}  accent={ERROR}   />
-        <StatCard label="Net Margin"           value={`${(((totalRev-totalCost)/totalRev)*100).toFixed(1)}%`} sub="Revenue - cost" icon={TrendingUp} accent={TEAL} />
+        <StatCard label="Total revenue (Jun)" value={`₦${(totalRev/1000000).toFixed(2)}M`} sub="All service lines" icon={DollarSign} accent={SUCCESS} delta="+7.5% vs Sep" deltaPositive />
+        <StatCard label="Total costs (Jun)"   value={`₦${(totalCost/1000).toFixed(0)}K`}   sub="Fuel + maintenance" icon={Activity}  accent={ERROR}   />
+        <StatCard label="Net margin"           value={`${(((totalRev-totalCost)/totalRev)*100).toFixed(1)}%`} sub="Revenue - cost" icon={TrendingUp} accent={TEAL} />
         <StatCard label="Cost per km"          value={`₦${(totalCost/totalKm).toFixed(0)}`} sub="Fleet average"     icon={Fuel}      accent={ORANGE}  />
       </div>
 
@@ -1849,7 +1849,7 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
           </ResponsiveContainer>
         </div>
         <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
-          <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Fuel Cost Trend (₦)</div>
+          <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Fuel cost trend (₦)</div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={FUEL_TREND} margin={{ left:-20 }}>
               <defs><linearGradient id="fuelGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={ORANGE} stopOpacity={0.15}/><stop offset="95%" stopColor={ORANGE} stopOpacity={0}/></linearGradient></defs>
@@ -1866,7 +1866,7 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
       {/* Dimension toggle + table */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
         <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor:BORDER }}>
-          <div className="text-sm font-semibold" style={{ color:TEXT }}>Cost Breakdown</div>
+          <div className="text-sm font-semibold" style={{ color:TEXT }}>Cost breakdown</div>
           <div className="flex gap-1 p-1 rounded-xl" style={{ backgroundColor:"#F1F5F9" }}>
             {(["vehicle","service-line"] as const).map(d=>(
               <button key={d} onClick={()=>setDim(d)} className="px-3 py-1.5 rounded-lg text-xs font-medium capitalize" style={{ backgroundColor:dim===d?"white":"transparent", color:dim===d?TEXT:MUTED, boxShadow:dim===d?"0 1px 2px rgba(0,0,0,0.08)":"none" }}>{d==="service-line"?"Service Line":"By Vehicle"}</button>
@@ -1884,7 +1884,7 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                 const cpk = v.km>0 ? (totalC/v.km).toFixed(0) : "—";
                 const cpt = v.trips>0 ? (totalC/v.trips).toFixed(0) : "—";
                 return (
-                  <>
+                  <Fragment key={v.plate}>
                     <tr key={v.plate} className="border-t cursor-pointer hover:bg-slate-50" style={{ borderColor:BORDER }} onClick={()=>setDrill(drill===v.plate?null:v.plate)}>
                       <td className="px-3 py-2.5 text-xs font-bold" style={{ color:PRIMARY, fontFamily:mono }}>{v.plate}</td>
                       <td className="px-3 py-2.5 text-xs" style={{ color:MUTED }}>{v.type}</td>
@@ -1892,7 +1892,7 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                       <td className="px-3 py-2.5 text-xs" style={{ color:MUTED, fontFamily:mono }}>{v.km.toLocaleString()} km</td>
                       <td className="px-3 py-2.5 text-xs" style={{ color:TEXT, fontFamily:mono }}>₦{v.fuelCost.toLocaleString()}</td>
                       <td className="px-3 py-2.5 text-xs" style={{ color:TEXT, fontFamily:mono }}>₦{v.maintCost.toLocaleString()}</td>
-                      <td className="px-3 py-2.5 text-xs font-bold" style={{ color:SUCCESS, fontFamily:mono }}>₦{v.revTotal.toLocaleString()}</td>
+                      <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{v.revTotal.toLocaleString()}</td>
                       <td className="px-3 py-2.5 text-xs" style={{ color:MUTED, fontFamily:mono }}>{cpk==="—"?cpk:`₦${cpk}`}</td>
                       <td className="px-3 py-2.5 text-xs" style={{ color:MUTED, fontFamily:mono }}>{cpt==="—"?cpt:`₦${cpt}`}</td>
                       <td className="px-3 py-2.5 text-xs font-bold" style={{ color:parseFloat(margin)>=40?SUCCESS:parseFloat(margin)>=20?WARNING:ERROR }}>{margin==="—"?margin:`${margin}%`}</td>
@@ -1909,7 +1909,7 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>
@@ -1926,7 +1926,7 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                   <tr key={s.line} className="border-t hover:bg-slate-50" style={{ borderColor:BORDER }}>
                     <td className="px-3 py-2.5 text-xs font-bold" style={{ color:SL_COLOR[s.line as ServiceLine] }}>{s.line}</td>
                     <td className="px-3 py-2.5 text-xs font-bold" style={{ color:TEXT }}>{s.trips}</td>
-                    <td className="px-3 py-2.5 text-xs font-bold" style={{ color:SUCCESS, fontFamily:mono }}>₦{s.rev.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-xs font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{s.rev.toLocaleString()}</td>
                     <td className="px-3 py-2.5 text-xs" style={{ color:ERROR, fontFamily:mono }}>₦{s.cost.toLocaleString()}</td>
                     <td className="px-3 py-2.5 text-xs font-bold" style={{ color:net>=0?SUCCESS:ERROR, fontFamily:mono }}>₦{net.toLocaleString()}</td>
                     <td className="px-3 py-2.5 text-xs font-bold" style={{ color:parseFloat(margin)>=30?SUCCESS:parseFloat(margin)>=0?WARNING:ERROR }}>{margin}%</td>
@@ -2204,7 +2204,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
       <div className="flex items-center gap-2.5">
         {syncing
           ? <div className="w-3.5 h-3.5 border-2 rounded-full animate-spin flex-shrink-0" style={{ borderColor: TEAL + "40", borderTopColor: TEAL }} />
-          : online ? <Wifi size={14} className="flex-shrink-0" style={{ color: SUCCESS }} /> : <WifiOff size={14} className="flex-shrink-0" style={{ color: ORANGE }} />
+          : online ? <Wifi size={14} className="flex-shrink-0" style={{ color: SUCCESS }} /> : <WifiOff size={14} className="flex-shrink-0" style={{ color: ORANGE_INK }} />
         }
         <div>
           <div className="text-xs font-bold" style={{ color: online ? "#166534" : "#9A3412" }}>
@@ -2244,7 +2244,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
             <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: "#EFF6FF" }}>
               <Plus size={14} style={{ color: PRIMARY }} />
             </div>
-            <span className="text-sm font-bold" style={{ color: PRIMARY }}>Log a Trip</span>
+            <span className="text-sm font-bold" style={{ color: PRIMARY }}>Log a trip</span>
           </div>
           <ChevronDown size={16} style={{ color: MUTED, transform: showStart ? "rotate(180deg)" : "none", transition: "0.2s" }} />
         </button>
@@ -2290,11 +2290,11 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
       {/* Filters + history */}
       <div className="flex flex-wrap gap-2 mb-3 items-center">
         <select value={filterDriver} onChange={e => setFilterDriver(e.target.value)} className="px-3 py-2 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
-          <option value="All">All Drivers</option>
+          <option value="All">All drivers</option>
           {DRIVERS.map(d => <option key={d.id}>{d.name}</option>)}
         </select>
         <select value={filterDate} onChange={e => setFilterDate(e.target.value)} className="px-3 py-2 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
-          <option value="All">All Dates</option>
+          <option value="All">All dates</option>
           {dates.map(d => <option key={d}>{d}</option>)}
         </select>
         <div className="ml-auto text-xs" style={{ color: MUTED }}>{filtered.length} trip{filtered.length === 1 ? "" : "s"}</div>
@@ -2310,7 +2310,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
       <div className="mb-5 rounded-2xl border overflow-hidden" style={{ borderColor: PRIMARY + "30", backgroundColor: "white", boxShadow: "0 2px 8px rgba(18,58,115,0.08)" }}>
         <div className="px-5 py-2.5 flex items-center gap-2" style={{ backgroundColor: PRIMARY }}>
           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: assignedVeh ? "#4ADE80" : "#FCA5A5" }} />
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.65)" }}>Driver Profile</span>
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.65)" }}>Driver profile</span>
         </div>
         <div className="p-5 flex flex-col sm:flex-row gap-5">
           {/* Driver side */}
@@ -2336,7 +2336,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
           <div className="h-px sm:hidden" style={{ backgroundColor: BORDER }} />
           {/* Vehicle side */}
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold uppercase tracking-wide mb-2.5" style={{ color: MUTED }}>Assigned Vehicle</div>
+            <div className="text-xs font-semibold uppercase tracking-wide mb-2.5" style={{ color: MUTED }}>Assigned vehicle</div>
             {assignedVeh ? (
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#EFF6FF" }}>
@@ -2351,7 +2351,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               </div>
             ) : (
               <div className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: "#FEF3C7", border: "1px solid #FDE68A" }}>
-                <AlertTriangle size={16} style={{ color: WARNING }} />
+                <AlertTriangle size={16} style={{ color: WARNING_INK }} />
                 <span className="text-sm font-semibold" style={{ color: "#92400E" }}>No vehicle assigned — contact Fleet Manager</span>
               </div>
             )}
@@ -2411,7 +2411,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
           {/* Assigned trip requests */}
           <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.06)" }}>
             <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: BORDER }}>
-              <div className="text-sm font-bold" style={{ color: TEXT }}>My Assignments</div>
+              <div className="text-sm font-bold" style={{ color: TEXT }}>My assignments</div>
               {myAssigned.length > 0 && (
                 <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: myAssigned.some(t => acceptState[t.id] === "idle") ? ERROR : SUCCESS }}>
                   {myAssigned.length}
@@ -2445,7 +2445,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                         <ArrowRight size={10} className="flex-shrink-0" />
                         <span className="truncate">{t.dropoff}</span>
                       </div>
-                      {t.flight && <div className="text-xs mb-2" style={{ color: TEAL }}>Flight: {t.flight}</div>}
+                      {t.flight && <div className="text-xs mb-2" style={{ color: TEAL_INK }}>Flight: {t.flight}</div>}
                       <div className="flex items-center gap-1.5 mb-3">
                         <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{
                           backgroundColor: st === "approved" ? "#DCFCE7" : st === "cancelled" ? "#FEE2E2" : st === "pending" ? "#FEF3C7" : "#EFF6FF",
@@ -2487,7 +2487,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
           {/* Quick stats for driver */}
           {driverRecord && (
             <div className="bg-white rounded-2xl border p-4" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.06)" }}>
-              <div className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: MUTED }}>My Stats</div>
+              <div className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: MUTED }}>My stats</div>
               <div className="space-y-2.5">
                 {[
                   ["Trips Today",   String(driverRecord.tripsToday),   PRIMARY],
@@ -2516,7 +2516,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: TEAL }} />
-                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: TEAL }}>Active Trip</span>
+                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: TEAL_INK }}>Active trip</span>
                     <span className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{t.id}</span>
                     {t.tripMode === "round-trip" && (
                       <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: "#EDE9FE", color: "#5B21B6" }}>⇄ Round Trip</span>
@@ -2562,7 +2562,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               {t.stops.filter(s => s.leg !== "return").length > 0 && (
                 <div className="mb-2 pl-3 border-l-2" style={{ borderColor: TEAL + "60" }}>
                   {t.tripMode === "round-trip" && (
-                    <div className="text-xs font-semibold mb-1 flex items-center gap-1" style={{ color: TEAL }}>
+                    <div className="text-xs font-semibold mb-1 flex items-center gap-1" style={{ color: TEAL_INK }}>
                       <ArrowRight size={10} />Outbound stops
                     </div>
                   )}
@@ -2603,7 +2603,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               {/* Log stop form */}
               {showStop === t.id && (
                 <div className="mb-3 p-3 rounded-xl space-y-2.5" style={{ backgroundColor: "#F0F9FF", border: "1px solid #BAE6FD" }}>
-                  <div className="text-xs font-bold" style={{ color: PRIMARY }}>Log Stop</div>
+                  <div className="text-xs font-bold" style={{ color: PRIMARY }}>Log stop</div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Location *</div>
                     <input value={pf.location} onChange={e => setPf(f => ({ ...f, location: e.target.value }))} placeholder="e.g. FreshMart Wuse II" aria-label="e.g. FreshMart Wuse II" className={inp} style={{ borderColor: BORDER }} />
@@ -2619,7 +2619,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => logStop(t.id)} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY }}>Save Stop</button>
+                    <button onClick={() => logStop(t.id)} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY }}>Save stop</button>
                     <button onClick={() => setShowStop(null)} className="px-4 py-2.5 rounded-xl text-sm border" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button>
                   </div>
                 </div>
@@ -2628,7 +2628,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               {/* Complete form */}
               {showComplete === t.id && (
                 <div className="mb-3 p-3 rounded-xl space-y-2.5" style={{ backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0" }}>
-                  <div className="text-xs font-bold" style={{ color: SUCCESS }}>Complete Trip</div>
+                  <div className="text-xs font-bold" style={{ color: SUCCESS }}>Complete trip</div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Odometer at Arrival *</div>
                     <input aria-label="Odometer at Arrival " type="number" value={cf.odomEnd} onChange={e => setCf(f => ({ ...f, odomEnd: e.target.value }))} placeholder={"Greater than " + t.odomStart.toLocaleString()} className={inp} style={{ borderColor: BORDER }} />
@@ -2642,7 +2642,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                       <input value={cf.to || (t.tripMode === "round-trip" ? t.from : t.to)} onChange={e => setCf(f => ({ ...f, to: e.target.value }))} className={inp} style={{ borderColor: BORDER }} />
                     </div>
                     <div>
-                      <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Fuel Filled (L)</div>
+                      <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Fuel filled (L)</div>
                       <input type="number" value={cf.fuelFilled} onChange={e => setCf(f => ({ ...f, fuelFilled: e.target.value }))} placeholder="0" aria-label="0" className={inp} style={{ borderColor: BORDER }} />
                     </div>
                   </div>
@@ -2704,7 +2704,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: TEAL }} />
-                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: TEAL }}>Active Trip</span>
+                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: TEAL_INK }}>Active trip</span>
                     <span className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{t.id}</span>
                     {t.tripMode === "round-trip" && (
                       <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: "#EDE9FE", color: "#5B21B6" }}>⇄ Round Trip</span>
@@ -2735,21 +2735,21 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
               )}
               {showStop === t.id && (
                 <div className="mt-3 p-3 rounded-xl space-y-2" style={{ backgroundColor: "#F0F9FF", border: "1px solid #BAE6FD" }}>
-                  <div className="text-xs font-bold" style={{ color: PRIMARY }}>Log Stop</div>
+                  <div className="text-xs font-bold" style={{ color: PRIMARY }}>Log stop</div>
                   <input value={pf.location} onChange={e => setPf(f => ({ ...f, location: e.target.value }))} placeholder="Stop location *" aria-label="Stop location *" className={inp} style={{ borderColor: BORDER }} />
                   <div className="grid grid-cols-2 gap-2">
                     <input type="number" value={pf.durationMin} onChange={e => setPf(f => ({ ...f, durationMin: e.target.value }))} placeholder="Duration (min)" aria-label="Duration (min)" className={inp} style={{ borderColor: BORDER }} />
                     <input value={pf.purpose} onChange={e => setPf(f => ({ ...f, purpose: e.target.value }))} placeholder="Purpose" aria-label="Purpose" className={inp} style={{ borderColor: BORDER }} />
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => logStop(t.id)} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY }}>Save Stop</button>
+                    <button onClick={() => logStop(t.id)} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY }}>Save stop</button>
                     <button onClick={() => setShowStop(null)} className="px-4 py-2.5 rounded-xl text-sm border" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button>
                   </div>
                 </div>
               )}
               {showComplete === t.id && (
                 <div className="mt-3 p-3 rounded-xl space-y-2" style={{ backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0" }}>
-                  <div className="text-xs font-bold" style={{ color: SUCCESS }}>Complete Trip</div>
+                  <div className="text-xs font-bold" style={{ color: SUCCESS }}>Complete trip</div>
                   <input type="number" value={cf.odomEnd} onChange={e => setCf(f => ({ ...f, odomEnd: e.target.value }))} placeholder="Odometer at arrival *" aria-label="Odometer at arrival *" className={inp} style={{ borderColor: BORDER }} />
                   <input type="number" value={cf.fuelFilled} onChange={e => setCf(f => ({ ...f, fuelFilled: e.target.value }))} placeholder="Fuel filled (litres)" aria-label="Fuel filled (litres)" className={inp} style={{ borderColor: BORDER }} />
                   <input value={cf.notes} onChange={e => setCf(f => ({ ...f, notes: e.target.value }))} placeholder="Notes (optional)" aria-label="Notes (optional)" className={inp} style={{ borderColor: BORDER }} />
@@ -2770,12 +2770,12 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                   <Plus size={15} style={{ color: PRIMARY }} />
                 </div>
                 <div className="text-left">
-                  <div className="text-sm font-bold" style={{ color: PRIMARY }}>Start New Trip</div>
+                  <div className="text-sm font-bold" style={{ color: PRIMARY }}>Start new trip</div>
                   {assignedVeh && (
                     <div className="text-xs" style={{ color: MUTED }}>{assignedVeh.plate} — {assignedVeh.make} {assignedVeh.model}</div>
                   )}
                 </div>
-                {!online && <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE }}>Offline — saves locally</span>}
+                {!online && <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE_INK }}>Offline — saves locally</span>}
               </div>
               <ChevronDown size={18} style={{ color: MUTED, transform: showStart ? "rotate(180deg)" : "none", transition: "0.2s" }} />
             </button>
@@ -2799,7 +2799,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                 </div>
                 {/* One Way / Round Trip toggle */}
                 <div>
-                  <div className="text-xs font-medium mb-1.5" style={{ color: MUTED }}>Trip Type</div>
+                  <div className="text-xs font-medium mb-1.5" style={{ color: MUTED }}>Trip type</div>
                   <div className="grid grid-cols-2 gap-2">
                     {(["one-way", "round-trip"] as const).map(mode => (
                       <button key={mode} onClick={() => setSf(f => ({ ...f, tripMode: mode }))}
@@ -2820,8 +2820,8 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Departure Location</div>
-                    <input aria-label="Departure Location" value={sf.from} onChange={e => setSf(f => ({ ...f, from: e.target.value }))} className={inp} style={{ borderColor: BORDER }} />
+                    <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Departure location</div>
+                    <input aria-label="Departure location" value={sf.from} onChange={e => setSf(f => ({ ...f, from: e.target.value }))} className={inp} style={{ borderColor: BORDER }} />
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Destination *</div>
@@ -2852,9 +2852,9 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
           {/* Logbook history */}
           <div>
             <div className="flex flex-wrap gap-2 mb-3 items-center">
-              <div className="text-sm font-bold" style={{ color: TEXT }}>Trip History</div>
+              <div className="text-sm font-bold" style={{ color: TEXT }}>Trip history</div>
               <select value={filterDate} onChange={e => setFilterDate(e.target.value)} className="ml-auto px-3 py-2 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
-                <option value="All">All Dates</option>
+                <option value="All">All dates</option>
                 {dates.map(d => <option key={d}>{d}</option>)}
               </select>
               <div className="text-xs" style={{ color: MUTED }}>{filtered.length} trip{filtered.length === 1 ? "" : "s"}</div>

@@ -29,17 +29,18 @@ import {
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
   HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ARRIVALS_DATA, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-} from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
 
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
+import { TextOrDate } from "./DateInput";
+import { ARRIVALS as FO_ARRIVALS, departures } from "./mock/frontOffice";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
 function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
@@ -93,12 +94,8 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
   const STEP_SHORT = ["Reservation", "Identity", "Room", "Registration", "Payment", "Access", "Receipt"];
   const STEP_ICONS = [Ph.CalendarCheck, Ph.UserCheck, Ph.Bed, Ph.FileText, Ph.CreditCard, Ph.Key, Ph.DownloadSimple];
 
-  const ALL_ARRIVALS = [
-    { id: "BK-2855", guest: "Chief Emeka Okafor", av: "EO", room: "502", type: "Suite", eta: "14:00", nights: 3, rate: 85000, vip: true, deposit: 85000, requests: "Champagne + fruit basket" },
-    { id: "BK-2856", guest: "Aisha Mohammed", av: "AM", room: "303", type: "Deluxe", eta: "15:30", nights: 2, rate: 55000, vip: false, deposit: 55000, requests: "High floor preferred" },
-    { id: "BK-2857", guest: "Peter Okafor", av: "PO", room: "", type: "Standard", eta: "12:00", nights: 1, rate: 35000, vip: false, deposit: 35000, requests: "" },
-    { id: "BK-2858", guest: "Ngozi Adeyemi", av: "NA", room: "", type: "Deluxe", eta: "16:00", nights: 4, rate: 55000, vip: true, deposit: 55000, requests: "Extra pillows, no smoking floor" },
-  ];
+  const ALL_ARRIVALS = FO_ARRIVALS.map(a => ({ ...a, deposit: a.rate }));
+
   const ARRIVALS = searchQ.trim()
     ? ALL_ARRIVALS.filter(a => a.guest.toLowerCase().includes(searchQ.toLowerCase()) || a.id.toLowerCase().includes(searchQ.toLowerCase()))
     : ALL_ARRIVALS;
@@ -183,7 +180,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
   const CK_BG  = "#F9FAFB";
   const CK_BD  = "#E2E8F0";
   const CK_DSH = "#CBD5E1";
-  const CK_MUT = "#64748B";
+  const CK_MUT = "#475569";
 
   // ── Micro-components ────────────────────────────────────────────────────
   const Notch = () => (
@@ -194,17 +191,17 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
     </div>
   );
   const SecLabel = ({ children }: { children: string }) => (
-    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>{children}</p>
+    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: CK_MUT }}>{children}</p>
   );
   const FL = ({ children, req }: { children: string; req?: boolean }) => (
-    <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: CK_MUT, letterSpacing: "0.08em" }}>
+    <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: CK_MUT }}>
       {children}{req && <span style={{ color: ERROR }}> *</span>}
     </label>
   );
   const CkIn = ({ type = "text", val, set, placeholder, err, readOnly }: {
     type?: string; val?: string; set?: (v: string) => void; placeholder?: string; err?: boolean; readOnly?: boolean;
   }) => (
-    <input type={type} value={val ?? ""} onChange={e => set?.(e.target.value)} placeholder={placeholder} readOnly={readOnly}
+    <TextOrDate type={type} value={val ?? ""} onChange={e => set?.(e.target.value)} placeholder={placeholder} readOnly={readOnly}
       className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
       style={{ border: `1.5px solid ${err ? ERROR : CK_DSH}`, backgroundColor: readOnly ? CK_BG : "white", color: TEXT }} />
   );
@@ -230,7 +227,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
           </button>
         )}
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT }}>
             Step {step} of 7 · {STEPS[step - 1]}
           </p>
           <h1 className="text-2xl font-bold leading-tight mt-0.5" style={{ color: TEXT }}>Guest Check-In</h1>
@@ -278,7 +275,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                               </div>
               <SI size={22} style={{ color: active ? "white" : done ? PRIMARY : CK_MUT }} />
               <p className="text-center mt-2 font-bold leading-tight"
-                style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : CK_MUT, letterSpacing: "0.05em" }}>
+                style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : CK_MUT }}>
                 {STEP_SHORT[i]}
               </p>
             </button>
@@ -295,7 +292,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
             {/* PRIMARY header band */}
             <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: PRIMARY }}>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Step {step} of 7</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Step {step} of 7</p>
                 <p className="text-base font-bold text-white mt-0.5">{STEPS[step - 1]}</p>
               </div>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
@@ -319,7 +316,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                 </div>
                 {ARRIVALS.length === 0 ? (
                   <div className="text-sm text-center py-8 rounded-xl" style={{ color: CK_MUT, backgroundColor: "white", border: `1.5px dashed ${CK_DSH}` }}>
-                    No arrivals match "{searchQ}"
+                    {ALL_ARRIVALS.length === 0 ? "Everyone due today has checked in. Walk-in guests are registered from Walk-In Registration." : `No arrivals match "${searchQ}"`}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -333,7 +330,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-sm font-semibold" style={{ color: TEXT }}>{a.guest}</span>
-                            {a.vip && <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}><Ph.Star size={9} color={ORANGE} weight="fill" />VIP</span>}
+                            {a.vip && <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}><Ph.Star size={9} color={ORANGE_INK} weight="fill" />VIP</span>}
                           </div>
                           <div className="text-xs mt-0.5 flex items-center gap-2 flex-wrap" style={{ color: CK_MUT }}>
                             <span style={{ fontFamily: mono }}>{a.id}</span><span>·</span>
@@ -357,7 +354,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
               {step === 2 && selData && (<>
                 {selData.vip && (
                   <div className="flex items-center gap-2.5 p-3.5 rounded-xl" style={{ backgroundColor: "#FEF3C7", border: "1px solid #FDE68A" }}>
-                    <Ph.Star size={14} weight="fill" style={{ color: ORANGE, flexShrink: 0 }} />
+                    <Ph.Star size={14} weight="fill" style={{ color: ORANGE_INK, flexShrink: 0 }} />
                     <span className="text-sm font-medium" style={{ color: "#92400E" }}>VIP Guest — Ensure room is fully prepared. {selData.requests}</span>
                   </div>
                 )}
@@ -638,7 +635,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                   <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: "#D1FAE5" }}>
                     <Ph.CheckCircle size={32} weight="fill" style={{ color: SUCCESS }} />
                   </div>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-in complete</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: CK_MUT }}>Check-in complete</p>
                   <p className="text-2xl font-bold mb-1" style={{ color: TEXT }}>{selData.guest}</p>
                   <p className="text-sm mb-1" style={{ color: CK_MUT }}>Room {selRoom ?? selData.room} · {selData.type} · {selData.nights} nights</p>
                   <p className="text-sm mb-6 font-semibold" style={{ color: SUCCESS }}>Folio opened · Access credentials active</p>
@@ -689,7 +686,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
         {/* ── Summary sidebar ──────────────────────────────────────────────── */}
         <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
           <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55, letterSpacing: "0.1em" }}>Booking summary</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Booking summary</p>
           </div>
           <Notch />
           <div className="p-5">
@@ -700,7 +697,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     style={{ backgroundColor: selData.vip ? ORANGE : PRIMARY }}><Ph.User size={18} weight="bold" /></div>
                   <div>
                     <div className="text-sm font-bold" style={{ color: TEXT }}>{selData.guest}</div>
-                    {selData.vip && <div className="text-xs font-semibold" style={{ color: ORANGE }}>VIP guest</div>}
+                    {selData.vip && <div className="text-xs font-semibold" style={{ color: ORANGE_INK }}>VIP guest</div>}
                   </div>
                 </div>
                 <div className="pt-3 space-y-2 text-xs border-t" style={{ borderColor: CK_DSH }}>
@@ -808,12 +805,9 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
   const [arSearch, setArSearch] = useState("");
   const [arTab, setArTab] = useState("All");
   const [arrivals, setArrivals] = useState([
-    { id: "BK-2851", guest: "Dr. Chukwuemeka Bello", type: "Suite", room: "501", nights: 3, eta: "14:00", rate: 85000, balance: 0, vip: true, assigned: true, group: false, requests: "Welcome dinner", status: "Checked In", risk: false },
-    { id: "BK-2855", guest: "Chief Emeka Okafor", type: "Suite", room: "502", nights: 3, eta: "14:00", rate: 85000, balance: 0, vip: true, assigned: true, group: false, requests: "Champagne + fruit basket", status: "Confirmed", risk: false },
-    { id: "BK-2856", guest: "Aisha Mohammed", type: "Deluxe", room: "303", nights: 2, eta: "15:30", rate: 55000, balance: 27500, vip: false, assigned: true, group: false, requests: "High floor preferred", status: "Confirmed", risk: false },
-    { id: "BK-2857", guest: "Peter Okafor", type: "Standard", room: "", nights: 1, eta: "12:00", rate: 35000, balance: 35000, vip: false, assigned: false, group: false, requests: "—", status: "Confirmed", risk: true },
-    { id: "BK-2858", guest: "Ngozi Adeyemi", type: "Deluxe", room: "", nights: 4, eta: "16:00", rate: 55000, balance: 0, vip: true, assigned: false, group: false, requests: "Extra pillows, no smoking floor", status: "Pending", risk: false },
-    { id: "BK-2859", guest: "Lagos Corp Group (8 pax)", type: "Standard", room: "108–115", nights: 2, eta: "13:00", rate: 35000, balance: 0, vip: false, assigned: true, group: true, requests: "Meeting room required", status: "Confirmed", risk: false },
+    // On a normal day the list also shows a guest who already arrived and a group block.
+    ...(FO_ARRIVALS.length ? [{ id: "BK-2851", guest: "Dr. Chukwuemeka Bello", type: "Suite", room: "501", nights: 3, eta: "14:00", rate: 85000, balance: 0, vip: true, assigned: true, group: false, requests: "Welcome dinner", status: "Checked In", risk: false }, { id: "BK-2859", guest: "Lagos Corp Group (8 pax)", type: "Standard", room: "108–115", nights: 2, eta: "13:00", rate: 35000, balance: 0, vip: false, assigned: true, group: true, requests: "Meeting room required", status: "Confirmed", risk: false }] : []),
+    ...FO_ARRIVALS.map(({ av, risk, ...a }) => ({ ...a, risk, assigned: !!a.room, group: false, requests: a.requests || "—" })),
   ]);
   type Arrival = typeof arrivals[number];
   const [arrivalAction, setArrivalAction] = useState<{ type: "assign" | "note" | "noshow"; id: string } | null>(null);
@@ -855,22 +849,23 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
       </div>
       <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
         <table className="w-full min-w-[1040px]">
-          <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["ETA / Res#", "Guest", "Room Type / Room", "Nights", "Rate / Night", "Balance", "Special Requests", "Status", "Actions"].map((h,i) => <th key={i} className={`px-4 py-3 text-left text-xs font-semibold whitespace-nowrap ${h === "Actions" ? "sticky right-0 bg-[#F8FAFC]" : ""}`} style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["ETA / res#", "Guest", "Room type / room", "Nights", "Rate / night", "Balance", "Status", "Actions"].map((h,i) => <th key={i} className={`px-4 py-3 text-left text-xs font-semibold whitespace-nowrap ${h === "Actions" ? "sticky right-0 bg-[#F8FAFC]" : ""}`} style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(a => {
               const done = a.status === "Checked In";
               return (
                 <tr key={a.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER, opacity: done ? 0.55 : 1 }}>
                   <td className="px-4 py-3">
-                    <div className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>{a.eta}</div>
-                    <div className="text-xs" style={{ color: PRIMARY, fontFamily: mono }}>{a.id}</div>
+                    <div className="text-sm font-semibold" style={{ color: TEXT }}>{a.eta}</div>
+                    <div className="text-xs" style={{ color: MUTED }}>{a.id}</div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: a.vip ? ORANGE : PRIMARY }}><Ph.User size={14} weight="bold" /></div>
                       <div>
-                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{a.guest}</span>{a.vip && <Ph.Star size={10} weight="fill" style={{ color: ORANGE }} />}{a.group && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>Group</span>}{a.risk && a.status !== "No Show" && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE }}>At risk</span>}</div>
-                        {(notes[a.id] ?? 0) > 0 && <div className="text-xs mt-0.5" style={{ color: TEAL }}>{notes[a.id]} note{notes[a.id] === 1 ? "" : "s"} added</div>}
+                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{a.guest}</span>{a.vip && <Ph.Star size={10} weight="fill" style={{ color: ORANGE_INK }} />}{a.group && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>Group</span>}{a.risk && a.status !== "No Show" && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE_INK }}>At risk</span>}</div>
+                        {a.requests && a.requests !== "—" && <div className="text-xs mt-0.5 max-w-[260px] truncate" title={a.requests} style={{ color: MUTED }}>{a.requests}</div>}
+                        {(notes[a.id] ?? 0) > 0 && <div className="text-xs mt-0.5" style={{ color: TEAL_INK }}>{notes[a.id]} note{notes[a.id] === 1 ? "" : "s"} added</div>}
                       </div>
                     </div>
                   </td>
@@ -879,12 +874,9 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
                     {a.assigned ? <div className="text-xs font-semibold" style={{ color: SUCCESS }}>Room {a.room}</div> : <div className="text-xs font-semibold" style={{ color: ERROR }}>Unassigned</div>}
                   </td>
                   <td className="px-4 py-3 text-sm font-semibold" style={{ color: TEXT }}>{a.nights}n</td>
-                  <td className="px-4 py-3 text-sm font-bold" style={{ color: SUCCESS, fontFamily: mono }}>₦{a.rate.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>₦{a.rate.toLocaleString()}</td>
                   <td className="px-4 py-3">
                     {a.balance > 0 ? <span className="text-xs font-bold px-2 py-0.5 rounded-lg" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>₦{a.balance.toLocaleString()}</span> : <span className="text-xs font-semibold" style={{ color: SUCCESS }}>Settled</span>}
-                  </td>
-                  <td className="px-4 py-3 max-w-36">
-                    {a.requests ? <span className="text-xs italic" style={{ color: MUTED }}>{a.requests}</span> : <span className="text-xs" style={{ color: SUBTLE }}>—</span>}
                   </td>
                   <td className="px-4 py-3"><Badge label={a.status} colors={resStC[a.status] ?? { bg: "#F3F4F6", text: "#374151" }} /></td>
                   <td className="sticky right-0 w-[220px] border-l bg-white px-4 py-3" style={{ borderColor: BORDER }}>
@@ -912,7 +904,7 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
             })}
           </tbody>
         </table>
-        {filtered.length === 0 && <div className="py-16 text-center"><Ph.CalendarCheck size={28} className="mx-auto mb-3" style={{ color: SUBTLE }} /><p className="text-sm" style={{ color: MUTED }}>No arrivals match your filters</p></div>}
+        {filtered.length === 0 && <div className="py-16 text-center"><Ph.CalendarCheck size={28} className="mx-auto mb-3" style={{ color: SUBTLE }} /><p className="text-sm" style={{ color: MUTED }}>{arrivals.length === 0 ? "No arrivals today. New bookings for today appear here as soon as they are made." : "No arrivals match your filters"}</p></div>}
       </div>
       {arrivalAction && activeArrival && (
         <>
@@ -958,12 +950,7 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
 }
 
 export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
-  const [dep, setDep] = useState([
-    { id: "BK-2846", room: "101", guest: "Adaeze Okonkwo", checkout: "11:00", nights: 3, balance: 0, method: "Card", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
-    { id: "BK-2848", room: "202", guest: "Emmanuel Adeyemi", checkout: "11:00", nights: 2, balance: 82708, method: "Cash", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
-    { id: "BK-2843", room: "203", guest: "Fatima Musa", checkout: "14:00", nights: 3, balance: 0, method: "Transfer", hkSt: "Occupied", lateFlag: true, overstay: false, status: "Pending" },
-    { id: "BK-2852", room: "118", guest: "Tunde Lawal", checkout: "11:00", nights: 1, balance: 22513, method: "Card", hkSt: "Occupied", lateFlag: false, overstay: false, status: "Pending" },
-  ]);
+  const [dep, setDep] = useState(departures);
   type Departure = typeof dep[number];
   const [depSearch, setDepSearch] = useState("");
   const [depFilter, setDepFilter] = useState("All");
@@ -1005,7 +992,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
       </div>
       <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
         <table className="w-full min-w-[1050px]">
-          <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["", "Room", "Guest", "Checkout Time", "Balance", "Payment on File", "HK Status", "Late CO", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["", "Room", "Guest", "Checkout time", "Balance", "Payment on file", "HK status", "Late CO", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {filteredDep.map(d => {
               const done = d.status === "Departed";
@@ -1054,7 +1041,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
             })}
           </tbody>
         </table>
-        {filteredDep.length === 0 && <div className="py-16 text-center"><Ph.ArrowRight size={28} className="mx-auto mb-3" style={{ color: SUBTLE }} /><p className="text-sm" style={{ color: MUTED }}>No departures match your filters</p></div>}
+        {filteredDep.length === 0 && <div className="py-16 text-center"><Ph.ArrowRight size={28} className="mx-auto mb-3" style={{ color: SUBTLE }} /><p className="text-sm" style={{ color: MUTED }}>{dep.length === 0 ? "No departures today. Guests due to leave today appear here." : "No departures match your filters"}</p></div>}
       </div>
       {showBulkConfirm && (
         <>
@@ -1125,7 +1112,7 @@ export function RoomAccessMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
       </div>
       {/* Provider capability panel */}
       <div className="bg-white rounded-xl border p-5 mb-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-        <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Provider Capability Matrix</h3>
+        <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Provider capability matrix</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {(Object.entries(caps) as [string, boolean][]).map(([cap, supported]) => (
             <div key={cap} className="flex items-center gap-2 p-2.5 rounded-lg" style={{ backgroundColor: supported ? "#F0FDF4" : "#F9FAFB", border: `1px solid ${supported ? "#BBF7D0" : BORDER}` }}>
@@ -1145,7 +1132,7 @@ export function RoomAccessMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
           <span className="ml-auto text-xs" style={{ color: SUBTLE }}>{LOCKS.length} locks</span>
         </div>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Lock", "Provider", "Provider Ref", "Battery", "Last Seen", "Firmware", "Credentials", "Status", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Lock", "Provider", "Provider ref", "Battery", "Last seen", "Firmware", "Credentials", "Status", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {LOCKS.map(l => (
               <tr key={l.room} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER }}>
@@ -1167,9 +1154,9 @@ export function RoomAccessMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
                 <td className="px-4 py-3"><Badge label={l.status} colors={stC(l.status)} /></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1 flex-wrap">
-                    <button onClick={() => add({ type: "info", title: `Connection test — Room ${l.room}`, body: "Lock responded in 340 ms" })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Test</button>
+                    <button onClick={() => add({ type: "info", title: `Connection test — Room ${l.room}`, body: "Lock responded in 340 ms" })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Test</button>
                     {caps.remoteUnlock && <button onClick={() => { setUnlockRoom(l.room); setUnlockPin(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Unlock</button>}
-                    <button onClick={() => { setRevokeRoom(l.room); setRevokeReason(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Revoke All</button>
+                    <button onClick={() => { setRevokeRoom(l.room); setRevokeReason(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Revoke all</button>
                   </div>
                 </td>
               </tr>
@@ -1200,7 +1187,7 @@ export function RoomAccessMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
             <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Remote Unlock — Room {unlockRoom}</h3>
             <p className="text-xs mb-4 p-2.5 rounded-lg" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>This action is audited. Enter your Manager PIN to authorise.</p>
             <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" value={unlockPin} onChange={e => setUnlockPin(e.target.value)} placeholder="••••••" aria-label="••••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none tracking-widest" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-            <div className="flex gap-3 mt-4"><button onClick={() => setUnlockRoom(null)} className="flex-1 py-2.5 rounded-xl border text-sm font-medium" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button disabled={unlockPin.length < 4} onClick={() => { add({ type: "success", title: `Remote unlock — Room ${unlockRoom}`, body: "Lock opened for 10 s. Event recorded in audit log." }); setUnlockRoom(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Unlock Now</button></div>
+            <div className="flex gap-3 mt-4"><button onClick={() => setUnlockRoom(null)} className="flex-1 py-2.5 rounded-xl border text-sm font-medium" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button disabled={unlockPin.length < 4} onClick={() => { add({ type: "success", title: `Remote unlock — Room ${unlockRoom}`, body: "Lock opened for 10 s. Event recorded in audit log." }); setUnlockRoom(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Unlock now</button></div>
           </div>
         </>
       )}
@@ -1250,7 +1237,7 @@ export function KeyCardLog({ add }: { add?: (t: Omit<Toast, "id">) => void }) {
       <PageHeader title="Key Card Log" sub="Append-only event log · No delete affordance — retention per policy"
         actions={<><BtnO label="Export CSV" icon={Download} onClick={() => add?.({ type: "info", title: "Key card log exported as CSV" })} /><BtnO label="Export PDF" icon={FileText} onClick={() => add?.({ type: "info", title: "Key card log exported as PDF" })} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Events Today" value="7" sub="All credential events" icon={ClipboardList} accent={PRIMARY} />
+        <StatCard label="Events today" value="7" sub="All credential events" icon={ClipboardList} accent={PRIMARY} />
         <StatCard label="Issued" value="4" sub="New credentials" icon={CreditCard} accent={SUCCESS} />
         <StatCard label="Revoked" value="1" sub="Access removed" icon={AlertTriangle} accent={ERROR} />
         <StatCard label="Failed / Queued" value="2" sub="Errors or offline" icon={AlertCircle} accent={WARNING} />
@@ -1262,13 +1249,13 @@ export function KeyCardLog({ add }: { add?: (t: Omit<Toast, "id">) => void }) {
             {EVENT_TYPES.map(t => <option key={t}>{t}</option>)}
           </select>
           <select value={roomFilter} onChange={e => setRoomFilter(e.target.value)} className="px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
-            <option value="">All Rooms</option>
+            <option value="">All rooms</option>
             {["101","202","203","302","304","501"].map(r => <option key={r}>{r}</option>)}
           </select>
           <span className="ml-auto text-xs" style={{ color: SUBTLE }}>{filtered.length} events · Read-only</span>
         </div>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Timestamp", "Event Type", "Room", "Guest", "Credential", "Ref", "Performed By", "IP", "Detail"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Timestamp", "Event type", "Room", "Guest", "Credential", "Ref", "Performed by", "IP", "Detail"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map((l, i) => (
               <tr key={i} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER }}>
@@ -1332,7 +1319,7 @@ export function PINManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
       <PageHeader title="PIN Management" sub="PIN access not supported by configured lock provider" />
       <div className="bg-white rounded-xl border p-10 text-center" style={{ borderColor: BORDER }}>
         <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4" style={{ backgroundColor: "#F3F4F6" }}><Hash size={24} style={{ color: MUTED }} /></div>
-        <h3 className="text-base font-semibold mb-1" style={{ color: TEXT }}>PIN Not Supported</h3>
+        <h3 className="text-base font-semibold mb-1" style={{ color: TEXT }}>PIN not supported</h3>
         <p className="text-sm" style={{ color: MUTED }}>The configured lock provider (OSDP) does not support PIN codes. Configure a compatible provider to enable this feature.</p>
       </div>
     </div>
@@ -1343,7 +1330,7 @@ export function PINManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         actions={<><BtnO label="Key Card Log" icon={ClipboardList} onClick={() => nav?.("key-card-log", "Key Card Log")} /><BtnP label="Generate PIN" icon={Plus} onClick={() => { setShowGenerate(true); setGeneratedPIN(null); }} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Active PINs" value={String(pins.filter(p=>p.status==="Active").length)} sub="Currently valid" icon={Hash} accent={SUCCESS} />
-        <StatCard label="Generated Today" value="2" sub="New PINs" icon={Plus} accent={PRIMARY} />
+        <StatCard label="Generated today" value="2" sub="New PINs" icon={Plus} accent={PRIMARY} />
         <StatCard label="Expired" value={String(pins.filter(p=>p.status==="Expired").length)} sub="Lapsed" icon={Clock} accent={MUTED} />
         <StatCard label="Revoked" value={String(pins.filter(p=>p.status==="Revoked").length)} sub="Deactivated" icon={AlertTriangle} accent={ERROR} />
       </div>
@@ -1353,7 +1340,7 @@ export function PINManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
           <div className="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>PINs are shown once at generation — masked permanently thereafter</div>
         </div>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Guest / Res", "PIN Reference", "Valid From", "Valid To", "Status", "Issued By", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Guest / res", "PIN reference", "Valid from", "Valid to", "Status", "Issued by", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {pins.map(p => (
               <tr key={p.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER, opacity: ["Expired","Revoked"].includes(p.status) ? 0.55 : 1 }}>
@@ -1364,7 +1351,7 @@ export function PINManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-base font-bold tracking-widest" style={{ fontFamily: mono, color: TEXT, letterSpacing: "0.2em" }}>{p.hint}</span>
+                    <span className="text-base font-bold tracking-widest" style={{ fontFamily: mono, color: TEXT }}>{p.hint}</span>
                     <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: "#F3F4F6", color: MUTED }}>masked</span>
                   </div>
                 </td>
@@ -1399,7 +1386,7 @@ export function PINManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
             ) : (
               <>
                 <div className="text-center mb-4">
-                  <div className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center mb-3" style={{ backgroundColor: "#FEF3C7" }}><Hash size={22} style={{ color: ORANGE }} /></div>
+                  <div className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center mb-3" style={{ backgroundColor: "#FEF3C7" }}><Hash size={22} style={{ color: ORANGE_INK }} /></div>
                   <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>PIN Generated — Show Once</h3>
                   <p className="text-xs" style={{ color: MUTED }}>This PIN cannot be retrieved again after this dialog closes. It will be masked permanently.</p>
                 </div>
@@ -1426,7 +1413,7 @@ export function PINManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
             <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Revoke PIN</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>PIN {pins.find(p=>p.id===revokeId)?.hint} for Room {pins.find(p=>p.id===revokeId)?.room} will be deactivated. This action is audited.</p>
             <p className="text-xs mb-4 p-2.5 rounded-lg" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>SALTO KS: revocation applies on next lock sync (~30 s).</p>
-            <div className="flex gap-3"><button onClick={() => setRevokeId(null)} className="flex-1 py-2.5 rounded-xl border text-sm font-medium" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button onClick={() => { setPins(ps => ps.map(p => p.id === revokeId ? {...p, status: "Revoked"} : p)); add({ type: "warning", title: `PIN revoked — Room ${pins.find(p=>p.id===revokeId)?.room}` }); setRevokeId(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Confirm Revoke</button></div>
+            <div className="flex gap-3"><button onClick={() => setRevokeId(null)} className="flex-1 py-2.5 rounded-xl border text-sm font-medium" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button onClick={() => { setPins(ps => ps.map(p => p.id === revokeId ? {...p, status: "Revoked"} : p)); add({ type: "warning", title: `PIN revoked — Room ${pins.find(p=>p.id===revokeId)?.room}` }); setRevokeId(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Confirm revoke</button></div>
           </div>
         </>
       )}
@@ -1465,11 +1452,11 @@ export function ShiftHandover({ add }: { add: (t: Omit<Toast, "id">) => void }) 
       <PageHeader title="Shift Handover" sub="Submitted · Awaiting acknowledgement" />
       <div className="bg-white rounded-xl border p-10 text-center" style={{ borderColor: BORDER }}>
         <CheckCircle2 size={48} className="mx-auto mb-3" style={{ color: SUCCESS }} />
-        <h2 className="text-base font-semibold mb-1" style={{ color: TEXT }}>Handover Submitted</h2>
+        <h2 className="text-base font-semibold mb-1" style={{ color: TEXT }}>Handover submitted</h2>
         <p className="text-sm mb-5" style={{ color: MUTED }}>David Okafor (Evening Lead) has been notified and must acknowledge before taking over.</p>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg mb-4" style={{ backgroundColor: "#FFFBEB", border:`1px solid #FDE68A` }}>
-          <Clock size={14} style={{ color: WARNING }} />
-          <span className="text-sm font-medium" style={{ color:"#92400E" }}>Pending acknowledgement from Evening Lead</span>
+          <Clock size={14} style={{ color: WARNING_INK }} />
+          <span className="text-sm font-medium" style={{ color:"#92400E" }}>Pending acknowledgement from evening lead</span>
         </div>
         <br />
         <button onClick={() => { setAcked(true); add({ type:"success", title:"Handover acknowledged — Evening shift active" }); }}
@@ -1482,10 +1469,10 @@ export function ShiftHandover({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
   if (acked) return (
     <div>
-      <PageHeader title="Shift Handover" sub="Acknowledged · Evening shift active" actions={<button onClick={() => { setSubmitted(false); setAcked(false); setNotes({}); }} className="text-xs px-3 py-2 rounded-xl border font-semibold" style={{ color:MUTED, borderColor:BORDER }}>New Handover</button>} />
+      <PageHeader title="Shift Handover" sub="Acknowledged · Evening shift active" actions={<button onClick={() => { setSubmitted(false); setAcked(false); setNotes({}); }} className="text-xs px-3 py-2 rounded-xl border font-semibold" style={{ color:MUTED, borderColor:BORDER }}>New handover</button>} />
       <div className="bg-white rounded-xl border p-8 text-center" style={{ borderColor: BORDER }}>
         <CheckCircle2 size={48} className="mx-auto mb-3" style={{ color: SUCCESS }} />
-        <h2 className="text-base font-semibold mb-1" style={{ color: TEXT }}>Handover Complete</h2>
+        <h2 className="text-base font-semibold mb-1" style={{ color: TEXT }}>Handover complete</h2>
         <p className="text-sm" style={{ color: MUTED }}>Acknowledged by David Okafor · 24 Jun 2026 at 15:03</p>
       </div>
     </div>
@@ -1512,7 +1499,7 @@ export function ShiftHandover({ add }: { add: (t: Omit<Toast, "id">) => void }) 
             </div>
           ))}
           <div className="flex gap-3">
-            <button onClick={() => add({ type:"info", title:"Draft saved" })} className="px-4 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Save Draft</button>
+            <button onClick={() => add({ type:"info", title:"Draft saved" })} className="px-4 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Save draft</button>
             <button onClick={() => { setSubmitted(true); add({ type:"success", title:"Shift handover submitted", body:"Evening lead notified" }); }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>
               <CheckCircle2 size={15} /> Submit Handover
@@ -1521,13 +1508,13 @@ export function ShiftHandover({ add }: { add: (t: Omit<Toast, "id">) => void }) 
         </div>
         <div className="space-y-4">
           <div className="bg-white rounded-xl border p-4 sticky top-4" style={{ borderColor: BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Shift Details</h3>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Shift details</h3>
             {([["Outgoing Shift","Morning · 07:00–15:00"],["Outgoing Lead","Grace Mensah"],["Incoming Shift","Evening · 15:00–23:00"],["Incoming Lead","David Okafor"],["Date","24 Jun 2026"],["Department",dept]] as [string,string][]).map(([k,v]) => (
               <div key={k} className="flex justify-between text-xs mb-2"><span style={{ color:MUTED }}>{k}</span><span className="font-medium" style={{ color:TEXT }}>{v}</span></div>
             ))}
           </div>
           <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
-            <h3 className="text-sm font-semibold mb-2" style={{ color: TEXT }}>Prior Handovers</h3>
+            <h3 className="text-sm font-semibold mb-2" style={{ color: TEXT }}>Prior handovers</h3>
             <div className="relative mb-3">
               <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color:SUBTLE }} />
               <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search handovers…" aria-label="Search handovers" className="w-full pl-7 pr-3 py-1.5 text-xs rounded-lg border outline-none" style={{ borderColor:BORDER }} />
@@ -1624,9 +1611,9 @@ export function GuestMessaging({ add }: { add: (t: Omit<Toast, "id">) => void })
         }
       />
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <StatCard label="Open Threads"    value={String(THREADS.filter(t=>t.status==="Open").length)}    sub="Awaiting reply"  icon={MessageSquare} accent={PRIMARY} />
+        <StatCard label="Open threads"    value={String(THREADS.filter(t=>t.status==="Open").length)}    sub="Awaiting reply"  icon={MessageSquare} accent={PRIMARY} />
         <StatCard label="Unread"          value={String(THREADS.reduce((s,t)=>s+t.unread,0))}           sub="Need attention"  icon={AlertCircle}   accent={ERROR}   />
-        <StatCard label="Resolved Today"  value="8"                                                      sub="Closed threads"  icon={CheckCircle2}  accent={SUCCESS} />
+        <StatCard label="Resolved today"  value="8"                                                      sub="Closed threads"  icon={CheckCircle2}  accent={SUCCESS} />
       </div>
 
       <div className="bg-white rounded-xl border flex overflow-hidden" style={{ borderColor:BORDER, height:560 }}>
@@ -1700,10 +1687,10 @@ export function GuestMessaging({ add }: { add: (t: Omit<Toast, "id">) => void })
 
           <div className="px-5 py-3 border-t" style={{ borderColor:BORDER }}>
             <div className="flex items-center gap-2 mb-2">
-              <select value={cur.channel} className="text-xs px-2 py-1 rounded border outline-none" style={{ borderColor:BORDER, color:MUTED }}>
+              <select key={cur.name} defaultValue={cur.channel} aria-label="Channel" className="text-xs px-2 py-1 rounded border outline-none" style={{ borderColor:BORDER, color:MUTED }}>
                 {["WhatsApp","SMS","In-App"].map(c=><option key={c}>{c}</option>)}
               </select>
-              <button onClick={()=>setShowCanned(c=>!c)} className="text-xs px-2 py-1 rounded border" style={{ color:MUTED, borderColor:BORDER }}>Canned Responses</button>
+              <button onClick={()=>setShowCanned(c=>!c)} className="text-xs px-2 py-1 rounded border" style={{ color:MUTED, borderColor:BORDER }}>Canned responses</button>
             </div>
             {showCanned && (
               <div className="mb-2 border rounded-xl overflow-hidden" style={{ borderColor:BORDER }}>
@@ -1727,7 +1714,7 @@ export function GuestMessaging({ add }: { add: (t: Omit<Toast, "id">) => void })
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.45)" }} onClick={()=>setShowEscalate(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-96" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-sm font-bold mb-1" style={{ color:TEXT }}>Escalate to Complaint</h3>
+            <h3 className="text-sm font-bold mb-1" style={{ color:TEXT }}>Escalate to complaint</h3>
             <p className="text-xs mb-3" style={{ color:MUTED }}>This will create a complaint record and notify the CS team.</p>
             <div className="space-y-3">
               <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Category</label>
@@ -1740,7 +1727,7 @@ export function GuestMessaging({ add }: { add: (t: Omit<Toast, "id">) => void })
                   {["Low","Medium","High","Critical"].map(s=><option key={s}>{s}</option>)}
                 </select>
               </div>
-              <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Notes for CS Team</label>
+              <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Notes for CS team</label>
                 <textarea rows={3} placeholder="Context for the complaint handler…" aria-label="Context for the complaint handler" className="w-full px-3 py-2 rounded-xl border text-xs outline-none resize-none" style={{ borderColor:BORDER, color:TEXT }} />
               </div>
             </div>
@@ -1900,7 +1887,7 @@ export function KitchenDisplay() {
               <div key={o.id} className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs border" style={{ borderColor: BORDER }}>
                 <span className="font-bold" style={{ color: TEXT }}>{o.table}</span>
                 <span style={{ color: SUBTLE }}>{o.id}</span>
-                <button onClick={() => { setRecalled(r => r.filter(x=>x.id!==o.id)); setOrders(p => [...p, { ...o, status: "Preparing" as KDSStatus }]); }} className="text-xs px-2 py-0.5 rounded" style={{ color: ORANGE, backgroundColor: "#FEF3C7" }}>Recall</button>
+                <button onClick={() => { setRecalled(r => r.filter(x=>x.id!==o.id)); setOrders(p => [...p, { ...o, status: "Preparing" as KDSStatus }]); }} className="text-xs px-2 py-0.5 rounded" style={{ color: ORANGE_INK, backgroundColor: "#FEF3C7" }}>Recall</button>
               </div>
             ))}
           </div>
@@ -1945,9 +1932,9 @@ export function MenuManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
 
   return (
     <div>
-      <PageHeader title="Menu Management" sub="Items, pricing, availability, and day-part configuration" actions={<><BtnO label="Bulk Price Update" icon={Edit3} onClick={() => setShowBulkPrice(true)} /><BtnP label="Add Item" icon={Plus} onClick={() => add({ type: "info", title: "Add menu item" })} /></>} />
+      <PageHeader title="Menu Management" sub="Items, pricing, availability, and day-part configuration" actions={<><BtnO label="Bulk price update" icon={Edit3} onClick={() => setShowBulkPrice(true)} /><BtnP label="Add item" icon={Plus} onClick={() => add({ type: "info", title: "Add menu item" })} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Total Items" value={String(FULL_MENU_MGT.length)} sub="All categories" icon={UtensilsCrossed} accent={PRIMARY} />
+        <StatCard label="Total items" value={String(FULL_MENU_MGT.length)} sub="All categories" icon={UtensilsCrossed} accent={PRIMARY} />
         <StatCard label="Available" value={String(Object.values(itemAvail).filter(Boolean).length)} sub="On today's menu" icon={CheckCircle2} accent={SUCCESS} />
         <StatCard label="86'd" value={String(Object.values(itemAvail).filter(v=>!v).length)} sub="Out of service" icon={AlertTriangle} accent={ERROR} />
         <StatCard label="Categories" value={String(CATS.length)} sub="Menu sections" icon={Layers} accent={TEAL} />
@@ -2051,7 +2038,7 @@ export function MenuManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
                 This will {bulkOp} prices for all {catItems.length} items in {activeCat} by {bulkPct}%.
               </div>
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowBulkPrice(false)} /><button onClick={() => { add({ type: "success", title: `Prices updated — ${activeCat}`, body: `${bulkOp === "increase" ? "+" : "-"}${bulkPct}% applied to ${catItems.length} items` }); setShowBulkPrice(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Apply Update</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowBulkPrice(false)} /><button onClick={() => { add({ type: "success", title: `Prices updated — ${activeCat}`, body: `${bulkOp === "increase" ? "+" : "-"}${bulkPct}% applied to ${catItems.length} items` }); setShowBulkPrice(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Apply update</button></div>
           </div>
         </>
       )}
@@ -2080,9 +2067,9 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const visible = items.filter(i => (filter === "All" || i.status === filter) && (!search || i.desc.toLowerCase().includes(search.toLowerCase()) || i.room.includes(search) || i.guest.toLowerCase().includes(search.toLowerCase())));
   return (
     <div>
-      <PageHeader title="Lost & Found" sub={`${items.length} items logged · ${items.filter(i=>i.status==="Held").length} currently held`} actions={<BtnP label="Log New Item" icon={Plus} onClick={() => add({ type: "info", title: "Lost item logging" })} />} />
+      <PageHeader title="Lost & Found" sub={`${items.length} items logged · ${items.filter(i=>i.status==="Held").length} currently held`} actions={<BtnP label="Log new item" icon={Plus} onClick={() => add({ type: "info", title: "Lost item logging" })} />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Items Held" value={String(items.filter(i=>i.status==="Held").length)} sub="In safe keeping" icon={Package} accent={WARNING} />
+        <StatCard label="Items held" value={String(items.filter(i=>i.status==="Held").length)} sub="In safe keeping" icon={Package} accent={WARNING} />
         <StatCard label="Claimed" value={String(items.filter(i=>i.status==="Claimed").length)} sub="Collected in person" icon={CheckCircle2} accent={SUCCESS} />
         <StatCard label="Shipped" value={String(items.filter(i=>i.status==="Shipped").length)} sub="Dispatched to guest" icon={Send} accent={TEAL} />
         <StatCard label="Disposed" value={String(items.filter(i=>i.status==="Disposed").length)} sub="30-day rule applied" icon={Archive} accent={MUTED} />
@@ -2093,7 +2080,7 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <div className="flex gap-1.5">{["All","Held","Claimed","Shipped","Disposed"].map(f => <button key={f} onClick={() => setFilter(f)} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ borderColor: filter===f ? PRIMARY : BORDER, backgroundColor: filter===f ? PRIMARY : "white", color: filter===f ? "white" : MUTED }}>{f}</button>)}</div>
         </div>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item ID", "Description / Category", "Storage Location", "Room", "Guest (Res)", "Found", "Logged By", "Status", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item ID", "Description / category", "Storage location", "Room", "Guest (res)", "Found", "Logged by", "Status", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>{visible.map(item => (
             <tr key={item.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER }}>
               <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{item.id}</td>
@@ -2108,7 +2095,7 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 {item.status === "Held" && (
                   <div className="flex gap-1">
                     <button onClick={() => { setShowClaim(item.id); setClaimant({ name: "", id: "", phone: "" }); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Claim</button>
-                    <button onClick={() => { setShowShip(item.id); setShipAddr(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Ship</button>
+                    <button onClick={() => { setShowShip(item.id); setShipAddr(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Ship</button>
                     <button onClick={() => { setStatuses(p=>({...p,[item.id]:"Disposed"})); add({ type: "info", title: `${item.id} disposed` }); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Dispose</button>
                   </div>
                 )}
@@ -2124,13 +2111,13 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between mb-4"><h3 className="text-base font-bold" style={{ color: TEXT }}>Record Claim — {showClaim}</h3><button aria-label="Close" onClick={() => setShowClaim(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Claimant Name</label><input value={claimant.name} onChange={e => setClaimant(p=>({...p,name:e.target.value}))} placeholder="Full name" aria-label="Full name" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Claimant name</label><input value={claimant.name} onChange={e => setClaimant(p=>({...p,name:e.target.value}))} placeholder="Full name" aria-label="Full name" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>ID / NIN</label><input value={claimant.id} onChange={e => setClaimant(p=>({...p,id:e.target.value}))} placeholder="Gov ID number" aria-label="Gov ID number" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Phone</label><input value={claimant.phone} onChange={e => setClaimant(p=>({...p,phone:e.target.value}))} placeholder="+234…" aria-label="+234" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               </div>
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowClaim(null)} /><button disabled={!claimant.name || !claimant.id} onClick={() => { setStatuses(p=>({...p,[showClaim!]:"Claimed"})); add({ type: "success", title: `${showClaim} claimed by ${claimant.name}` }); setShowClaim(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>Confirm Claim</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowClaim(null)} /><button disabled={!claimant.name || !claimant.id} onClick={() => { setStatuses(p=>({...p,[showClaim!]:"Claimed"})); add({ type: "success", title: `${showClaim} claimed by ${claimant.name}` }); setShowClaim(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>Confirm claim</button></div>
           </div>
         </>
       )}
@@ -2140,9 +2127,9 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowShip(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between mb-4"><h3 className="text-base font-bold" style={{ color: TEXT }}>Ship to Guest — {showShip}</h3><button aria-label="Close" onClick={() => setShowShip(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Delivery Address</label><textarea value={shipAddr} onChange={e => setShipAddr(e.target.value)} placeholder="Street, City, State, Postal Code" aria-label="Street, City, State, Postal Code" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Delivery address</label><textarea value={shipAddr} onChange={e => setShipAddr(e.target.value)} placeholder="Street, City, State, Postal Code" aria-label="Street, City, State, Postal Code" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
             <div className="mt-3 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>Shipping cost will be charged to guest folio. Ensure item is properly packaged and labelled with {showShip} before handover to courier.</div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowShip(null)} /><button disabled={!shipAddr.trim()} onClick={() => { setStatuses(p=>({...p,[showShip!]:"Shipped"})); add({ type: "success", title: `${showShip} marked for shipping` }); setShowShip(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: TEAL }}>Confirm Shipment</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowShip(null)} /><button disabled={!shipAddr.trim()} onClick={() => { setStatuses(p=>({...p,[showShip!]:"Shipped"})); add({ type: "success", title: `${showShip} marked for shipping` }); setShowShip(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: TEAL_INK }}>Confirm shipment</button></div>
           </div>
         </>
       )}
@@ -2208,7 +2195,7 @@ export function DNDLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       )}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Guest (Res)", "DND Since", "Duration", "Checkout", "Wellness Checks", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Guest (res)", "DND since", "Duration", "Checkout", "Wellness checks", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {rows.map(r => (
               <tr key={r.room} className="border-t" style={{ borderColor: BORDER, backgroundColor: rowBg(r) }}>
@@ -2236,7 +2223,7 @@ export function DNDLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1.5 flex-col">
-                    <button onClick={() => logCheck(r.room)} className="text-xs px-2.5 py-1.5 rounded border font-medium whitespace-nowrap" style={{ color: TEAL, borderColor: `${TEAL}30` }}>Log Check</button>
+                    <button onClick={() => logCheck(r.room)} className="text-xs px-2.5 py-1.5 rounded border font-medium whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Log check</button>
                     {!r.overridden && <button onClick={() => { setShowOverride(r.room); setOverrideReason(""); setManagerPin(""); }} className="text-xs px-2.5 py-1.5 rounded border whitespace-nowrap" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Override DND</button>}
                   </div>
                 </td>
@@ -2257,10 +2244,10 @@ export function DNDLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <div className="flex items-center justify-between mb-1"><h3 className="text-base font-bold" style={{ color: ERROR }}>Override DND — Room {showOverride}</h3><button aria-label="Close" onClick={() => setShowOverride(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
             <p className="text-xs mb-4" style={{ color: MUTED }}>This action is audited. Provide a documented reason and authenticate with your manager PIN.</p>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Override Reason</label><textarea value={overrideReason} onChange={e => setOverrideReason(e.target.value)} placeholder="e.g. Guest has not responded after 2 wellness checks. GM authorized entry for welfare check." aria-label="e.g. Guest has not responded after 2 wellness checks. GM authorized entry for welfare check" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Override reason</label><textarea value={overrideReason} onChange={e => setOverrideReason(e.target.value)} placeholder="e.g. Guest has not responded after 2 wellness checks. GM authorized entry for welfare check." aria-label="e.g. Guest has not responded after 2 wellness checks. GM authorized entry for welfare check" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" value={managerPin} onChange={e => setManagerPin(e.target.value)} placeholder="Enter PIN" aria-label="Enter PIN" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowOverride(null)} /><button disabled={!overrideReason.trim() || !managerPin} onClick={confirmOverride} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Authorize Override</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowOverride(null)} /><button disabled={!overrideReason.trim() || !managerPin} onClick={confirmOverride} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Authorize override</button></div>
           </div>
         </>
       )}
@@ -2332,11 +2319,11 @@ export function InvoiceReceipts({ add }: { add: (t: Omit<Toast, "id">) => void }
         <PageHeader title="Invoice & Receipts" sub="Gapless numbering · TIN · line-item tax · payment recording · receipts" actions={
           <div className="flex gap-2">
             <BtnO label="Export" icon={Download} onClick={() => add({ type: "info", title: "Exporting invoices" })} />
-            <BtnP label="Create Invoice" icon={Plus} onClick={() => add({ type: "info", title: "New invoice form" })} />
+            <BtnP label="Create invoice" icon={Plus} onClick={() => add({ type: "info", title: "New invoice form" })} />
           </div>
         } />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Total Invoiced"  value={`₦${invoices.reduce((s,i)=>s+i.total,0).toLocaleString()}`}  sub="All statuses"             icon={FileText}    accent={PRIMARY} />
+          <StatCard label="Total invoiced"  value={`₦${invoices.reduce((s,i)=>s+i.total,0).toLocaleString()}`}  sub="All statuses"             icon={FileText}    accent={PRIMARY} />
           <StatCard label="Collected"       value={`₦${invoices.reduce((s,i)=>s+i.paid,0).toLocaleString()}`}   sub="Receipts issued"          icon={CheckCircle2} accent={SUCCESS} />
           <StatCard label="Outstanding"     value={`₦${outstanding.toLocaleString()}`}                           sub={`${invoices.filter(i=>i.status==="Overdue").length} overdue`} icon={AlertCircle} accent={ERROR} />
           <StatCard label="Next Invoice #"  value={`INV-2025-${String(nextNum).padStart(4,"0")}`}                sub="Gapless sequence"         icon={Hash}        accent={TEAL} />
@@ -2371,17 +2358,17 @@ export function InvoiceReceipts({ add }: { add: (t: Omit<Toast, "id">) => void }
                       <td className="px-3 py-3 text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{inv.id}</td>
                       <td className="px-3 py-3"><span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: typeColors[inv.type].bg, color: typeColors[inv.type].text }}>{inv.type}</span></td>
                       <td className="px-3 py-3"><div className="text-sm font-medium" style={{ color: TEXT }}>{inv.billTo}</div>{inv.tin && <div className="text-xs" style={{ color: SUBTLE }}>TIN: {inv.tin}</div>}</td>
-                      <td className="px-3 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{inv.folio}</td>
+                      <td className="px-3 py-3 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{inv.folio}</td>
                       <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{inv.date}</td>
                       <td className="px-3 py-3 text-xs font-semibold" style={{ color: inv.status==="Overdue"?ERROR:MUTED }}>{inv.due}</td>
                       <td className="px-3 py-3 text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{inv.total.toLocaleString()}</td>
-                      <td className="px-3 py-3 text-sm" style={{ color: SUCCESS, fontFamily: mono }}>₦{inv.paid.toLocaleString()}</td>
+                      <td className="px-3 py-3 text-sm" style={{ color: TEXT, fontFamily: mono }}>₦{inv.paid.toLocaleString()}</td>
                       <td className="px-3 py-3 text-sm font-semibold" style={{ color: bal>0?ERROR:SUBTLE, fontFamily: mono }}>{bal>0?`₦${bal.toLocaleString()}`:"—"}</td>
                       <td className="px-3 py-3"><Badge label={inv.status} colors={stColors[inv.status]} /></td>
                       <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
                         <div className="flex gap-1">
                           <button onClick={() => add({ type:"info", title:`Print ${inv.id}` })} className="text-xs px-2 py-1 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Print</button>
-                          <button onClick={() => add({ type:"success", title:`${inv.id} emailed` })} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Email</button>
+                          <button onClick={() => add({ type:"success", title:`${inv.id} emailed` })} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL_INK, borderColor:`${TEAL}30` }}>Email</button>
                           {(inv.status==="Issued"||inv.status==="Partially Paid"||inv.status==="Overdue") && (
                             <button onClick={() => { setShowPayment(inv.id); setSelected(inv.id); }} className="text-xs px-2 py-1 rounded border font-semibold" style={{ color: SUCCESS, borderColor:`${SUCCESS}30` }}>Pay</button>
                           )}
@@ -2399,15 +2386,15 @@ export function InvoiceReceipts({ add }: { add: (t: Omit<Toast, "id">) => void }
         ) : (
           <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
             <table className="w-full">
-              <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Receipt #","Invoice Ref","Guest","Method","Amount","Date",""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+              <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Receipt #","Invoice ref","Guest","Method","Amount","Date",""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
               <tbody>
                 {RECEIPTS_DATA.map(r => (
                   <tr key={r.id} className="border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER }}>
                     <td className="px-4 py-3 text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{r.id}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{r.invRef}</td>
+                    <td className="px-4 py-3 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{r.invRef}</td>
                     <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>{r.guest}</td>
                     <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{r.method}</td>
-                    <td className="px-4 py-3 text-sm font-bold" style={{ color: SUCCESS, fontFamily: mono }}>₦{r.amount.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{r.amount.toLocaleString()}</td>
                     <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{r.date}</td>
                     <td className="px-4 py-3"><button onClick={() => add({ type:"info", title:`Print ${r.id}` })} className="text-xs px-2.5 py-1.5 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Print</button></td>
                   </tr>
@@ -2422,7 +2409,7 @@ export function InvoiceReceipts({ add }: { add: (t: Omit<Toast, "id">) => void }
       {sel && (
         <div className="w-80 flex-shrink-0 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <div className="flex items-start justify-between mb-4">
-            <div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL }}>{sel.folio}</div></div>
+            <div><div className="text-sm font-bold" style={{ color: TEXT }}>{sel.id}</div><div className="text-xs mt-0.5" style={{ color: TEAL_INK }}>{sel.folio}</div></div>
             <button onClick={() => setSelected(null)} style={{ color: MUTED }}>✕</button>
           </div>
           <div className="space-y-1.5 text-sm mb-4">
@@ -2432,7 +2419,7 @@ export function InvoiceReceipts({ add }: { add: (t: Omit<Toast, "id">) => void }
           </div>
           {sel.lines.length > 0 && (
             <div className="border rounded-xl overflow-hidden mb-4" style={{ borderColor: BORDER }}>
-              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ backgroundColor: "#F9FAFB", color: MUTED }}>Line Items</div>
+              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ backgroundColor: "#F9FAFB", color: MUTED }}>Line items</div>
               {sel.lines.map((l, i) => (
                 <div key={i} className="px-3 py-2.5 border-t text-xs" style={{ borderColor: BORDER }}>
                   <div className="font-medium mb-1" style={{ color: TEXT }}>{l.desc}</div>
@@ -2447,14 +2434,14 @@ export function InvoiceReceipts({ add }: { add: (t: Omit<Toast, "id">) => void }
                 <div className="flex justify-between text-xs"><span style={{ color: MUTED }}>Subtotal</span><span style={{ fontFamily: mono }}>₦{sel.subtotal.toLocaleString()}</span></div>
                 <div className="flex justify-between text-xs"><span style={{ color: MUTED }}>Tax (SVC + VAT)</span><span style={{ fontFamily: mono }}>₦{sel.tax.toLocaleString()}</span></div>
                 <div className="flex justify-between text-sm font-bold"><span style={{ color: TEXT }}>Total</span><span style={{ color: PRIMARY, fontFamily: mono }}>₦{sel.total.toLocaleString()}</span></div>
-                <div className="flex justify-between text-xs"><span style={{ color: MUTED }}>Paid</span><span style={{ color: SUCCESS, fontFamily: mono }}>₦{sel.paid.toLocaleString()}</span></div>
+                <div className="flex justify-between text-xs"><span style={{ color: MUTED }}>Paid</span><span style={{ color: TEXT, fontFamily: mono }}>₦{sel.paid.toLocaleString()}</span></div>
                 {sel.total-sel.paid > 0 && <div className="flex justify-between text-xs font-bold"><span style={{ color: ERROR }}>Balance</span><span style={{ color: ERROR, fontFamily: mono }}>₦{(sel.total-sel.paid).toLocaleString()}</span></div>}
               </div>
             </div>
           )}
           {showPayment === sel.id && (
             <div className="space-y-2 mb-4 p-3 rounded-xl" style={{ backgroundColor: "#F0FDF4", border:"1px solid #BBF7D0" }}>
-              <div className="text-xs font-semibold" style={{ color: "#166534" }}>Record Payment</div>
+              <div className="text-xs font-semibold" style={{ color: "#166534" }}>Record payment</div>
               <input type="number" value={payAmt} onChange={e => setPayAmt(e.target.value)} placeholder={`Max ₦${(sel.total-sel.paid).toLocaleString()}`} className="w-full px-2.5 py-2 rounded-lg border text-sm outline-none" style={{ borderColor: "#BBF7D0" }} />
               <select value={payMethod} onChange={e => setPayMethod(e.target.value)} className="w-full px-2.5 py-2 rounded-lg border text-sm outline-none" style={{ borderColor: "#BBF7D0" }}>
                 {["Cash","Card","Bank Transfer","POS Terminal"].map(m => <option key={m}>{m}</option>)}
@@ -2525,22 +2512,22 @@ export function AccountsPayable({ add }: { add: (t: Omit<Toast, "id">) => void }
     <div>
       <PageHeader title="Accounts Payable" sub="Supplier invoices · aging buckets · approval workflow · payment run" actions={
         <div className="flex gap-2">
-          <BtnO label="Payment Run" icon={Send} onClick={() => setShowPayRun(true)} />
+          <BtnO label="Payment run" icon={Send} onClick={() => setShowPayRun(true)} />
           <BtnO label="Export" icon={Download} onClick={() => add({ type:"info", title:"Exporting AP report" })} />
-          <BtnP label="Add Invoice" icon={Plus} onClick={() => add({ type:"info", title:"Add supplier invoice" })} />
+          <BtnP label="Add invoice" icon={Plus} onClick={() => add({ type:"info", title:"Add supplier invoice" })} />
         </div>
       } />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Outstanding"    value={`₦${outstanding.toLocaleString()}`}  sub={`${invoices.filter(a=>a.status!=="Paid").length} invoices`} icon={AlertCircle}  accent={ERROR}   />
         <StatCard label="Overdue"        value={`₦${overdue.toLocaleString()}`}      sub="Past due — act now"                                         icon={AlertTriangle} accent={ERROR}   />
-        <StatCard label="Due This Week"  value="₦227,000"                            sub="Next 7 days"                                                icon={CalendarDays}  accent={WARNING} />
-        <StatCard label="WHT Deducted"   value={`₦${invoices.reduce((s,a)=>s+a.taxWH,0).toLocaleString()}`} sub="Withheld this period"               icon={DollarSign}    accent={TEAL}    />
+        <StatCard label="Due this week"  value="₦227,000"                            sub="Next 7 days"                                                icon={CalendarDays}  accent={WARNING} />
+        <StatCard label="WHT deducted"   value={`₦${invoices.reduce((s,a)=>s+a.taxWH,0).toLocaleString()}`} sub="Withheld this period"               icon={DollarSign}    accent={TEAL}    />
       </div>
 
       {/* Aging summary */}
       <div className="bg-white rounded-xl border p-4 mb-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-        <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Aging Summary</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Aging summary</h3>
         <div className="grid grid-cols-4 gap-3">
           {AGING_BUCKETS.map(b => (
             <div key={b.label} className="text-center px-3 py-2.5 rounded-xl" style={{ backgroundColor:"#F8FAFC" }}>
@@ -2559,7 +2546,7 @@ export function AccountsPayable({ add }: { add: (t: Omit<Toast, "id">) => void }
 
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["","Vendor","Category","PO Ref","Inv Date","Due Date","Amount","WHT","Balance","Aging","Status",""].map((h,i) => <th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["","Vendor","Category","PO ref","Inv date","Due date","Amount","WHT","Balance","Aging","Status",""].map((h,i) => <th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(a => {
               const balance  = a.amount - a.paid;
@@ -2599,7 +2586,7 @@ export function AccountsPayable({ add }: { add: (t: Omit<Toast, "id">) => void }
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={() => setShowPayRun(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Payment Run</h3>
+            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Payment run</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>Select approved invoices for this batch.</p>
             <div className="space-y-2 max-h-48 overflow-auto mb-4">
               {invoices.filter(a=>a.status==="Approved").map(a => (
@@ -2613,7 +2600,7 @@ export function AccountsPayable({ add }: { add: (t: Omit<Toast, "id">) => void }
             <div className="flex justify-between text-sm font-bold px-1 mb-4"><span style={{ color: TEXT }}>Total</span><span style={{ color: PRIMARY, fontFamily: mono }}>₦{payRunTotal.toLocaleString()}</span></div>
             <div className="flex gap-3">
               <BtnO label="Cancel" onClick={() => { setShowPayRun(false); setPayRunSel(new Set()); }} />
-              <button onClick={() => { payRunSel.forEach(id=>setInvoices(prev=>prev.map(a=>a.id===id?{...a,status:"Paid",paid:a.amount}:a))); add({ type:"success", title:`Payment run — ${payRunSel.size} invoices`, body:`₦${payRunTotal.toLocaleString()}` }); setShowPayRun(false); setPayRunSel(new Set()); }} disabled={payRunSel.size===0} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Process Payment Run</button>
+              <button onClick={() => { payRunSel.forEach(id=>setInvoices(prev=>prev.map(a=>a.id===id?{...a,status:"Paid",paid:a.amount}:a))); add({ type:"success", title:`Payment run — ${payRunSel.size} invoices`, body:`₦${payRunTotal.toLocaleString()}` }); setShowPayRun(false); setPayRunSel(new Set()); }} disabled={payRunSel.size===0} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Process payment run</button>
             </div>
           </div>
         </>

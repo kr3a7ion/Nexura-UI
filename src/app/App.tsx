@@ -19,7 +19,7 @@ import {
   type Role, type Screen, type Toast, type ToastType,
   uid, fmtN,
   mono, sans, display, NAV_BG, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE, BG,
-  NOTIFS, BRANCHES,
+  NOTIFS, BRANCHES, DEMO_STATE,
 } from "./constants";
 import { LoginScreen, ForceChangePasswordScreen, LockScreen, ChooseHotelScreen } from "./AuthScreens";
 import type { LoginAccount } from "./mock/staffLogin";
@@ -53,7 +53,7 @@ type AuthState = "login" | "field-app" | "choose-hotel" | "guest-access" | "hms"
 // ─── Screen components & primitives ──────────────────────────────────────────
 import {
   // Primitives used in the shell
-  EmptyState, ToastC, LiveClock, SyncPill,
+  EmptyState, ScreenLoading, ScreenError, ToastC, LiveClock, SyncPill,
   // All screen components
   DashboardMgmt, DashboardRole,
   ReservationGrid, NewReservation, ReservationSearch, ReservationDetail,
@@ -253,7 +253,7 @@ class ScreenErrorBoundary extends Component<{ children: ReactNode; onHome: () =>
       <div role="alert" className="mx-auto mt-16 max-w-md rounded-2xl border bg-white p-8 text-center" style={{ borderColor: BORDER }}>
         <h1 className="text-lg font-bold" style={{ color: TEXT }}>This screen could not open</h1>
         <p className="mt-2 text-sm" style={{ color: MUTED }}>Nothing was lost. Go back to Suite Home and try again. If it keeps happening, tell your IT administrator which screen it was.</p>
-        <button onClick={this.props.onHome} className="mt-5 h-11 rounded-[10px] px-5 text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Back to Suite Home</button>
+        <button onClick={this.props.onHome} className="mt-5 h-11 rounded-[10px] px-5 text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Back to Suite home</button>
       </div>
     );
   }
@@ -325,13 +325,13 @@ function SessionExpiredModal({ offline, onStay, onSignOut }: { offline: boolean;
         <h3 className="text-base font-bold text-center mb-1" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>
           {offline ? "Session Extended (Offline)" : "Session About to Expire"}
         </h3>
-        <p className="text-sm text-center mb-5 leading-relaxed" style={{ color: "#71717A" }}>
+        <p className="text-sm text-center mb-5 leading-relaxed" style={{ color: "#52525B" }}>
           {offline
             ? "Your session token expired while offline. An 8-hour grace period extension has been issued automatically (HMS_Auth §7.1). Please re-authenticate when connectivity returns."
             : "Your 12-hour session will expire in 5 minutes. Stay signed in or you'll be redirected to the login screen."}
         </p>
         <div className="flex gap-3">
-          <button onClick={onSignOut} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors hover:bg-[#F9FAFB]" style={{ color: "#71717A", borderColor: "#E4E4E7" }}>
+          <button onClick={onSignOut} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors hover:bg-[#F9FAFB]" style={{ color: "#52525B", borderColor: "#E4E4E7" }}>
             Sign Out
           </button>
           <button onClick={onStay} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-md" style={{ backgroundColor: PRIMARY }}>
@@ -355,7 +355,7 @@ function PermissionsChangedDialog({ onReLogin }: { onReLogin: () => void }) {
         <h3 className="text-base font-bold text-center mb-1" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>
           Account Permissions Updated
         </h3>
-        <p className="text-sm text-center mb-2 leading-relaxed" style={{ color: "#71717A" }}>
+        <p className="text-sm text-center mb-2 leading-relaxed" style={{ color: "#52525B" }}>
           Your role permissions were changed by a manager while you were logged in. Your current session has been invalidated (HMS_Auth §6.3).
         </p>
         <p className="text-xs text-center mb-5" style={{ color: "#A1A1AA" }}>Please sign in again to receive your updated permissions.</p>
@@ -391,7 +391,10 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifFilter, setNotifFilter] = useState("All");
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [offline, setOffline] = useState(false);
+  const [offline, setOffline] = useState(DEMO_STATE === "offline");
+  // Loading and server-error states; driven by ?state= until the hotel server supplies real ones.
+  const [loadState, setLoadState] = useState<"ready" | "loading" | "error">(DEMO_STATE === "loading" ? "loading" : DEMO_STATE === "error" ? "error" : "ready");
+  const retry = () => { setLoadState("loading"); setTimeout(() => setLoadState("ready"), 600); };
   const [showSessionExpired, setShowSessionExpired] = useState(false);
   const [showPermsChanged, setShowPermsChanged] = useState(false);
 
@@ -546,9 +549,9 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
             </div>
 
             <div className="flex flex-shrink-0 items-center gap-2">
-              <button onClick={() => { setOffline(previous => !previous); add({ type: offline ? "success" : "warning", title: offline ? "Back online — syncing…" : "Simulating offline mode" }); }} className="hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold sm:flex" style={{ backgroundColor: offline ? "#FEF3C7" : "#ECFDF5", borderColor: offline ? "#FDE68A" : "#A7F3D0", color: offline ? "#92400E" : "#047857" }}><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: offline ? WARNING : SUCCESS }} />{offline ? "Working offline" : "All changes synced"}</button>
+              <button onClick={() => { setOffline(previous => !previous); add({ type: offline ? "success" : "warning", title: offline ? "Back online — syncing…" : "Simulating offline mode" }); }} className="hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold sm:flex" style={{ backgroundColor: loadState === "error" ? "#FEF2F2" : offline ? "#FEF3C7" : "#ECFDF5", borderColor: loadState === "error" ? "#FECACA" : offline ? "#FDE68A" : "#A7F3D0", color: loadState === "error" ? "#B91C1C" : offline ? "#92400E" : "#047857" }}><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: loadState === "error" ? ERROR : offline ? WARNING : SUCCESS }} />{loadState === "error" ? "Server not reachable" : offline ? "Working offline" : "All changes synced"}</button>
               <button onClick={() => { setNotifOpen(previous => !previous); setUserMenuOpen(false); }} className="relative flex h-9 w-9 items-center justify-center rounded-xl border" style={{ borderColor: BORDER }}><Bell size={16} style={{ color: MUTED }} weight="bold" />{unread > 0 && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: ERROR }}>{unread}</span>}</button>
-              <div className="relative"><button onClick={() => { setUserMenuOpen(previous => !previous); setNotifOpen(false); setAppSwitcherOpen(false); }} className="flex items-center gap-2 rounded-xl border px-2 py-1" style={{ borderColor: BORDER }}><div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: PRIMARY }}>{initials}</div><CaretDown size={11} style={{ color: SUBTLE }} /></button>{userMenuOpen && <div className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-xl border bg-white shadow-xl" style={{ borderColor: BORDER }}><div className="border-b px-4 py-3" style={{ borderColor: BORDER }}><div className="text-xs font-semibold" style={{ color: TEXT }}>{staffName}</div><div className="mt-0.5 text-xs" style={{ color: MUTED }}>{roleLabels[role]}</div></div><button onClick={() => nav("my-preferences", "My Preferences")} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><User size={13} />My Profile</button><button onClick={() => setShowSessionExpired(true)} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><Lock size={13} />Auth demo</button><button onClick={onLogout} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: ERROR }}><SignOut size={13} />Sign Out</button></div>}</div>
+              <div className="relative"><button onClick={() => { setUserMenuOpen(previous => !previous); setNotifOpen(false); setAppSwitcherOpen(false); }} className="flex items-center gap-2 rounded-xl border px-2 py-1" style={{ borderColor: BORDER }}><div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: PRIMARY }}>{initials}</div><CaretDown size={11} style={{ color: SUBTLE }} /></button>{userMenuOpen && <div className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-xl border bg-white shadow-xl" style={{ borderColor: BORDER }}><div className="border-b px-4 py-3" style={{ borderColor: BORDER }}><div className="text-xs font-semibold" style={{ color: TEXT }}>{staffName}</div><div className="mt-0.5 text-xs" style={{ color: MUTED }}>{roleLabels[role]}</div></div><button onClick={() => nav("my-preferences", "My Preferences")} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><User size={13} />My profile</button><button onClick={() => setShowSessionExpired(true)} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><Lock size={13} />Auth demo</button><button onClick={onLogout} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: ERROR }}><SignOut size={13} />Sign out</button></div>}</div>
             </div>
           </div>
         </header>
@@ -559,9 +562,9 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
 
         <main data-suite-content className="flex-1 overflow-y-auto p-4 pb-8 md:p-6" style={{ scrollbarWidth: "none", backgroundColor: BG }}>
           <div className="mx-auto max-w-screen-2xl">
-            {offline && <div className="mb-5 flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium" style={{ backgroundColor: "#FEF3C7", color: "#92400E", borderColor: "#FDE68A" }}><WifiSlash size={15} weight="bold" /><span>Working offline. Everything you do is saved on this hotel's server and will sync later.</span><button onClick={() => setOffline(false)} className="ml-auto rounded-lg px-2.5 py-1 text-xs font-medium text-white" style={{ backgroundColor: WARNING }}>Go Online</button></div>}
+            {offline && <div className="mb-5 flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium" style={{ backgroundColor: "#FEF3C7", color: "#92400E", borderColor: "#FDE68A" }}><WifiSlash size={15} weight="bold" /><span>Working offline. Everything you do is saved on this hotel's server and will sync later.</span><button onClick={() => setOffline(false)} className="ml-auto rounded-lg px-2.5 py-1 text-xs font-medium text-white" style={{ backgroundColor: WARNING }}>Go online</button></div>}
             <ScreenErrorBoundary key={screen} onHome={() => nav("suite-home", "Suite Home")}>
-            {screen === "suite-home" ? (
+            {loadState === "loading" ? <ScreenLoading /> : loadState === "error" ? <ScreenError onRetry={retry} /> : screen === "suite-home" ? (
               <SuiteHome staffName={staffName} role={role} departments={allowedDepartments} offline={offline} pinned={pinned.filter(id => allowedDepartments.some(department => department.id === id))} onTogglePin={togglePin} onOpenDepartment={openDepartment} onOpenScreen={(nextScreen, label) => nav(nextScreen, label)} onOpenPortal={onOpenPortal} />
             ) : (screen as string).startsWith("dept-") && !["dept-front-office", "dept-access-security", "dept-housekeeping", "dept-maintenance", "dept-restaurant-pos", "dept-finance", "dept-inventory", "dept-hr", "dept-communications", "dept-fleet"].includes(screen as string) && currentDepartment ? (
               <DepartmentHome department={currentDepartment} nav={(nextScreen, label) => nav(nextScreen, label)} />

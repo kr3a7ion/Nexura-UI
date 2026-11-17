@@ -1,6 +1,6 @@
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { Buildings, ChartBar, CreditCard, CurrencyDollar, ArrowsClockwise, Users } from "@phosphor-icons/react";
-import { PRIMARY, TEAL, WARNING, ERROR, SUCCESS, BORDER, TEXT, MUTED, SUBTLE, BG, sans, display } from "./constants";
+import { PRIMARY, TEAL, WARNING, ERROR, SUCCESS, BORDER, TEXT, MUTED, SUBTLE, BG, sans, display, TEAL_INK, WARNING_INK } from "./constants";
 import { BRAND, BrandMark } from "./brand/Brand";
 import { DEPARTMENTS } from "./suite/departments";
 import { LOGIN_ACCOUNTS, type LoginAccount, type LoginKind } from "./mock/staffLogin";
@@ -27,10 +27,10 @@ const DEPARTMENT_LINES: Record<string, string> = {
 };
 
 const OWNER_TILES = [
-  { name: "All your hotels", line: "Every branch in one view.", color: TEAL, icon: Buildings },
+  { name: "All your hotels", line: "Every branch in one view.", color: TEAL_INK, icon: Buildings },
   { name: "Revenue and occupancy", line: "Today's figures and how they compare.", color: "#047857", icon: CurrencyDollar },
   { name: "Reports", line: "Daily, monthly and yearly exports.", color: "#6D28D9", icon: ChartBar },
-  { name: "Sync status", line: "Which hotel servers are up to date.", color: WARNING, icon: ArrowsClockwise },
+  { name: "Sync status", line: "Which hotel servers are up to date.", color: WARNING_INK, icon: ArrowsClockwise },
   { name: "People and roles", line: "Who can sign in and open what.", color: "#BE185D", icon: Users },
   { name: "Plan and billing", line: "Subscription, invoices and licences.", color: "#334155", icon: CreditCard },
 ];

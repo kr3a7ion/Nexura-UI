@@ -18,9 +18,9 @@ import {
 } from "recharts";
 import {
   type Toast, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR,
-  BORDER, TEXT, MUTED, SUBTLE,
-} from "./constants";
+  BORDER, TEXT, MUTED, SUBTLE, WARNING_INK } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO } from "./UIKit";
+import { TextOrDate } from "./DateInput";
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -55,7 +55,7 @@ function Inp({ label, defaultValue, type = "text", placeholder }: { label?: stri
   return (
     <div className={label ? "mb-3" : ""}>
       {label && <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>{label}</div>}
-      <input aria-label={label} type={type} defaultValue={defaultValue} placeholder={placeholder} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, color: TEXT }} />
+      <TextOrDate aria-label={label} type={type} defaultValue={defaultValue} placeholder={placeholder} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, color: TEXT }} />
     </div>
   );
 }
@@ -129,10 +129,10 @@ export function BranchOverview({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
 
       {/* Aggregate KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Total Rooms"     value={String(totalRooms)} sub={`${BRANCHES.length} properties`} icon={BedDouble}  accent={PRIMARY} />
-        <StatCard label="Avg Occupancy"   value={`${avgOcc}%`}       sub="All branches"                    icon={TrendingUp} accent={TEAL}    delta="+3pp vs Sep" deltaPositive />
-        <StatCard label="Total Revenue"   value={`₦${(totalRev/1000000).toFixed(2)}M`} sub="Today combined" icon={DollarSign} accent={SUCCESS} />
-        <StatCard label="Sync Alerts"     value={String(offlineCount)} sub="Branch(es) with issues"       icon={offlineCount > 0 ? WifiOff : Wifi} accent={offlineCount > 0 ? ERROR : SUCCESS} />
+        <StatCard label="Total rooms"     value={String(totalRooms)} sub={`${BRANCHES.length} properties`} icon={BedDouble}  accent={PRIMARY} />
+        <StatCard label="Avg occupancy"   value={`${avgOcc}%`}       sub="All branches"                    icon={TrendingUp} accent={TEAL}    delta="+3pp vs Sep" deltaPositive />
+        <StatCard label="Total revenue"   value={`₦${(totalRev/1000000).toFixed(2)}M`} sub="Today combined" icon={DollarSign} accent={SUCCESS} />
+        <StatCard label="Sync alerts"     value={String(offlineCount)} sub="Branch(es) with issues"       icon={offlineCount > 0 ? WifiOff : Wifi} accent={offlineCount > 0 ? ERROR : SUCCESS} />
       </div>
 
       {/* Branch cards */}
@@ -339,10 +339,10 @@ export function CentralSyncStatus({ add }: { add: (t: Omit<Toast, "id">) => void
 
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <StatCard label="Branches Online"  value={`${BRANCHES.filter(b=>b.syncOk).length} / ${BRANCHES.length}`} sub="Active connections" icon={Wifi}    accent={SUCCESS} />
-        <StatCard label="Pending Queue"    value={String(BRANCHES.reduce((s,b)=>s+b.queueDepth,0))} sub="Snapshots to process" icon={Database} accent={PRIMARY} />
-        <StatCard label="Schema Lag"       value={String(BRANCHES.filter(b=>b.schema!=="schema_v42").length)} sub="Branch(es) behind"  icon={AlertTriangle} accent={WARNING} />
-        <StatCard label="App Lag"          value={String(BRANCHES.filter(b=>b.appVer!=="v2.14.1").length)} sub="Branch(es) outdated" icon={Activity} accent={ORANGE} />
+        <StatCard label="Branches online"  value={`${BRANCHES.filter(b=>b.syncOk).length} / ${BRANCHES.length}`} sub="Active connections" icon={Wifi}    accent={SUCCESS} />
+        <StatCard label="Pending queue"    value={String(BRANCHES.reduce((s,b)=>s+b.queueDepth,0))} sub="Snapshots to process" icon={Database} accent={PRIMARY} />
+        <StatCard label="Schema lag"       value={String(BRANCHES.filter(b=>b.schema!=="schema_v42").length)} sub="Branch(es) behind"  icon={AlertTriangle} accent={WARNING} />
+        <StatCard label="App lag"          value={String(BRANCHES.filter(b=>b.appVer!=="v2.14.1").length)} sub="Branch(es) outdated" icon={Activity} accent={ORANGE} />
       </div>
 
       {/* Per-branch panels */}
@@ -422,7 +422,7 @@ export function HotelConfig({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   return (
     <div>
       <PageHeader title="Hotel Configuration" sub="Property identity, operational settings, policies, and room configuration"
-        actions={<button onClick={() => add({ type: "success", title: "Configuration saved" })} className="px-4 py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save Changes</button>}
+        actions={<button onClick={() => add({ type: "success", title: "Configuration saved" })} className="px-4 py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save changes</button>}
       />
 
       {/* Tabs */}
@@ -437,9 +437,9 @@ export function HotelConfig({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       {tab === "identity" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <SectionCard title="Property Details">
-            <Inp label="Hotel Name" defaultValue="Grand Palms Hotel" />
-            <Inp label="Legal Entity Name" defaultValue="Grand Palms Hospitality Ltd" />
-            <Inp label="Tax Identification Number (TIN)" defaultValue="12345678-0001" />
+            <Inp label="Hotel name" defaultValue="Grand Palms Hotel" />
+            <Inp label="Legal entity name" defaultValue="Grand Palms Hospitality Ltd" />
+            <Inp label="Tax identification number (TIN)" defaultValue="12345678-0001" />
             <Inp label="Address" defaultValue="Plot 14, Wuse 2, Abuja, FCT" />
             <Inp label="Phone" defaultValue="+234 803 123 4567" />
             <Inp label="Email" defaultValue="info@grandpalms.ng" />
@@ -459,10 +459,10 @@ export function HotelConfig({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       {tab === "operations" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <SectionCard title="Operating Hours">
-            <Inp label="Business Date Roll Time" defaultValue="02:00" type="time" />
-            <Inp label="Standard Check-in Time" defaultValue="14:00" type="time" />
-            <Inp label="Standard Check-out Time" defaultValue="12:00" type="time" />
-            <Inp label="Late Check-out Cutoff" defaultValue="18:00" type="time" />
+            <Inp label="Business date roll time" defaultValue="02:00" type="time" />
+            <Inp label="Standard check-in time" defaultValue="14:00" type="time" />
+            <Inp label="Standard check-out time" defaultValue="12:00" type="time" />
+            <Inp label="Late check-out cutoff" defaultValue="18:00" type="time" />
             <div className="mt-2 text-xs" style={{ color: MUTED }}>Business date rolls at 02:00 — the night audit must complete before this time.</div>
           </SectionCard>
           <SectionCard title="Service Charge & Tax">
@@ -477,14 +477,14 @@ export function HotelConfig({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       {tab === "policies" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <SectionCard title="Cancellation & No-Show">
-            <Sel label="Cancellation Policy" options={["24 hours notice — full refund", "48 hours notice — full refund", "72 hours notice — full refund", "Non-refundable"]} />
+            <Sel label="Cancellation policy" options={["24 hours notice — full refund", "48 hours notice — full refund", "72 hours notice — full refund", "Non-refundable"]} />
             <Inp label="No-Show Charge (% of first night)" defaultValue="100" type="number" />
             <Inp label="Late Cancellation Charge (% of first night)" defaultValue="50" type="number" />
           </SectionCard>
           <SectionCard title="Deposit & Credit">
             <Inp label="Deposit Required (% of total stay)" defaultValue="30" type="number" />
-            <Inp label="Credit Limit (₦)" defaultValue="500000" type="number" />
-            <Sel label="Late Checkout Fee Policy" options={["₦5,000 / hour", "50% of one night's ADR", "Full night charge", "No charge"]} />
+            <Inp label="Credit limit (₦)" defaultValue="500000" type="number" />
+            <Sel label="Late checkout fee policy" options={["₦5,000 / hour", "50% of one night's ADR", "Full night charge", "No charge"]} />
             <Inp label="Max. Advance Booking (days)" defaultValue="365" type="number" />
           </SectionCard>
         </div>
@@ -549,7 +549,7 @@ export function SyncSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="space-y-4">
           <SectionCard title="Connection">
-            <FieldRow label="Central Server URL">
+            <FieldRow label="Central server URL">
               <input value={url} onChange={e => setUrl(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: isHttp ? ERROR : BORDER, fontFamily: mono }} />
               {isHttp && (
                 <div className="mt-1.5 flex items-start gap-1.5 text-xs p-2 rounded-lg" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>
@@ -561,13 +561,13 @@ export function SyncSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <FieldRow label="Branch ID">
               <input defaultValue="GRND-PALMS-ABJ-001" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, fontFamily: mono }} readOnly />
             </FieldRow>
-            <FieldRow label="Sync Key">
+            <FieldRow label="Sync key">
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <input type={showKey ? "text" : "password"} defaultValue="sk_live_gp_abj_7x4m2qnr9c" className="w-full px-3 py-2 pr-8 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, fontFamily: mono }} readOnly />
                   <button onClick={() => setShowKey(p => !p)} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: MUTED }}>{showKey ? <EyeOff size={13} /> : <Eye size={13} />}</button>
                 </div>
-                <button onClick={rotateKey} disabled={rotating} className="flex items-center gap-1 px-3 py-2 rounded-xl border text-xs" style={{ borderColor: BORDER, color: WARNING }}>
+                <button onClick={rotateKey} disabled={rotating} className="flex items-center gap-1 px-3 py-2 rounded-xl border text-xs" style={{ borderColor: BORDER, color: WARNING_INK }}>
                   <RotateCcw size={12} className={rotating ? "animate-spin" : ""} />
                   {rotating ? "Rotating…" : "Rotate"}
                 </button>
@@ -577,9 +577,9 @@ export function SyncSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           </SectionCard>
 
           <SectionCard title="Interval & Retry">
-            <Sel label="Sync Interval" options={["Every 5 minutes", "Every 10 minutes", "Every 15 minutes", "Every 30 minutes"]} />
-            <Sel label="Retry Policy" options={["Exponential backoff — max 5 retries", "Fixed 60s — max 3 retries", "Fixed 30s — unlimited"]} />
-            <Inp label="Connection Timeout (seconds)" defaultValue="30" type="number" />
+            <Sel label="Sync interval" options={["Every 5 minutes", "Every 10 minutes", "Every 15 minutes", "Every 30 minutes"]} />
+            <Sel label="Retry policy" options={["Exponential backoff — max 5 retries", "Fixed 60s — max 3 retries", "Fixed 30s — unlimited"]} />
+            <Inp label="Connection timeout (seconds)" defaultValue="30" type="number" />
           </SectionCard>
         </div>
 
@@ -711,24 +711,24 @@ export function DoorLockSettings({ add }: { add: (t: Omit<Toast, "id">) => void 
           {provider.id === "dormakaba" && <>
             <Inp label="Gateway Host / IP" defaultValue="192.168.1.80" />
             <Inp label="Gateway Port"      defaultValue="7070" type="number" />
-            <Inp label="API Username"      defaultValue="nexura_svc" />
-            <Inp label="API Password"      type="password" placeholder="••••••••" />
-            <Inp label="Hotel Code"        defaultValue="GRND-ABJ-001" />
+            <Inp label="API username"      defaultValue="nexura_svc" />
+            <Inp label="API password"      type="password" placeholder="••••••••" />
+            <Inp label="Hotel code"        defaultValue="GRND-ABJ-001" />
           </>}
           {provider.id === "salto" && <>
-            <Inp label="Salto Cloud Site ID"   defaultValue="site_abj_001" />
-            <Inp label="Salto API Key"          type="password" placeholder="••••••••" />
-            <Inp label="Salto Site Secret"      type="password" placeholder="••••••••" />
+            <Inp label="Salto cloud site ID"   defaultValue="site_abj_001" />
+            <Inp label="Salto API key"          type="password" placeholder="••••••••" />
+            <Inp label="Salto site secret"      type="password" placeholder="••••••••" />
           </>}
           {provider.id === "onity" && <>
             <Inp label="Encoder COM Port"  defaultValue="COM3" />
-            <Inp label="Interface Type"    defaultValue="RS-232 / USB" />
+            <Inp label="Interface type"    defaultValue="RS-232 / USB" />
           </>}
           {provider.id === "assa" && <>
-            <Inp label="VingCard Online Server" defaultValue="192.168.1.81" />
-            <Inp label="PMS Interface Port"     defaultValue="5010" type="number" />
-            <Inp label="Property Code"          defaultValue="GRND01" />
-            <Inp label="System Password"        type="password" placeholder="••••••••" />
+            <Inp label="VingCard online server" defaultValue="192.168.1.81" />
+            <Inp label="PMS interface Port"     defaultValue="5010" type="number" />
+            <Inp label="Property code"          defaultValue="GRND01" />
+            <Inp label="System password"        type="password" placeholder="••••••••" />
           </>}
           {!provider.gateway && (
             <div className="mt-2 text-xs p-2 rounded-lg" style={{ backgroundColor: "#F0FDF4", color: "#166534" }}>
@@ -806,7 +806,7 @@ export function MyPreferences({ add }: { add: (t: Omit<Toast, "id">) => void }) 
             <Sel label="Timezone" options={["Africa/Lagos (WAT, UTC+1)", "UTC"]} />
             <Sel label="Date Format" options={["DD/MM/YYYY", "YYYY-MM-DD", "MM/DD/YYYY"]} />
             <Sel label="Time Format" options={["12-hour (AM/PM)", "24-hour"]} />
-            <Sel label="Default Landing Screen" options={["Dashboard", "Reservations", "Front Desk", "Housekeeping Board"]} />
+            <Sel label="Default landing screen" options={["Dashboard", "Reservations", "Front Desk", "Housekeeping Board"]} />
           </SectionCard>
           <SectionCard title="Interface Density">
             <div className="flex gap-3">
@@ -861,7 +861,7 @@ export function MyPreferences({ add }: { add: (t: Omit<Toast, "id">) => void }) 
             </div>
             <Inp type="password" placeholder="New password" />
             <Inp type="password" placeholder="Confirm new password" />
-            <button onClick={() => add({ type: "success", title: "Password updated" })} className="mt-2 px-4 py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Update Password</button>
+            <button onClick={() => add({ type: "success", title: "Password updated" })} className="mt-2 px-4 py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Update password</button>
           </SectionCard>
 
           <div className="space-y-4">
@@ -978,8 +978,8 @@ export function PrintSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   />
                 </div>
                 <div>
-                  <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Paper Size</div>
-                  <select aria-label="Paper Size"
+                  <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>Paper size</div>
+                  <select aria-label="Paper size"
                     value={printer.paper}
                     onChange={e => setPrinters(prev => prev.map((p, j) => j === i ? { ...p, paper: e.target.value } : p))}
                     className="w-full px-3 py-2 border rounded-xl text-xs outline-none"

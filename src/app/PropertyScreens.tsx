@@ -27,18 +27,18 @@ import {
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
   HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ARRIVALS_DATA, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-} from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
 
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { Av } from "./AdminScreens";
+import { DateInput, TextOrDate } from "./DateInput";
 export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [step, setStep] = useState(1);
   const [selRoom, setSelRoom] = useState<{ id: string; type: string; rate: number } | null>(null);
@@ -97,7 +97,7 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Available Rooms</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Available rooms</h3>
               <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 mb-3">
                 {AVAIL_ROOMS.map(r => (
                   <button key={r.id} onClick={() => { setSelRoom({ id: r.id, type: r.type, rate: r.rate }); setOverrideApproved(false); }}
@@ -108,7 +108,7 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
                       <div className="text-xs" style={{ color: MUTED }}>{r.type} · Fl {r.floor}</div>
                     </div>
                     <div className="px-3 py-1.5">
-                      <div className="text-xs font-bold" style={{ color: SUCCESS, fontFamily: mono }}>₦{r.rate.toLocaleString()}/n</div>
+                      <div className="text-xs font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{r.rate.toLocaleString()}/n</div>
                       <div className="text-xs" style={{ color: MUTED }}>{r.hkSt}</div>
                     </div>
                   </button>
@@ -121,7 +121,7 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
               )}
             </div>
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Guest Information</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Guest information</h3>
               <div className="grid grid-cols-2 gap-3">
                 <Inp label="First Name *" value={form.firstName} onChange={event => updateForm("firstName", event.target.value)} placeholder="Chukwuemeka" />
                 <Inp label="Last Name *" value={form.lastName} onChange={event => updateForm("lastName", event.target.value)} placeholder="Okafor" />
@@ -134,16 +134,16 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
               </div>
             </div>
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Stay & Payment</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Stay & payment</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                 <Inp label="Check-in Date *" type="date" value={form.checkin} onChange={event => updateForm("checkin", event.target.value)} />
                 <Inp label="Check-out Date *" type="date" value={form.checkout} onChange={event => updateForm("checkout", event.target.value)} />
                 <Inp label="Adults" type="number" value={form.adults} onChange={event => updateForm("adults", event.target.value)} />
                 <Inp label="Children" type="number" value={form.children} onChange={event => updateForm("children", event.target.value)} />
                 <Inp label="Deposit (₦)" value={form.deposit} onChange={event => updateForm("deposit", event.target.value)} placeholder={subtotal.toLocaleString()} />
-                <Sel label="Payment Method" value={form.paymentMethod} onChange={event => updateForm("paymentMethod", event.target.value)} options={["Cash", "POS / Card", "Bank Transfer"]} />
+                <Sel label="Payment method" value={form.paymentMethod} onChange={event => updateForm("paymentMethod", event.target.value)} options={["Cash", "POS / Card", "Bank Transfer"]} />
                 {form.paymentMethod !== "Cash" && <div className="sm:col-span-2"><Inp label="Payment Reference *" value={form.paymentRef} onChange={event => updateForm("paymentRef", event.target.value)} placeholder="Transaction or terminal reference" /></div>}
-                <div className="sm:col-span-2"><Inp label="Special Requests" value={form.specialRequests} onChange={event => updateForm("specialRequests", event.target.value)} placeholder="Accessibility, dietary, transfer, or room preferences…" /></div>
+                <div className="sm:col-span-2"><Inp label="Special requests" value={form.specialRequests} onChange={event => updateForm("specialRequests", event.target.value)} placeholder="Accessibility, dietary, transfer, or room preferences…" /></div>
               </div>
               <div className="border-t pt-3" style={{ borderColor: BORDER }}>
                 <button onClick={() => setShowOverride(!showOverride)} className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: showOverride ? ORANGE : MUTED }}>
@@ -151,7 +151,7 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
                 </button>
                 {showOverride && (
                   <div className="mt-3 p-3 rounded-lg border" style={{ borderColor: ORANGE, backgroundColor: "#FFF7ED" }}>
-                    <div className="text-xs font-semibold mb-2" style={{ color: ORANGE }}>Override requires manager PIN authorisation</div>
+                    <div className="text-xs font-semibold mb-2" style={{ color: ORANGE_INK }}>Override requires manager PIN authorisation</div>
                     <div className="flex items-center gap-3">
                       <div className="flex-1"><Inp label="Override Rate (₦/night)" value={rateOverride} onChange={event => { setRateOverride(event.target.value); setOverrideApproved(false); }} placeholder={String(selRoom?.rate ?? 35000)} /></div>
                       <div className="flex-1"><Inp label="Manager PIN" type="password" value={managerPin} onChange={event => { setManagerPin(event.target.value); setOverrideApproved(false); }} placeholder="••••" /></div>
@@ -167,7 +167,7 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
             </button>
           </div>
           <div className="bg-white rounded-xl border p-5 h-fit" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Booking Summary</h3>
+            <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Booking summary</h3>
             <div className="space-y-2.5 text-sm">
               {[["Guest", guestName || "Not entered"], ["Room", selRoom ? `${selRoom.id} · ${selRoom.type}` : "Not selected"], ["Check-in", form.checkin ? fmtDate(form.checkin) : "Not selected"], ["Check-out", form.checkout || "Not selected"], ["Guests", `${form.adults || "0"} adult${form.adults === "1" ? "" : "s"} · ${form.children || "0"} children`], ["Nights", nights > 0 ? String(nights) : "Invalid dates"]].map(([k,v]) => (
                 <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span className="font-medium" style={{ color: TEXT }}>{v}</span></div>
@@ -180,12 +180,12 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
                 <span style={{ color: TEXT }}>Total</span>
                 <span style={{ color: PRIMARY, fontFamily: mono }}>₦{total.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-xs"><span style={{ color: MUTED }}>Deposit</span><span className="font-semibold" style={{ color: SUCCESS, fontFamily: mono }}>₦{deposit.toLocaleString()}</span></div>
+              <div className="flex justify-between text-xs"><span style={{ color: MUTED }}>Deposit</span><span className="font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{deposit.toLocaleString()}</span></div>
               <div className="flex justify-between text-xs"><span style={{ color: MUTED }}>Payment</span><span className="font-semibold" style={{ color: TEXT }}>{form.paymentMethod}</span></div>
             </div>
             {selRoom && (
               <div className="mt-4 pt-4 border-t" style={{ borderColor: BORDER }}>
-                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Selected Room</div>
+                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Selected room</div>
                 <div className="p-3 rounded-xl" style={{ backgroundColor: "#EFF6FF" }}>
                   <div className="text-xl font-black" style={{ color: PRIMARY }}>{selRoom.id}</div>
                   <div className="text-xs" style={{ color: MUTED }}>{selRoom.type}</div>
@@ -197,14 +197,14 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
       ) : (
         <div className="bg-white rounded-xl border p-12 text-center max-w-lg mx-auto" style={{ borderColor: BORDER }}>
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "#D1FAE5" }}><CheckCircle2 size={32} style={{ color: SUCCESS }} /></div>
-          <h2 className="text-lg font-bold mb-1" style={{ color: TEXT }}>Guest Registered & Checked In</h2>
+          <h2 className="text-lg font-bold mb-1" style={{ color: TEXT }}>Guest registered & checked in</h2>
           <p className="text-sm mb-1" style={{ color: MUTED }}>{guestName} · Room {selRoom?.id ?? "—"} · {nights} night{nights === 1 ? "" : "s"}</p>
           <p className="text-sm mb-1" style={{ color: MUTED, fontFamily: mono }}>Booking: {bookingId} created</p>
-          <p className="text-sm mb-6" style={{ color: TEAL }}>Deposit: ₦{deposit.toLocaleString()} via {form.paymentMethod}. Folio opened.</p>
+          <p className="text-sm mb-6" style={{ color: TEAL_INK }}>Deposit: ₦{deposit.toLocaleString()} via {form.paymentMethod}. Folio opened.</p>
           <div className="flex justify-center gap-3 flex-wrap">
-            <BtnO label="Print Receipt" icon={FileText} onClick={() => add({ type: "success", title: "Deposit receipt sent to printer", body: `${bookingId} · ${guestName}` })} />
-            <BtnO label="Activate Room Access" icon={Lock} onClick={() => nav?.("room-access", "Room Access Management", selRoom?.id)} />
-            <BtnP label="New Walk-In" icon={Plus} onClick={() => { setStep(1); setSelRoom(null); setRateOverride(""); setShowOverride(false); setOverrideReason(""); setManagerPin(""); setOverrideApproved(false); setBookingId(""); setForm(initialForm); }} />
+            <BtnO label="Print receipt" icon={FileText} onClick={() => add({ type: "success", title: "Deposit receipt sent to printer", body: `${bookingId} · ${guestName}` })} />
+            <BtnO label="Activate room access" icon={Lock} onClick={() => nav?.("room-access", "Room Access Management", selRoom?.id)} />
+            <BtnP label="New walk-In" icon={Plus} onClick={() => { setStep(1); setSelRoom(null); setRateOverride(""); setShowOverride(false); setOverrideReason(""); setManagerPin(""); setOverrideApproved(false); setBookingId(""); setForm(initialForm); }} />
           </div>
         </div>
       )}
@@ -282,9 +282,9 @@ export function DiningReservations({ add }: { add: (t: Omit<Toast, "id">) => voi
         } />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <StatCard label="Tonight's Bookings" value={String(reservations.filter(r=>r.status==="Booked"||r.status==="Seated").length)} sub="Confirmed" icon={CalendarDays} accent={PRIMARY} />
-          <StatCard label="Total Covers" value={String(reservations.filter(r=>r.status!=="Cancelled"&&r.status!=="No-show").reduce((s,r)=>s+r.party,0))} sub="Expected diners" icon={Users} accent={TEAL} />
+          <StatCard label="Total covers" value={String(reservations.filter(r=>r.status!=="Cancelled"&&r.status!=="No-show").reduce((s,r)=>s+r.party,0))} sub="Expected diners" icon={Users} accent={TEAL} />
           <StatCard label="No-shows" value={String(reservations.filter(r=>r.status==="No-show").length)} sub="Today" icon={AlertTriangle} accent={ERROR} />
-          <StatCard label="VIP Bookings" value={String(reservations.filter(r=>r.vip).length)} sub="Special attention" icon={Star} accent={ORANGE} />
+          <StatCard label="VIP bookings" value={String(reservations.filter(r=>r.vip).length)} sub="Special attention" icon={Star} accent={ORANGE} />
         </div>
 
         {/* Day toggle */}
@@ -308,7 +308,7 @@ export function DiningReservations({ add }: { add: (t: Omit<Toast, "id">) => voi
             <div className="mt-4 grid grid-cols-3 gap-2">
               {reservations.filter(r=>r.status==="Booked"||r.status==="Seated").map(r => (
                 <div key={r.id} onClick={() => setSelectedRes(r.id)} className="border rounded-xl px-3 py-2 cursor-pointer hover:border-blue-300" style={{ borderColor: r.vip ? ORANGE : BORDER }}>
-                  <div className="flex items-center justify-between"><span className="text-xs font-mono font-semibold" style={{ color: TEXT, fontFamily: mono }}>{r.time}</span>{r.vip && <span className="text-xs px-1 rounded" style={{ backgroundColor: "#FFF7ED", color: ORANGE }}>VIP</span>}</div>
+                  <div className="flex items-center justify-between"><span className="text-xs font-mono font-semibold" style={{ color: TEXT, fontFamily: mono }}>{r.time}</span>{r.vip && <span className="text-xs px-1 rounded" style={{ backgroundColor: "#FFF7ED", color: ORANGE_INK }}>VIP</span>}</div>
                   <div className="text-xs font-medium mt-0.5" style={{ color: TEXT }}>{r.guest}</div>
                   <div className="text-xs mt-0.5" style={{ color: MUTED }}>{r.party} covers · {r.table}</div>
                 </div>
@@ -326,7 +326,7 @@ export function DiningReservations({ add }: { add: (t: Omit<Toast, "id">) => voi
                     <td className="px-4 py-3 text-sm font-bold" style={{ color: PRIMARY }}>{r.party}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        {r.vip && <Star size={11} style={{ color: ORANGE }} />}
+                        {r.vip && <Star size={11} style={{ color: ORANGE_INK }} />}
                         <span className="text-sm font-medium" style={{ color: TEXT }}>{r.guest}</span>
                         {r.resId && <span className="text-xs" style={{ color: SUBTLE }}>{r.resId}</span>}
                       </div>
@@ -352,20 +352,20 @@ export function DiningReservations({ add }: { add: (t: Omit<Toast, "id">) => voi
       {/* Side panel */}
       {sel && (
         <div className="w-72 flex-shrink-0 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-          <div className="flex items-start justify-between mb-4"><div><div className="flex items-center gap-1.5">{sel.vip && <Star size={12} style={{ color: ORANGE }} />}<h3 className="text-sm font-bold" style={{ color: TEXT }}>{sel.guest}</h3></div><div className="text-xs mt-0.5" style={{ color: MUTED }}>{sel.id}</div></div><button onClick={() => setSelectedRes(null)} className="text-sm" style={{ color: MUTED }}>✕</button></div>
+          <div className="flex items-start justify-between mb-4"><div><div className="flex items-center gap-1.5">{sel.vip && <Star size={12} style={{ color: ORANGE_INK }} />}<h3 className="text-sm font-bold" style={{ color: TEXT }}>{sel.guest}</h3></div><div className="text-xs mt-0.5" style={{ color: MUTED }}>{sel.id}</div></div><button onClick={() => setSelectedRes(null)} className="text-sm" style={{ color: MUTED }}>✕</button></div>
           <div className="space-y-2.5 text-sm">
             <div className="flex justify-between"><span style={{ color: MUTED }}>Time</span><span className="font-semibold" style={{ fontFamily: mono, color: TEXT }}>{sel.time}</span></div>
             <div className="flex justify-between"><span style={{ color: MUTED }}>Party size</span><span className="font-bold" style={{ color: PRIMARY }}>{sel.party} covers</span></div>
             <div className="flex justify-between"><span style={{ color: MUTED }}>Table</span><span className="font-semibold" style={{ color: TEXT }}>{sel.table}</span></div>
             {sel.phone && <div className="flex justify-between"><span style={{ color: MUTED }}>Phone</span><span style={{ color: TEXT }}>{sel.phone}</span></div>}
-            {sel.resId && <div className="flex justify-between"><span style={{ color: MUTED }}>Room Res.</span><span style={{ color: TEAL }}>{sel.resId}</span></div>}
+            {sel.resId && <div className="flex justify-between"><span style={{ color: MUTED }}>Room Res.</span><span style={{ color: TEAL_INK }}>{sel.resId}</span></div>}
             <div className="flex justify-between items-start"><span style={{ color: MUTED }}>Status</span><Badge label={sel.status} colors={statusColors[sel.status] ?? { bg: "#F1F5F9", text: MUTED }} /></div>
             {sel.requests && <div className="px-3 py-2 rounded-xl text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}>{sel.requests}</div>}
           </div>
           <div className="mt-4 space-y-2">
-            {sel.status === "Booked" && <button onClick={() => changeStatus(sel.id, "Seated")} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Seat Party</button>}
-            {sel.status === "Seated" && <button onClick={() => changeStatus(sel.id, "Completed")} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Mark Completed</button>}
-            {sel.status === "Booked" && <button onClick={() => { changeStatus(sel.id, "No-show"); setSelectedRes(null); }} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Mark No-show</button>}
+            {sel.status === "Booked" && <button onClick={() => changeStatus(sel.id, "Seated")} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Seat party</button>}
+            {sel.status === "Seated" && <button onClick={() => changeStatus(sel.id, "Completed")} className="w-full py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Mark completed</button>}
+            {sel.status === "Booked" && <button onClick={() => { changeStatus(sel.id, "No-show"); setSelectedRes(null); }} className="w-full py-2 rounded-xl text-sm font-semibold border" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Mark no-show</button>}
           </div>
         </div>
       )}
@@ -375,12 +375,12 @@ export function DiningReservations({ add }: { add: (t: Omit<Toast, "id">) => voi
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowWalkin(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Seat Walk-in Party</h3>
+            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Seat walk-in party</h3>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Party Size</label><input aria-label="Party Size" type="number" min="1" max="20" value={walkinParty} onChange={e=>setWalkinParty(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Available Table</label><select aria-label="Available Table" value={walkinTable} onChange={e=>setWalkinTable(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>{TABLES_AVL.map(t=><option key={t}>{t}</option>)}</select></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Party size</label><input aria-label="Party size" type="number" min="1" max="20" value={walkinParty} onChange={e=>setWalkinParty(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Available table</label><select aria-label="Available table" value={walkinTable} onChange={e=>setWalkinTable(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>{TABLES_AVL.map(t=><option key={t}>{t}</option>)}</select></div>
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowWalkin(false)} /><button onClick={() => { add({ type: "success", title: `Walk-in seated at ${walkinTable}`, body: `${walkinParty} covers` }); setShowWalkin(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Seat Now</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowWalkin(false)} /><button onClick={() => { add({ type: "success", title: `Walk-in seated at ${walkinTable}`, body: `${walkinParty} covers` }); setShowWalkin(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Seat now</button></div>
           </div>
         </>
       )}
@@ -451,10 +451,10 @@ export function RoomServiceOrders({ add }: { add: (t: Omit<Toast, "id">) => void
       <div className="flex-1 min-w-0">
         <PageHeader title="Room Service Orders" sub="Order board: Received → Preparing → Ready → En Route → Delivered" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <StatCard label="Active Orders" value={String(stats.active)} sub="In progress" icon={ClipboardList} accent={ORANGE} />
-          <StatCard label="In Kitchen" value={String(stats.preparing)} sub="Being prepared" icon={UtensilsCrossed} accent={PRIMARY} />
-          <StatCard label="Delivered Today" value={String(stats.delivered)} sub="Completed" icon={CheckCircle2} accent={SUCCESS} />
-          <StatCard label="Avg Delivery Time" value="22 min" sub="Ordered to door" icon={Clock} accent={TEAL} />
+          <StatCard label="Active orders" value={String(stats.active)} sub="In progress" icon={ClipboardList} accent={ORANGE} />
+          <StatCard label="In kitchen" value={String(stats.preparing)} sub="Being prepared" icon={UtensilsCrossed} accent={PRIMARY} />
+          <StatCard label="Delivered today" value={String(stats.delivered)} sub="Completed" icon={CheckCircle2} accent={SUCCESS} />
+          <StatCard label="Avg delivery time" value="22 min" sub="Ordered to door" icon={Clock} accent={TEAL} />
         </div>
 
         {/* Status filter */}
@@ -466,7 +466,7 @@ export function RoomServiceOrders({ add }: { add: (t: Omit<Toast, "id">) => void
 
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Order","Room / Guest","Items","Ordered","Promised","Status","Runner","Folio",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Order","Room / guest","Items","Ordered","Promised","Status","Runner","Folio",""].map((h,i)=><th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(o => {
                 const total = o.items.reduce((s,i)=>s+i.price*i.qty,0);
@@ -486,7 +486,7 @@ export function RoomServiceOrders({ add }: { add: (t: Omit<Toast, "id">) => void
                     <td className="px-3 py-3 text-xs font-semibold" style={{ color: overdue ? ORANGE : MUTED, fontFamily: mono }}>{o.promised}</td>
                     <td className="px-3 py-3"><Badge label={o.status} colors={stColors[o.status]} /></td>
                     <td className="px-3 py-3 text-xs" style={{ color: o.assigned ? TEXT : SUBTLE }}>{o.assigned || "—"}</td>
-                    <td className="px-3 py-3 text-xs" style={{ color: TEAL, fontFamily: mono }}>{o.folioRef}</td>
+                    <td className="px-3 py-3 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{o.folioRef}</td>
                     <td className="px-3 py-3" onClick={e=>e.stopPropagation()}>
                       {nextLabel[o.status] && <button onClick={() => advance(o.id)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>{nextLabel[o.status]}</button>}
                     </td>
@@ -516,10 +516,10 @@ export function RoomServiceOrders({ add }: { add: (t: Omit<Toast, "id">) => void
           </div>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between"><span style={{ color: MUTED }}>Ordered</span><span style={{ fontFamily: mono, color: TEXT }}>{sel.ordered}</span></div>
-            <div className="flex justify-between"><span style={{ color: MUTED }}>Promised</span><span style={{ fontFamily: mono, color: ORANGE }}>{sel.promised}</span></div>
+            <div className="flex justify-between"><span style={{ color: MUTED }}>Promised</span><span style={{ fontFamily: mono, color: ORANGE_INK }}>{sel.promised}</span></div>
             <div className="flex justify-between items-center"><span style={{ color: MUTED }}>Status</span><Badge label={sel.status} colors={stColors[sel.status]} /></div>
             <div className="flex justify-between"><span style={{ color: MUTED }}>Runner</span><span style={{ color: TEXT }}>{sel.assigned || "Unassigned"}</span></div>
-            <div className="flex justify-between"><span style={{ color: MUTED }}>Folio</span><span style={{ color: TEAL, fontFamily: mono }}>{sel.folioRef}</span></div>
+            <div className="flex justify-between"><span style={{ color: MUTED }}>Folio</span><span style={{ color: TEAL_INK, fontFamily: mono }}>{sel.folioRef}</span></div>
           </div>
           {sel.note && <div className="mt-3 px-3 py-2 rounded-xl text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}>{sel.note}</div>}
           <div className="mt-4">
@@ -533,10 +533,10 @@ export function RoomServiceOrders({ add }: { add: (t: Omit<Toast, "id">) => void
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowAssign(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Assign Delivery Runner</h3>
+            <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Assign delivery runner</h3>
             <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Runner</label>
             <select aria-label="Runner" value={assignRunner} onChange={e=>setAssignRunner(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>{RUNNERS.map(r=><option key={r}>{r}</option>)}</select></div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowAssign(false)} /><button onClick={confirmAssign} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Assign & Dispatch</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowAssign(false)} /><button onClick={confirmAssign} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Assign & dispatch</button></div>
           </div>
         </>
       )}
@@ -582,7 +582,7 @@ export function Announcements({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   return (
     <div>
       <PageHeader title="Announcements" sub="Broadcast messages to staff by department, role, or branch"
-        actions={<BtnP label="New Announcement" icon={Plus} onClick={()=>setShowNew(true)} />}
+        actions={<BtnP label="New announcement" icon={Plus} onClick={()=>setShowNew(true)} />}
       />
       <div className="grid grid-cols-3 gap-3 mb-4">
         <StatCard label="Active"   value={String(ANNOUNCEMENTS.filter(a=>a.active).length)}  sub="Visible to staff"       icon={Bell}     accent={PRIMARY} />
@@ -623,10 +623,10 @@ export function Announcements({ add }: { add: (t: Omit<Toast, "id">) => void }) 
             <div className="flex items-center justify-between mt-3 pt-3 border-t" style={{ borderColor:"#F4F4F5" }}>
               <div className="flex gap-2">
                 <button onClick={()=>add({type:"info",title:`Editing ${a.id}`})} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color:MUTED, borderColor:BORDER }}>Edit</button>
-                <button onClick={()=>setViewAck(a)} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color:PRIMARY, borderColor:`${PRIMARY}30` }}>View Acknowledgements</button>
+                <button onClick={()=>setViewAck(a)} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color:PRIMARY, borderColor:`${PRIMARY}30` }}>View acknowledgements</button>
                 <button onClick={()=>add({type:"warning",title:`${a.id} archived`})} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color:ERROR, borderColor:`${ERROR}20` }}>Archive</button>
               </div>
-              {!a.active && <button onClick={()=>add({type:"success",title:`${a.id} published`})} className="text-xs px-3 py-1.5 rounded-xl text-white font-semibold" style={{ backgroundColor:PRIMARY }}>Publish Now</button>}
+              {!a.active && <button onClick={()=>add({type:"success",title:`${a.id} published`})} className="text-xs px-3 py-1.5 rounded-xl text-white font-semibold" style={{ backgroundColor:PRIMARY }}>Publish now</button>}
             </div>
           </div>
         ))}
@@ -637,12 +637,12 @@ export function Announcements({ add }: { add: (t: Omit<Toast, "id">) => void }) 
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.45)" }} onClick={()=>setShowNew(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-[520px]" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-sm font-bold mb-4" style={{ color:TEXT }}>New Announcement</h3>
+            <h3 className="text-sm font-bold mb-4" style={{ color:TEXT }}>New announcement</h3>
             <div className="space-y-3">
               <Inp label="Title" value={newAnn.title} onChange={e=>setNewAnn(n=>({...n,title:e.target.value}))} placeholder="Announcement title…" />
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Target Audience</label>
-                  <select aria-label="Target Audience" value={newAnn.audience} onChange={e=>setNewAnn(n=>({...n,audience:e.target.value as AudienceKey}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
+                <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Target audience</label>
+                  <select aria-label="Target audience" value={newAnn.audience} onChange={e=>setNewAnn(n=>({...n,audience:e.target.value as AudienceKey}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>
                     {AUDIENCE_OPTIONS.map(o=><option key={o}>{o}</option>)}
                   </select>
                 </div>
@@ -657,7 +657,7 @@ export function Announcements({ add }: { add: (t: Omit<Toast, "id">) => void }) 
               </div>
               <div className="grid grid-cols-2 gap-3 items-center">
                 <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Expires</label>
-                  <input aria-label="Expires" type="date" value={newAnn.expires} onChange={e=>setNewAnn(n=>({...n,expires:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} />
+                  <DateInput aria-label="Expires" type="date" value={newAnn.expires} onChange={e=>setNewAnn(n=>({...n,expires:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} />
                 </div>
                 <label className="flex items-center gap-2 mt-4 cursor-pointer">
                   <input type="checkbox" checked={newAnn.ackRequired} onChange={e=>setNewAnn(n=>({...n,ackRequired:e.target.checked}))} className="w-4 h-4 rounded" />
@@ -666,8 +666,8 @@ export function Announcements({ add }: { add: (t: Omit<Toast, "id">) => void }) 
               </div>
             </div>
             <div className="flex gap-3 mt-5">
-              <BtnO label="Save Draft" onClick={()=>{ add({type:"info",title:"Saved as draft"}); setShowNew(false); }} />
-              <button onClick={()=>{ add({type:"success",title:"Announcement posted"}); setShowNew(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Publish Now</button>
+              <BtnO label="Save draft" onClick={()=>{ add({type:"info",title:"Saved as draft"}); setShowNew(false); }} />
+              <button onClick={()=>{ add({type:"success",title:"Announcement posted"}); setShowNew(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Publish now</button>
             </div>
           </div>
         </>
@@ -759,8 +759,8 @@ export function StaffProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
       <PageHeader title={`Staff Profile — ${STAFF_PROFILE.name}`} sub={`${STAFF_PROFILE.id} · ${STAFF_PROFILE.role} · ${STAFF_PROFILE.dept}`}
         actions={
           <div className="flex gap-2">
-            <BtnO label="Reset Password" icon={KeyRound} onClick={() => add({ type:"info", title:"Password reset sent" })} />
-            <BtnP label="Edit Profile" icon={Edit3} onClick={() => add({ type:"info", title:"Edit staff profile" })} />
+            <BtnO label="Reset password" icon={KeyRound} onClick={() => add({ type:"info", title:"Password reset sent" })} />
+            <BtnP label="Edit profile" icon={Edit3} onClick={() => add({ type:"info", title:"Edit staff profile" })} />
           </div>
         }
       />
@@ -804,7 +804,7 @@ export function StaffProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
                 </div>
                 <div className="px-4 py-3 rounded-xl border mt-2" style={{ borderColor: BORDER, backgroundColor:"#F9FAFB" }}>
                   <div className="flex items-center justify-between">
-                    <div><div className="text-xs" style={{ color: MUTED }}>Base Salary</div><div className="text-sm font-bold mt-0.5" style={{ color: TEXT }}>{salRevealed?`₦${STAFF_PROFILE.baseSalary.toLocaleString()}`:"₦ ••• ••• (PIN protected)"}</div></div>
+                    <div><div className="text-xs" style={{ color: MUTED }}>Base salary</div><div className="text-sm font-bold mt-0.5" style={{ color: TEXT }}>{salRevealed?`₦${STAFF_PROFILE.baseSalary.toLocaleString()}`:"₦ ••• ••• (PIN protected)"}</div></div>
                     {!salRevealed && <button onClick={()=>setShowSalary(true)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold" style={{ color: PRIMARY, borderColor:`${PRIMARY}30` }}>Reveal</button>}
                     {salRevealed && <button onClick={()=>setSalRevealed(false)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold" style={{ color: MUTED, borderColor: BORDER }}>Hide</button>}
                   </div>
@@ -822,18 +822,18 @@ export function StaffProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
                     </div>
                   </div>
                 ))}
-                <button onClick={()=>add({type:"info",title:"Upload document"})} className="w-full py-2.5 rounded-xl border border-dashed text-xs font-semibold" style={{ color: TEAL, borderColor: TEAL }}>+ Upload Document</button>
+                <button onClick={()=>add({type:"info",title:"Upload document"})} className="w-full py-2.5 rounded-xl border border-dashed text-xs font-semibold" style={{ color: TEAL_INK, borderColor: TEAL }}>+ Upload Document</button>
               </div>
             )}
             {tab==="Attendance" && (
               <div>
                 <div className="grid grid-cols-3 gap-3 mb-4">
-                  <div className="px-3 py-2.5 rounded-xl text-center" style={{ backgroundColor:"#F0FDF4" }}><div className="text-xs" style={{ color: MUTED }}>Attendance Rate</div><div className="text-lg font-bold" style={{ color: SUCCESS }}>95.7%</div></div>
-                  <div className="px-3 py-2.5 rounded-xl text-center" style={{ backgroundColor:"#FEF3C7" }}><div className="text-xs" style={{ color: MUTED }}>Late Arrivals</div><div className="text-lg font-bold" style={{ color: WARNING }}>2</div></div>
+                  <div className="px-3 py-2.5 rounded-xl text-center" style={{ backgroundColor:"#F0FDF4" }}><div className="text-xs" style={{ color: MUTED }}>Attendance rate</div><div className="text-lg font-bold" style={{ color: SUCCESS }}>95.7%</div></div>
+                  <div className="px-3 py-2.5 rounded-xl text-center" style={{ backgroundColor:"#FEF3C7" }}><div className="text-xs" style={{ color: MUTED }}>Late arrivals</div><div className="text-lg font-bold" style={{ color: WARNING_INK }}>2</div></div>
                   <div className="px-3 py-2.5 rounded-xl text-center" style={{ backgroundColor:"#FEE2E2" }}><div className="text-xs" style={{ color: MUTED }}>Absences</div><div className="text-lg font-bold" style={{ color: ERROR }}>1</div></div>
                 </div>
                 <table className="w-full">
-                  <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Date","Clock In","Clock Out","Hours","Late","OT","Status"].map((h,i)=><th key={i} className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+                  <thead><tr style={{ backgroundColor:"#F9FAFB" }}>{["Date","Clock in","Clock out","Hours","Late","OT","Status"].map((h,i)=><th key={i} className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
                   <tbody>
                     {ATTEND_LOG.map((a,i)=>(
                       <tr key={i} className="border-t" style={{ borderColor: BORDER }}>
@@ -866,7 +866,7 @@ export function StaffProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
                     </div>
                   ))}
                 </div>
-                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Leave History</div>
+                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Leave history</div>
                 {[{ type:"Annual", from:"12 May", to:"16 May", days:5, status:"Completed" },{ type:"Sick", from:"1 Apr", to:"1 Apr", days:1, status:"Completed" }].map((l,i)=>(
                   <div key={i} className="flex items-center justify-between px-3 py-2.5 rounded-xl border mb-2" style={{ borderColor: BORDER }}>
                     <div><div className="text-xs font-medium" style={{ color: TEXT }}>{l.type} Leave · {l.days} days</div><div className="text-xs" style={{ color: MUTED }}>{l.from} – {l.to}</div></div>
@@ -897,7 +897,7 @@ export function StaffProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
                     <span style={{ color: MUTED }}>{k}</span><span className="font-medium text-right" style={{ color: TEXT }}>{v}</span>
                   </div>
                 ))}
-                <button onClick={()=>add({type:"warning",title:"Session revoked — EMP-001"})} className="text-xs px-3 py-2 rounded-xl border font-semibold" style={{ color: ERROR, borderColor:`${ERROR}30` }}>Revoke All Sessions</button>
+                <button onClick={()=>add({type:"warning",title:"Session revoked — EMP-001"})} className="text-xs px-3 py-2 rounded-xl border font-semibold" style={{ color: ERROR, borderColor:`${ERROR}30` }}>Revoke all sessions</button>
               </div>
             )}
           </div>
@@ -908,7 +908,7 @@ export function StaffProfileDetail({ add }: { add: (t: Omit<Toast, "id">) => voi
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>setShowSalary(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-72" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-sm font-bold mb-1" style={{ color: TEXT }}>Manager PIN Required</h3>
+            <h3 className="text-sm font-bold mb-1" style={{ color: TEXT }}>Manager PIN required</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>Salary details are permission-gated.</p>
             <input type="password" maxLength={4} value={salPin} onChange={e=>setSalPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none text-center tracking-widest mb-4" style={{ borderColor: BORDER, fontFamily: mono }} />
             <div className="flex gap-3">
@@ -927,10 +927,10 @@ export function PayrollSummary({ add }: { add: (t: Omit<Toast, "id">) => void })
   const total = PAYROLL_DATA.reduce((s, p) => s + p.net, 0);
   return (
     <div>
-      <PageHeader title="Payroll Summary" sub="June 2025 · Grand Palms Abuja Branch" actions={<><BtnO label="Export for Payroll" icon={Download} /><BtnP label="Process Payroll" icon={DollarSign} onClick={() => add({ type: "success", title: "Payroll submitted for processing" })} /></>} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5"><StatCard label="Total Gross Pay" value={`₦${PAYROLL_DATA.reduce((s,p)=>s+p.baseSalary+p.overtime,0).toLocaleString()}`} sub="This pay period" icon={DollarSign} accent={PRIMARY} /><StatCard label="Total Deductions" value={`₦${PAYROLL_DATA.reduce((s,p)=>s+p.deductions,0).toLocaleString()}`} sub="Tax + pension + misc" icon={TrendingDown} accent={ERROR} /><StatCard label="Net Payroll" value={fmtN(total)} sub="To be disbursed" icon={CheckCircle2} accent={SUCCESS} /></div>
+      <PageHeader title="Payroll Summary" sub="June 2025 · Grand Palms Abuja Branch" actions={<><BtnO label="Export for payroll" icon={Download} /><BtnP label="Process payroll" icon={DollarSign} onClick={() => add({ type: "success", title: "Payroll submitted for processing" })} /></>} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5"><StatCard label="Total gross pay" value={`₦${PAYROLL_DATA.reduce((s,p)=>s+p.baseSalary+p.overtime,0).toLocaleString()}`} sub="This pay period" icon={DollarSign} accent={PRIMARY} /><StatCard label="Total deductions" value={`₦${PAYROLL_DATA.reduce((s,p)=>s+p.deductions,0).toLocaleString()}`} sub="Tax + pension + misc" icon={TrendingDown} accent={ERROR} /><StatCard label="Net payroll" value={fmtN(total)} sub="To be disbursed" icon={CheckCircle2} accent={SUCCESS} /></div>
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-        <table className="w-full"><thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Staff Member", "Department", "Base Salary", "Overtime", "Deductions", "Net Pay", ""].map((h, i) => <th key={i} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+        <table className="w-full"><thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Staff member", "Department", "Base salary", "Overtime", "Deductions", "Net pay", ""].map((h, i) => <th key={i} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>{PAYROLL_DATA.map(p => <tr key={p.name} className="border-t hover:bg-[#F9FAFB]" style={{ borderColor: "#F4F4F5" }}><td className="px-5 py-3"><div className="flex items-center gap-2.5"><div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${PRIMARY}14` }}><User size={13} style={{ color: PRIMARY }} /></div><span className="text-sm font-medium" style={{ color: TEXT }}>{p.name}</span></div></td><td className="px-5 py-3 text-xs" style={{ color: MUTED }}>{p.dept}</td><td className="px-5 py-3 text-sm" style={{ color: TEXT }}>₦{p.baseSalary.toLocaleString()}</td><td className="px-5 py-3 text-sm" style={{ color: p.overtime > 0 ? TEAL : MUTED }}>{p.overtime > 0 ? `+₦${p.overtime.toLocaleString()}` : "—"}</td><td className="px-5 py-3 text-sm" style={{ color: ERROR }}>−₦{p.deductions.toLocaleString()}</td><td className="px-5 py-3 text-sm font-bold" style={{ color: SUCCESS }}>₦{p.net.toLocaleString()}</td><td className="px-5 py-3"><button className="text-xs px-2 py-1 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Breakdown</button></td></tr>)}</tbody>
         </table>
       </div>
@@ -947,7 +947,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   // ── Constants ──────────────────────────────────────────────────────────────
   const PASS_BG     = "#F9FAFB";
   const PASS_BORDER = "#E2E8F0";
-  const PASS_MUTED  = "#64748B";
+  const PASS_MUTED  = "#475569";
   const PASS_DASH   = "#CBD5E1";
 
   const RATE_PLANS      = ["Group Rate", "Corporate Rate", "Negotiated", "Full Package"];
@@ -1202,7 +1202,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
             {/* Modal header */}
             <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: TEAL }}>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60">New Group Booking</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60">New group booking</p>
                 <p className="text-base font-bold text-white mt-0.5">Quick Create — saved as Tentative</p>
               </div>
               <button aria-label="Close" onClick={() => setShowCreate(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
@@ -1220,8 +1220,8 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Group Type</label>
-                  <select aria-label="Group Type" value={form.type} onChange={e => upd("type", e.target.value)}
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Group type</label>
+                  <select aria-label="Group type" value={form.type} onChange={e => upd("type", e.target.value)}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }}>
                     {allTypes.map(t => <option key={t}>{t}</option>)}
                   </select>
@@ -1251,24 +1251,24 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Check-In</label>
-                  <input aria-label="Check-In" type="date" value={form.checkin} onChange={e => upd("checkin", e.target.value)}
+                  <DateInput aria-label="Check-In" type="date" value={form.checkin} onChange={e => upd("checkin", e.target.value)}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Check-Out</label>
-                  <input aria-label="Check-Out" type="date" value={form.checkout} onChange={e => upd("checkout", e.target.value)}
+                  <DateInput aria-label="Check-Out" type="date" value={form.checkout} onChange={e => upd("checkout", e.target.value)}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Cut-Off Date</label>
-                  <input aria-label="Cut-Off Date" type="date" value={form.cutoffDate} onChange={e => upd("cutoffDate", e.target.value)}
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Cut-off date</label>
+                  <DateInput aria-label="Cut-Off Date" type="date" value={form.cutoffDate} onChange={e => upd("cutoffDate", e.target.value)}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
                 </div>
               </div>
 
               {/* Room block */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: PASS_MUTED }}>Room Block</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: PASS_MUTED }}>Room block</label>
                 <div className="grid grid-cols-3 gap-3">
                   {([
                     ["Standard", "standardRooms", "₦35,000/night"],
@@ -1285,7 +1285,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                         <span className="text-xl font-bold w-6 text-center" style={{ color: TEXT, fontFamily: mono }}>{form[key]}</span>
                         <button onClick={() => upd(key, (form[key] as number) + 1)}
                           className="w-7 h-7 rounded-full flex items-center justify-center font-bold"
-                          style={{ backgroundColor: TEAL, color: "white", fontSize: 18, lineHeight: 1 }}>+</button>
+                          style={{ backgroundColor: TEAL_INK, color: "white", fontSize: 18, lineHeight: 1 }}>+</button>
                       </div>
                     </div>
                   ))}
@@ -1295,7 +1295,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
               {/* Rate plan + live estimate */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Rate Plan</label>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Rate plan</label>
                   <select aria-label="Rate Plan" value={form.ratePlan} onChange={e => upd("ratePlan", e.target.value)}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }}>
                     {RATE_PLANS.map(r => <option key={r}>{r}</option>)}
@@ -1304,9 +1304,9 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                 <div className="rounded-xl p-4 flex flex-col justify-center" style={{ backgroundColor: `${TEAL}0D`, border: `1.5px solid ${TEAL}28` }}>
                   <div className="flex justify-between text-xs mb-1">
                     <span style={{ color: PASS_MUTED }}>{createTotalRms} rooms · {createNights} nights</span>
-                    <span className="font-bold" style={{ color: TEAL }}>{form.type}</span>
+                    <span className="font-bold" style={{ color: TEAL_INK }}>{form.type}</span>
                   </div>
-                  <p className="text-xl font-bold" style={{ color: TEAL, fontFamily: mono }}>₦{createEstVal.toLocaleString()}</p>
+                  <p className="text-xl font-bold" style={{ color: TEAL_INK, fontFamily: mono }}>₦{createEstVal.toLocaleString()}</p>
                   <p className="text-xs mt-0.5" style={{ color: PASS_MUTED }}>Estimated value (excl. taxes)</p>
                 </div>
               </div>
@@ -1321,7 +1321,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
             {/* Footer */}
             <div className="px-6 pb-6 flex gap-3">
-              <button onClick={doCreateGroup} className="flex-1 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2" style={{ backgroundColor: TEAL }}>
+              <button onClick={doCreateGroup} className="flex-1 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2" style={{ backgroundColor: TEAL_INK }}>
                 <CheckCircle2 size={16} /> Create Group Booking
               </button>
               <button onClick={() => setShowCreate(false)} className="px-6 py-3 rounded-xl text-sm font-bold" style={{ border: `1.5px solid ${PASS_BORDER}`, color: PASS_MUTED }}>
@@ -1399,7 +1399,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
           {showTypeManager && (
             <div className="rounded-xl mb-4 overflow-hidden" style={{ border: `1.5px solid ${TEAL}30`, backgroundColor: `${TEAL}06` }}>
               <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: `1px solid ${TEAL}20` }}>
-                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: TEAL }}>Manage Group Types</p>
+                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: TEAL_INK }}>Manage group types</p>
                 <p className="text-xs" style={{ color: PASS_MUTED }}>Types in use appear as filter pills automatically</p>
               </div>
               <div className="p-3 flex flex-wrap gap-2">
@@ -1474,7 +1474,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
                       <span className="font-bold" style={{ fontSize: 12, color: PASS_MUTED, fontFamily: mono }}>{g.id}</span>
-                      <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 12, backgroundColor: `${TEAL}15`, color: TEAL }}>{g.type}</span>
+                      <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 12, backgroundColor: `${TEAL}15`, color: TEAL_INK }}>{g.type}</span>
                       {cd > 0 && cd <= 5 && <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 12, backgroundColor: "#FEF9C3", color: "#92400E" }}>⚠ {cd}d cut-off</span>}
                       {cd <= 0 && <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ fontSize: 12, backgroundColor: "#FEE2E2", color: ERROR }}>Cut-off passed</span>}
                     </div>
@@ -1577,7 +1577,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                             ? <CheckCircle2 size={12} color="white" />
                             : <span className="w-2 h-2 rounded-full block" style={{ backgroundColor: i === stage ? "white" : PASS_MUTED }} />}
                         </div>
-                        <p className="text-center font-bold" style={{ fontSize: 12, color: i <= stage ? TEAL : PASS_MUTED, letterSpacing: "0.06em" }}>{s}</p>
+                        <p className="text-center font-bold" style={{ fontSize: 12, color: i <= stage ? TEAL : PASS_MUTED }}>{s}</p>
                       </div>
                       {i < STATUS_PIPELINE.length - 1 && (
                         <div className="flex-1 h-0.5 mx-1 mb-3.5" style={{ backgroundColor: i < stage ? TEAL : PASS_DASH }} />
@@ -1617,13 +1617,13 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
                     {editingGroup === g.id ? (
                       <div className="space-y-3">
-                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Edit Group Details</p>
+                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Edit group details</p>
 
                         {/* Contact fields */}
                         {([["Organizer","organizer","text"],["Phone","phone","tel"],["Email","email","email"]] as [string,string,string][]).map(([label,field,type]) => (
                           <div key={field}>
                             <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>{label}</label>
-                            <input aria-label={label} type={type} value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                            <TextOrDate aria-label={label} type={type} value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
                               className="w-full px-3 py-2 rounded-lg text-sm"
                               style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }} />
                           </div>
@@ -1634,7 +1634,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                           {([["Check-In","checkin"],["Check-Out","checkout"],["Cut-Off","cutoffDate"]] as [string,string][]).map(([label,field]) => (
                             <div key={field}>
                               <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>{label}</label>
-                              <input aria-label={label} type="date" value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                              <DateInput aria-label={label} type="date" value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
                                 className="w-full px-2 py-2 rounded-lg text-xs"
                                 style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }} />
                             </div>
@@ -1643,7 +1643,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
                         {/* Rate plan */}
                         <div>
-                          <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>Rate Plan</label>
+                          <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>Rate plan</label>
                           <select aria-label="Rate Plan" value={editForm.ratePlan ?? g.ratePlan} onChange={e => setEditForm(p => ({ ...p, ratePlan: e.target.value }))}
                             className="w-full px-3 py-2 rounded-lg text-sm"
                             style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }}>
@@ -1653,7 +1653,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
                         {/* Room allocation steppers */}
                         <div>
-                          <label className="block text-xs font-bold mb-2" style={{ color: PASS_MUTED }}>Room Allocation</label>
+                          <label className="block text-xs font-bold mb-2" style={{ color: PASS_MUTED }}>Room allocation</label>
                           <div className="grid grid-cols-3 gap-2">
                             {(["Standard","Deluxe","Suite"] as const).map(rt => {
                               const key = `${rt.toLowerCase()}Rooms`;
@@ -1668,7 +1668,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                                     <span className="text-lg font-bold w-6 text-center" style={{ color: TEXT, fontFamily: mono }}>{val}</span>
                                     <button onClick={() => setEditForm(p => ({ ...p, [key]: val + 1 }))}
                                       className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
-                                      style={{ backgroundColor: TEAL, color: "white" }}>+</button>
+                                      style={{ backgroundColor: TEAL_INK, color: "white" }}>+</button>
                                   </div>
                                 </div>
                               );
@@ -1686,8 +1686,8 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
                         {/* Cancellation policy */}
                         <div>
-                          <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>Cancellation Policy</label>
-                          <input aria-label="Cancellation Policy" type="text"
+                          <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>Cancellation policy</label>
+                          <input aria-label="Cancellation policy" type="text"
                             value={editForm.cancelPolicy ?? (g.cancelPolicy ?? "48h notice / 1 night penalty")}
                             onChange={e => setEditForm(p => ({ ...p, cancelPolicy: e.target.value }))}
                             className="w-full px-3 py-2 rounded-lg text-sm"
@@ -1698,7 +1698,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                         <div className="flex gap-2 pt-1">
                           <button onClick={() => doSaveGroupEdit(g.id)}
                             className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white"
-                            style={{ backgroundColor: TEAL }}>Save Changes</button>
+                            style={{ backgroundColor: TEAL }}>Save changes</button>
                           <button onClick={() => { setEditingGroup(null); setShowDeleteConfirm(false); }}
                             className="flex-1 py-2.5 rounded-xl text-xs font-bold"
                             style={{ border: `1.5px solid ${PASS_BORDER}`, color: PASS_MUTED, backgroundColor: "white" }}>Cancel</button>
@@ -1715,7 +1715,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                                 style={{ backgroundColor: ERROR }}>Yes, Delete</button>
                               <button onClick={() => setShowDeleteConfirm(false)}
                                 className="flex-1 py-2 rounded-lg text-xs font-bold"
-                                style={{ border: `1.5px solid ${PASS_BORDER}`, color: PASS_MUTED, backgroundColor: "white" }}>Keep Group</button>
+                                style={{ border: `1.5px solid ${PASS_BORDER}`, color: PASS_MUTED, backgroundColor: "white" }}>Keep group</button>
                             </div>
                           </div>
                         ) : (
@@ -1739,10 +1739,10 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                           ] as [string, string, React.ElementType][]).map(([label, value, Icon]) => (
                             <div key={label} className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: "white", border: `1px solid ${PASS_BORDER}` }}>
                               <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${TEAL}10` }}>
-                                <Icon size={15} style={{ color: TEAL }} />
+                                <Icon size={15} style={{ color: TEAL_INK }} />
                               </div>
                               <div className="min-w-0">
-                                <p className="font-bold uppercase" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.06em" }}>{label}</p>
+                                <p className="font-bold uppercase" style={{ fontSize: 12, color: PASS_MUTED }}>{label}</p>
                                 <p className="font-semibold text-sm mt-0.5 truncate" style={{ color: TEXT }}>{value}</p>
                               </div>
                             </div>
@@ -1751,7 +1751,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
                         <div className="p-4 rounded-xl" style={{ backgroundColor: "white", border: `1px solid ${PASS_BORDER}` }}>
                           <div className="flex justify-between text-xs mb-2">
-                            <span className="font-bold uppercase tracking-wider" style={{ color: PASS_MUTED }}>Pick-Up Progress</span>
+                            <span className="font-bold uppercase tracking-wider" style={{ color: PASS_MUTED }}>Pick-up progress</span>
                             <span className="font-bold" style={{ color: pct >= 80 ? SUCCESS : pct >= 50 ? ORANGE : ERROR, fontFamily: mono }}>{pct}% · {g.rooming.length}/{total}</span>
                           </div>
                           <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: PASS_DASH }}>
@@ -1815,7 +1815,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <div>
                     <div className="flex items-center justify-between px-5 py-3 sticky top-0 z-10" style={{ backgroundColor: "#F1F5F9", borderBottom: `1px solid ${PASS_BORDER}` }}>
                       <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>{g.rooming.length} of {total} slots assigned</p>
-                      <button onClick={() => add({ type: "info", title: "Rooming list exported" })} className="flex items-center gap-1 text-xs font-bold" style={{ color: TEAL }}>
+                      <button onClick={() => add({ type: "info", title: "Rooming list exported" })} className="flex items-center gap-1 text-xs font-bold" style={{ color: TEAL_INK }}>
                         <Download size={11} />CSV
                       </button>
                     </div>
@@ -1823,7 +1823,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                       <thead>
                         <tr style={{ backgroundColor: "white", borderBottom: `1px solid ${PASS_BORDER}` }}>
                           {["#", "GUEST", "TYPE", "ROOM", "STATUS", ""].map(h => (
-                            <th key={h} className={`px-4 py-2.5 font-bold ${h === "" ? "text-right" : "text-left"}`} style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>{h}</th>
+                            <th key={h} className={`px-4 py-2.5 font-bold ${h === "" ? "text-right" : "text-left"}`} style={{ fontSize: 12, color: PASS_MUTED }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -1840,7 +1840,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                                 {guest ? (
                                   <div className="flex items-center gap-2">
                                     <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${TEAL}18` }}>
-                                      <User size={12} style={{ color: TEAL }} />
+                                      <User size={12} style={{ color: TEAL_INK }} />
                                     </div>
                                     <span className="font-semibold" style={{ color: TEXT }}>{guest.name}</span>
                                   </div>
@@ -1863,7 +1863,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                                       className="px-2 py-1.5 text-xs rounded-lg outline-none"
                                       style={{ border: `1.5px solid ${TEAL}`, width: 120 }}
                                       onKeyDown={e => e.key === "Enter" && doAssign(g.id, idx)} />
-                                    <button onClick={() => doAssign(g.id, idx)} className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: TEAL }}>OK</button>
+                                    <button onClick={() => doAssign(g.id, idx)} className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: TEAL_INK }}>OK</button>
                                     <button onClick={() => { setAssignSlot(null); setAssignName(""); }} className="px-2 py-1.5 rounded-lg text-xs" style={{ color: PASS_MUTED }}>✕</button>
                                   </div>
                                 ) : (
@@ -1906,15 +1906,15 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                           } : x));
                           setNewCharge({ description: "", amount: "" });
                           add({ type: "success", title: "Charge added to folio" });
-                        }} className="px-4 py-2 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: TEAL }}>Add</button>
+                        }} className="px-4 py-2 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: TEAL_INK }}>Add</button>
                       </div>
                     )}
                     <table className="w-full text-sm">
                       <thead>
                         <tr style={{ backgroundColor: "white", borderBottom: `1px solid ${PASS_BORDER}` }}>
-                          <th className="px-5 py-2.5 text-left font-bold" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>DESCRIPTION</th>
-                          <th className="px-5 py-2.5 text-left font-bold" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>DATE</th>
-                          <th className="px-5 py-2.5 text-right font-bold" style={{ fontSize: 12, color: PASS_MUTED, letterSpacing: "0.08em" }}>AMOUNT</th>
+                          <th className="px-5 py-2.5 text-left font-bold" style={{ fontSize: 12, color: PASS_MUTED }}>DESCRIPTION</th>
+                          <th className="px-5 py-2.5 text-left font-bold" style={{ fontSize: 12, color: PASS_MUTED }}>DATE</th>
+                          <th className="px-5 py-2.5 text-right font-bold" style={{ fontSize: 12, color: PASS_MUTED }}>AMOUNT</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1940,7 +1940,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                       </tbody>
                       <tfoot>
                         <tr style={{ backgroundColor: PASS_BG, borderTop: `1.5px solid ${PASS_BORDER}` }}>
-                          <td className="px-5 py-4 font-bold text-sm" style={{ color: TEXT }}>Balance Due</td>
+                          <td className="px-5 py-4 font-bold text-sm" style={{ color: TEXT }}>Balance due</td>
                           <td></td>
                           <td className="px-5 py-4 text-right font-bold text-lg" style={{ color: balance > 0 ? ORANGE : SUCCESS, fontFamily: mono }}>₦{balance.toLocaleString()}</td>
                         </tr>
@@ -1982,7 +1982,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <div className="p-5 space-y-4">
                     <div className="rounded-xl p-4 flex items-center gap-3" style={{ backgroundColor: g.contractSigned ? "#F0FDF4" : g.contractSent ? "#FFF7ED" : "white", border: `1.5px solid ${g.contractSigned ? SUCCESS + "30" : g.contractSent ? ORANGE + "30" : PASS_BORDER}` }}>
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: g.contractSigned ? `${SUCCESS}15` : g.contractSent ? `${ORANGE}15` : PASS_BORDER }}>
-                        {g.contractSigned ? <CheckCircle2 size={20} style={{ color: SUCCESS }} /> : g.contractSent ? <Clock size={20} style={{ color: ORANGE }} /> : <FileText size={20} style={{ color: PASS_MUTED }} />}
+                        {g.contractSigned ? <CheckCircle2 size={20} style={{ color: SUCCESS }} /> : g.contractSent ? <Clock size={20} style={{ color: ORANGE_INK }} /> : <FileText size={20} style={{ color: PASS_MUTED }} />}
                       </div>
                       <div>
                         <p className="font-bold text-sm" style={{ color: TEXT }}>{g.contractSigned ? "Contract Signed" : g.contractSent ? "Contract Sent — Awaiting Signature" : "Contract Not Sent"}</p>
@@ -1992,7 +1992,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
                     <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${PASS_BORDER}` }}>
                       <div className="px-4 py-2.5" style={{ backgroundColor: "#F1F5F9" }}>
-                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Contract Terms</p>
+                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Contract terms</p>
                       </div>
                       {([
                         ["Rate Plan",        g.ratePlan],
@@ -2010,7 +2010,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
                     <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${PASS_BORDER}` }}>
                       <div className="px-4 py-2.5" style={{ backgroundColor: "#F1F5F9" }}>
-                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Payment Schedule</p>
+                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Payment schedule</p>
                       </div>
                       {([
                         [`Deposit (${g.depositPct}%)`, `₦${Math.round(g.estValue * g.depositPct / 100).toLocaleString()}`, g.depositPaid > 0, "On contract signing"],
@@ -2032,7 +2032,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                     <div className="flex gap-2">
                       {!g.contractSent && (
                         <button onClick={() => { setGroups(prev => prev.map(x => x.id === g.id ? { ...x, contractSent: true } : x)); add({ type: "success", title: "Contract sent", body: g.email }); }}
-                          className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1.5" style={{ backgroundColor: TEAL }}>
+                          className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1.5" style={{ backgroundColor: TEAL_INK }}>
                           <Send size={13} />Send Contract
                         </button>
                       )}
@@ -2069,7 +2069,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const PASS_BG     = "#F9FAFB";
   const PASS_BORDER = "#E2E8F0";
-  const PASS_MUTED  = "#64748B";
+  const PASS_MUTED  = "#475569";
   const PASS_DASH   = "#CBD5E1";
   const ROOM_TYPES  = ["Suite", "Deluxe", "Standard"];
   const SOURCES     = ["Walk-in", "Phone", "Online", "Referral"];
@@ -2167,7 +2167,7 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const sourceBadge = (s: string) => ({
     "Walk-in":  { bg:"#EFF6FF", color:PRIMARY  },
     "Phone":    { bg:"#F0FDF4", color:SUCCESS   },
-    "Online":   { bg:"#FFF7ED", color:ORANGE    },
+    "Online":   { bg:"#FFF7ED", color:ORANGE_INK    },
     "Referral": { bg:"#FAF5FF", color:"#7C3AED" },
   }[s] ?? { bg:"#F1F5F9", color:MUTED });
 
@@ -2218,14 +2218,14 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Room Preference</label>
-                  <select aria-label="Room Preference" value={form.type} onChange={e => upd("type", e.target.value)}
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Room preference</label>
+                  <select aria-label="Room preference" value={form.type} onChange={e => upd("type", e.target.value)}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ border:`1.5px solid ${PASS_DASH}`, backgroundColor:"white" }}>
                     {ROOM_TYPES.map(t => <option key={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Requested Dates</label>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color:PASS_MUTED }}>Requested dates</label>
                   <input value={form.dates} onChange={e => upd("dates", e.target.value)} placeholder="e.g. 21–23 May" aria-label="e.g. 21–23 May"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${PASS_DASH}`, backgroundColor:"white" }} />
                 </div>
@@ -2252,8 +2252,8 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               </div>
             </div>
             <div className="px-6 pb-6 flex gap-3">
-              <button onClick={doAdd} className="flex-1 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2" style={{ backgroundColor:TEAL }}>
-                {editingId ? <><Edit3 size={15} />Save Changes</> : <><Plus size={15} />Add to Waitlist</>}
+              <button onClick={doAdd} className="flex-1 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2" style={{ backgroundColor: TEAL_INK }}>
+                {editingId ? <><Edit3 size={15} />Save changes</> : <><Plus size={15} />Add to waitlist</>}
               </button>
               <button onClick={() => { setShowAdd(false); setEditingId(null); setForm({ guest:"", phone:"", email:"", type:"Suite", dates:"", source:"Walk-in", notes:"" }); }} className="px-5 py-3 rounded-xl text-sm font-bold" style={{ border:`1.5px solid ${PASS_BORDER}`, color:PASS_MUTED }}>Cancel</button>
             </div>
@@ -2269,7 +2269,7 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor:"rgba(15,23,42,0.45)", backdropFilter:"blur(4px)" }}>
             <div className="w-80 rounded-2xl overflow-hidden shadow-2xl" style={{ backgroundColor:PASS_BG, border:`1.5px solid ${PASS_BORDER}` }}>
               <div className="px-5 py-4" style={{ backgroundColor:SUCCESS }}>
-                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-70">Confirm Promotion</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-70">Confirm promotion</p>
                 <p className="text-base font-bold text-white mt-0.5">Promote to Reservation?</p>
               </div>
               <div className="px-5 py-4 space-y-3">
@@ -2362,7 +2362,7 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           {!roomAvailType && (
             <button onClick={() => setRoomAvailType("Suite")}
               className="text-xs px-3 py-1.5 rounded-full font-bold"
-              style={{ backgroundColor:`${TEAL}10`, color:TEAL, border:`1.5px solid ${TEAL}30` }}>
+              style={{ backgroundColor:`${TEAL}10`, color:TEAL_INK, border:`1.5px solid ${TEAL}30` }}>
               ↑ Simulate Room Available
             </button>
           )}
@@ -2372,7 +2372,7 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
       {/* ── Waitlist table ───────────────────────────────────────────────── */}
       <div className="rounded-2xl overflow-hidden shadow-sm" style={{ border:`1.5px solid ${PASS_BORDER}` }}>
         <div className="flex items-center px-4 py-2.5" style={{ backgroundColor:"#F1F5F9", borderBottom:`1.5px solid ${PASS_BORDER}` }}>
-          <div className="w-10 font-bold" style={{ fontSize: 12, color:PASS_MUTED, letterSpacing:"0.08em" }}>#</div>
+          <div className="w-10 font-bold" style={{ fontSize: 12, color:PASS_MUTED }}>#</div>
           <div className="w-6 flex-shrink-0" />
           <div className="flex-1 font-bold" style={{ fontSize: 12, color:PASS_MUTED }}>Guest</div>
           <div className="w-24 font-bold flex-shrink-0" style={{ fontSize: 12, color:PASS_MUTED }}>Room type</div>
@@ -2416,7 +2416,7 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               <div className="flex-1 min-w-0 pr-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-semibold text-sm" style={{ color:TEXT }}>{e.guest}</p>
-                  {isMatch && <span className="text-xs px-2 py-0.5 rounded-full font-bold animate-pulse" style={{ backgroundColor:"#14B8A6", color:"white" }}>Room Open</span>}
+                  {isMatch && <span className="text-xs px-2 py-0.5 rounded-full font-bold animate-pulse" style={{ backgroundColor:"#14B8A6", color:"white" }}>Room open</span>}
                 </div>
                 <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                   <span className="text-xs" style={{ color:PASS_MUTED, fontFamily:mono }}>{e.id}</span>
@@ -2502,7 +2502,7 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
         <div className="flex items-center justify-between px-5 py-3 border-t text-xs" style={{ borderColor:PASS_BORDER, backgroundColor:PASS_BG }}>
           <span style={{ color:PASS_MUTED }}>{dismissed.length} guest{dismissed.length !== 1 ? "s" : ""} promoted or removed this session</span>
-          <button onClick={() => add({ type:"info", title:"Waitlist exported" })} className="flex items-center gap-1 font-bold" style={{ color:TEAL }}>
+          <button onClick={() => add({ type:"info", title:"Waitlist exported" })} className="flex items-center gap-1 font-bold" style={{ color:TEAL_INK }}>
             <Download size={12} />Export CSV
           </button>
         </div>
@@ -2563,12 +2563,12 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
   return (
     <div>
       <PageHeader title="Rate Management" sub="Rate plans, seasonal pricing, and per-room-type rates"
-        actions={<BtnP label="Create Rate Plan" icon={Plus} onClick={() => setShowCreate(true)} />} />
+        actions={<BtnP label="Create rate plan" icon={Plus} onClick={() => setShowCreate(true)} />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Active Plans" value={String(plans.filter(r=>r.active).length)} sub="Published" icon={DollarSign} accent={SUCCESS} />
+        <StatCard label="Active plans" value={String(plans.filter(r=>r.active).length)} sub="Published" icon={DollarSign} accent={SUCCESS} />
         <StatCard label="Inactive" value={String(plans.filter(r=>!r.active).length)} sub="Disabled or seasonal" icon={AlertTriangle} accent={WARNING} />
-        <StatCard label="Total Plans" value={String(plans.length)} sub="All categories" icon={Layers} accent={PRIMARY} />
-        <StatCard label="Avg Base Rate" value={`₦${Math.round(plans.filter(r=>r.active).reduce((s,r)=>s+r.base,0)/Math.max(1,plans.filter(r=>r.active).length)).toLocaleString()}`} sub="Active plans" icon={TrendingUp} accent={TEAL} />
+        <StatCard label="Total plans" value={String(plans.length)} sub="All categories" icon={Layers} accent={PRIMARY} />
+        <StatCard label="Avg base rate" value={`₦${Math.round(plans.filter(r=>r.active).reduce((s,r)=>s+r.base,0)/Math.max(1,plans.filter(r=>r.active).length)).toLocaleString()}`} sub="Active plans" icon={TrendingUp} accent={TEAL} />
       </div>
       <div className="flex gap-5">
         {/* Plan list */}
@@ -2610,13 +2610,13 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
               <button aria-label="Close" onClick={()=>{ setSelectedPlan(null); setShowDeleteConfirm(false); }} className="text-xs p-1 rounded" style={{ color: MUTED }}><X size={14}/></button>
             </div>
             <div className="mb-4">
-              <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Plan Details</div>
+              <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Plan details</div>
               {[["Applicable Dates",selectedPlan.dates],["Status",selectedPlan.active ? "Active" : "Inactive"]].map(([k,v])=>(
                 <div key={k} className="flex justify-between text-sm mb-1"><span style={{ color: MUTED }}>{k}</span><span className="font-medium" style={{ color: TEXT }}>{v as string}</span></div>
               ))}
             </div>
             <div className="mb-4">
-              <div className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Per Room-Type Rate Table</div>
+              <div className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Per room-Type rate table</div>
               <div className="space-y-2">
                 {(["Standard","Deluxe","Suite"] as (keyof typeof ROOM_TYPE_MULTIPLIERS)[]).map(rt=>{
                   const applies = selectedPlan.rooms.includes(rt);
@@ -2647,7 +2647,7 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
               })}
             </div>
             <div className="flex gap-2 mb-3">
-              <button onClick={()=>openEdit(selectedPlan)} className="flex-1 py-2 rounded-xl text-sm font-semibold border" style={{ color: PRIMARY, borderColor:`${PRIMARY}30` }}>Edit Plan</button>
+              <button onClick={()=>openEdit(selectedPlan)} className="flex-1 py-2 rounded-xl text-sm font-semibold border" style={{ color: PRIMARY, borderColor:`${PRIMARY}30` }}>Edit plan</button>
               <button onClick={()=>{ toggleActive(selectedPlan.id); setSelectedPlan(p=>p?{...p,active:!p.active}:null); }} className="flex-1 py-2 rounded-xl text-sm font-semibold" style={{ backgroundColor: selectedPlan.active ? "#FFF1F2" : "#F0FDF4", color: selectedPlan.active ? ERROR : SUCCESS }}>
                 {selectedPlan.active ? "Deactivate" : "Activate"}
               </button>
@@ -2676,14 +2676,14 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
         <>
           <div className="fixed inset-0 z-40 backdrop-blur-sm" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>setEditPlan(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Edit Rate Plan</h3>
+            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Edit rate plan</h3>
             <p className="text-xs mb-5" style={{ color: MUTED }}>Changes apply to new bookings only — existing reservations unaffected.</p>
             <div className="space-y-4">
-              <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Plan Name</label>
-                <input aria-label="Plan Name" value={editValues.name} onChange={e=>setEditValues(p=>({...p,name:e.target.value}))} className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Plan name</label>
+                <input aria-label="Plan name" value={editValues.name} onChange={e=>setEditValues(p=>({...p,name:e.target.value}))} className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Base Rate — Standard Room (₦/night)</label>
                 <input aria-label="Base Rate — Standard Room (₦/night)" type="number" value={editValues.base} onChange={e=>setEditValues(p=>({...p,base:e.target.value}))} className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-              <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Applicable Dates</label>
+              <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Applicable dates</label>
                 <input value={editValues.dates} onChange={e=>setEditValues(p=>({...p,dates:e.target.value}))} placeholder="e.g. Year-round, Dec 20 – Jan 5" aria-label="e.g. Year-round, Dec 20 – Jan 5" className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-2" style={{ color: MUTED }}>Room Types</label>
@@ -2706,7 +2706,7 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
             </div>
             <div className="flex gap-3 mt-5">
               <button onClick={()=>setEditPlan(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button>
-              <button onClick={saveEdit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save Changes</button>
+              <button onClick={saveEdit} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save changes</button>
             </div>
           </div>
         </>
@@ -2718,8 +2718,8 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
             {/* Header band */}
             <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: PRIMARY }}>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity:0.6 }}>Rate Plans</p>
-                <p className="text-base font-bold text-white mt-0.5">Create Rate Plan</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity:0.6 }}>Rate plans</p>
+                <p className="text-base font-bold text-white mt-0.5">Create rate plan</p>
               </div>
               <button aria-label="Close" onClick={()=>setShowCreate(false)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor:"rgba(255,255,255,0.18)" }}>
                 <X size={16} color="white" />
@@ -2737,7 +2737,7 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white", fontFamily: mono }} />
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color: MUTED }}>Applicable Dates</label>
+                <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color: MUTED }}>Applicable dates</label>
                 <input value={createValues.dates} onChange={e=>updC("dates", e.target.value)} placeholder="e.g. Dec 20 – Jan 5" aria-label="e.g. Dec 20 – Jan 5"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }} />
               </div>
@@ -2758,7 +2758,7 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
               </div>
               {createValues.base && Number(createValues.base) > 0 && (
                 <div className="p-3 rounded-xl" style={{ backgroundColor: "#F0FDF4", border: `1px solid ${SUCCESS}30` }}>
-                  <p className="text-xs font-bold mb-1" style={{ color: SUCCESS }}>Rate Preview</p>
+                  <p className="text-xs font-bold mb-1" style={{ color: SUCCESS }}>Rate preview</p>
                   {ROOM_CATEGORIES.filter(rt => createValues.rooms.includes(rt)).map(rt => (
                     <div key={rt} className="flex justify-between text-xs">
                       <span style={{ color: MUTED }}>{rt}</span>
@@ -2842,7 +2842,7 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
 
   const kpi = [
     { label:"Cancellations",  value:"24",       sub:"This month",          color:ERROR,   icon:XCircle    },
-    { label:"Total Refunded", value:"₦384,500", sub:"Returned to guests",  color:WARNING, icon:DollarSign },
+    { label:"Total Refunded", value:"₦384,500", sub:"Returned to guests",  color:WARNING_INK, icon:DollarSign },
     { label:"Fees Collected", value:"₦98,000",  sub:"Cancellation charges", color:SUCCESS, icon:TrendingUp },
   ];
 
@@ -2905,9 +2905,9 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
               </button>
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
                 style={{ backgroundColor:`${TEAL}30`, border:`2px solid ${TEAL}60` }}>
-                <CheckCircle2 size={30} style={{ color: TEAL }} />
+                <CheckCircle2 size={30} style={{ color: TEAL_INK }} />
               </div>
-              <p className="text-xs uppercase tracking-widest mb-1.5" style={{ color:"rgba(255,255,255,0.5)" }}>Cancellation Complete</p>
+              <p className="text-xs uppercase tracking-widest mb-1.5" style={{ color:"rgba(255,255,255,0.5)" }}>Cancellation complete</p>
               <p className="text-3xl font-bold text-white mb-1" style={{ fontFamily: mono }}>{cancRef}</p>
               <p className="text-sm" style={{ color:"rgba(255,255,255,0.65)" }}>{selectedRes.guest} · {selectedRes.id}</p>
             </div>
@@ -2956,7 +2956,7 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
               <p className="text-sm font-semibold" style={{ color: step === "refund" ? SUCCESS : TEXT }}>
                 {step === "refund" ? "Cancellation confirmed" : "Cancel Reservation"}
               </p>
-              {step === "refund" && <span className="text-xs ml-auto font-semibold" style={{ color: SUCCESS, fontFamily: mono }}>{cancRef}</span>}
+              {step === "refund" && <span className="text-xs ml-auto font-semibold" style={{ color: TEXT, fontFamily: mono }}>{cancRef}</span>}
             </div>
 
             <div className="p-5">
@@ -3062,13 +3062,13 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
               {waived && (
                 <div className="space-y-2 mb-4">
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Waiver Reason</label>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Waiver reason</label>
                     <textarea value={waiverReason} onChange={e => setWaiverReason(e.target.value)} rows={2}
                       placeholder="e.g. Guest experienced medical emergency…" aria-label="e.g. Guest experienced medical emergency"
                       className="w-full px-3 py-2 border rounded-lg text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
                   </div>
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Approving Manager</label>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Approving manager</label>
                     <select aria-label="Approving Manager" value={approver} onChange={e => setApprover(e.target.value)} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
                       {["Grace Mensah","Bola Adewale","John Abubakar"].map(m => <option key={m}>{m}</option>)}
                     </select>
@@ -3094,7 +3094,7 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
               <div className="flex items-center gap-3 px-5 py-3 border-b" style={{ borderColor: BORDER, backgroundColor: step === "refund" ? "#EFF6FF" : "#F8FAFC" }}>
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                   style={{ backgroundColor: step === "refund" ? PRIMARY : "#CBD5E1", color:"white" }}>2</div>
-                <p className="text-sm font-semibold" style={{ color: step === "refund" ? PRIMARY : MUTED }}>Process Refund</p>
+                <p className="text-sm font-semibold" style={{ color: step === "refund" ? PRIMARY : MUTED }}>Process refund</p>
                 {step === "form" && <span className="text-xs ml-auto" style={{ color: SUBTLE }}>Complete step 1 first</span>}
               </div>
 
@@ -3103,13 +3103,13 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
                 <div className="flex items-center gap-3 p-3 rounded-xl mb-4" style={{ backgroundColor:`${SUCCESS}10`, border:`1px solid ${SUCCESS}30` }}>
                   <DollarSign size={16} style={{ color: SUCCESS }} />
                   <div>
-                    <p className="text-sm font-bold" style={{ color: SUCCESS, fontFamily: mono }}>₦{refund.toLocaleString()} to refund</p>
+                    <p className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{refund.toLocaleString()} to refund</p>
                     <p className="text-xs" style={{ color: MUTED }}>Deposit ₦{deposit.toLocaleString()} · Fee {waived ? "waived" : `₦${cancFee.toLocaleString()} retained`}</p>
                   </div>
                 </div>
 
                 <div className="mb-3">
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-2.5" style={{ color: MUTED }}>Refund Method</label>
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-2.5" style={{ color: MUTED }}>Refund method</label>
                   <div className="grid grid-cols-3 gap-2">
                     {([
                       { label: "Original Method", icon: CreditCard,  sub: "Card / transfer" },
@@ -3137,33 +3137,33 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
                 </div>
 
                 <div className="mb-3">
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Refund Amount (₦)</label>
-                  <input aria-label="Refund Amount (₦)" value={refund.toLocaleString()} readOnly
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Refund amount (₦)</label>
+                  <input aria-label="Refund amount (₦)" value={refund.toLocaleString()} readOnly
                     className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none font-bold"
                     style={{ borderColor: BORDER, fontFamily: mono, color: SUCCESS, backgroundColor:"#F0FDF4" }} />
                 </div>
 
                 <div className="mb-3">
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Approving Manager</label>
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Approving manager</label>
                   <select aria-label="Approving Manager" value={approver} onChange={e => setApprover(e.target.value)} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }}>
                     {["Grace Mensah","Bola Adewale","John Abubakar"].map(m => <option key={m}>{m}</option>)}
                   </select>
                 </div>
 
                 <div className="mb-4">
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Note for Guest (optional)</label>
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Note for guest (optional)</label>
                   <textarea value={refundNote} onChange={e => setRefundNote(e.target.value)} rows={2}
                     placeholder="Message to include in refund notification…" aria-label="Message to include in refund notification"
                     className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
                 </div>
 
-                <BtnP label="Process Refund" icon={DollarSign} onClick={doRefund} />
+                <BtnP label="Process refund" icon={DollarSign} onClick={doRefund} />
               </div>
             </div>
 
             {/* Audit trail */}
             <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Recent Cancellations</h3>
+              <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Recent cancellations</h3>
               <div className="space-y-3">
                 {AUDIT_HISTORY.map(a => (
                   <div key={a.ts + a.by} className="flex gap-3 items-start">
@@ -3172,7 +3172,7 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
                       {a.type==="refund"
                         ? <DollarSign size={13} style={{ color: PRIMARY }} />
                         : a.type==="waived"
-                        ? <AlertTriangle size={13} style={{ color: ORANGE }} />
+                        ? <AlertTriangle size={13} style={{ color: ORANGE_INK }} />
                         : <XCircle size={13} style={{ color: ERROR }} />}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -3282,7 +3282,7 @@ export function LeaveManagement({ add }: { add: (t: Omit<Toast, "id">) => void }
         actions={
           <div className="flex gap-2">
             <BtnO label="Export" icon={Download} onClick={()=>add({type:"info",title:"Exporting leave report…"})} />
-            <BtnP label="New Request" icon={Plus} onClick={()=>setShowNew(true)} />
+            <BtnP label="New request" icon={Plus} onClick={()=>setShowNew(true)} />
           </div>
         }
       />
@@ -3290,9 +3290,9 @@ export function LeaveManagement({ add }: { add: (t: Omit<Toast, "id">) => void }
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {[
-          { label:"Pending Approval", val:pendingCount,  color:WARNING },
+          { label:"Pending Approval", val:pendingCount,  color:WARNING_INK },
           { label:"Approved (Jun)",   val:approvedCount, color:SUCCESS },
-          { label:"On Leave Today",   val:2,             color:TEAL    },
+          { label:"On Leave Today",   val:2,             color:TEAL_INK    },
           { label:"Leave Types",      val:7,             color:PRIMARY },
         ].map(k=>(
           <div key={k.label} className="bg-white rounded-xl border px-4 py-3" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.07)" }}>
@@ -3394,7 +3394,7 @@ export function LeaveManagement({ add }: { add: (t: Omit<Toast, "id">) => void }
             </div>
           ))}
           <div className="mt-4 p-3 rounded-xl" style={{ backgroundColor:"#FEF3C7" }}>
-            <div className="text-xs font-semibold" style={{ color:WARNING }}>Coverage Risk — 5–11 Jul</div>
+            <div className="text-xs font-semibold" style={{ color:WARNING_INK }}>Coverage Risk — 5–11 Jul</div>
             <div className="text-xs mt-1" style={{ color:TEXT }}>Front Desk will have 1 officer absent (John Abubakar). Ensure relief coverage is confirmed.</div>
           </div>
         </div>
@@ -3466,20 +3466,20 @@ export function LeaveManagement({ add }: { add: (t: Omit<Toast, "id">) => void }
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor:"rgba(13,27,46,0.5)" }} onClick={()=>setShowNew(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-96" style={{ border:`1px solid ${BORDER}` }}>
-            <h3 className="text-sm font-bold mb-4" style={{ color:TEXT }}>New Leave Request</h3>
+            <h3 className="text-sm font-bold mb-4" style={{ color:TEXT }}>New leave request</h3>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Staff Name</label><input value={newReq.staff} onChange={e=>setNewReq(r=>({...r,staff:e.target.value}))} placeholder="Full name…" aria-label="Full name" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
-              <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Leave Type</label><select aria-label="Leave Type" value={newReq.type} onChange={e=>setNewReq(r=>({...r,type:e.target.value as LvType}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>{(["Annual","Sick","Casual","Maternity","Paternity","Compassionate","Study"] as LvType[]).map(t=><option key={t}>{t}</option>)}</select></div>
+              <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Staff name</label><input value={newReq.staff} onChange={e=>setNewReq(r=>({...r,staff:e.target.value}))} placeholder="Full name…" aria-label="Full name" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
+              <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Leave type</label><select aria-label="Leave type" value={newReq.type} onChange={e=>setNewReq(r=>({...r,type:e.target.value as LvType}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>{(["Annual","Sick","Casual","Maternity","Paternity","Compassionate","Study"] as LvType[]).map(t=><option key={t}>{t}</option>)}</select></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>From</label><input aria-label="From" type="date" value={newReq.from} onChange={e=>setNewReq(r=>({...r,from:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
-                <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>To</label><input aria-label="To" type="date" value={newReq.to} onChange={e=>setNewReq(r=>({...r,to:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
+                <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>From</label><DateInput aria-label="From" type="date" value={newReq.from} onChange={e=>setNewReq(r=>({...r,from:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
+                <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>To</label><DateInput aria-label="To" type="date" value={newReq.to} onChange={e=>setNewReq(r=>({...r,to:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
               </div>
-              <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Coverage Arrangement</label><input value={newReq.cover} onChange={e=>setNewReq(r=>({...r,cover:e.target.value}))} placeholder="Who will cover?" aria-label="Who will cover?" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
+              <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Coverage arrangement</label><input value={newReq.cover} onChange={e=>setNewReq(r=>({...r,cover:e.target.value}))} placeholder="Who will cover?" aria-label="Who will cover?" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
               <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Reason</label><textarea value={newReq.reason} onChange={e=>setNewReq(r=>({...r,reason:e.target.value}))} rows={2} placeholder="Brief reason…" aria-label="Brief reason" className="w-full px-3 py-2.5 rounded-xl border text-xs outline-none resize-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
             </div>
             <div className="flex gap-3 mt-4">
               <BtnO label="Cancel" onClick={()=>setShowNew(false)} />
-              <button onClick={()=>{ add({ type:"success", title:"Leave request submitted" }); setShowNew(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Submit Request</button>
+              <button onClick={()=>{ add({ type:"success", title:"Leave request submitted" }); setShowNew(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor:PRIMARY }}>Submit request</button>
             </div>
           </div>
         </>
