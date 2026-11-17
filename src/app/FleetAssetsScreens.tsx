@@ -15,6 +15,7 @@ import {
 import {
   type Toast, type Role, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR,
   BORDER, TEXT, MUTED, SUBTLE,
+  stampNow,
 } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO } from "./UIKit";
 
@@ -46,40 +47,40 @@ const VEHICLES: Vehicle[] = [
   {
     id: "ABJ-001E", plate: "ABJ 123 XA", make: "Toyota", model: "Camry", year: 2021,
     type: "Saloon", seats: 5, ownership: "owned", status: "active",
-    odometer: 47963, fuelType: "Petrol", nextServiceKm: 50000, nextServiceDate: "15 Nov 2025",
+    odometer: 47963, fuelType: "Petrol", nextServiceKm: 50000, nextServiceDate: "19 Sep 2026",
     assignedDriver: "Uche Obi", utilPct: 78, worstDocStatus: "valid",
     docs: [
-      { type: "Vehicle Licence",   ref: "FCT/VL/2025/04821", issuer: "FCTA",      issued: "01 Jan 2025", expires: "31 Dec 2025", daysLeft: 133,  status: "valid",          hasAttachment: true },
-      { type: "Insurance",         ref: "AIG/COM/2025/78431", issuer: "AIG Nigeria", issued: "01 Mar 2025", expires: "28 Feb 2026", daysLeft: 192,  status: "valid",          hasAttachment: true },
-      { type: "Roadworthiness",    ref: "NIG/RW/2025/10029",  issuer: "VIO",       issued: "10 Jan 2025", expires: "09 Jan 2026", daysLeft: 142,  status: "valid",          hasAttachment: true },
-      { type: "Hackney Permit",    ref: "FCT/HP/2025/00912",  issuer: "FCTA",      issued: "01 Jun 2025", expires: "31 May 2026", daysLeft: 283,  status: "valid",          hasAttachment: false },
+      { type: "Vehicle Licence",   ref: "FCT/VL/2025/04821", issuer: "FCTA",      issued: "5 Nov 2025", expires: "4 Nov 2026", daysLeft: 133,  status: "valid",          hasAttachment: true },
+      { type: "Insurance",         ref: "AIG/COM/2025/78431", issuer: "AIG Nigeria", issued: "3 Jan 2026", expires: "2 Jan 2027", daysLeft: 192,  status: "valid",          hasAttachment: true },
+      { type: "Roadworthiness",    ref: "NIG/RW/2025/10029",  issuer: "VIO",       issued: "14 Nov 2025", expires: "13 Nov 2026", daysLeft: 142,  status: "valid",          hasAttachment: true },
+      { type: "Hackney Permit",    ref: "FCT/HP/2025/00912",  issuer: "FCTA",      issued: "5 Apr 2026", expires: "4 Apr 2027", daysLeft: 284,  status: "valid",          hasAttachment: false },
       { type: "Proof of Ownership",ref: "CMR/2021/09842",     issuer: "FRN",       issued: "15 May 2021", expires: "N/A",         daysLeft: 9999, status: "valid",          hasAttachment: true },
     ],
   },
   {
     id: "ABJ-002E", plate: "ABJ 456 YB", make: "Toyota", model: "HiAce", year: 2019,
     type: "Van", seats: 14, ownership: "owned", status: "active",
-    odometer: 98210, fuelType: "Diesel", nextServiceKm: 100000, nextServiceDate: "01 Oct 2025",
+    odometer: 98210, fuelType: "Diesel", nextServiceKm: 100000, nextServiceDate: "5 Aug 2026",
     assignedDriver: "Emeka Eze", utilPct: 62, worstDocStatus: "expiring-soon",
     docs: [
-      { type: "Vehicle Licence",   ref: "FCT/VL/2025/04822", issuer: "FCTA",      issued: "01 Jan 2025", expires: "31 Dec 2025", daysLeft: 133,  status: "valid",          hasAttachment: true },
-      { type: "Insurance",         ref: "AIG/COM/2024/65201", issuer: "AIG Nigeria", issued: "01 Oct 2024", expires: "30 Sep 2025", daysLeft: 41,   status: "expiring-soon",  hasAttachment: true },
-      { type: "Roadworthiness",    ref: "NIG/RW/2024/08801",  issuer: "VIO",       issued: "10 Sep 2024", expires: "09 Sep 2025", daysLeft: 20,   status: "expiring-soon",  hasAttachment: true },
-      { type: "Hackney Permit",    ref: "FCT/HP/2025/00913",  issuer: "FCTA",      issued: "01 Jun 2025", expires: "31 May 2026", daysLeft: 283,  status: "valid",          hasAttachment: true },
-      { type: "Proof of Ownership",ref: "CMR/2019/04521",     issuer: "FRN",       issued: "03 Mar 2019", expires: "N/A",         daysLeft: 9999, status: "valid",          hasAttachment: true },
+      { type: "Vehicle Licence",   ref: "FCT/VL/2025/04822", issuer: "FCTA",      issued: "5 Nov 2025", expires: "4 Nov 2026", daysLeft: 133,  status: "valid",          hasAttachment: true },
+      { type: "Insurance",         ref: "AIG/COM/2024/65201", issuer: "AIG Nigeria", issued: "5 Aug 2025", expires: "4 Aug 2026", daysLeft: 41,   status: "expiring-soon",  hasAttachment: true },
+      { type: "Roadworthiness",    ref: "NIG/RW/2024/08801",  issuer: "VIO",       issued: "15 Jul 2025", expires: "14 Jul 2026", daysLeft: 20,   status: "expiring-soon",  hasAttachment: true },
+      { type: "Hackney Permit",    ref: "FCT/HP/2025/00913",  issuer: "FCTA",      issued: "5 Apr 2026", expires: "4 Apr 2027", daysLeft: 284,  status: "valid",          hasAttachment: true },
+      { type: "Proof of Ownership",ref: "CMR/2019/04521",     issuer: "FRN",       issued: "3 Mar 2019", expires: "N/A",         daysLeft: 9999, status: "valid",          hasAttachment: true },
     ],
   },
   {
     id: "ABJ-003V", plate: "ABJ 789 ZC", make: "Toyota", model: "Land Cruiser", year: 2022,
     type: "SUV", seats: 7, ownership: "leased", status: "active",
-    odometer: 31480, fuelType: "Diesel", nextServiceKm: 35000, nextServiceDate: "20 Nov 2025",
+    odometer: 31480, fuelType: "Diesel", nextServiceKm: 35000, nextServiceDate: "24 Sep 2026",
     assignedDriver: "Musa Danladi", utilPct: 55, worstDocStatus: "valid",
     docs: [
-      { type: "Vehicle Licence",   ref: "FCT/VL/2025/04823", issuer: "FCTA",      issued: "01 Jan 2025", expires: "31 Dec 2025", daysLeft: 133,  status: "valid",          hasAttachment: true },
-      { type: "Insurance",         ref: "AIICO/2025/44120",   issuer: "AIICO",     issued: "01 May 2025", expires: "30 Apr 2026", daysLeft: 252,  status: "valid",          hasAttachment: true },
-      { type: "Roadworthiness",    ref: "NIG/RW/2025/14100",  issuer: "VIO",       issued: "15 Mar 2025", expires: "14 Mar 2026", daysLeft: 206,  status: "valid",          hasAttachment: true },
-      { type: "Hackney Permit",    ref: "FCT/HP/2025/00914",  issuer: "FCTA",      issued: "01 Jun 2025", expires: "31 May 2026", daysLeft: 283,  status: "valid",          hasAttachment: true },
-      { type: "Proof of Ownership",ref: "LEASE/STANBIC/2022", issuer: "Stanbic",   issued: "01 Apr 2022", expires: "31 Mar 2027", daysLeft: 588,  status: "valid",          hasAttachment: true },
+      { type: "Vehicle Licence",   ref: "FCT/VL/2025/04823", issuer: "FCTA",      issued: "5 Nov 2025", expires: "4 Nov 2026", daysLeft: 133,  status: "valid",          hasAttachment: true },
+      { type: "Insurance",         ref: "AIICO/2025/44120",   issuer: "AIICO",     issued: "5 Mar 2026", expires: "4 Mar 2027", daysLeft: 253,  status: "valid",          hasAttachment: true },
+      { type: "Roadworthiness",    ref: "NIG/RW/2025/14100",  issuer: "VIO",       issued: "17 Jan 2026", expires: "16 Jan 2027", daysLeft: 206,  status: "valid",          hasAttachment: true },
+      { type: "Hackney Permit",    ref: "FCT/HP/2025/00914",  issuer: "FCTA",      issued: "5 Apr 2026", expires: "4 Apr 2027", daysLeft: 284,  status: "valid",          hasAttachment: true },
+      { type: "Proof of Ownership",ref: "LEASE/STANBIC/2022", issuer: "Stanbic",   issued: "1 Apr 2022", expires: "31 Mar 2027", daysLeft: 280,  status: "valid",          hasAttachment: true },
     ],
   },
   {
@@ -88,10 +89,10 @@ const VEHICLES: Vehicle[] = [
     odometer: 214850, fuelType: "Diesel", nextServiceKm: 215000, nextServiceDate: "OVERDUE",
     assignedDriver: undefined, utilPct: 0, worstDocStatus: "expired",
     docs: [
-      { type: "Vehicle Licence",   ref: "FCT/VL/2024/01821", issuer: "FCTA",      issued: "01 Jan 2024", expires: "31 Dec 2024", daysLeft: -133, status: "expired",        hasAttachment: true },
-      { type: "Insurance",         ref: "AIG/COM/2024/21009", issuer: "AIG Nigeria", issued: "01 Jan 2024", expires: "31 Dec 2024", daysLeft: -133, status: "expired",        hasAttachment: true },
-      { type: "Roadworthiness",    ref: "NIG/RW/2024/00901",  issuer: "VIO",       issued: "10 Jan 2024", expires: "09 Jan 2025", daysLeft: -233, status: "expired",        hasAttachment: true },
-      { type: "Hackney Permit",    ref: "FCT/HP/2024/00410",  issuer: "FCTA",      issued: "01 Jan 2024", expires: "31 Dec 2024", daysLeft: -133, status: "expired",        hasAttachment: false },
+      { type: "Vehicle Licence",   ref: "FCT/VL/2024/01821", issuer: "FCTA",      issued: "1 Jan 2024", expires: "4 Nov 2025", daysLeft: -232, status: "expired",        hasAttachment: true },
+      { type: "Insurance",         ref: "AIG/COM/2024/21009", issuer: "AIG Nigeria", issued: "1 Jan 2024", expires: "4 Nov 2025", daysLeft: -232, status: "expired",        hasAttachment: true },
+      { type: "Roadworthiness",    ref: "NIG/RW/2024/00901",  issuer: "VIO",       issued: "10 Jan 2024", expires: "13 Nov 2025", daysLeft: -223, status: "expired",        hasAttachment: true },
+      { type: "Hackney Permit",    ref: "FCT/HP/2024/00410",  issuer: "FCTA",      issued: "1 Jan 2024", expires: "4 Nov 2025", daysLeft: -232, status: "expired",        hasAttachment: false },
       { type: "Proof of Ownership",ref: "CMR/2018/08811",     issuer: "FRN",       issued: "10 Oct 2018", expires: "N/A",         daysLeft: 9999, status: "valid",          hasAttachment: true },
     ],
   },
@@ -313,11 +314,11 @@ export function VehicleRegister({ add, nav }: { add: (t: Omit<Toast,"id">) => vo
 // ─── 2. VehicleDetail ─────────────────────────────────────────────────────────
 
 const FUEL_ENTRIES = [
-  { date:"18 Aug",  litres:45, odom:47500, cost:50625, station:"MRS Wuse",      prev:47202, driver:"Uche Obi"    },
-  { date:"10 Aug",  litres:48, odom:47202, cost:54000, station:"Ardova Garki",  prev:46900, driver:"Uche Obi"    },
-  { date:"02 Aug",  litres:42, odom:46900, cost:47250, station:"MRS Wuse",      prev:46620, driver:"Uche Obi"    },
-  { date:"25 Jul",  litres:50, odom:46620, cost:56250, station:"Conoil Maitama",prev:46300, driver:"Uche Obi"    },
-  { date:"17 Jul",  litres:44, odom:46300, cost:49500, station:"MRS Wuse",      prev:46010, driver:"Uche Obi"    },
+  { date:"22 Jun",  litres:45, odom:47500, cost:50625, station:"MRS Wuse",      prev:47202, driver:"Uche Obi"    },
+  { date:"14 Jun",  litres:48, odom:47202, cost:54000, station:"Ardova Garki",  prev:46900, driver:"Uche Obi"    },
+  { date:"6 Jun",  litres:42, odom:46900, cost:47250, station:"MRS Wuse",      prev:46620, driver:"Uche Obi"    },
+  { date:"29 May",  litres:50, odom:46620, cost:56250, station:"Conoil Maitama",prev:46300, driver:"Uche Obi"    },
+  { date:"21 May",  litres:44, odom:46300, cost:49500, station:"MRS Wuse",      prev:46010, driver:"Uche Obi"    },
 ];
 
 const FUEL_CHART_DATA = FUEL_ENTRIES.map(e => ({
@@ -326,15 +327,15 @@ const FUEL_CHART_DATA = FUEL_ENTRIES.map(e => ({
 }));
 
 const SVC_HISTORY = [
-  { date:"12 Jun 2025", km:45000, type:"10k Service", cost:85000, parts:"Oil filter, air filter, brake pads", garage:"Elizade Toyota Abuja" },
-  { date:"15 Mar 2025", km:42500, type:"Minor Service", cost:35000, parts:"Engine oil, oil filter", garage:"Elizade Toyota Abuja" },
-  { date:"04 Jan 2025", km:40000, type:"Major Service", cost:240000, parts:"Timing belt, water pump, full brake set, 4 tyres", garage:"Elizade Toyota Abuja" },
+  { date:"16 Apr 2026", km:45000, type:"10k Service", cost:85000, parts:"Oil filter, air filter, brake pads", garage:"Elizade Toyota Abuja" },
+  { date:"17 Jan 2026", km:42500, type:"Minor Service", cost:35000, parts:"Engine oil, oil filter", garage:"Elizade Toyota Abuja" },
+  { date:"8 Nov 2025", km:40000, type:"Major Service", cost:240000, parts:"Timing belt, water pump, full brake set, 4 tyres", garage:"Elizade Toyota Abuja" },
 ];
 
 const TRIP_HISTORY = [
-  { date:"20 Aug", id:"TRP-0040", route:"Hotel → Airport", km:63, revenue:20500, driver:"Uche Obi" },
-  { date:"18 Aug", id:"TRP-0038", route:"Airport → Hotel", km:61, revenue:18000, driver:"Uche Obi" },
-  { date:"15 Aug", id:"TRP-0035", route:"Hotel → State House", km:22, revenue:45000, driver:"Uche Obi" },
+  { date:"24 Jun", id:"TRP-0040", route:"Hotel → Airport", km:63, revenue:20500, driver:"Uche Obi" },
+  { date:"22 Jun", id:"TRP-0038", route:"Airport → Hotel", km:61, revenue:18000, driver:"Uche Obi" },
+  { date:"19 Jun", id:"TRP-0035", route:"Hotel → State House", km:22, revenue:45000, driver:"Uche Obi" },
 ];
 
 const TABS = ["Documents","Service","Fuel","Trips","Costs","Telematics"];
@@ -432,7 +433,7 @@ export function VehicleDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
       {tab === "Fuel" && (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
-            {[["Avg Consumption","8.4 L/100km"],["Total Fuel (Aug)","135 L"],["Fuel Cost (Aug)","₦151,875"]].map(([k,v])=>(
+            {[["Avg Consumption","8.4 L/100km"],["Total Fuel (Jun)","135 L"],["Fuel Cost (Jun)","₦151,875"]].map(([k,v])=>(
               <div key={k} className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER }}>
                 <div className="text-xs" style={{ color:MUTED }}>{k}</div>
                 <div className="text-xl font-bold" style={{ color:TEXT, fontFamily:mono }}>{v}</div>
@@ -507,7 +508,7 @@ export function VehicleDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER }}>
             <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Cost of Ownership</div>
-            {[["Acquisition Cost","₦14,800,000"],["Depreciation (4yr)","₦3,700,000/yr"],["Book Value (Est.)","₦9,400,000"],["Fuel (Aug)","₦151,875"],["Maintenance YTD","₦360,000"],["Total Cost This Year","₦511,875"]].map(([k,v])=>(
+            {[["Acquisition Cost","₦14,800,000"],["Depreciation (4yr)","₦3,700,000/yr"],["Book Value (Est.)","₦9,400,000"],["Fuel (Jun)","₦151,875"],["Maintenance YTD","₦360,000"],["Total Cost This Year","₦511,875"]].map(([k,v])=>(
               <div key={k} className="flex justify-between py-2 border-b last:border-b-0 text-xs" style={{ borderColor:BORDER }}>
                 <span style={{ color:MUTED }}>{k}</span>
                 <span className="font-bold" style={{ color:TEXT, fontFamily:mono }}>{v}</span>
@@ -554,11 +555,11 @@ interface FuelEntry {
 }
 
 const FUEL_LOG: FuelEntry[] = [
-  { id:"FL-0081", date:"20 Aug 09:14", vehicle:"ABJ 123 XA", driver:"Uche Obi",     type:"fill",  litres:45, unitPrice:1125, total:50625, odomBefore:47500, odomAfter:47500, station:"MRS Wuse II",    paymentMethod:"Corporate Card", receiptRef:"MRS-20250820-041", recordedBy:"Uche Obi"    },
-  { id:"FL-0080", date:"19 Aug 07:30", vehicle:"ABJ 456 YB", driver:"Emeka Eze",     type:"fill",  litres:80, unitPrice:1125, total:90000, odomBefore:97900, odomAfter:97900, station:"Ardova Garki",   paymentMethod:"Cash",           receiptRef:"AGA-20250819-098", recordedBy:"Emeka Eze",   anomaly:"Consumption 18.2 L/100km — exceeds threshold (12.0)" },
-  { id:"FL-0079", date:"18 Aug 14:22", vehicle:"ABJ 789 ZC", driver:"Musa Danladi",  type:"fill",  litres:60, unitPrice:1125, total:67500, odomBefore:31200, odomAfter:31200, station:"MRS Wuse II",    paymentMethod:"Corporate Card", receiptRef:"MRS-20250818-077", recordedBy:"Musa Danladi" },
-  { id:"FL-0078", date:"17 Aug 11:05", vehicle:"ABJ 123 XA", driver:"Uche Obi",     type:"fill",  litres:48, unitPrice:1125, total:54000, odomBefore:47202, odomAfter:47202, station:"Conoil Maitama", paymentMethod:"Corporate Card", receiptRef:"CNL-20250817-031", recordedBy:"Uche Obi"    },
-  { id:"FL-0077", date:"15 Aug 08:00", vehicle:"ABJ 456 YB", driver:"Emeka Eze",     type:"drain", litres:20, unitPrice:1125, total:0,     odomBefore:97400, odomAfter:97400, station:"Hotel Store",    paymentMethod:"Internal",       receiptRef:"INT-20250815-003", recordedBy:"Isaac Sule"   },
+  { id:"FL-0081", date:"24 Jun 09:14", vehicle:"ABJ 123 XA", driver:"Uche Obi",     type:"fill",  litres:45, unitPrice:1125, total:50625, odomBefore:47500, odomAfter:47500, station:"MRS Wuse II",    paymentMethod:"Corporate Card", receiptRef:"MRS-20250820-041", recordedBy:"Uche Obi"    },
+  { id:"FL-0080", date:"23 Jun 07:30", vehicle:"ABJ 456 YB", driver:"Emeka Eze",     type:"fill",  litres:80, unitPrice:1125, total:90000, odomBefore:97900, odomAfter:97900, station:"Ardova Garki",   paymentMethod:"Cash",           receiptRef:"AGA-20250819-098", recordedBy:"Emeka Eze",   anomaly:"Consumption 18.2 L/100km — exceeds threshold (12.0)" },
+  { id:"FL-0079", date:"22 Jun 14:22", vehicle:"ABJ 789 ZC", driver:"Musa Danladi",  type:"fill",  litres:60, unitPrice:1125, total:67500, odomBefore:31200, odomAfter:31200, station:"MRS Wuse II",    paymentMethod:"Corporate Card", receiptRef:"MRS-20250818-077", recordedBy:"Musa Danladi" },
+  { id:"FL-0078", date:"21 Jun 11:05", vehicle:"ABJ 123 XA", driver:"Uche Obi",     type:"fill",  litres:48, unitPrice:1125, total:54000, odomBefore:47202, odomAfter:47202, station:"Conoil Maitama", paymentMethod:"Corporate Card", receiptRef:"CNL-20250817-031", recordedBy:"Uche Obi"    },
+  { id:"FL-0077", date:"19 Jun 08:00", vehicle:"ABJ 456 YB", driver:"Emeka Eze",     type:"drain", litres:20, unitPrice:1125, total:0,     odomBefore:97400, odomAfter:97400, station:"Hotel Store",    paymentMethod:"Internal",       receiptRef:"INT-20250815-003", recordedBy:"Isaac Sule"   },
 ];
 
 // ─ New entry form state type
@@ -614,7 +615,7 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <StatCard label="Entries (Aug)"   value="22"         sub="All vehicles"    icon={Fuel}          accent={PRIMARY} />
+        <StatCard label="Entries (Jun)"   value="22"         sub="All vehicles"    icon={Fuel}          accent={PRIMARY} />
         <StatCard label="Total Litres"    value="1,248 L"    sub="Aug to date"     icon={Activity}      accent={TEAL}    />
         <StatCard label="Total Cost"      value="₦1.40M"     sub="Aug to date"     icon={TrendingUp}    accent={ORANGE}  />
         <StatCard label="Anomalies"       value="2"          sub="Exceed threshold" icon={AlertTriangle} accent={ERROR}   />
@@ -701,7 +702,7 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             { label:"Tank Capacity", value:"5,000 L", sub:"Main diesel store" },
             { label:"Current Level", value:"2,100 L", sub:"42% — 14.2 days left", warn:false },
             { label:"Avg Daily Burn", value:"148 L/day", sub:"All generators combined" },
-            { label:"Last Refill", value:"15 Aug", sub:"3,000 L · Emadeb Energy" },
+            { label:"Last Refill", value:"19 Jun", sub:"3,000 L · Emadeb Energy" },
           ].map(item => (
             <div key={item.label} className="p-3 rounded-xl" style={{ backgroundColor:"#FFFBEB", border:`1px solid #FDE68A` }}>
               <div className="text-xs" style={{ color:"#92400E" }}>{item.label}</div>
@@ -718,7 +719,7 @@ export function FuelLog({ add }: { add: (t: Omit<Toast,"id">) => void }) {
           <div className="h-3 rounded-full overflow-hidden" style={{ backgroundColor:"#F4F4F5" }}>
             <div className="h-full rounded-full transition-all" style={{ width:"42%", backgroundColor: ORANGE }} />
           </div>
-          <div className="text-xs mt-1" style={{ color:MUTED }}>Alert threshold: 20% (1,000 L) · Next recommended refill: <strong style={{ color:TEXT }}>Sep 02</strong></div>
+          <div className="text-xs mt-1" style={{ color:MUTED }}>Alert threshold: 20% (1,000 L) · Next recommended refill: <strong style={{ color:TEXT }}>7 Jul</strong></div>
         </div>
       </div>
 
@@ -808,11 +809,11 @@ interface DieselEntry {
 }
 
 const DIESEL_LOG: DieselEntry[] = [
-  { id:"DL-0041", date:"20 Aug 06:00", generator:"Main Generator",  litres:200, unitPrice:1180, total:236000, runtimeHoursAtFill:14280, lph:3.8, supplier:"Emadeb Energy",    recordedBy:"Isaac Sule"    },
-  { id:"DL-0040", date:"17 Aug 18:00", generator:"Block B Backup",  litres:80,  unitPrice:1180, total:94400,  runtimeHoursAtFill:8940,  lph:4.2, supplier:"Ardova Direct",    recordedBy:"Isaac Sule",   anomaly:"Consumption 4.2 L/hr exceeds baseline (3.5) — check load or fuel tap" },
-  { id:"DL-0039", date:"15 Aug 09:30", generator:"Pool Area Small", litres:35,  unitPrice:1180, total:41300,  runtimeHoursAtFill:2310,  lph:1.8, supplier:"Emadeb Energy",    recordedBy:"Chinedu Eze"   },
-  { id:"DL-0038", date:"13 Aug 06:00", generator:"Main Generator",  litres:180, unitPrice:1180, total:212400, runtimeHoursAtFill:14220, lph:3.6, supplier:"Emadeb Energy",    recordedBy:"Isaac Sule"    },
-  { id:"DL-0037", date:"10 Aug 18:00", generator:"Block B Backup",  litres:75,  unitPrice:1180, total:88500,  runtimeHoursAtFill:8890,  lph:3.5, supplier:"Ardova Direct",    recordedBy:"Isaac Sule"    },
+  { id:"DL-0041", date:"24 Jun 06:00", generator:"Main Generator",  litres:200, unitPrice:1180, total:236000, runtimeHoursAtFill:14280, lph:3.8, supplier:"Emadeb Energy",    recordedBy:"Isaac Sule"    },
+  { id:"DL-0040", date:"21 Jun 18:00", generator:"Block B Backup",  litres:80,  unitPrice:1180, total:94400,  runtimeHoursAtFill:8940,  lph:4.2, supplier:"Ardova Direct",    recordedBy:"Isaac Sule",   anomaly:"Consumption 4.2 L/hr exceeds baseline (3.5) — check load or fuel tap" },
+  { id:"DL-0039", date:"19 Jun 09:30", generator:"Pool Area Small", litres:35,  unitPrice:1180, total:41300,  runtimeHoursAtFill:2310,  lph:1.8, supplier:"Emadeb Energy",    recordedBy:"Chinedu Eze"   },
+  { id:"DL-0038", date:"17 Jun 06:00", generator:"Main Generator",  litres:180, unitPrice:1180, total:212400, runtimeHoursAtFill:14220, lph:3.6, supplier:"Emadeb Energy",    recordedBy:"Isaac Sule"    },
+  { id:"DL-0037", date:"14 Jun 18:00", generator:"Block B Backup",  litres:75,  unitPrice:1180, total:88500,  runtimeHoursAtFill:8890,  lph:3.5, supplier:"Ardova Direct",    recordedBy:"Isaac Sule"    },
 ];
 
 const GEN_TREND = [
@@ -835,9 +836,9 @@ interface NewReqForm { generator: string; estimatedLitres: string; urgency: stri
 const EMPTY_REQ: NewReqForm = { generator:"", estimatedLitres:"", urgency:"normal", reason:"" };
 
 const DIESEL_REQUISITIONS: DieselRequisition[] = [
-  { id:"REQ-003", date:"20 Aug 16:45", generator:"Main Generator",  estimatedLitres:200, urgency:"urgent",  reason:"Tank approaching 3-day reserve threshold — approx. 30% remaining",  requestedBy:"Isaac Sule",  status:"pending"   },
-  { id:"REQ-002", date:"17 Aug 09:00", generator:"Block B Backup",  estimatedLitres:80,  urgency:"normal",  reason:"Monthly scheduled top-up — runtime consistent, no anomaly",          requestedBy:"Isaac Sule",  status:"delivered", approvedBy:"Tunde Adeyemi", procNote:"Delivered 80L · ₦1,180/L · Ardova Direct · DL-0040" },
-  { id:"REQ-001", date:"12 Aug 11:30", generator:"Main Generator",  estimatedLitres:180, urgency:"normal",  reason:"Fortnightly scheduled refill per PM calendar",                       requestedBy:"Chinedu Eze", status:"delivered", approvedBy:"Tunde Adeyemi", procNote:"Delivered 180L · ₦1,180/L · Emadeb Energy · DL-0038" },
+  { id:"REQ-003", date:"24 Jun 16:45", generator:"Main Generator",  estimatedLitres:200, urgency:"urgent",  reason:"Tank approaching 3-day reserve threshold — approx. 30% remaining",  requestedBy:"Isaac Sule",  status:"pending"   },
+  { id:"REQ-002", date:"21 Jun 09:00", generator:"Block B Backup",  estimatedLitres:80,  urgency:"normal",  reason:"Monthly scheduled top-up — runtime consistent, no anomaly",          requestedBy:"Isaac Sule",  status:"delivered", approvedBy:"Tunde Adeyemi", procNote:"Delivered 80L · ₦1,180/L · Ardova Direct · DL-0040" },
+  { id:"REQ-001", date:"16 Jun 11:30", generator:"Main Generator",  estimatedLitres:180, urgency:"normal",  reason:"Fortnightly scheduled refill per PM calendar",                       requestedBy:"Chinedu Eze", status:"delivered", approvedBy:"Tunde Adeyemi", procNote:"Delivered 180L · ₦1,180/L · Emadeb Energy · DL-0038" },
 ];
 
 export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) => void; role?: Role }) {
@@ -869,7 +870,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
     }
     const newReq: DieselRequisition = {
       id: `REQ-${String(requisitions.length + 4).padStart(3,"0")}`,
-      date: new Date().toLocaleDateString("en-GB",{ day:"2-digit", month:"short" }) + " " + new Date().toLocaleTimeString("en-GB",{ hour:"2-digit", minute:"2-digit" }),
+      date: stampNow(),
       generator: reqForm.generator, estimatedLitres: +reqForm.estimatedLitres,
       urgency: reqForm.urgency as "normal"|"urgent"|"critical",
       reason: reqForm.reason, requestedBy:"Isaac Sule", status:"pending",

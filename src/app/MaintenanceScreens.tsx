@@ -181,7 +181,7 @@ export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
             <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Linked Asset</h3>
             <div className="space-y-1.5 text-xs">
-              {[["Asset Tag","AST-001"],["Asset","Central AC Unit"],["Location","Roof"],["Last Service","12 Mar 2025"],["Next Service","12 Jun 2025"]].map(([k,v]) => (
+              {[["Asset Tag","AST-001"],["Asset","Central AC Unit"],["Location","Roof"],["Last Service","12 Mar 2026"],["Next Service","12 Jun 2026"]].map(([k,v]) => (
                 <div key={k} className="flex gap-2"><span className="w-24 flex-shrink-0" style={{ color: MUTED }}>{k}</span><span className="font-medium" style={{ color: TEXT }}>{v}</span></div>
               ))}
             </div>
@@ -192,7 +192,7 @@ export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }
             {showFollowUp ? (
               <div className="space-y-2">
                 <select className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }}><option>Monthly PM — AC Unit</option><option>Quarterly — AC full service</option></select>
-                <input type="date" className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }} defaultValue="2025-07-24" />
+                <input type="date" className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }} defaultValue="2026-07-24" />
                 <button onClick={() => { setShowFollowUp(false); add({ type: "success", title: "PM task created — AST-001" }); }} className="w-full py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Create PM Task</button>
               </div>
             ) : <p className="text-xs" style={{ color: SUBTLE }}>Create a preventive maintenance task from this work order to prevent recurrence.</p>}
@@ -224,16 +224,16 @@ export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   const [selected, setSelected] = useState<string | null>(null);
 
   const REGISTER = [
-    { id: "AST-001", name: "Central Air Conditioning Unit", cat: "HVAC", location: "Roof", criticality: "Critical", purchased: "Jan 2021", cost: 2850000, warranty: "Jan 2024", supplier: "Airecon Nigeria", lastService: "12 Mar 2025", nextService: "12 Jun 2025", serviceStatus: "Overdue", downtimeYTD: "4h 20m", runtime: "8,742 h", status: "Operational" },
-    { id: "AST-002", name: "Commercial Refrigerator (Restaurant)", cat: "Kitchen", location: "Restaurant Kitchen", criticality: "High", purchased: "Mar 2022", cost: 980000, warranty: "Mar 2025", supplier: "CoolTech Ltd", lastService: "10 May 2025", nextService: "10 Aug 2025", serviceStatus: "Ok", downtimeYTD: "0h", runtime: "—", status: "Operational" },
-    { id: "AST-003", name: "Elevator #1 (10-person)", cat: "Infrastructure", location: "Main Building", criticality: "Critical", purchased: "Sep 2019", cost: 12500000, warranty: "Sep 2024", supplier: "Otis Nigeria", lastService: "01 Jun 2025", nextService: "01 Sep 2025", serviceStatus: "Ok", downtimeYTD: "1h", runtime: "—", status: "Operational" },
-    { id: "AST-004", name: "Diesel Generator 50kVA", cat: "Generator", location: "Generator Room", criticality: "Critical", purchased: "Jun 2020", cost: 4200000, warranty: "Jun 2025", supplier: "Mikano Int'l", lastService: "15 May 2025", nextService: "15 Jun 2025", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "3,412 h", status: "Operational" },
-    { id: "AST-005", name: "Toyota HiAce Bus (Hotel Shuttle)", cat: "Vehicle", location: "Parking", criticality: "Medium", purchased: "Feb 2023", cost: 9800000, warranty: "Feb 2026", supplier: "Toyota Nigeria", lastService: "01 Apr 2025", nextService: "01 Jul 2025", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "14,200 km", status: "Operational" },
-    { id: "AST-006", name: "Commercial Washing Machine", cat: "Laundry", location: "Laundry Room", criticality: "High", purchased: "Aug 2021", cost: 1450000, warranty: "Aug 2024", supplier: "CleanPro", lastService: "20 Feb 2025", nextService: "20 May 2025", serviceStatus: "Overdue", downtimeYTD: "8h", runtime: "—", status: "Degraded" },
-    { id: "AST-007", name: "Pool Circulation Pump", cat: "Pool", location: "Pool Area", criticality: "Medium", purchased: "Nov 2022", cost: 620000, warranty: "Nov 2025", supplier: "AquaTech", lastService: "05 Jun 2025", nextService: "05 Sep 2025", serviceStatus: "Ok", downtimeYTD: "2h", runtime: "—", status: "Operational" },
-    { id: "AST-008", name: "CCTV System (32-channel)", cat: "IT", location: "Security Room", criticality: "High", purchased: "Jan 2022", cost: 1800000, warranty: "Jan 2025", supplier: "SecureVision", lastService: "15 Jan 2025", nextService: "15 Jul 2025", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "—", status: "Operational" },
-    { id: "AST-009", name: "Conference Room AV System", cat: "IT", location: "Conference Room A", criticality: "Low", purchased: "Mar 2023", cost: 2200000, warranty: "Mar 2026", supplier: "AV Solutions NG", lastService: "10 Jun 2025", nextService: "10 Dec 2025", serviceStatus: "Ok", downtimeYTD: "0h", runtime: "—", status: "Operational" },
-    { id: "AST-010", name: "Toyota Hilux (Management)", cat: "Vehicle", location: "Parking", criticality: "Low", purchased: "Oct 2022", cost: 14500000, warranty: "Oct 2025", supplier: "Toyota Nigeria", lastService: "15 Mar 2025", nextService: "15 Jun 2025", serviceStatus: "Overdue", downtimeYTD: "0h", runtime: "28,440 km", status: "Operational" },
+    { id: "AST-001", name: "Central Air Conditioning Unit", cat: "HVAC", location: "Roof", criticality: "Critical", purchased: "Jan 2021", cost: 2850000, warranty: "Jan 2025", supplier: "Airecon Nigeria", lastService: "12 Mar 2026", nextService: "12 Jun 2026", serviceStatus: "Overdue", downtimeYTD: "4h 20m", runtime: "8,742 h", status: "Operational" },
+    { id: "AST-002", name: "Commercial Refrigerator (Restaurant)", cat: "Kitchen", location: "Restaurant Kitchen", criticality: "High", purchased: "Mar 2022", cost: 980000, warranty: "Mar 2026", supplier: "CoolTech Ltd", lastService: "10 May 2026", nextService: "10 Aug 2026", serviceStatus: "Ok", downtimeYTD: "0h", runtime: "—", status: "Operational" },
+    { id: "AST-003", name: "Elevator #1 (10-person)", cat: "Infrastructure", location: "Main Building", criticality: "Critical", purchased: "Sep 2019", cost: 12500000, warranty: "Sep 2025", supplier: "Otis Nigeria", lastService: "1 Jun 2026", nextService: "1 Sep 2026", serviceStatus: "Ok", downtimeYTD: "1h", runtime: "—", status: "Operational" },
+    { id: "AST-004", name: "Diesel Generator 50kVA", cat: "Generator", location: "Generator Room", criticality: "Critical", purchased: "Jun 2020", cost: 4200000, warranty: "Jun 2026", supplier: "Mikano Int'l", lastService: "15 May 2026", nextService: "15 Jun 2026", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "3,412 h", status: "Operational" },
+    { id: "AST-005", name: "Toyota HiAce Bus (Hotel Shuttle)", cat: "Vehicle", location: "Parking", criticality: "Medium", purchased: "Feb 2023", cost: 9800000, warranty: "Feb 2027", supplier: "Toyota Nigeria", lastService: "1 Apr 2026", nextService: "1 Jul 2026", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "14,200 km", status: "Operational" },
+    { id: "AST-006", name: "Commercial Washing Machine", cat: "Laundry", location: "Laundry Room", criticality: "High", purchased: "Aug 2021", cost: 1450000, warranty: "Aug 2025", supplier: "CleanPro", lastService: "20 Feb 2026", nextService: "20 May 2026", serviceStatus: "Overdue", downtimeYTD: "8h", runtime: "—", status: "Degraded" },
+    { id: "AST-007", name: "Pool Circulation Pump", cat: "Pool", location: "Pool Area", criticality: "Medium", purchased: "Nov 2022", cost: 620000, warranty: "Nov 2026", supplier: "AquaTech", lastService: "5 Jun 2026", nextService: "5 Sep 2026", serviceStatus: "Ok", downtimeYTD: "2h", runtime: "—", status: "Operational" },
+    { id: "AST-008", name: "CCTV System (32-channel)", cat: "IT", location: "Security Room", criticality: "High", purchased: "Jan 2022", cost: 1800000, warranty: "Jan 2026", supplier: "SecureVision", lastService: "15 Jan 2026", nextService: "15 Jul 2026", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "—", status: "Operational" },
+    { id: "AST-009", name: "Conference Room AV System", cat: "IT", location: "Conference Room A", criticality: "Low", purchased: "Mar 2023", cost: 2200000, warranty: "Mar 2027", supplier: "AV Solutions NG", lastService: "10 Jun 2026", nextService: "10 Dec 2026", serviceStatus: "Ok", downtimeYTD: "0h", runtime: "—", status: "Operational" },
+    { id: "AST-010", name: "Toyota Hilux (Management)", cat: "Vehicle", location: "Parking", criticality: "Low", purchased: "Oct 2022", cost: 14500000, warranty: "Oct 2026", supplier: "Toyota Nigeria", lastService: "15 Mar 2026", nextService: "15 Jun 2026", serviceStatus: "Overdue", downtimeYTD: "0h", runtime: "28,440 km", status: "Operational" },
   ];
 
   const CATS = ["All","HVAC","Kitchen","Infrastructure","Generator","Vehicle","Laundry","Pool","IT"];
@@ -322,14 +322,14 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
   const [newDate, setNewDate] = useState("");
 
   const TASKS = [
-    { id: "PS-001", asset: "Central AC Unit", assetId: "AST-001", task: "Full service — filter, coil, refrigerant check", freqType: "time", freq: "Monthly", lastDone: "12 Mar 2025", nextDue: "12 Jun 2025", status: "Overdue", tech: "Emeka Nwosu", estMins: 120, meterLabel: "Runtime hours" },
-    { id: "PS-002", asset: "Diesel Generator 50kVA", assetId: "AST-004", task: "Oil change, filter, battery, coolant level", freqType: "usage", freq: "Every 250 runtime hours", lastDone: "15 May 2025", nextDue: "15 Jun 2025", status: "Due Soon", tech: "Emeka Nwosu", estMins: 90, meterLabel: "Runtime hours at completion" },
-    { id: "PS-003", asset: "Elevator #1", assetId: "AST-003", task: "Brake inspection, cable, safety systems", freqType: "time", freq: "Quarterly", lastDone: "01 Jun 2025", nextDue: "01 Sep 2025", status: "Ok", tech: "External Vendor", estMins: 240, meterLabel: "" },
-    { id: "PS-004", asset: "Pool Filtration System", assetId: "AST-007", task: "Backwash filter, clean pump basket, balance chemicals", freqType: "time", freq: "Monthly", lastDone: "20 Apr 2025", nextDue: "20 Jul 2025", status: "Ok", tech: "Chidi Ike", estMins: 60, meterLabel: "" },
-    { id: "PS-005", asset: "Fire Extinguishers (all 24)", assetId: "AST-005", task: "Pressure check, tag renewal, mounting inspect", freqType: "time", freq: "Annual", lastDone: "10 Jan 2025", nextDue: "10 Jan 2026", status: "Ok", tech: "External Vendor", estMins: 180, meterLabel: "" },
-    { id: "PS-006", asset: "Commercial Refrigerator", assetId: "AST-002", task: "Condenser coil clean, door seal check, temperature calibration", freqType: "time", freq: "Quarterly", lastDone: "10 May 2025", nextDue: "10 Aug 2025", status: "Ok", tech: "Chidi Ike", estMins: 60, meterLabel: "" },
-    { id: "PS-007", asset: "Toyota HiAce Shuttle", assetId: "AST-005", task: "Oil change, tyre rotation, brake inspection", freqType: "usage", freq: "Every 5,000 km", lastDone: "01 Apr 2025", nextDue: "01 Jul 2025", status: "Due Soon", tech: "External Vendor", estMins: 120, meterLabel: "Odometer reading (km)" },
-    { id: "PS-008", asset: "Commercial Washing Machine", assetId: "AST-006", task: "Drum clean, door seal, hose inspection", freqType: "time", freq: "Monthly", lastDone: "20 Feb 2025", nextDue: "20 May 2025", status: "Overdue", tech: "Chidi Ike", estMins: 45, meterLabel: "" },
+    { id: "PS-001", asset: "Central AC Unit", assetId: "AST-001", task: "Full service — filter, coil, refrigerant check", freqType: "time", freq: "Monthly", lastDone: "12 Mar 2026", nextDue: "12 Jun 2026", status: "Overdue", tech: "Emeka Nwosu", estMins: 120, meterLabel: "Runtime hours" },
+    { id: "PS-002", asset: "Diesel Generator 50kVA", assetId: "AST-004", task: "Oil change, filter, battery, coolant level", freqType: "usage", freq: "Every 250 runtime hours", lastDone: "15 May 2026", nextDue: "15 Jun 2026", status: "Due Soon", tech: "Emeka Nwosu", estMins: 90, meterLabel: "Runtime hours at completion" },
+    { id: "PS-003", asset: "Elevator #1", assetId: "AST-003", task: "Brake inspection, cable, safety systems", freqType: "time", freq: "Quarterly", lastDone: "1 Jun 2026", nextDue: "1 Sep 2026", status: "Ok", tech: "External Vendor", estMins: 240, meterLabel: "" },
+    { id: "PS-004", asset: "Pool Filtration System", assetId: "AST-007", task: "Backwash filter, clean pump basket, balance chemicals", freqType: "time", freq: "Monthly", lastDone: "20 Apr 2026", nextDue: "20 Jul 2026", status: "Ok", tech: "Chidi Ike", estMins: 60, meterLabel: "" },
+    { id: "PS-005", asset: "Fire Extinguishers (all 24)", assetId: "AST-005", task: "Pressure check, tag renewal, mounting inspect", freqType: "time", freq: "Annual", lastDone: "10 Jan 2026", nextDue: "10 Jan 2027", status: "Ok", tech: "External Vendor", estMins: 180, meterLabel: "" },
+    { id: "PS-006", asset: "Commercial Refrigerator", assetId: "AST-002", task: "Condenser coil clean, door seal check, temperature calibration", freqType: "time", freq: "Quarterly", lastDone: "10 May 2026", nextDue: "10 Aug 2026", status: "Ok", tech: "Chidi Ike", estMins: 60, meterLabel: "" },
+    { id: "PS-007", asset: "Toyota HiAce Shuttle", assetId: "AST-005", task: "Oil change, tyre rotation, brake inspection", freqType: "usage", freq: "Every 5,000 km", lastDone: "1 Apr 2026", nextDue: "1 Jul 2026", status: "Due Soon", tech: "External Vendor", estMins: 120, meterLabel: "Odometer reading (km)" },
+    { id: "PS-008", asset: "Commercial Washing Machine", assetId: "AST-006", task: "Drum clean, door seal, hose inspection", freqType: "time", freq: "Monthly", lastDone: "20 Feb 2026", nextDue: "20 May 2026", status: "Overdue", tech: "Chidi Ike", estMins: 45, meterLabel: "" },
   ];
 
   const [statuses, setStatuses] = useState<Record<string, string>>({});
@@ -407,7 +407,7 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
       ) : (
         /* Calendar view */
         <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-          <div className="text-sm font-semibold mb-4" style={{ color: TEXT }}>June / July 2025 — Due tasks</div>
+          <div className="text-sm font-semibold mb-4" style={{ color: TEXT }}>June / July 2026 — Due tasks</div>
           <div className="overflow-x-auto">
             <div className="grid gap-2" style={{ gridTemplateColumns: "120px repeat(5,1fr)" }}>
               <div />
@@ -489,20 +489,20 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
   const [callNotes, setCallNotes] = useState("");
 
   const VENDORS = [
-    { id: "VND-001", company: "Airecon Nigeria Ltd", cat: "HVAC / Refrigeration", contact: "Engr. Seun Adeyemi", phone: "+234 804 400 5000", email: "service@airecon.ng", address: "12 Industrial Road, Lagos", services: "AC installation, servicing, refrigerant supply", rateCard: "₦35,000/visit + parts", sla: "4h response, 24h resolution", contractExpiry: "Dec 2025", rating: 4.5, jobsDone: 12, avgResponse: "3h 20m" },
-    { id: "VND-002", company: "Mikano International", cat: "Generator / Power", contact: "Mr. Femi Ola", phone: "+234 802 200 3000", email: "service@mikano.ng", address: "5 Aba Johnson Cres, Abuja", services: "Generator sales, servicing, fuel supply, AMC", rateCard: "AMC ₦180,000/year", sla: "2h response (critical), 8h resolution", contractExpiry: "Jun 2026", rating: 4.8, jobsDone: 8, avgResponse: "1h 45m" },
-    { id: "VND-003", company: "TechFix Services", cat: "General Maintenance", contact: "Engr. Bayo Ike", phone: "+234 803 300 4000", email: "info@techfix.ng", address: "7 Murtala Way, Abuja", services: "Electrical, plumbing, civil, welding, general repairs", rateCard: "₦15,000/hour labour", sla: "8h response, 48h resolution", contractExpiry: "Mar 2026", rating: 3.9, jobsDone: 34, avgResponse: "6h 10m" },
-    { id: "VND-004", company: "Otis Nigeria", cat: "Elevator / Escalator", contact: "Mrs. Amara Eze", phone: "+234 801 100 2000", email: "nigeria@otis.com", address: "10 Marina Street, Lagos", services: "Elevator installation, AMC, emergency callout", rateCard: "AMC ₦620,000/year", sla: "1h emergency response", contractExpiry: "Sep 2026", rating: 4.7, jobsDone: 5, avgResponse: "55m" },
-    { id: "VND-005", company: "AquaTech Pool Services", cat: "Pool / Water", contact: "Mr. Chidi Aneke", phone: "+234 805 500 6000", email: "aquatech@pool.ng", address: "3 Recreation Drive, Abuja", services: "Pool maintenance, chemical balance, pump repair", rateCard: "₦45,000/month retainer", sla: "Same-day", contractExpiry: "Dec 2025", rating: 4.2, jobsDone: 18, avgResponse: "2h 30m" },
-    { id: "VND-006", company: "Toyota Nigeria Limited", cat: "Vehicles", contact: "Mrs. Kemi James", phone: "+234 806 600 7000", email: "fleet@toyotanigeria.ng", address: "Toyota House, Victoria Island", services: "Fleet servicing, warranty repairs, spare parts", rateCard: "Service rates per model", sla: "Scheduled appointments", contractExpiry: "Oct 2025", rating: 4.6, jobsDone: 7, avgResponse: "N/A" },
+    { id: "VND-001", company: "Airecon Nigeria Ltd", cat: "HVAC / Refrigeration", contact: "Engr. Seun Adeyemi", phone: "+234 804 400 5000", email: "service@airecon.ng", address: "12 Industrial Road, Lagos", services: "AC installation, servicing, refrigerant supply", rateCard: "₦35,000/visit + parts", sla: "4h response, 24h resolution", contractExpiry: "Dec 2026", rating: 4.5, jobsDone: 12, avgResponse: "3h 20m" },
+    { id: "VND-002", company: "Mikano International", cat: "Generator / Power", contact: "Mr. Femi Ola", phone: "+234 802 200 3000", email: "service@mikano.ng", address: "5 Aba Johnson Cres, Abuja", services: "Generator sales, servicing, fuel supply, AMC", rateCard: "AMC ₦180,000/year", sla: "2h response (critical), 8h resolution", contractExpiry: "Jun 2027", rating: 4.8, jobsDone: 8, avgResponse: "1h 45m" },
+    { id: "VND-003", company: "TechFix Services", cat: "General Maintenance", contact: "Engr. Bayo Ike", phone: "+234 803 300 4000", email: "info@techfix.ng", address: "7 Murtala Way, Abuja", services: "Electrical, plumbing, civil, welding, general repairs", rateCard: "₦15,000/hour labour", sla: "8h response, 48h resolution", contractExpiry: "Mar 2027", rating: 3.9, jobsDone: 34, avgResponse: "6h 10m" },
+    { id: "VND-004", company: "Otis Nigeria", cat: "Elevator / Escalator", contact: "Mrs. Amara Eze", phone: "+234 801 100 2000", email: "nigeria@otis.com", address: "10 Marina Street, Lagos", services: "Elevator installation, AMC, emergency callout", rateCard: "AMC ₦620,000/year", sla: "1h emergency response", contractExpiry: "Sep 2027", rating: 4.7, jobsDone: 5, avgResponse: "55m" },
+    { id: "VND-005", company: "AquaTech Pool Services", cat: "Pool / Water", contact: "Mr. Chidi Aneke", phone: "+234 805 500 6000", email: "aquatech@pool.ng", address: "3 Recreation Drive, Abuja", services: "Pool maintenance, chemical balance, pump repair", rateCard: "₦45,000/month retainer", sla: "Same-day", contractExpiry: "Dec 2026", rating: 4.2, jobsDone: 18, avgResponse: "2h 30m" },
+    { id: "VND-006", company: "Toyota Nigeria Limited", cat: "Vehicles", contact: "Mrs. Kemi James", phone: "+234 806 600 7000", email: "fleet@toyotanigeria.ng", address: "Toyota House, Victoria Island", services: "Fleet servicing, warranty repairs, spare parts", rateCard: "Service rates per model", sla: "Scheduled appointments", contractExpiry: "Oct 2026", rating: 4.6, jobsDone: 7, avgResponse: "N/A" },
   ];
 
   const sel = selected ? VENDORS.find(v=>v.id===selected) : null;
 
   const JOB_HISTORY: Record<string, Array<{ date: string; desc: string; amount: number; rating: number }>> = {
-    "VND-001": [{ date: "24 Jun 2025", desc: "AC service — Room 207 compressor", amount: 85000, rating: 5 },{ date: "10 May 2025", desc: "Refrigerant recharge — Main AC", amount: 45000, rating: 4 }],
-    "VND-002": [{ date: "15 May 2025", desc: "Generator oil change + filter", amount: 35000, rating: 5 }],
-    "VND-003": [{ date: "22 Jun 2025", desc: "Lobby electrical fault", amount: 28000, rating: 4 }],
+    "VND-001": [{ date: "24 Jun 2026", desc: "AC service — Room 207 compressor", amount: 85000, rating: 5 },{ date: "10 May 2026", desc: "Refrigerant recharge — Main AC", amount: 45000, rating: 4 }],
+    "VND-002": [{ date: "15 May 2026", desc: "Generator oil change + filter", amount: 35000, rating: 5 }],
+    "VND-003": [{ date: "22 Jun 2026", desc: "Lobby electrical fault", amount: 28000, rating: 4 }],
   };
 
   return (
@@ -511,7 +511,7 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
         <PageHeader title="Vendor Contacts" sub="Suppliers and service contractors linked to maintenance" actions={<><BtnO label="Export" icon={Download} /><BtnP label="Add Vendor" icon={Plus} onClick={() => add({ type: "info", title: "Add new vendor" })} /></>} />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <StatCard label="Total Vendors" value={String(VENDORS.length)} sub="Registered" icon={Truck} accent={PRIMARY} />
-          <StatCard label="Active Contracts" value={String(VENDORS.filter(v=>v.contractExpiry>"Jun 2025").length)} sub="In force" icon={CheckCircle2} accent={SUCCESS} />
+          <StatCard label="Active Contracts" value={String(VENDORS.filter(v=>v.contractExpiry>"Jun 2026").length)} sub="In force" icon={CheckCircle2} accent={SUCCESS} />
           <StatCard label="Avg Rating" value={`${(VENDORS.reduce((s,v)=>s+v.rating,0)/VENDORS.length).toFixed(1)}★`} sub="Across all vendors" icon={Star} accent={ORANGE} />
           <StatCard label="Total Jobs" value={String(VENDORS.reduce((s,v)=>s+v.jobsDone,0))} sub="This year" icon={Wrench} accent={TEAL} />
         </div>
@@ -533,7 +533,7 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
                   <td className="px-3 py-3 text-xs max-w-36" style={{ color: MUTED }}>{v.services.split(",")[0]}…</td>
                   <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{v.rateCard}</td>
                   <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{v.sla}</td>
-                  <td className="px-3 py-3 text-xs font-semibold" style={{ color: v.contractExpiry < "Jul 2025" ? ERROR : v.contractExpiry < "Dec 2025" ? ORANGE : TEXT }}>{v.contractExpiry}</td>
+                  <td className="px-3 py-3 text-xs font-semibold" style={{ color: v.contractExpiry < "Jul 2026" ? ERROR : v.contractExpiry < "Dec 2026" ? ORANGE : TEXT }}>{v.contractExpiry}</td>
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-1"><Star size={11} style={{ color: ORANGE }} /><span className="text-xs font-semibold" style={{ color: TEXT }}>{v.rating.toFixed(1)}</span></div>
                   </td>

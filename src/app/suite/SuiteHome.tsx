@@ -3,6 +3,7 @@ import {
   ArrowRight, Check, DeviceMobile, Globe, PushPin, Shield, SquaresFour,
 } from "@phosphor-icons/react";
 import type { Role, Screen } from "../constants";
+import { BUSINESS_DATE } from "../constants";
 import { BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, WARNING, display } from "../constants";
 import { Badge, EmptyState, PageHeader, StatCard } from "../UIKit";
 import { DEPARTMENT_HOME } from "../mock/departmentHome";
@@ -51,7 +52,7 @@ export function SuiteHome({
   const [pinMessage, setPinMessage] = useState("");
   const now = new Date();
   const greeting = now.getHours() < 12 ? "Good morning" : now.getHours() < 17 ? "Good afternoon" : "Good evening";
-  const today = now.toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" });
+  const today = BUSINESS_DATE.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
   const { stats, alerts } = HOME_TODAY[role];
   // Pinned departments come first, so a separate "Pinned" list is not needed.
   const ordered = [...departments].sort((a, b) => Number(pinned.includes(b.id)) - Number(pinned.includes(a.id)));

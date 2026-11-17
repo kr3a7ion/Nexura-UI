@@ -26,6 +26,7 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, REV_DATA,
   USERS_DATA, DEVICES, RATE_PLANS, PAYROLL_DATA, ALL_RES,
   ShiftProposalStore, type ShiftProposal,
+stampNow
 } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
 
@@ -288,7 +289,7 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
 
   return (
     <div>
-      <PageHeader title="Attendance" sub="14 Oct 2025 · Grand Palms Abuja · clock-in/out, lateness, overtime" actions={
+      <PageHeader title="Attendance" sub="24 Jun 2026 · Grand Palms Abuja · clock-in/out, lateness, overtime" actions={
         <div className="flex gap-2">
           <BtnO label="Export" icon={Download} onClick={()=>add({type:"info",title:"Exporting attendance report"})} />
           <BtnO label="Manual Entry" icon={Edit3} onClick={()=>setShowManual(true)} />
@@ -346,7 +347,7 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
 
         {/* Trend chart */}
         <div className="col-span-2 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: MUTED }}>Attendance Trend — Oct 2025</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: MUTED }}>Attendance Trend — Jun 2026</h3>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={WEEKLY_TREND} margin={{ top:0, right:0, left:-20, bottom:0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
@@ -467,7 +468,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
 
   const publish = () => {
     setPublished(true);
-    add({ type:"success", title:"Schedule published — Week of 13–19 Oct", body:"All staff notified via device" });
+    add({ type:"success", title:"Schedule published — Week of 23–29 Jun", body:"All staff notified via device" });
   };
 
   const approveProposal = (id: string) => {
@@ -499,7 +500,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
 
   return (
     <div>
-      <PageHeader title="Shift Scheduler" sub="Week of 13–19 Oct 2025 · click a cell to change shift · coverage warnings shown" actions={
+      <PageHeader title="Shift Scheduler" sub="Week of 23–29 Jun 2026 · click a cell to change shift · coverage warnings shown" actions={
         <div className="flex gap-2">
           <BtnO label="Clone Last Week" icon={RefreshCw} onClick={() => add({ type:"info", title:"Last week cloned" })} />
           <BtnO label="Templates" icon={Layers} onClick={() => add({ type:"info", title:"Shift templates" })} />
@@ -1359,7 +1360,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
                   </div>
                   <BtnP label="Issue New Card" icon={Plus} onClick={() => {
                     const ref = `KC-${String(Math.floor(Math.random()*9000)+1000)}`;
-                    setAccessCards(p=>[...p,{type:"Key Card",ref,issued:`${new Date().toLocaleDateString("en-NG",{day:"numeric",month:"short"})} ${new Date().toLocaleTimeString("en-NG",{hour:"2-digit",minute:"2-digit"})}`,issuedBy:"Staff",status:"Active"}]);
+                    setAccessCards(p=>[...p,{type:"Key Card",ref,issued:stampNow(),issuedBy:"Staff",status:"Active"}]);
                     add({type:"success",title:"Key card issued",body:`${ref} · Room ${res.room} — insert blank card`});
                   }} />
                 </div>
@@ -1637,7 +1638,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
               <button onClick={()=>{
                 if(!chargeDesc||!chargeAmt)return;
                 const amt = Number(chargeAmt);
-                const now = new Date().toLocaleDateString("en-NG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+                const now = stampNow();
                 setFolioItems(p=>[...p, {date:now, desc:chargeDesc, dept:chargeDept, amount:amt}]);
                 add({type:"success",title:"Charge posted",body:`₦${amt.toLocaleString()} · ${chargeDesc}`});
                 setChargeDesc(""); setChargeAmt(""); setShowPostCharge(false);
@@ -1974,18 +1975,18 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
   const TABS = ["Profile", "Stay History", "Preferences", "Folio History", "Requests & Complaints", "Notes"];
   const STAYS = [
     { id: "BK-2849", dates: "24–27 Jun 2026", room: "Suite 501", nights: 3, total: 273375, status: "Confirmed" },
-    { id: "BK-2741", dates: "15–18 May 2025", room: "Suite 501", nights: 3, total: 273375, status: "Checked Out" },
+    { id: "BK-2741", dates: "15–18 May 2026", room: "Suite 501", nights: 3, total: 273375, status: "Checked Out" },
     { id: "BK-2630", dates: "8–10 Apr 2025", room: "Suite 502", nights: 2, total: 182250, status: "Checked Out" },
     { id: "BK-2511", dates: "10–12 Mar 2025", room: "Suite 501", nights: 2, total: 182250, status: "Checked Out" },
     { id: "BK-2390", dates: "12–13 Feb 2025", room: "Deluxe 302", nights: 1, total: 55000, status: "Checked Out" },
   ];
   const FOLIO_HIST = [
     { stay: "24–27 Jun 2026", charges: [{ cat: "Room", desc: "Suite 501 × 3 nights", amt: 273375 }, { cat: "Restaurant", desc: "Room Service × 2", amt: 17000 }, { cat: "Bar", desc: "Minibar charges", amt: 8200 }], total: 298575, settled: false },
-    { stay: "15–18 May 2025", charges: [{ cat: "Room", desc: "Suite 501 × 3 nights", amt: 273375 }, { cat: "Laundry", desc: "Express laundry × 4", amt: 8000 }], total: 281375, settled: true },
+    { stay: "15–18 May 2026", charges: [{ cat: "Room", desc: "Suite 501 × 3 nights", amt: 273375 }, { cat: "Laundry", desc: "Express laundry × 4", amt: 8000 }], total: 281375, settled: true },
   ];
   const NOTES = [
     { id: 1, author: "Grace Mensah", role: "Hotel Manager", ts: "24 Jun 2026 · 08:30", note: "VIP confirmed for arrival today. Champagne and fruit basket prepared and placed in room. Suite 501 upgraded per standing preference." },
-    { id: 2, author: "John Abubakar", role: "Front Desk", ts: "18 May 2025 · 12:15", note: "Guest requested extra towels on check-in. Noted preference for firm pillows. Very pleasant interaction." },
+    { id: 2, author: "John Abubakar", role: "Front Desk", ts: "18 May 2026 · 12:15", note: "Guest requested extra towels on check-in. Noted preference for firm pillows. Very pleasant interaction." },
     { id: 3, author: "Fatima Al-Hassan", role: "Reservations", ts: "10 Mar 2025 · 09:00", note: "Corporate account confirmed — monthly visits for board meetings. Invoice to be directed to Bello & Associates Ltd." },
   ];
   return (
@@ -2225,11 +2226,11 @@ export function CashDrawerReconciliation({ add }: { add: (t: Omit<Toast, "id">) 
   ];
 
   const HISTORY = [
-    { id: "SH-2081", date: "13 Oct", operator: "Nkechi A.", float: 50000, sales: 287450, variance: 0,     status: "Balanced" },
-    { id: "SH-2080", date: "12 Oct", operator: "Tunde B.", float: 50000, sales: 192300, variance: -2500, status: "Short"    },
-    { id: "SH-2079", date: "12 Oct", operator: "Nkechi A.", float: 50000, sales: 341200, variance: 500,  status: "Over"     },
-    { id: "SH-2078", date: "11 Oct", operator: "Grace M.", float: 50000, sales: 289900, variance: 0,     status: "Balanced" },
-    { id: "SH-2077", date: "11 Oct", operator: "Tunde B.", float: 50000, sales: 156800, variance: -1000, status: "Short"    },
+    { id: "SH-2081", date: "23 Jun", operator: "Nkechi A.", float: 50000, sales: 287450, variance: 0,     status: "Balanced" },
+    { id: "SH-2080", date: "22 Jun", operator: "Tunde B.", float: 50000, sales: 192300, variance: -2500, status: "Short"    },
+    { id: "SH-2079", date: "22 Jun", operator: "Nkechi A.", float: 50000, sales: 341200, variance: 500,  status: "Over"     },
+    { id: "SH-2078", date: "21 Jun", operator: "Grace M.", float: 50000, sales: 289900, variance: 0,     status: "Balanced" },
+    { id: "SH-2077", date: "21 Jun", operator: "Tunde B.", float: 50000, sales: 156800, variance: -1000, status: "Short"    },
   ];
 
   const MOVEMENTS = [
@@ -2395,7 +2396,7 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
     { id: "no-shows",      label: "Process no-shows & post penalties",         records: 1  },
     { id: "pos-close",     label: "Close POS day & reconcile cash drawers",    records: 3  },
     { id: "freeze-rev",    label: "Freeze daily revenue figures",              records: 1  },
-    { id: "roll-date",     label: "Roll business date → 15 Oct 2025",          records: 1  },
+    { id: "roll-date",     label: "Roll business date → 25 Jun 2026",          records: 1  },
   ];
 
   const CHECKLIST_DEF = [
@@ -2413,10 +2414,10 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   ];
 
   const HISTORY = [
-    { id: "NA-2025-10-13", date: "13 Oct 2025", by: "Grace M.", status: "Completed", rooms: 13, rev: 987200, dur: "4m 12s" },
-    { id: "NA-2025-10-12", date: "12 Oct 2025", by: "Grace M.", status: "Completed", rooms: 12, rev: 921000, dur: "3m 58s" },
-    { id: "NA-2025-10-11", date: "11 Oct 2025", by: "Nkechi A.", status: "Completed", rooms: 14, rev: 1043200, dur: "5m 01s" },
-    { id: "NA-2025-10-10", date: "10 Oct 2025", by: "Grace M.", status: "Completed", rooms: 10, rev: 832600, dur: "3m 44s" },
+    { id: "NA-2026-06-23", date: "23 Jun 2026", by: "Grace M.", status: "Completed", rooms: 13, rev: 987200, dur: "4m 12s" },
+    { id: "NA-2026-06-22", date: "22 Jun 2026", by: "Grace M.", status: "Completed", rooms: 12, rev: 921000, dur: "3m 58s" },
+    { id: "NA-2026-06-21", date: "21 Jun 2026", by: "Nkechi A.", status: "Completed", rooms: 14, rev: 1043200, dur: "5m 01s" },
+    { id: "NA-2026-06-20", date: "20 Jun 2026", by: "Grace M.", status: "Completed", rooms: 10, rev: 832600, dur: "3m 44s" },
   ];
 
   const [auditStatus, setAuditStatus] = useState<AuditStatus>("idle");
@@ -2461,7 +2462,7 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
   return (
     <div>
-      <PageHeader title="Night Audit" sub={`Business date: 14 Oct 2025 · Last successful run: 13 Oct 2025 23:58`} actions={
+      <PageHeader title="Night Audit" sub={`Business date: 24 Jun 2026 · Last successful run: 23 Jun 2026 23:58`} actions={
         <div className="flex gap-2">
           <button onClick={() => setShowHistory(p=>!p)} className="text-xs px-3 py-2 rounded-xl border font-medium" style={{ borderColor: BORDER, color: MUTED }}>{showHistory ? "Current Run" : "Audit History"}</button>
           {auditStatus === "done" && <button onClick={() => setShowRollback(true)} className="text-xs px-3 py-2 rounded-xl border font-medium" style={{ borderColor: `${ERROR}40`, color: ERROR }}>Rollback / Reopen</button>}
@@ -2586,7 +2587,7 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                     <div className="flex justify-between text-xs"><span style={{ color: MUTED }}>vs prior night</span><span style={{ color: postRunSummary.roomRev+postRunSummary.fbRev+postRunSummary.otherRev >= postRunSummary.prevRev ? SUCCESS : ERROR, fontFamily: mono }}>{((postRunSummary.roomRev+postRunSummary.fbRev+postRunSummary.otherRev-postRunSummary.prevRev)/postRunSummary.prevRev*100).toFixed(1)}%</span></div>
                   </div>
                 </div>
-                <div className="mt-4 px-3 py-2 rounded-xl text-xs text-center" style={{ backgroundColor: "#F0FDF4", color: "#166534" }}>Business date rolled → 15 Oct 2025</div>
+                <div className="mt-4 px-3 py-2 rounded-xl text-xs text-center" style={{ backgroundColor: "#F0FDF4", color: "#166534" }}>Business date rolled → 25 Jun 2026</div>
               </div>
             ) : (
               <div className="bg-white rounded-xl border p-5 text-center" style={{ borderColor: BORDER }}>
@@ -2597,7 +2598,7 @@ export function NightAudit({ add }: { add: (t: Omit<Toast, "id">) => void }) {
             <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
               <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Quick Info</h3>
               <div className="space-y-2 text-xs">
-                {[["Business date","14 Oct 2025"],["Last audit","13 Oct 23:58"],["Catch-up nights","0"],["Operator","Grace Mensah"]].map(([k,v])=>(
+                {[["Business date","24 Jun 2026"],["Last audit","23 Jun 23:58"],["Catch-up nights","0"],["Operator","Grace Mensah"]].map(([k,v])=>(
                   <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span style={{ color: TEXT }}>{v}</span></div>
                 ))}
               </div>
@@ -2771,7 +2772,7 @@ export function TaxConfiguration({ add }: { add: (t: Omit<Toast, "id">) => void 
           <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
             <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Submission Queue</h3>
             <div className="space-y-2">
-              {[{ inv: "INV-2025-0814", status: "Submitted", irn: "IRN-5A2F9C", ts: "14 Oct 11:02" },{ inv: "INV-2025-0815", status: "Submitted", irn: "IRN-6B3D0E", ts: "14 Oct 13:45" },{ inv: "INV-2025-0816", status: "Pending",   irn: "—",          ts: "14 Oct 14:22" },{ inv: "INV-2025-0817", status: "Failed",   irn: "—",          ts: "14 Oct 15:01" }].map(r=>(
+              {[{ inv: "INV-2025-0814", status: "Submitted", irn: "IRN-5A2F9C", ts: "24 Jun 11:02" },{ inv: "INV-2025-0815", status: "Submitted", irn: "IRN-6B3D0E", ts: "24 Jun 13:45" },{ inv: "INV-2025-0816", status: "Pending",   irn: "—",          ts: "24 Jun 14:22" },{ inv: "INV-2025-0817", status: "Failed",   irn: "—",          ts: "24 Jun 15:01" }].map(r=>(
                 <div key={r.inv} className="flex items-center gap-3 px-3 py-2.5 rounded-xl border" style={{ borderColor: BORDER }}>
                   <div className="flex-1"><div className="text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>{r.inv}</div><div className="text-xs mt-0.5" style={{ color: MUTED }}>{r.ts} · {r.irn}</div></div>
                   <Badge label={r.status} colors={r.status==="Submitted"?{bg:"#DCFCE7",text:"#166534"}:r.status==="Pending"?{bg:"#F1F5F9",text:MUTED}:{bg:"#FEE2E2",text:"#991B1B"}} />
@@ -2791,11 +2792,11 @@ export function RefundProcessing({ add }: { add: (t: Omit<Toast, "id">) => void 
   type RefundStatus = "Requested" | "Approved" | "Processing" | "Completed" | "Failed" | "Rejected";
 
   const REFUNDS_INIT = [
-    { id: "RF-0041", orig: "RES-2031", guest: "Ngozi Dike", room: "303", amount: 85000, penalty: 21250, unpaid: 0, refundable: 63750, method: "Bank Transfer", reason: "Early departure (guest emergency)", status: "Completed" as RefundStatus, approver: "Grace Mensah", gwRef: "GT-PAY-8821X", raisedAt: "12 Oct 14:20", completedAt: "13 Oct 09:00" },
-    { id: "RF-0042", orig: "RES-2044", guest: "Emeka Nwosu", room: "507", amount: 120000, penalty: 0, unpaid: 15000, refundable: 105000, method: "Credit Card", reason: "Hotel error — overcharge", status: "Approved" as RefundStatus, approver: "Tunde A.", gwRef: "", raisedAt: "14 Oct 10:15", completedAt: "" },
-    { id: "RF-0043", orig: "RES-2048", guest: "Fatima Ibrahim", room: "418", amount: 55000, penalty: 27500, unpaid: 0, refundable: 27500, method: "Bank Transfer", reason: "Cancellation within 24h", status: "Processing" as RefundStatus, approver: "Grace Mensah", gwRef: "GT-PAY-9932A", raisedAt: "14 Oct 11:00", completedAt: "" },
-    { id: "RF-0044", orig: "RES-2029", guest: "Bello Abubakar", room: "201", amount: 60000, penalty: 0, unpaid: 8500, refundable: 51500, method: "POS Terminal", reason: "Room quality complaint", status: "Requested" as RefundStatus, approver: "", gwRef: "", raisedAt: "14 Oct 13:40", completedAt: "" },
-    { id: "RF-0045", orig: "POS-8821", guest: "Walk-in", room: "—", amount: 12500, penalty: 0, unpaid: 0, refundable: 12500, method: "Cash", reason: "Voided restaurant order", status: "Rejected" as RefundStatus, approver: "Grace Mensah", gwRef: "", raisedAt: "14 Oct 09:30", completedAt: "14 Oct 09:45" },
+    { id: "RF-0041", orig: "RES-2031", guest: "Ngozi Dike", room: "303", amount: 85000, penalty: 21250, unpaid: 0, refundable: 63750, method: "Bank Transfer", reason: "Early departure (guest emergency)", status: "Completed" as RefundStatus, approver: "Grace Mensah", gwRef: "GT-PAY-8821X", raisedAt: "22 Jun 14:20", completedAt: "23 Jun 09:00" },
+    { id: "RF-0042", orig: "RES-2044", guest: "Emeka Nwosu", room: "507", amount: 120000, penalty: 0, unpaid: 15000, refundable: 105000, method: "Credit Card", reason: "Hotel error — overcharge", status: "Approved" as RefundStatus, approver: "Tunde A.", gwRef: "", raisedAt: "24 Jun 10:15", completedAt: "" },
+    { id: "RF-0043", orig: "RES-2048", guest: "Fatima Ibrahim", room: "418", amount: 55000, penalty: 27500, unpaid: 0, refundable: 27500, method: "Bank Transfer", reason: "Cancellation within 24h", status: "Processing" as RefundStatus, approver: "Grace Mensah", gwRef: "GT-PAY-9932A", raisedAt: "24 Jun 11:00", completedAt: "" },
+    { id: "RF-0044", orig: "RES-2029", guest: "Bello Abubakar", room: "201", amount: 60000, penalty: 0, unpaid: 8500, refundable: 51500, method: "POS Terminal", reason: "Room quality complaint", status: "Requested" as RefundStatus, approver: "", gwRef: "", raisedAt: "24 Jun 13:40", completedAt: "" },
+    { id: "RF-0045", orig: "POS-8821", guest: "Walk-in", room: "—", amount: 12500, penalty: 0, unpaid: 0, refundable: 12500, method: "Cash", reason: "Voided restaurant order", status: "Rejected" as RefundStatus, approver: "Grace Mensah", gwRef: "", raisedAt: "24 Jun 09:30", completedAt: "24 Jun 09:45" },
   ];
 
   const statusColors: Record<RefundStatus,{bg:string;text:string}> = {
@@ -2916,11 +2917,11 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
   const VOID_REASONS = ["Data entry error","Double posting","Guest request","System error","Manager override","Fraud investigation","Test transaction"];
 
   const REVERSAL_HISTORY = [
-    { id: "VR-1041", date: "14 Oct 14:22", type: "Partial Reversal", operator: "Grace M.", charge: "CH-5042", folio: "FO-2848", orig: 3600, reversed: 1800, reason: "Minibar — quantity correction", auth: "Grace M.", pin: "••••" },
-    { id: "VR-1040", date: "14 Oct 11:05", type: "Full Void",         operator: "Nkechi A.", charge: "CH-5047", folio: "FO-2848", orig: 4500, reversed: 4500, reason: "Double-posted in error", auth: "Grace M.", pin: "••••" },
-    { id: "VR-1039", date: "13 Oct 22:40", type: "Full Void",         operator: "Tunde B.", charge: "CH-4998", folio: "FO-2831", orig: 8000, reversed: 8000, reason: "Guest request — disputed", auth: "Grace M.", pin: "••••" },
-    { id: "VR-1038", date: "13 Oct 19:15", type: "Partial Reversal",  operator: "Grace M.", charge: "CH-4991", folio: "FO-2820", orig: 22500, reversed: 10000, reason: "Rate negotiation — manager agreed discount", auth: "Grace M.", pin: "••••" },
-    { id: "VR-1037", date: "12 Oct 08:30", type: "Full Void",         operator: "Grace M.", charge: "CH-4950", folio: "FO-2801", orig: 6800, reversed: 6800, reason: "Test transaction", auth: "Grace M.", pin: "••••" },
+    { id: "VR-1041", date: "24 Jun 14:22", type: "Partial Reversal", operator: "Grace M.", charge: "CH-5042", folio: "FO-2848", orig: 3600, reversed: 1800, reason: "Minibar — quantity correction", auth: "Grace M.", pin: "••••" },
+    { id: "VR-1040", date: "24 Jun 11:05", type: "Full Void",         operator: "Nkechi A.", charge: "CH-5047", folio: "FO-2848", orig: 4500, reversed: 4500, reason: "Double-posted in error", auth: "Grace M.", pin: "••••" },
+    { id: "VR-1039", date: "23 Jun 22:40", type: "Full Void",         operator: "Tunde B.", charge: "CH-4998", folio: "FO-2831", orig: 8000, reversed: 8000, reason: "Guest request — disputed", auth: "Grace M.", pin: "••••" },
+    { id: "VR-1038", date: "23 Jun 19:15", type: "Partial Reversal",  operator: "Grace M.", charge: "CH-4991", folio: "FO-2820", orig: 22500, reversed: 10000, reason: "Rate negotiation — manager agreed discount", auth: "Grace M.", pin: "••••" },
+    { id: "VR-1037", date: "22 Jun 08:30", type: "Full Void",         operator: "Grace M.", charge: "CH-4950", folio: "FO-2801", orig: 6800, reversed: 6800, reason: "Test transaction", auth: "Grace M.", pin: "••••" },
   ];
 
   const SAMPLE_CHARGES = [
@@ -3095,23 +3096,23 @@ export function AccountingExport({ add }: { add: (t: Omit<Toast, "id">) => void 
   ];
 
   const JOURNAL_PREVIEW = [
-    { date:"14 Oct", ref:"JNL-20251014-001", desc:"Room Revenue — Check-out FO-2848", account:"410-001", dr:456800, cr:0       },
-    { date:"14 Oct", ref:"JNL-20251014-001", desc:"Room Revenue — Check-out FO-2848", account:"120-001", dr:0,      cr:456800  },
-    { date:"14 Oct", ref:"JNL-20251014-002", desc:"VAT on FO-2848",                   account:"120-001", dr:80370,  cr:0       },
-    { date:"14 Oct", ref:"JNL-20251014-002", desc:"VAT on FO-2848",                   account:"231-001", dr:0,      cr:80370   },
-    { date:"14 Oct", ref:"JNL-20251014-003", desc:"Cash Receipt — RCT-0381",          account:"110-001", dr:537170, cr:0       },
-    { date:"14 Oct", ref:"JNL-20251014-003", desc:"Cash Receipt — RCT-0381",          account:"120-001", dr:0,      cr:537170  },
+    { date:"24 Jun", ref:"JNL-20251014-001", desc:"Room Revenue — Check-out FO-2848", account:"410-001", dr:456800, cr:0       },
+    { date:"24 Jun", ref:"JNL-20251014-001", desc:"Room Revenue — Check-out FO-2848", account:"120-001", dr:0,      cr:456800  },
+    { date:"24 Jun", ref:"JNL-20251014-002", desc:"VAT on FO-2848",                   account:"120-001", dr:80370,  cr:0       },
+    { date:"24 Jun", ref:"JNL-20251014-002", desc:"VAT on FO-2848",                   account:"231-001", dr:0,      cr:80370   },
+    { date:"24 Jun", ref:"JNL-20251014-003", desc:"Cash Receipt — RCT-0381",          account:"110-001", dr:537170, cr:0       },
+    { date:"24 Jun", ref:"JNL-20251014-003", desc:"Cash Receipt — RCT-0381",          account:"120-001", dr:0,      cr:537170  },
   ];
 
   const EXPORT_HISTORY = [
-    { id:"EXP-0041", date:"13 Oct 23:58", period:"13 Oct 2025", format:"Sage 50", entries:128, user:"Emeka Obi",    status:"Success" },
-    { id:"EXP-0040", date:"12 Oct 23:59", period:"12 Oct 2025", format:"Sage 50", entries:115, user:"Emeka Obi",    status:"Success" },
-    { id:"EXP-0039", date:"11 Oct 22:01", period:"11 Oct 2025", format:"CSV",     entries:98,  user:"Night Audit",  status:"Success" },
-    { id:"EXP-0038", date:"10 Oct 23:59", period:"10 Oct 2025", format:"Sage 50", entries:131, user:"Emeka Obi",    status:"Failed"  },
+    { id:"EXP-0041", date:"23 Jun 23:58", period:"23 Jun 2026", format:"Sage 50", entries:128, user:"Emeka Obi",    status:"Success" },
+    { id:"EXP-0040", date:"22 Jun 23:59", period:"22 Jun 2026", format:"Sage 50", entries:115, user:"Emeka Obi",    status:"Success" },
+    { id:"EXP-0039", date:"21 Jun 22:01", period:"21 Jun 2026", format:"CSV",     entries:98,  user:"Night Audit",  status:"Success" },
+    { id:"EXP-0038", date:"20 Jun 23:59", period:"20 Jun 2026", format:"Sage 50", entries:131, user:"Emeka Obi",    status:"Failed"  },
   ];
 
   const VALIDATION = [
-    { type:"ok",      msg:"Night Audit completed for 14 Oct" },
+    { type:"ok",      msg:"Night Audit completed for 24 Jun" },
     { type:"ok",      msg:"Journal entries balanced — ₦0 variance" },
     { type:"warning", msg:"2 AP invoices pending approval — may be excluded" },
     { type:"ok",      msg:"All GL codes mapped" },
@@ -3119,7 +3120,7 @@ export function AccountingExport({ add }: { add: (t: Omit<Toast, "id">) => void 
 
   const [tab, setTab]       = useState<"export"|"mapping"|"history">("export");
   const [format, setFormat] = useState("Sage 50");
-  const [period, setPeriod] = useState("14 Oct 2025");
+  const [period, setPeriod] = useState("24 Jun 2026");
   const [mapping, setMapping] = useState(GL_MAPPING);
   const [exporting, setExporting] = useState(false);
 
@@ -3279,9 +3280,9 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   type CNStatus = "Draft"|"Pending Approval"|"Approved"|"Issued"|"Applied"|"Void";
 
   const CN_INIT = [
-    { id:"CN-2025-0024", num:24, invRef:"INV-2025-0810", guest:"Adaeze Nwosu",    type:"Partial" as "Full"|"Partial", amount:45000,  reason:"Early Departure Adjustment", approver:"", status:"Issued" as CNStatus,           issuedDate:"10 Oct", applied:"10 Oct", notes:"Guest checked out 1 night early" },
-    { id:"CN-2025-0023", num:23, invRef:"INV-2025-0805", guest:"Corp — MTN Ltd",  type:"Full" as "Full"|"Partial",    amount:186000, reason:"Billing Error — Rate Mismatch", approver:"", status:"Approved" as CNStatus,         issuedDate:"08 Oct", applied:"",       notes:"Corporate rate not applied at check-in" },
-    { id:"CN-2025-0022", num:22, invRef:"INV-2025-0798", guest:"Kingsley Okafor", type:"Partial" as "Full"|"Partial", amount:25000,  reason:"Service Complaint Compensation", approver:"", status:"Pending Approval" as CNStatus, issuedDate:"06 Oct", applied:"",       notes:"AC malfunction room 312 — 2 nights" },
+    { id:"CN-2025-0024", num:24, invRef:"INV-2025-0810", guest:"Adaeze Nwosu",    type:"Partial" as "Full"|"Partial", amount:45000,  reason:"Early Departure Adjustment", approver:"", status:"Issued" as CNStatus,           issuedDate:"20 Jun", applied:"20 Jun", notes:"Guest checked out 1 night early" },
+    { id:"CN-2025-0023", num:23, invRef:"INV-2025-0805", guest:"Corp — MTN Ltd",  type:"Full" as "Full"|"Partial",    amount:186000, reason:"Billing Error — Rate Mismatch", approver:"", status:"Approved" as CNStatus,         issuedDate:"18 Jun", applied:"",       notes:"Corporate rate not applied at check-in" },
+    { id:"CN-2025-0022", num:22, invRef:"INV-2025-0798", guest:"Kingsley Okafor", type:"Partial" as "Full"|"Partial", amount:25000,  reason:"Service Complaint Compensation", approver:"", status:"Pending Approval" as CNStatus, issuedDate:"16 Jun", applied:"",       notes:"AC malfunction room 312 — 2 nights" },
   ];
 
   const stColors: Record<CNStatus,{bg:string;text:string}> = {
@@ -3316,7 +3317,7 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
     setCns(prev => [{
       id, num:nextNum, invRef:newInvRef, guest:newGuest, type:newType,
       amount:parseFloat(newAmt)||0, reason:newReason, approver:"",
-      status:"Pending Approval" as CNStatus, issuedDate:"14 Oct", applied:"", notes:newNotes
+      status:"Pending Approval" as CNStatus, issuedDate:"24 Jun", applied:"", notes:newNotes
     }, ...prev]);
     add({ type:"success", title:`Credit Note ${id} created`, body:`Pending approval for ₦${parseFloat(newAmt||"0").toLocaleString()}` });
     setShowNew(false); setNewInvRef(""); setNewGuest(""); setNewAmt(""); setNewNotes("");
@@ -3366,7 +3367,7 @@ export function CreditNotes({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                     <div className="flex gap-1">
                       {cn.status==="Pending Approval" && <button onClick={() => setShowApprove(cn.id)} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: SUCCESS, borderColor:`${SUCCESS}30` }}>Approve</button>}
                       {cn.status==="Approved" && <button onClick={() => { setCns(prev=>prev.map(c=>c.id===cn.id?{...c,status:"Issued" as CNStatus}:c)); add({ type:"success", title:`${cn.id} issued` }); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: PRIMARY, borderColor:`${PRIMARY}30` }}>Issue</button>}
-                      {cn.status==="Issued" && <button onClick={() => { setCns(prev=>prev.map(c=>c.id===cn.id?{...c,status:"Applied" as CNStatus,applied:"14 Oct"}:c)); add({ type:"success", title:`${cn.id} applied to ${cn.invRef}` }); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Apply</button>}
+                      {cn.status==="Issued" && <button onClick={() => { setCns(prev=>prev.map(c=>c.id===cn.id?{...c,status:"Applied" as CNStatus,applied:"24 Jun"}:c)); add({ type:"success", title:`${cn.id} applied to ${cn.invRef}` }); }} className="text-xs px-2.5 py-1.5 rounded border font-semibold" style={{ color: TEAL, borderColor:`${TEAL}30` }}>Apply</button>}
                       <button onClick={() => add({ type:"info", title:`Print ${cn.id}` })} className="text-xs px-2 py-1.5 rounded border" style={{ color: MUTED, borderColor: BORDER }}>Print</button>
                     </div>
                   </td>
@@ -3453,12 +3454,12 @@ type CmpStatus   = "Open" | "In Progress" | "Resolved" | "Closed" | "Escalated";
 type CmpCategory = "Room Maintenance" | "Food & Beverage" | "Service Quality" | "Noise" | "Billing" | "Staff Conduct" | "Other";
 
 const COMPLAINTS = [
-  { id:"CMP-001", guest:"Adaeze Okonkwo",       room:"101", category:"Room Maintenance" as CmpCategory, severity:"High" as CmpSeverity,     channel:"Guest Portal", raised:"14 Oct 09:00", owner:"Tunde Bakare",    dept:"Maintenance",  slaDue:"14 Oct 13:00", slaRemMins:0,    status:"In Progress" as CmpStatus, escalated:false, description:"AC unit has been making loud noise since last night. Room temperature is also not reaching the set level.", compensation:0,   repeat:false },
-  { id:"CMP-002", guest:"Emmanuel Adeyemi",      room:"202", category:"Billing" as CmpCategory,          severity:"Medium" as CmpSeverity,   channel:"Front Desk",   raised:"13 Oct 14:20", owner:"Grace Mensah",    dept:"Finance",      slaDue:"14 Oct 14:20", slaRemMins:80,   status:"Open" as CmpStatus,        escalated:false, description:"Guest disputes a minibar charge of ₦3,500 from 12 Oct. States he did not use the minibar.", compensation:0,   repeat:true  },
-  { id:"CMP-003", guest:"Dr. Chukwuemeka Bello", room:"501", category:"Service Quality" as CmpCategory,  severity:"Critical" as CmpSeverity, channel:"WhatsApp",     raised:"14 Oct 07:45", owner:"Fatima Ibrahim",  dept:"Front Desk",   slaDue:"14 Oct 09:45", slaRemMins:-120, status:"Escalated" as CmpStatus,   escalated:true,  description:"VIP guest waited 45 minutes for the welcome basket that was confirmed at reservation. Champagne arrived warm.", compensation:15000, repeat:false },
-  { id:"CMP-004", guest:"Ngozi Adichie",         room:"306", category:"Noise" as CmpCategory,             severity:"Medium" as CmpSeverity,   channel:"Front Desk",   raised:"13 Oct 22:10", owner:"Kemi Adeyemi",    dept:"Front Desk",   slaDue:"13 Oct 23:10", slaRemMins:-800, status:"Resolved" as CmpStatus,    escalated:false, description:"Noise from guests in Room 307 kept guest awake until midnight. Room was moved.", compensation:5000, repeat:false },
-  { id:"CMP-005", guest:"Tunde Bakare",           room:"411", category:"Room Maintenance" as CmpCategory, severity:"High" as CmpSeverity,     channel:"In-App",       raised:"12 Oct 11:00", owner:"Chukwuemeka Obi", dept:"Maintenance",  slaDue:"12 Oct 15:00", slaRemMins:-2000,status:"Closed" as CmpStatus,      escalated:false, description:"Shower drain blocked. Third report of same issue. Maintenance finally resolved after escalation.", compensation:0,   repeat:true  },
-  { id:"CMP-006", guest:"Kemi Adeyemi",           room:"210", category:"Food & Beverage" as CmpCategory,  severity:"Low" as CmpSeverity,      channel:"Guest Portal", raised:"14 Oct 12:30", owner:"Ngozi Eze",       dept:"F&B",          slaDue:"14 Oct 16:30", slaRemMins:240,  status:"Open" as CmpStatus,        escalated:false, description:"Room service order arrived 40 minutes late and was cold. Guest requested a refund for the delivery surcharge.", compensation:0,   repeat:false },
+  { id:"CMP-001", guest:"Adaeze Okonkwo",       room:"101", category:"Room Maintenance" as CmpCategory, severity:"High" as CmpSeverity,     channel:"Guest Portal", raised:"24 Jun 09:00", owner:"Tunde Bakare",    dept:"Maintenance",  slaDue:"24 Jun 13:00", slaRemMins:0,    status:"In Progress" as CmpStatus, escalated:false, description:"AC unit has been making loud noise since last night. Room temperature is also not reaching the set level.", compensation:0,   repeat:false },
+  { id:"CMP-002", guest:"Emmanuel Adeyemi",      room:"202", category:"Billing" as CmpCategory,          severity:"Medium" as CmpSeverity,   channel:"Front Desk",   raised:"23 Jun 14:20", owner:"Grace Mensah",    dept:"Finance",      slaDue:"24 Jun 14:20", slaRemMins:80,   status:"Open" as CmpStatus,        escalated:false, description:"Guest disputes a minibar charge of ₦3,500 from 22 Jun. States he did not use the minibar.", compensation:0,   repeat:true  },
+  { id:"CMP-003", guest:"Dr. Chukwuemeka Bello", room:"501", category:"Service Quality" as CmpCategory,  severity:"Critical" as CmpSeverity, channel:"WhatsApp",     raised:"24 Jun 07:45", owner:"Fatima Ibrahim",  dept:"Front Desk",   slaDue:"24 Jun 09:45", slaRemMins:-120, status:"Escalated" as CmpStatus,   escalated:true,  description:"VIP guest waited 45 minutes for the welcome basket that was confirmed at reservation. Champagne arrived warm.", compensation:15000, repeat:false },
+  { id:"CMP-004", guest:"Ngozi Adichie",         room:"306", category:"Noise" as CmpCategory,             severity:"Medium" as CmpSeverity,   channel:"Front Desk",   raised:"23 Jun 22:10", owner:"Kemi Adeyemi",    dept:"Front Desk",   slaDue:"23 Jun 23:10", slaRemMins:-800, status:"Resolved" as CmpStatus,    escalated:false, description:"Noise from guests in Room 307 kept guest awake until midnight. Room was moved.", compensation:5000, repeat:false },
+  { id:"CMP-005", guest:"Tunde Bakare",           room:"411", category:"Room Maintenance" as CmpCategory, severity:"High" as CmpSeverity,     channel:"In-App",       raised:"22 Jun 11:00", owner:"Chukwuemeka Obi", dept:"Maintenance",  slaDue:"22 Jun 15:00", slaRemMins:-2000,status:"Closed" as CmpStatus,      escalated:false, description:"Shower drain blocked. Third report of same issue. Maintenance finally resolved after escalation.", compensation:0,   repeat:true  },
+  { id:"CMP-006", guest:"Kemi Adeyemi",           room:"210", category:"Food & Beverage" as CmpCategory,  severity:"Low" as CmpSeverity,      channel:"Guest Portal", raised:"24 Jun 12:30", owner:"Ngozi Eze",       dept:"F&B",          slaDue:"24 Jun 16:30", slaRemMins:240,  status:"Open" as CmpStatus,        escalated:false, description:"Room service order arrived 40 minutes late and was cold. Guest requested a refund for the delivery surcharge.", compensation:0,   repeat:false },
 ];
 
 // ─── ComplaintManagement ──────────────────────────────────────────────────────
@@ -3647,10 +3648,10 @@ export function ComplaintDashboard() {
   }));
 
   const TREND = [
-    { month:"Jul", Low:3, Medium:5, High:2, Critical:0 },
-    { month:"Aug", Low:4, Medium:6, High:3, Critical:1 },
-    { month:"Sep", Low:2, Medium:4, High:4, Critical:0 },
-    { month:"Oct", Low:2, Medium:3, High:2, Critical:1 },
+    { month:"Mar", Low:3, Medium:5, High:2, Critical:0 },
+    { month:"Apr", Low:4, Medium:6, High:3, Critical:1 },
+    { month:"May", Low:2, Medium:4, High:4, Critical:0 },
+    { month:"Jun", Low:2, Medium:3, High:2, Critical:1 },
   ];
 
   const REPEAT_GUESTS = COMPLAINTS.filter(c=>c.repeat).map(c=>({ name:c.guest, room:c.room, count:2 }));
@@ -3662,7 +3663,7 @@ export function ComplaintDashboard() {
 
   return (
     <div>
-      <PageHeader title="Complaint Dashboard" sub="CS manager overview · October 2025" />
+      <PageHeader title="Complaint Dashboard" sub="CS manager overview · June 2026" />
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
@@ -3670,7 +3671,7 @@ export function ComplaintDashboard() {
           { label:"Open Complaints",  val:openCount,                           color:PRIMARY, suffix:"" },
           { label:"SLA At Risk / Breached",val:slaBreached,                   color:ERROR,   suffix:"" },
           { label:"Avg. Resolution",  val:avgResolution,                       color:TEAL,    suffix:"h" },
-          { label:"Compensation (Oct)",val:`₦${(totalComp/1000).toFixed(0)}K`,color:WARNING, suffix:"" },
+          { label:"Compensation (Jun)",val:`₦${(totalComp/1000).toFixed(0)}K`,color:WARNING, suffix:"" },
         ].map(k=>(
           <div key={k.label} className="bg-white rounded-xl border px-4 py-3" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.07)" }}>
             <div className="text-xs mb-1" style={{ color:MUTED }}>{k.label}</div>

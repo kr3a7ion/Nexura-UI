@@ -6,8 +6,8 @@ export const GUEST_STAY = {
   location: "Ikoyi, Lagos",
   room: "301",
   roomType: "Palm Suite",
-  checkIn: "4 Aug 2026",
-  checkOut: "7 Aug 2026",
+  checkIn: "24 Jun 2026",
+  checkOut: "27 Jun 2026",
   nightsLeft: 2,
 };
 

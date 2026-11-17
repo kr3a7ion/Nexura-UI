@@ -69,8 +69,8 @@ const USERS_DATA = [
   { id:"USR-004", name:"Chukwubuike Eze",        email:"maintenance@grandpalms.ng", role:"MX",  dept:"Maintenance",  branch:"Grand Palms Abuja", status:"active",   mfa:true,  lastLogin:"Yesterday",    failed:0, locked:false },
   { id:"USR-005", name:"Ngozi Iweala-Obi",       email:"finance@grandpalms.ng",     role:"FIN", dept:"Finance",      branch:"Grand Palms Abuja", status:"active",   mfa:true,  lastLogin:"Today 09:02",  failed:0, locked:false },
   { id:"USR-006", name:"Musa Abdullahi",         email:"restaurant@grandpalms.ng",  role:"RT",  dept:"F&B",          branch:"Grand Palms Abuja", status:"active",   mfa:false, lastLogin:"Today 06:45",  failed:0, locked:false },
-  { id:"USR-007", name:"Bola Adekunle",          email:"bola@grandpalms.ng",        role:"FD",  dept:"Front Desk",   branch:"Grand Palms Abuja", status:"inactive", mfa:false, lastLogin:"14 Oct 2025",  failed:0, locked:false },
-  { id:"USR-008", name:"Seun Fadahunsi",         email:"seun@grandpalms.ng",        role:"FD",  dept:"Front Desk",   branch:"Grand Palms Abuja", status:"locked",   mfa:false, lastLogin:"12 Oct 2025",  failed:5, locked:true  },
+  { id:"USR-007", name:"Bola Adekunle",          email:"bola@grandpalms.ng",        role:"FD",  dept:"Front Desk",   branch:"Grand Palms Abuja", status:"inactive", mfa:false, lastLogin:"24 Jun 2026",  failed:0, locked:false },
+  { id:"USR-008", name:"Seun Fadahunsi",         email:"seun@grandpalms.ng",        role:"FD",  dept:"Front Desk",   branch:"Grand Palms Abuja", status:"locked",   mfa:false, lastLogin:"22 Jun 2026",  failed:5, locked:true  },
 ];
 
 const ROLE_LABELS: Record<string, string> = { MGT:"Manager", FD:"Front Desk", HK:"Housekeeping", MX:"Maintenance", FIN:"Finance", RT:"Restaurant", RSV:"Reservations", IT:"IT" };
@@ -371,20 +371,20 @@ export function SystemHealth({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
 // ─── 3. SchemaUpdateStatus ────────────────────────────────────────────────────
 const MIGRATIONS = [
-  { id: "m_20251001_001", desc: "Add complaint_category index",          applied: "01 Oct 2025 02:14", status: "applied", snapshot: "snap_20251001_0200" },
-  { id: "m_20250915_002", desc: "Add leave_requests table",              applied: "15 Sep 2025 02:11", status: "applied", snapshot: "snap_20250915_0200" },
-  { id: "m_20250901_001", desc: "Add folio_void_reason column",          applied: "01 Sep 2025 02:09", status: "applied", snapshot: "snap_20250901_0200" },
-  { id: "m_20250815_001", desc: "Extend audit_log with device_id",       applied: "15 Aug 2025 02:07", status: "applied", snapshot: "snap_20250815_0200" },
+  { id: "m_20251001_001", desc: "Add complaint_category index",          applied: "11 Jun 2026 02:14", status: "applied", snapshot: "snap_20251001_0200" },
+  { id: "m_20250915_002", desc: "Add leave_requests table",              applied: "26 May 2026 02:11", status: "applied", snapshot: "snap_20250915_0200" },
+  { id: "m_20250901_001", desc: "Add folio_void_reason column",          applied: "12 May 2026 02:09", status: "applied", snapshot: "snap_20250901_0200" },
+  { id: "m_20250815_001", desc: "Extend audit_log with device_id",       applied: "25 Apr 2026 02:07", status: "applied", snapshot: "snap_20250815_0200" },
 ];
 const PENDING_MIGS = [
   { id: "m_20251101_001", desc: "Add fleet_vehicles table",   eta: "Next maintenance window" },
   { id: "m_20251101_002", desc: "Add guest_portal_tokens",    eta: "Next maintenance window" },
 ];
 const UPDATE_HISTORY = [
-  { version: "v2.14.1", date: "01 Oct 2025", ring: "Stable", result: "ok",   note: "Routine patch" },
-  { version: "v2.14.0", date: "15 Sep 2025", ring: "Stable", result: "ok",   note: "Leave management module" },
-  { version: "v2.13.2", date: "02 Sep 2025", ring: "Stable", result: "ok",   note: "Complaint dashboard" },
-  { version: "v2.12.0", date: "01 Aug 2025", ring: "Beta",   result: "rolled-back", note: "Rolled back — printer regression" },
+  { version: "v2.14.1", date: "11 Jun 2026", ring: "Stable", result: "ok",   note: "Routine patch" },
+  { version: "v2.14.0", date: "26 May 2026", ring: "Stable", result: "ok",   note: "Leave management module" },
+  { version: "v2.13.2", date: "13 May 2026", ring: "Stable", result: "ok",   note: "Complaint dashboard" },
+  { version: "v2.12.0", date: "11 Apr 2026", ring: "Beta",   result: "rolled-back", note: "Rolled back — printer regression" },
 ];
 
 export function SchemaUpdateStatus({ add }: { add: (t: Omit<Toast, "id">) => void }) {
@@ -493,9 +493,9 @@ const DEVICES = [
   { id:"DEV-001", name:"FD-Terminal-01",   cls:"B" as DeviceClass, type:"Desktop terminal",   assigned:"Front Desk",        branch:"Abuja",  enrolled:"14 Jan 2025", heartbeat:"2 min ago",  appVer:"v2.14.1", battery:null, os:"Ubuntu 22.04", status:"active" as DeviceStatus   },
   { id:"DEV-002", name:"MGT-iPad-01",      cls:"A" as DeviceClass, type:"iPad 10th gen",       assigned:"Adaeze Okonkwo",   branch:"Abuja",  enrolled:"14 Jan 2025", heartbeat:"5 min ago",  appVer:"v2.14.1", battery:82,   os:"iPadOS 17.6",  status:"active" as DeviceStatus   },
   { id:"DEV-003", name:"HK-Mobile-01",     cls:"D" as DeviceClass, type:"Android phone",       assigned:"Fatima Al-Hassan", branch:"Abuja",  enrolled:"20 Feb 2025", heartbeat:"8 min ago",  appVer:"v2.14.0", battery:34,   os:"Android 14",   status:"active" as DeviceStatus   },
-  { id:"DEV-004", name:"Room-Kiosk-501",   cls:"E" as DeviceClass, type:"Kiosk tablet",        assigned:"Room 501",          branch:"Abuja",  enrolled:"01 Mar 2025", heartbeat:"1 min ago",  appVer:"v2.14.1", battery:null, os:"Android 14",   status:"active" as DeviceStatus   },
+  { id:"DEV-004", name:"Room-Kiosk-501",   cls:"E" as DeviceClass, type:"Kiosk tablet",        assigned:"Room 501",          branch:"Abuja",  enrolled:"1 Mar 2025", heartbeat:"1 min ago",  appVer:"v2.14.1", battery:null, os:"Android 14",   status:"active" as DeviceStatus   },
   { id:"DEV-005", name:"MX-PDA-01",        cls:"F" as DeviceClass, type:"Rugged PDA",          assigned:"Chukwubuike Eze",  branch:"Abuja",  enrolled:"15 Mar 2025", heartbeat:"22 min ago", appVer:"v2.14.0", battery:17,   os:"Android 13",   status:"idle" as DeviceStatus     },
-  { id:"DEV-006", name:"Staff-Shared-01",  cls:"G" as DeviceClass, type:"Shared tablet",       assigned:"Front Desk pool",  branch:"Abuja",  enrolled:"01 Apr 2025", heartbeat:"47 min ago", appVer:"v2.13.2", battery:61,   os:"Android 14",   status:"idle" as DeviceStatus     },
+  { id:"DEV-006", name:"Staff-Shared-01",  cls:"G" as DeviceClass, type:"Shared tablet",       assigned:"Front Desk pool",  branch:"Abuja",  enrolled:"1 Apr 2025", heartbeat:"47 min ago", appVer:"v2.13.2", battery:61,   os:"Android 14",   status:"idle" as DeviceStatus     },
   { id:"DEV-007", name:"HK-Mobile-02",     cls:"D" as DeviceClass, type:"Android phone",       assigned:"Unassigned",       branch:"Abuja",  enrolled:"10 May 2025", heartbeat:"3 hrs ago",  appVer:"v2.12.0", battery:0,    os:"Android 14",   status:"offline" as DeviceStatus  },
   { id:"DEV-008", name:"FD-Scanner-01",    cls:"C" as DeviceClass, type:"Barcode scanner",     assigned:"Front Desk",       branch:"Abuja",  enrolled:"14 Jan 2025", heartbeat:"Reported lost", appVer:"v2.14.0", battery:null, os:"n/a",        status:"lost" as DeviceStatus     },
 ];
@@ -649,11 +649,11 @@ export function DeviceManagement({ add }: { add: (t: Omit<Toast, "id">) => void 
 
 // ─── 5. BackupRestore ─────────────────────────────────────────────────────────
 const BACKUPS = [
-  { id:"BK-2025-1014-01", ts:"14 Oct 2025 02:00", size:"2.4 GB", type:"Scheduled",     enc:true,  checksum:"ok",   location:"Local + Offsite", retention:"13 Nov 2025", restoreTest:"PASSED — 12 Oct" },
-  { id:"BK-2025-1013-01", ts:"13 Oct 2025 02:00", size:"2.3 GB", type:"Scheduled",     enc:true,  checksum:"ok",   location:"Local + Offsite", retention:"12 Nov 2025", restoreTest:"PASSED — 11 Oct" },
-  { id:"BK-2025-1001-02", ts:"01 Oct 2025 01:55", size:"2.1 GB", type:"Pre-migration", enc:true,  checksum:"ok",   location:"Local + Offsite", retention:"31 Dec 2025", restoreTest:"Not tested"      },
-  { id:"BK-2025-0915-02", ts:"15 Sep 2025 01:52", size:"2.0 GB", type:"Pre-migration", enc:true,  checksum:"ok",   location:"Local",           retention:"14 Dec 2025", restoreTest:"PASSED — 15 Sep" },
-  { id:"BK-2025-0901-01", ts:"01 Sep 2025 02:01", size:"1.9 GB", type:"Manual",        enc:true,  checksum:"fail", location:"Local",           retention:"30 Nov 2025", restoreTest:"FAILED — checksum mismatch" },
+  { id:"BK-2025-1014-01", ts:"24 Jun 2026 02:00", size:"2.4 GB", type:"Scheduled",     enc:true,  checksum:"ok",   location:"Local + Offsite", retention:"24 Jul 2026", restoreTest:"PASSED — 22 Jun" },
+  { id:"BK-2025-1013-01", ts:"23 Jun 2026 02:00", size:"2.3 GB", type:"Scheduled",     enc:true,  checksum:"ok",   location:"Local + Offsite", retention:"23 Jul 2026", restoreTest:"PASSED — 21 Jun" },
+  { id:"BK-2025-1001-02", ts:"11 Jun 2026 01:55", size:"2.1 GB", type:"Pre-migration", enc:true,  checksum:"ok",   location:"Local + Offsite", retention:"10 Sep 2026", restoreTest:"Not tested"      },
+  { id:"BK-2025-0915-02", ts:"26 May 2026 01:52", size:"2.0 GB", type:"Pre-migration", enc:true,  checksum:"ok",   location:"Local",           retention:"24 Aug 2026", restoreTest:"PASSED — 26 May" },
+  { id:"BK-2025-0901-01", ts:"12 May 2026 02:01", size:"1.9 GB", type:"Manual",        enc:true,  checksum:"fail", location:"Local",           retention:"10 Aug 2026", restoreTest:"FAILED — checksum mismatch" },
 ];
 
 export function BackupRestore({ add }: { add: (t: Omit<Toast, "id">) => void }) {
@@ -761,14 +761,14 @@ export function BackupRestore({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
 // ─── 6. AuditLog ──────────────────────────────────────────────────────────────
 const AUDIT_ENTRIES = [
-  { ts:"2025-10-14 10:09:41", actor:"Adaeze Okonkwo",    role:"MGT", action:"UNLOCK_ACCOUNT",      entity:"User",        entityId:"USR-008", ip:"192.168.1.12", device:"MGT-iPad-01",    detail:"Unlocked account for seun@grandpalms.ng after 5 failed attempts" },
-  { ts:"2025-10-14 09:51:02", actor:"Adaeze Okonkwo",    role:"MGT", action:"APPROVE_REFUND",      entity:"Folio",       entityId:"FOL-2014", ip:"192.168.1.12", device:"MGT-iPad-01",   detail:"Approved refund ₦45,000 — Reason: duplicate charge" },
-  { ts:"2025-10-14 09:34:18", actor:"Emeka Nwosu",       role:"FD",  action:"CHECK_IN",            entity:"Reservation", entityId:"RES-1042", ip:"192.168.1.10", device:"FD-Terminal-01", detail:"Guest: Dr. Bello · Room 501 · Deposit: ₦50,000 cash" },
-  { ts:"2025-10-14 09:12:55", actor:"Ngozi Iweala-Obi",  role:"FIN", action:"NIGHT_AUDIT_RUN",     entity:"Business Date",entityId:"2025-10-13", ip:"192.168.1.20", device:"FD-Terminal-01", detail:"Audit completed · Rooms: 62 · Revenue: ₦4,820,000" },
-  { ts:"2025-10-14 08:50:31", actor:"System",            role:"SYS", action:"BACKUP_COMPLETED",    entity:"Backup",      entityId:"BK-2025-1014-01", ip:"localhost", device:"server", detail:"Scheduled backup 2.4 GB — offsite sync queued" },
-  { ts:"2025-10-13 22:14:09", actor:"Musa Abdullahi",    role:"RT",  action:"VOID_CHARGE",         entity:"POS Order",   entityId:"ORD-4892", ip:"192.168.1.31", device:"FD-Terminal-01", detail:"Voided ₦12,400 — Reason: customer complaint" },
-  { ts:"2025-10-13 18:40:22", actor:"Fatima Al-Hassan",  role:"HK",  action:"INSPECTION_PASS",     entity:"Room",        entityId:"RM-307",   ip:"10.0.0.5",     device:"HK-Mobile-01",  detail:"Room 307 passed inspection — ready for assignment" },
-  { ts:"2025-10-13 15:22:01", actor:"Adaeze Okonkwo",    role:"MGT", action:"ROLE_CHANGE",         entity:"User",        entityId:"USR-006",  ip:"192.168.1.12", device:"MGT-iPad-01",   detail:"Role changed FD → RT for Musa Abdullahi" },
+  { ts:"2026-06-24 10:09:41", actor:"Adaeze Okonkwo",    role:"MGT", action:"UNLOCK_ACCOUNT",      entity:"User",        entityId:"USR-008", ip:"192.168.1.12", device:"MGT-iPad-01",    detail:"Unlocked account for seun@grandpalms.ng after 5 failed attempts" },
+  { ts:"2026-06-24 09:51:02", actor:"Adaeze Okonkwo",    role:"MGT", action:"APPROVE_REFUND",      entity:"Folio",       entityId:"FOL-2014", ip:"192.168.1.12", device:"MGT-iPad-01",   detail:"Approved refund ₦45,000 — Reason: duplicate charge" },
+  { ts:"2026-06-24 09:34:18", actor:"Emeka Nwosu",       role:"FD",  action:"CHECK_IN",            entity:"Reservation", entityId:"RES-1042", ip:"192.168.1.10", device:"FD-Terminal-01", detail:"Guest: Dr. Bello · Room 501 · Deposit: ₦50,000 cash" },
+  { ts:"2026-06-24 09:12:55", actor:"Ngozi Iweala-Obi",  role:"FIN", action:"NIGHT_AUDIT_RUN",     entity:"Business Date",entityId:"2026-06-23", ip:"192.168.1.20", device:"FD-Terminal-01", detail:"Audit completed · Rooms: 62 · Revenue: ₦4,820,000" },
+  { ts:"2026-06-24 08:50:31", actor:"System",            role:"SYS", action:"BACKUP_COMPLETED",    entity:"Backup",      entityId:"BK-2025-1014-01", ip:"localhost", device:"server", detail:"Scheduled backup 2.4 GB — offsite sync queued" },
+  { ts:"2026-06-23 22:14:09", actor:"Musa Abdullahi",    role:"RT",  action:"VOID_CHARGE",         entity:"POS Order",   entityId:"ORD-4892", ip:"192.168.1.31", device:"FD-Terminal-01", detail:"Voided ₦12,400 — Reason: customer complaint" },
+  { ts:"2026-06-23 18:40:22", actor:"Fatima Al-Hassan",  role:"HK",  action:"INSPECTION_PASS",     entity:"Room",        entityId:"RM-307",   ip:"10.0.0.5",     device:"HK-Mobile-01",  detail:"Room 307 passed inspection — ready for assignment" },
+  { ts:"2026-06-23 15:22:01", actor:"Adaeze Okonkwo",    role:"MGT", action:"ROLE_CHANGE",         entity:"User",        entityId:"USR-006",  ip:"192.168.1.12", device:"MGT-iPad-01",   detail:"Role changed FD → RT for Musa Abdullahi" },
 ];
 
 const ACTION_COLORS: Record<string, string> = {
@@ -840,12 +840,12 @@ export function AuditLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 type ErrSeverity = "ERROR" | "WARN" | "INFO";
 
 const ERROR_LOG = [
-  { id:"ERR-0041", ts:"2025-10-14 10:09:41", sev:"WARN"  as ErrSeverity, module:"sync",    msg:"Central sync response delayed 3.2s",                requestId:"req-8841a", user:"system",          resolved:false, count:3,  stack:"SyncClient.push (sync.ts:182)\nretryWithBackoff (utils.ts:44)" },
-  { id:"ERR-0040", ts:"2025-10-14 09:41:18", sev:"ERROR" as ErrSeverity, module:"printer", msg:"Folio printer (192.168.1.46) connection refused",   requestId:"req-8820c", user:"Emeka Nwosu",      resolved:false, count:12, stack:"PrintService.send (printer.ts:94)\nFolioScreen.print (FolioScreen.tsx:312)" },
-  { id:"ERR-0039", ts:"2025-10-14 09:32:05", sev:"WARN"  as ErrSeverity, module:"auth",    msg:"Account locked after 5 failed login attempts",      requestId:"req-8814b", user:"seun@grandpalms.ng",resolved:true, count:5,  stack:"AuthController.login (auth.ts:67)\nrateLimit (middleware.ts:22)" },
-  { id:"ERR-0038", ts:"2025-10-14 08:50:31", sev:"INFO"  as ErrSeverity, module:"backup",  msg:"Offsite transfer delayed — network congestion",     requestId:"req-8800a", user:"system",           resolved:true, count:1,  stack:"BackupService.transfer (backup.ts:141)" },
-  { id:"ERR-0037", ts:"2025-10-13 22:14:09", sev:"WARN"  as ErrSeverity, module:"pos",     msg:"POS shift not closed at night audit — auto-closed", requestId:"req-8780b", user:"system",           resolved:true, count:1,  stack:"NightAudit.precheck (audit.ts:58)" },
-  { id:"ERR-0036", ts:"2025-10-13 15:22:01", sev:"ERROR" as ErrSeverity, module:"db",      msg:"Deadlock detected on reservation_locks table",      requestId:"req-8742a", user:"Emeka Nwosu",      resolved:true, count:2,  stack:"ReservationService.lock (reservation.ts:210)\nDB.transaction (db.ts:88)" },
+  { id:"ERR-0041", ts:"2026-06-24 10:09:41", sev:"WARN"  as ErrSeverity, module:"sync",    msg:"Central sync response delayed 3.2s",                requestId:"req-8841a", user:"system",          resolved:false, count:3,  stack:"SyncClient.push (sync.ts:182)\nretryWithBackoff (utils.ts:44)" },
+  { id:"ERR-0040", ts:"2026-06-24 09:41:18", sev:"ERROR" as ErrSeverity, module:"printer", msg:"Folio printer (192.168.1.46) connection refused",   requestId:"req-8820c", user:"Emeka Nwosu",      resolved:false, count:12, stack:"PrintService.send (printer.ts:94)\nFolioScreen.print (FolioScreen.tsx:312)" },
+  { id:"ERR-0039", ts:"2026-06-24 09:32:05", sev:"WARN"  as ErrSeverity, module:"auth",    msg:"Account locked after 5 failed login attempts",      requestId:"req-8814b", user:"seun@grandpalms.ng",resolved:true, count:5,  stack:"AuthController.login (auth.ts:67)\nrateLimit (middleware.ts:22)" },
+  { id:"ERR-0038", ts:"2026-06-24 08:50:31", sev:"INFO"  as ErrSeverity, module:"backup",  msg:"Offsite transfer delayed — network congestion",     requestId:"req-8800a", user:"system",           resolved:true, count:1,  stack:"BackupService.transfer (backup.ts:141)" },
+  { id:"ERR-0037", ts:"2026-06-23 22:14:09", sev:"WARN"  as ErrSeverity, module:"pos",     msg:"POS shift not closed at night audit — auto-closed", requestId:"req-8780b", user:"system",           resolved:true, count:1,  stack:"NightAudit.precheck (audit.ts:58)" },
+  { id:"ERR-0036", ts:"2026-06-23 15:22:01", sev:"ERROR" as ErrSeverity, module:"db",      msg:"Deadlock detected on reservation_locks table",      requestId:"req-8742a", user:"Emeka Nwosu",      resolved:true, count:2,  stack:"ReservationService.lock (reservation.ts:210)\nDB.transaction (db.ts:88)" },
 ];
 
 const SEV_STYLE: Record<ErrSeverity, { bg: string; text: string }> = {

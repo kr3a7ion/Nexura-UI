@@ -39,13 +39,13 @@ export function GuestRoomCharges({ add }: { add: (t: Omit<Toast, "id">) => void 
   type ChargeStatus = "Posted" | "Pending" | "Failed" | "Disputed" | "Reversed";
 
   const CHARGES_INIT = [
-    { id: "CH-5041", folio: "FO-2848", room: "202", guest: "Emmanuel Adeyemi", cat: "Restaurant", desc: "Room Service RS-0041", amount: 8500, date: "2025-10-14 18:30", by: "Restaurant System", status: "Posted" as ChargeStatus, ref: "RS-0041", disputeNote: "" },
-    { id: "CH-5042", folio: "FO-2848", room: "202", guest: "Emmanuel Adeyemi", cat: "Minibar", desc: "Minibar — Water ×2, Juice ×1", amount: 3600, date: "2025-10-14 20:15", by: "System", status: "Posted" as ChargeStatus, ref: "", disputeNote: "" },
-    { id: "CH-5043", folio: "FO-2849", room: "501", guest: "Dr. Chukwuemeka Bello", cat: "Restaurant", desc: "Welcome champagne (comp upgrade)", amount: 15000, date: "2025-10-14 14:30", by: "Grace M.", status: "Posted" as ChargeStatus, ref: "", disputeNote: "" },
-    { id: "CH-5044", folio: "FO-2847", room: "304", guest: "Chukwuemeka Obi", cat: "Restaurant", desc: "Dinner for 2 — Table T04", amount: 22500, date: "2025-10-13 21:00", by: "Restaurant System", status: "Disputed" as ChargeStatus, ref: "DR003", disputeNote: "Guest claims amount differs from bill presented" },
-    { id: "CH-5045", folio: "FO-2851", room: "418", guest: "Fatima Ibrahim", cat: "Restaurant", desc: "Room Service RS-0039", amount: 5200, date: "2025-10-14 11:00", by: "Restaurant System", status: "Failed" as ChargeStatus, ref: "RS-0039", disputeNote: "" },
-    { id: "CH-5046", folio: "FO-2852", room: "311", guest: "Bello Abubakar", cat: "Spa", desc: "Spa session — 60 min massage", amount: 18000, date: "2025-10-14 16:00", by: "Spa System", status: "Pending" as ChargeStatus, ref: "", disputeNote: "" },
-    { id: "CH-5047", folio: "FO-2848", room: "202", guest: "Emmanuel Adeyemi", cat: "Laundry", desc: "Express laundry — 4 items", amount: 4500, date: "2025-10-14 09:00", by: "Housekeeping", status: "Reversed" as ChargeStatus, ref: "", disputeNote: "Double-posted in error" },
+    { id: "CH-5041", folio: "FO-2848", room: "202", guest: "Emmanuel Adeyemi", cat: "Restaurant", desc: "Room Service RS-0041", amount: 8500, date: "2026-06-24 18:30", by: "Restaurant System", status: "Posted" as ChargeStatus, ref: "RS-0041", disputeNote: "" },
+    { id: "CH-5042", folio: "FO-2848", room: "202", guest: "Emmanuel Adeyemi", cat: "Minibar", desc: "Minibar — Water ×2, Juice ×1", amount: 3600, date: "2026-06-24 20:15", by: "System", status: "Posted" as ChargeStatus, ref: "", disputeNote: "" },
+    { id: "CH-5043", folio: "FO-2849", room: "501", guest: "Dr. Chukwuemeka Bello", cat: "Restaurant", desc: "Welcome champagne (comp upgrade)", amount: 15000, date: "2026-06-24 14:30", by: "Grace M.", status: "Posted" as ChargeStatus, ref: "", disputeNote: "" },
+    { id: "CH-5044", folio: "FO-2847", room: "304", guest: "Chukwuemeka Obi", cat: "Restaurant", desc: "Dinner for 2 — Table T04", amount: 22500, date: "2026-06-23 21:00", by: "Restaurant System", status: "Disputed" as ChargeStatus, ref: "DR003", disputeNote: "Guest claims amount differs from bill presented" },
+    { id: "CH-5045", folio: "FO-2851", room: "418", guest: "Fatima Ibrahim", cat: "Restaurant", desc: "Room Service RS-0039", amount: 5200, date: "2026-06-24 11:00", by: "Restaurant System", status: "Failed" as ChargeStatus, ref: "RS-0039", disputeNote: "" },
+    { id: "CH-5046", folio: "FO-2852", room: "311", guest: "Bello Abubakar", cat: "Spa", desc: "Spa session — 60 min massage", amount: 18000, date: "2026-06-24 16:00", by: "Spa System", status: "Pending" as ChargeStatus, ref: "", disputeNote: "" },
+    { id: "CH-5047", folio: "FO-2848", room: "202", guest: "Emmanuel Adeyemi", cat: "Laundry", desc: "Express laundry — 4 items", amount: 4500, date: "2026-06-24 09:00", by: "Housekeeping", status: "Reversed" as ChargeStatus, ref: "", disputeNote: "Double-posted in error" },
   ];
 
   const stColors: Record<ChargeStatus,{bg:string;text:string}> = {
@@ -217,25 +217,25 @@ export function ProductsScreen({ add }: { add: (t: Omit<Toast, "id">) => void })
   const ITEMS = [
     { sku:"LIN-001", name:"Bath Towels",          cat:"Linen",      unit:"pcs",   stock:148, par:200, reorder:80,  reorderQty:100, unitCost:2800, lastCost:2900, avgCost:2850, suppliers:["Lagos Linen Co."],   perishable:false, expiry:"",         barcode:"6001234567890", location:"Linen Store" },
     { sku:"LIN-002", name:"Bed Sheets (King)",    cat:"Linen",      unit:"sets",  stock:88,  par:120, reorder:50,  reorderQty:60,  unitCost:4500, lastCost:4500, avgCost:4450, suppliers:["Lagos Linen Co."],   perishable:false, expiry:"",         barcode:"6001234567891", location:"Linen Store" },
-    { sku:"TOI-001", name:"Shower Gel 300ml",     cat:"Toiletries", unit:"btl",   stock:62,  par:500, reorder:100, reorderQty:200, unitCost:450,  lastCost:460,  avgCost:452,  suppliers:["Procter Nig."],      perishable:true,  expiry:"Jan 2026", barcode:"6001234567892", location:"Housekeeping" },
-    { sku:"TOI-002", name:"Shampoo 250ml",        cat:"Toiletries", unit:"btl",   stock:78,  par:500, reorder:100, reorderQty:200, unitCost:380,  lastCost:390,  avgCost:382,  suppliers:["Procter Nig."],      perishable:true,  expiry:"Feb 2026", barcode:"6001234567893", location:"Housekeeping" },
-    { sku:"FB-001",  name:"Mineral Water 50cl",   cat:"F&B",        unit:"btl",   stock:240, par:1000,reorder:300, reorderQty:500, unitCost:120,  lastCost:125,  avgCost:121,  suppliers:["Abuja Fresh Farms"], perishable:true,  expiry:"Dec 2025", barcode:"6001234567894", location:"F&B Store" },
-    { sku:"FB-002",  name:"Eggs (Crate)",         cat:"F&B",        unit:"crate", stock:22,  par:80,  reorder:25,  reorderQty:40,  unitCost:3800, lastCost:4000, avgCost:3850, suppliers:["Abuja Fresh Farms"], perishable:true,  expiry:"18 Oct",   barcode:"6001234567895", location:"Cold Room" },
+    { sku:"TOI-001", name:"Shower Gel 300ml",     cat:"Toiletries", unit:"btl",   stock:62,  par:500, reorder:100, reorderQty:200, unitCost:450,  lastCost:460,  avgCost:452,  suppliers:["Procter Nig."],      perishable:true,  expiry:"Sep 2026", barcode:"6001234567892", location:"Housekeeping" },
+    { sku:"TOI-002", name:"Shampoo 250ml",        cat:"Toiletries", unit:"btl",   stock:78,  par:500, reorder:100, reorderQty:200, unitCost:380,  lastCost:390,  avgCost:382,  suppliers:["Procter Nig."],      perishable:true,  expiry:"Oct 2026", barcode:"6001234567893", location:"Housekeeping" },
+    { sku:"FB-001",  name:"Mineral Water 50cl",   cat:"F&B",        unit:"btl",   stock:240, par:1000,reorder:300, reorderQty:500, unitCost:120,  lastCost:125,  avgCost:121,  suppliers:["Abuja Fresh Farms"], perishable:true,  expiry:"Aug 2026", barcode:"6001234567894", location:"F&B Store" },
+    { sku:"FB-002",  name:"Eggs (Crate)",         cat:"F&B",        unit:"crate", stock:22,  par:80,  reorder:25,  reorderQty:40,  unitCost:3800, lastCost:4000, avgCost:3850, suppliers:["Abuja Fresh Farms"], perishable:true,  expiry:"28 Jun",   barcode:"6001234567895", location:"Cold Room" },
     { sku:"CLN-001", name:"Floor Cleaner 5L",     cat:"Cleaning",   unit:"jrn",   stock:18,  par:60,  reorder:20,  reorderQty:30,  unitCost:2200, lastCost:2200, avgCost:2180, suppliers:["Jumia Business"],    perishable:false, expiry:"",         barcode:"6001234567896", location:"Maintenance" },
     { sku:"KIT-001", name:"Cooking Gas (12.5kg)", cat:"Kitchen",    unit:"cyl",   stock:3,   par:12,  reorder:4,   reorderQty:6,   unitCost:12500,lastCost:13000,avgCost:12600,suppliers:["Eko Gas Ltd"],       perishable:false, expiry:"",         barcode:"6001234567897", location:"Kitchen" },
-    { sku:"KIT-002", name:"Palm Oil (25L)",       cat:"Kitchen",    unit:"drum",  stock:14,  par:20,  reorder:6,   reorderQty:10,  unitCost:42000,lastCost:44000,avgCost:42500,suppliers:["Abuja Fresh Farms"], perishable:true,  expiry:"Mar 2026", barcode:"6001234567898", location:"Kitchen" },
+    { sku:"KIT-002", name:"Palm Oil (25L)",       cat:"Kitchen",    unit:"drum",  stock:14,  par:20,  reorder:6,   reorderQty:10,  unitCost:42000,lastCost:44000,avgCost:42500,suppliers:["Abuja Fresh Farms"], perishable:true,  expiry:"Nov 2026", barcode:"6001234567898", location:"Kitchen" },
   ];
 
   const MOVEMENT_HISTORY: Record<string, {date:string;type:string;qty:number;ref:string;by:string}[]> = {
     "LIN-001": [
-      { date:"14 Oct 14:22",type:"Issue",      qty:-12, ref:"HK-TASK-0441",by:"Ada Okonkwo" },
-      { date:"13 Oct 22:00",type:"Issue",      qty:-8,  ref:"HK-SHIFT-PM", by:"HK Supervisor" },
-      { date:"10 Oct 09:00",type:"Receipt",    qty:100, ref:"PO-0430",      by:"Store Mgr" },
+      { date:"24 Jun 14:22",type:"Issue",      qty:-12, ref:"HK-TASK-0441",by:"Ada Okonkwo" },
+      { date:"23 Jun 22:00",type:"Issue",      qty:-8,  ref:"HK-SHIFT-PM", by:"HK Supervisor" },
+      { date:"20 Jun 09:00",type:"Receipt",    qty:100, ref:"PO-0430",      by:"Store Mgr" },
     ],
     "FB-002": [
-      { date:"14 Oct 11:30",type:"Issue",      qty:-5,  ref:"KITCHEN-DAILY",by:"Chef Emeka" },
-      { date:"13 Oct 11:15",type:"Issue",      qty:-6,  ref:"KITCHEN-DAILY",by:"Chef Emeka" },
-      { date:"12 Oct 08:00",type:"Receipt",    qty:20,  ref:"PO-0438",      by:"Store Mgr" },
+      { date:"24 Jun 11:30",type:"Issue",      qty:-5,  ref:"KITCHEN-DAILY",by:"Chef Emeka" },
+      { date:"23 Jun 11:15",type:"Issue",      qty:-6,  ref:"KITCHEN-DAILY",by:"Chef Emeka" },
+      { date:"22 Jun 08:00",type:"Receipt",    qty:20,  ref:"PO-0438",      by:"Store Mgr" },
     ],
   };
 
@@ -303,7 +303,7 @@ export function ProductsScreen({ add }: { add: (t: Omit<Toast, "id">) => void })
                 const low   = p.stock <= p.reorder;
                 const pct   = Math.round((p.stock/p.par)*100);
                 const col   = p.stock===0?ERROR:low?WARNING:SUCCESS;
-                const expired = p.perishable && p.expiry && (p.expiry.includes("Oct") || p.expiry.includes("Nov 2025"));
+                const expired = p.perishable && p.expiry && (p.expiry.includes("Jun") || p.expiry.includes("Jul 2026"));
                 return (
                   <tr key={p.sku} onClick={()=>setSelected(p.sku)} className="border-t hover:bg-[#F8FAFC] cursor-pointer" style={{ borderColor: BORDER, backgroundColor: selected===p.sku?"#EFF6FF":undefined }}>
                     <td className="px-3 py-3 text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{p.sku}</td>
@@ -398,8 +398,8 @@ export function SuppliersScreen({ add }: { add: (t: Omit<Toast, "id">) => void }
   ];
 
   const PRICE_LIST: Record<string, {item:string;unit:string;price:number;lastUpdated:string}[]> = {
-    "SUP-001": [{ item:"Bath Towels",      unit:"pcs",  price:2900, lastUpdated:"Oct 2025" },{ item:"Bed Sheets King", unit:"sets", price:4500, lastUpdated:"Sep 2025" }],
-    "SUP-003": [{ item:"Eggs (Crate)",     unit:"crate",price:4000, lastUpdated:"Oct 2025" },{ item:"Palm Oil 25L",   unit:"drum", price:44000,lastUpdated:"Oct 2025" },{ item:"Mineral Water",  unit:"btl",  price:125,  lastUpdated:"Sep 2025" }],
+    "SUP-001": [{ item:"Bath Towels",      unit:"pcs",  price:2900, lastUpdated:"Jun 2026" },{ item:"Bed Sheets King", unit:"sets", price:4500, lastUpdated:"May 2026" }],
+    "SUP-003": [{ item:"Eggs (Crate)",     unit:"crate",price:4000, lastUpdated:"Jun 2026" },{ item:"Palm Oil 25L",   unit:"drum", price:44000,lastUpdated:"Jun 2026" },{ item:"Mineral Water",  unit:"btl",  price:125,  lastUpdated:"May 2026" }],
   };
 
   const [selected, setSelected] = useState<string|null>(null);
@@ -484,11 +484,11 @@ export function SuppliersScreen({ add }: { add: (t: Omit<Toast, "id">) => void }
             <div className="text-xs" style={{ color: MUTED }}>
               <div className="py-2 border-b" style={{ borderColor: BORDER }}>
                 <div className="font-semibold" style={{ color: TEXT }}>PO-0451 · Mineral Water</div>
-                <div>₦60,000 · 10 Oct · Received</div>
+                <div>₦60,000 · 20 Jun · Received</div>
               </div>
               <div className="py-2 border-b" style={{ borderColor: BORDER }}>
                 <div className="font-semibold" style={{ color: TEXT }}>PO-0438 · Eggs</div>
-                <div>₦80,000 · 01 Oct · Received</div>
+                <div>₦80,000 · 11 Jun · Received</div>
               </div>
               <div className="py-2 text-center" style={{ color: SUBTLE }}>3 previous orders this quarter</div>
             </div>
@@ -503,16 +503,16 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
   type TxnType = "Receipt"|"Issue"|"Transfer"|"Adjustment"|"Wastage"|"Return"|"Count";
 
   const INIT_TXN = [
-    { id:"TXN-0291", date:"14 Oct 14:22", item:"Bath Towels",         sku:"LIN-001", type:"Issue" as TxnType,      qty:-12, from:"Linen Store",    to:"Room 202",         ref:"HK-TASK-0441",  unitCost:2800, value:33600,  by:"Ada Okonkwo",    reason:"" },
-    { id:"TXN-0290", date:"14 Oct 13:05", item:"Mineral Water 50cl",  sku:"FB-001",  type:"Receipt" as TxnType,    qty:500, from:"",               to:"F&B Store",        ref:"PO-0451",       unitCost:120,  value:60000,  by:"Store Mgr",      reason:"" },
-    { id:"TXN-0289", date:"14 Oct 11:30", item:"Eggs (Crate)",        sku:"FB-002",  type:"Issue" as TxnType,      qty:-5,  from:"Cold Room",       to:"Main Kitchen",     ref:"KITCHEN-DAILY", unitCost:3800, value:19000,  by:"Chef Emeka",     reason:"" },
-    { id:"TXN-0288", date:"14 Oct 09:15", item:"Floor Cleaner 5L",    sku:"CLN-001", type:"Adjustment" as TxnType, qty:-2,  from:"Maintenance",     to:"",                 ref:"BREAKAGE-ADJ",  unitCost:2200, value:4400,   by:"Mgr. Bello",     reason:"2 bottles broken during cleaning shift" },
-    { id:"TXN-0287", date:"13 Oct 22:00", item:"Shower Gel 300ml",    sku:"TOI-001", type:"Issue" as TxnType,      qty:-24, from:"Housekeeping",    to:"Room Restocking",  ref:"HK-SHIFT-PM",   unitCost:450,  value:10800,  by:"HK Supervisor",  reason:"" },
-    { id:"TXN-0286", date:"13 Oct 16:40", item:"Cooking Gas (12.5kg)",sku:"KIT-001", type:"Receipt" as TxnType,    qty:6,   from:"",               to:"Kitchen",          ref:"PO-0448",       unitCost:12500,value:75000,  by:"Store Mgr",      reason:"" },
-    { id:"TXN-0285", date:"13 Oct 10:20", item:"Shampoo 250ml",       sku:"TOI-002", type:"Return" as TxnType,     qty:8,   from:"Room Restocking", to:"Housekeeping",     ref:"HK-RETURN-003", unitCost:380,  value:3040,   by:"Ada Okonkwo",    reason:"Excess returned from floors" },
-    { id:"TXN-0284", date:"12 Oct 14:00", item:"Bath Towels",         sku:"LIN-001", type:"Transfer" as TxnType,   qty:20,  from:"Linen Store",     to:"Pool Towel Store", ref:"INTERNAL-TRF",  unitCost:2800, value:56000,  by:"HK Supervisor",  reason:"Pool restocking" },
-    { id:"TXN-0283", date:"12 Oct 09:00", item:"Palm Oil (25L)",      sku:"KIT-002", type:"Wastage" as TxnType,    qty:-1,  from:"Kitchen",         to:"",                 ref:"WASTE-OCT12",   unitCost:42000,value:42000,  by:"Chef Emeka",     reason:"Expired — past best-before date" },
-    { id:"TXN-0282", date:"11 Oct 18:00", item:"Eggs (Crate)",        sku:"FB-002",  type:"Count" as TxnType,      qty:0,   from:"Cold Room",       to:"",                 ref:"STOCKCOUNT-OCT",unitCost:3800, value:0,      by:"Mgr. Bello",     reason:"Periodic stock count — variance: 0" },
+    { id:"TXN-0291", date:"24 Jun 14:22", item:"Bath Towels",         sku:"LIN-001", type:"Issue" as TxnType,      qty:-12, from:"Linen Store",    to:"Room 202",         ref:"HK-TASK-0441",  unitCost:2800, value:33600,  by:"Ada Okonkwo",    reason:"" },
+    { id:"TXN-0290", date:"24 Jun 13:05", item:"Mineral Water 50cl",  sku:"FB-001",  type:"Receipt" as TxnType,    qty:500, from:"",               to:"F&B Store",        ref:"PO-0451",       unitCost:120,  value:60000,  by:"Store Mgr",      reason:"" },
+    { id:"TXN-0289", date:"24 Jun 11:30", item:"Eggs (Crate)",        sku:"FB-002",  type:"Issue" as TxnType,      qty:-5,  from:"Cold Room",       to:"Main Kitchen",     ref:"KITCHEN-DAILY", unitCost:3800, value:19000,  by:"Chef Emeka",     reason:"" },
+    { id:"TXN-0288", date:"24 Jun 09:15", item:"Floor Cleaner 5L",    sku:"CLN-001", type:"Adjustment" as TxnType, qty:-2,  from:"Maintenance",     to:"",                 ref:"BREAKAGE-ADJ",  unitCost:2200, value:4400,   by:"Mgr. Bello",     reason:"2 bottles broken during cleaning shift" },
+    { id:"TXN-0287", date:"23 Jun 22:00", item:"Shower Gel 300ml",    sku:"TOI-001", type:"Issue" as TxnType,      qty:-24, from:"Housekeeping",    to:"Room Restocking",  ref:"HK-SHIFT-PM",   unitCost:450,  value:10800,  by:"HK Supervisor",  reason:"" },
+    { id:"TXN-0286", date:"23 Jun 16:40", item:"Cooking Gas (12.5kg)",sku:"KIT-001", type:"Receipt" as TxnType,    qty:6,   from:"",               to:"Kitchen",          ref:"PO-0448",       unitCost:12500,value:75000,  by:"Store Mgr",      reason:"" },
+    { id:"TXN-0285", date:"23 Jun 10:20", item:"Shampoo 250ml",       sku:"TOI-002", type:"Return" as TxnType,     qty:8,   from:"Room Restocking", to:"Housekeeping",     ref:"HK-RETURN-003", unitCost:380,  value:3040,   by:"Ada Okonkwo",    reason:"Excess returned from floors" },
+    { id:"TXN-0284", date:"22 Jun 14:00", item:"Bath Towels",         sku:"LIN-001", type:"Transfer" as TxnType,   qty:20,  from:"Linen Store",     to:"Pool Towel Store", ref:"INTERNAL-TRF",  unitCost:2800, value:56000,  by:"HK Supervisor",  reason:"Pool restocking" },
+    { id:"TXN-0283", date:"22 Jun 09:00", item:"Palm Oil (25L)",      sku:"KIT-002", type:"Wastage" as TxnType,    qty:-1,  from:"Kitchen",         to:"",                 ref:"WASTE-OCT12",   unitCost:42000,value:42000,  by:"Chef Emeka",     reason:"Expired — past best-before date" },
+    { id:"TXN-0282", date:"21 Jun 18:00", item:"Eggs (Crate)",        sku:"FB-002",  type:"Count" as TxnType,      qty:0,   from:"Cold Room",       to:"",                 ref:"STOCKCOUNT-OCT",unitCost:3800, value:0,      by:"Mgr. Bello",     reason:"Periodic stock count — variance: 0" },
   ];
 
   const typeColor: Record<TxnType,{bg:string;text:string}> = {
@@ -551,7 +551,7 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
     if (needsReason && !newReason.trim()) { add({ type:"error", title:"Reason required for this transaction type" }); return; }
     const qty = parseInt(newQty)||0;
     const id  = `TXN-${String(parseInt(txns[0].id.split("-")[1])+1).padStart(4,"0")}`;
-    setTxns(prev => [{ id, date:"14 Oct now", item:newItem||"—", sku:"—", type:newType, qty, from:newFrom, to:newTo, ref:newRef||id, unitCost:0, value:0, by:"Current User", reason:newReason },...prev]);
+    setTxns(prev => [{ id, date:"24 Jun now", item:newItem||"—", sku:"—", type:newType, qty, from:newFrom, to:newTo, ref:newRef||id, unitCost:0, value:0, by:"Current User", reason:newReason },...prev]);
     add({ type:"success", title:`Transaction logged — ${newType}`, body:`${qty>=0?"+":""}${qty} · ${newItem}` });
     setShowNew(false); setNewItem(""); setNewQty(""); setNewFrom(""); setNewTo(""); setNewRef(""); setNewReason(""); setNewPin("");
   };
@@ -580,8 +580,8 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
       } />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Receipts Today"   value={String(txns.filter(t=>t.type==="Receipt"&&t.date.includes("14 Oct")).length)} sub="Items received"     icon={TrendingUp}    accent={SUCCESS} />
-        <StatCard label="Issues Today"     value={String(txns.filter(t=>t.type==="Issue"&&t.date.includes("14 Oct")).length)}   sub="Items consumed"     icon={TrendingDown}  accent={ORANGE}  />
+        <StatCard label="Receipts Today"   value={String(txns.filter(t=>t.type==="Receipt"&&t.date.includes("24 Jun")).length)} sub="Items received"     icon={TrendingUp}    accent={SUCCESS} />
+        <StatCard label="Issues Today"     value={String(txns.filter(t=>t.type==="Issue"&&t.date.includes("24 Jun")).length)}   sub="Items consumed"     icon={TrendingDown}  accent={ORANGE}  />
         <StatCard label="Adjustments"      value={String(txns.filter(t=>t.type==="Adjustment").length)}                         sub="Corrections (need reason)" icon={Edit3}   accent={WARNING} />
         <StatCard label="Wastage Value"    value={`₦${txns.filter(t=>t.type==="Wastage").reduce((s,t)=>s+t.value,0).toLocaleString()}`} sub="Written-off" icon={Trash2}  accent={ERROR}   />
       </div>
@@ -687,19 +687,19 @@ export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void })
   type POStatus = "Draft"|"Pending Approval"|"Approved"|"Sent"|"Partially Received"|"Received"|"Cancelled";
 
   const INIT_POS = [
-    { id:"PO-0451", supplier:"Abuja Fresh Farms",  raisedBy:"Store Mgr",    date:"10 Oct", expected:"12 Oct", status:"Received" as POStatus,           total:60000,  receivedPct:100, approver:"Mgr. Bello",
+    { id:"PO-0451", supplier:"Abuja Fresh Farms",  raisedBy:"Store Mgr",    date:"20 Jun", expected:"22 Jun", status:"Received" as POStatus,           total:60000,  receivedPct:100, approver:"Mgr. Bello",
       lines: [{ item:"Mineral Water 50cl", sku:"FB-001", ordered:500, received:500, unitCost:120,  total:60000 }] },
-    { id:"PO-0450", supplier:"Lagos Linen Co.",    raisedBy:"HK Supervisor", date:"08 Oct", expected:"13 Oct", status:"Received" as POStatus,           total:185000, receivedPct:100, approver:"Mgr. Bello",
+    { id:"PO-0450", supplier:"Lagos Linen Co.",    raisedBy:"HK Supervisor", date:"18 Jun", expected:"23 Jun", status:"Received" as POStatus,           total:185000, receivedPct:100, approver:"Mgr. Bello",
       lines: [{ item:"Bath Towels", sku:"LIN-001", ordered:100, received:100, unitCost:2900, total:290000 }] },
-    { id:"PO-0449", supplier:"Jumia Business",     raisedBy:"Store Mgr",    date:"05 Oct", expected:"07 Oct", status:"Partially Received" as POStatus,  total:78000,  receivedPct:60,  approver:"Mgr. Bello",
+    { id:"PO-0449", supplier:"Jumia Business",     raisedBy:"Store Mgr",    date:"15 Jun", expected:"17 Jun", status:"Partially Received" as POStatus,  total:78000,  receivedPct:60,  approver:"Mgr. Bello",
       lines: [{ item:"Floor Cleaner 5L", sku:"CLN-001", ordered:30, received:18, unitCost:2200, total:39600 },{ item:"Disinfectant Spray", sku:"CLN-002", ordered:50, received:30, unitCost:1800, total:54000 }] },
-    { id:"PO-0452", supplier:"Procter Nig.",       raisedBy:"HK Supervisor", date:"14 Oct", expected:"17 Oct", status:"Approved" as POStatus,           total:89600,  receivedPct:0,   approver:"Mgr. Bello",
+    { id:"PO-0452", supplier:"Procter Nig.",       raisedBy:"HK Supervisor", date:"24 Jun", expected:"27 Jun", status:"Approved" as POStatus,           total:89600,  receivedPct:0,   approver:"Mgr. Bello",
       lines: [{ item:"Shower Gel 300ml", sku:"TOI-001", ordered:200, received:0, unitCost:460, total:92000 },{ item:"Shampoo 250ml", sku:"TOI-002", ordered:200, received:0, unitCost:390, total:78000 }] },
-    { id:"PO-0453", supplier:"Eko Gas Ltd",        raisedBy:"Chef Emeka",   date:"14 Oct", expected:"15 Oct", status:"Sent" as POStatus,                total:75000,  receivedPct:0,   approver:"",
+    { id:"PO-0453", supplier:"Eko Gas Ltd",        raisedBy:"Chef Emeka",   date:"24 Jun", expected:"25 Jun", status:"Sent" as POStatus,                total:75000,  receivedPct:0,   approver:"",
       lines: [{ item:"Cooking Gas 12.5kg", sku:"KIT-001", ordered:6, received:0, unitCost:12500, total:75000 }] },
-    { id:"PO-0454", supplier:"Abuja Fresh Farms",  raisedBy:"Chef Emeka",   date:"14 Oct", expected:"14 Oct", status:"Pending Approval" as POStatus,    total:152000, receivedPct:0,   approver:"",
+    { id:"PO-0454", supplier:"Abuja Fresh Farms",  raisedBy:"Chef Emeka",   date:"24 Jun", expected:"24 Jun", status:"Pending Approval" as POStatus,    total:152000, receivedPct:0,   approver:"",
       lines: [{ item:"Eggs (Crate)", sku:"FB-002", ordered:40, received:0, unitCost:4000, total:160000 },{ item:"Palm Oil 25L", sku:"KIT-002", ordered:0, received:0, unitCost:44000, total:0 }] },
-    { id:"PO-0455", supplier:"GP Maintenance Ltd", raisedBy:"Maintenance",  date:"12 Oct", expected:"19 Oct", status:"Draft" as POStatus,               total:220000, receivedPct:0,   approver:"",
+    { id:"PO-0455", supplier:"GP Maintenance Ltd", raisedBy:"Maintenance",  date:"22 Jun", expected:"29 Jun", status:"Draft" as POStatus,               total:220000, receivedPct:0,   approver:"",
       lines: [{ item:"Maintenance Contract Q4", sku:"SVC-001", ordered:1, received:0, unitCost:220000, total:220000 }] },
   ];
 
