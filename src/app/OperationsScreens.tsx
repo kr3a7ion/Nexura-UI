@@ -2345,7 +2345,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                         style={{ flex:1, minWidth:DW, borderRight:`1px solid ${isWeekend?"#E2E8F0":"#F1F5F9"}`,
                                  backgroundColor: isToday?"#EFF6FF":isWeekend?"#F4F6FA":"transparent",
                                  borderLeft: isMon&&i>0 ? `2px solid ${BORDER}` : undefined }}>
-                        <span style={{ fontSize: 12, fontWeight:700, color:isToday?PRIMARY:isWeekend?MUTED:SUBTLE, textTransform:"uppercase", letterSpacing:"0.05em" }}>
+                        <span style={{ fontSize: 12, fontWeight:700, color:isToday?PRIMARY:isWeekend?MUTED:SUBTLE }}>
                           {d.toLocaleDateString("en-NG",{weekday:"short"}).slice(0,3)}
                         </span>
                         <div className="flex flex-col items-center">
@@ -2784,7 +2784,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                     <div key={i} className="flex flex-col items-center justify-center py-2 gap-0.5"
                       style={{ flex:1, minWidth:62, borderRight:`1px solid ${isWeekend?"#E2E8F0":"#F1F5F9"}`,
                                backgroundColor:isToday?"#EFF6FF":isWeekend?"#F4F6FA":"transparent" }}>
-                      <span style={{ fontSize: 12, fontWeight:700, textTransform:"uppercase", color:isToday?PRIMARY:isWeekend?MUTED:SUBTLE }}>
+                      <span style={{ fontSize: 12, fontWeight:700, color:isToday?PRIMARY:isWeekend?MUTED:SUBTLE }}>
                         {d.toLocaleDateString("en-NG",{weekday:"short"}).slice(0,3)}
                       </span>
                       <span style={{ fontSize:viewDays===7?17:14, fontWeight:800, lineHeight:1, color:isToday?PRIMARY:isWeekend?"#475569":TEXT }}>
