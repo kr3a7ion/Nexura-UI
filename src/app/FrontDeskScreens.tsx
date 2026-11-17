@@ -317,7 +317,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                 </div>
                 {ARRIVALS.length === 0 ? (
                   <div className="text-sm text-center py-8 rounded-xl" style={{ color: CK_MUT, backgroundColor: "white", border: `1.5px dashed ${CK_DSH}` }}>
-                    No arrivals match "{searchQ}"
+                    {ALL_ARRIVALS.length === 0 ? "Everyone due today has checked in. Walk-in guests are registered from Walk-In Registration." : `No arrivals match "${searchQ}"`}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -806,10 +806,9 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
   const [arSearch, setArSearch] = useState("");
   const [arTab, setArTab] = useState("All");
   const [arrivals, setArrivals] = useState([
-    // Already arrived today; still shown so the list reflects the whole day.
-    { id: "BK-2851", guest: "Dr. Chukwuemeka Bello", type: "Suite", room: "501", nights: 3, eta: "14:00", rate: 85000, balance: 0, vip: true, assigned: true, group: false, requests: "Welcome dinner", status: "Checked In", risk: false },
+    // On a normal day the list also shows a guest who already arrived and a group block.
+    ...(FO_ARRIVALS.length ? [{ id: "BK-2851", guest: "Dr. Chukwuemeka Bello", type: "Suite", room: "501", nights: 3, eta: "14:00", rate: 85000, balance: 0, vip: true, assigned: true, group: false, requests: "Welcome dinner", status: "Checked In", risk: false }, { id: "BK-2859", guest: "Lagos Corp Group (8 pax)", type: "Standard", room: "108–115", nights: 2, eta: "13:00", rate: 35000, balance: 0, vip: false, assigned: true, group: true, requests: "Meeting room required", status: "Confirmed", risk: false }] : []),
     ...FO_ARRIVALS.map(({ av, risk, ...a }) => ({ ...a, risk, assigned: !!a.room, group: false, requests: a.requests || "—" })),
-    { id: "BK-2859", guest: "Lagos Corp Group (8 pax)", type: "Standard", room: "108–115", nights: 2, eta: "13:00", rate: 35000, balance: 0, vip: false, assigned: true, group: true, requests: "Meeting room required", status: "Confirmed", risk: false },
   ]);
   type Arrival = typeof arrivals[number];
   const [arrivalAction, setArrivalAction] = useState<{ type: "assign" | "note" | "noshow"; id: string } | null>(null);
@@ -908,7 +907,7 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
             })}
           </tbody>
         </table>
-        {filtered.length === 0 && <div className="py-16 text-center"><Ph.CalendarCheck size={28} className="mx-auto mb-3" style={{ color: SUBTLE }} /><p className="text-sm" style={{ color: MUTED }}>No arrivals match your filters</p></div>}
+        {filtered.length === 0 && <div className="py-16 text-center"><Ph.CalendarCheck size={28} className="mx-auto mb-3" style={{ color: SUBTLE }} /><p className="text-sm" style={{ color: MUTED }}>{arrivals.length === 0 ? "No arrivals today. New bookings for today appear here as soon as they are made." : "No arrivals match your filters"}</p></div>}
       </div>
       {arrivalAction && activeArrival && (
         <>
@@ -1045,7 +1044,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
             })}
           </tbody>
         </table>
-        {filteredDep.length === 0 && <div className="py-16 text-center"><Ph.ArrowRight size={28} className="mx-auto mb-3" style={{ color: SUBTLE }} /><p className="text-sm" style={{ color: MUTED }}>No departures match your filters</p></div>}
+        {filteredDep.length === 0 && <div className="py-16 text-center"><Ph.ArrowRight size={28} className="mx-auto mb-3" style={{ color: SUBTLE }} /><p className="text-sm" style={{ color: MUTED }}>{dep.length === 0 ? "No departures today. Guests due to leave today appear here." : "No departures match your filters"}</p></div>}
       </div>
       {showBulkConfirm && (
         <>

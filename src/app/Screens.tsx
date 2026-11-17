@@ -1,5 +1,5 @@
 // Barrel — re-exports all screens by domain file
-export { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, ReservationGrid, NewReservation, CheckOut, InHouseGuests, GuestProfiles, FolioScreen, FinanceFolioManagement } from "./UIKit";
+export { Badge, EmptyState, ScreenLoading, ScreenError, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, ReservationGrid, NewReservation, CheckOut, InHouseGuests, GuestProfiles, FolioScreen, FinanceFolioManagement } from "./UIKit";
 export { DashboardMgmt, DashboardRole } from "./DashboardScreens";
 export { HKBoard, WorkOrders, InternalChat, POSTerminal, TableManagement, StaffDirectory, DailySummary, StockDashboard, RoomTypeManagement, RateCalendar, AvailabilityBoard } from "./OperationsScreens";
 export { CheckInWizard, PlaceholderScreen, ArrivalsScreen, DeparturesScreen, RoomAccessMgmt, KeyCardLog, PINManagement, ShiftHandover, GuestMessaging, KitchenDisplay, MenuManagement, LostFound, DNDLog, InvoiceReceipts, AccountsPayable } from "./FrontDeskScreens";

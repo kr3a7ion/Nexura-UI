@@ -1,7 +1,10 @@
 // Front Office made-up data. Every Front Office screen reads guests, charges and
 // arrivals from here, so one guest shows the same booking, room, stay and balance
 // everywhere. When the hotel server is wired, this file is the one that changes.
-import { BUSINESS_DATE } from "../constants";
+import { BUSINESS_DATE, DEMO_STATE } from "../constants";
+
+// ?state=empty shows a quiet day: nobody in house, nobody arriving.
+const EMPTY = DEMO_STATE === "empty";
 
 export type ChargeRow = { date: string; cat: string; desc: string; qty: number; unit: number; amount: number; by: string; tax: number; reversed: boolean; movedTo?: string };
 
@@ -17,7 +20,7 @@ export type Stay = {
 
 const TODAY = BUSINESS_DATE.toLocaleDateString("en-GB", { day: "numeric", month: "short" }); // "24 Jun"
 
-export const STAYS: Stay[] = [
+const ALL_STAYS: Stay[] = [
   // Leaving today
   { id: "BK-2848", folio: "FO-2841", guest: "Emmanuel Adeyemi", av: "EA", room: "202", type: "Deluxe", checkin: "22 Jun", checkout: "24 Jun", nights: 2, vip: false, phone: "+234 802 333 4444", visits: 3, paid: 55000, method: "Cash", checkoutTime: "11:00", lateCheckout: false, dnd: false, requests: 1, complaints: 0, lastActivity: "Today 08:30", creditLimit: false, unposted: true },
   { id: "BK-2846", folio: "FO-2840", guest: "Adaeze Okonkwo", av: "AO", room: "101", type: "Deluxe", checkin: "21 Jun", checkout: "24 Jun", nights: 3, vip: true, phone: "+234 803 111 2222", visits: 5, paid: 183825, method: "Card", checkoutTime: "11:00", lateCheckout: false, dnd: false, requests: 0, complaints: 0, lastActivity: "Today 09:42", creditLimit: false, unposted: false },
@@ -28,6 +31,8 @@ export const STAYS: Stay[] = [
   { id: "BK-2845", folio: "FO-2844", guest: "Ibrahim Lawal", av: "IL", room: "302", type: "Deluxe", checkin: "23 Jun", checkout: "26 Jun", nights: 3, vip: false, phone: "+234 806 222 3333", visits: 2, paid: 182965, method: "Card", checkoutTime: "11:00", lateCheckout: false, dnd: false, requests: 0, complaints: 0, lastActivity: "23 Jun 14:00", creditLimit: false, unposted: false },
   { id: "BK-2851", folio: "FO-2845", guest: "Dr. Chukwuemeka Bello", av: "CB", room: "501", type: "Suite", checkin: "24 Jun", checkout: "27 Jun", nights: 3, vip: true, phone: "+234 803 999 1111", visits: 12, paid: 301000, method: "Card", checkoutTime: "11:00", lateCheckout: false, dnd: false, requests: 1, complaints: 0, lastActivity: "Today 14:10", creditLimit: false, unposted: false },
 ];
+
+export const STAYS: Stay[] = EMPTY ? [] : ALL_STAYS;
 
 export const CHARGES: Record<string, ChargeRow[]> = {
   "BK-2848": [
@@ -97,9 +102,11 @@ export const folios = () => STAYS.map(s => {
 });
 
 // Today's arrivals: none of them are in house yet. Check-In and Arrivals list both read this.
-export const ARRIVALS = [
+const ALL_ARRIVALS = [
   { id: "BK-2855", guest: "Chief Emeka Okafor", av: "EO", room: "502", type: "Suite",    eta: "14:00", nights: 3, rate: 85000, vip: true,  requests: "Champagne + fruit basket",         balance: 0,     status: "Confirmed", risk: false },
   { id: "BK-2856", guest: "Aisha Mohammed",     av: "AM", room: "303", type: "Deluxe",   eta: "15:30", nights: 2, rate: 55000, vip: false, requests: "High floor preferred",             balance: 27500, status: "Confirmed", risk: false },
   { id: "BK-2857", guest: "Peter Okafor",       av: "PO", room: "",    type: "Standard", eta: "12:00", nights: 1, rate: 35000, vip: false, requests: "",                                 balance: 35000, status: "Confirmed", risk: true  },
   { id: "BK-2858", guest: "Ngozi Adeyemi",      av: "NA", room: "",    type: "Deluxe",   eta: "16:00", nights: 4, rate: 55000, vip: true,  requests: "Extra pillows, no smoking floor",  balance: 0,     status: "Pending",   risk: false },
 ];
+
+export const ARRIVALS = EMPTY ? [] : ALL_ARRIVALS;

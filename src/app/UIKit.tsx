@@ -5,7 +5,7 @@ import {
   SquaresFour, CalendarDots, Key, Bed, Wrench,
   ForkKnife, Chat, CurrencyDollar, Package, Users,
   Buildings, ChartBar, GearSix, CaretLeft, CaretRight,
-  Bell, SignOut, User, CaretDown, TrendUp, TrendDown,
+  Bell, SignOut, Receipt, User, CaretDown, TrendUp, TrendDown,
   Warning, CheckCircle, WifiSlash, Plus, MagnifyingGlass, Funnel,
   DotsThree, ArrowRight, House, Stack, XCircle, Lock, Globe,
   ClipboardText, CalendarCheck, Star, WarningCircle, Clock,
@@ -47,6 +47,29 @@ export function Badge({ label, colors }: { label: string; colors: { bg: string; 
       style={{ backgroundColor: colors.bg, color: colors.text, letterSpacing: "0.01em" }}>
       {label}
     </span>
+  );
+}
+
+// Shown while a screen's data is on its way from the hotel server.
+export function ScreenLoading() {
+  const bar = (w: string, h = 12) => <div className="rounded-md animate-pulse" style={{ width: w, height: h, backgroundColor: "#E4E4E7" }} />;
+  return (
+    <div role="status" aria-label="Loading" className="space-y-6">
+      <div className="space-y-2">{bar("220px", 22)}{bar("320px")}</div>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{[0, 1, 2, 3].map(i => <div key={i} className="space-y-3 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>{bar("36px", 36)}{bar("60%", 20)}{bar("40%")}</div>)}</div>
+      <div className="space-y-4 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>{[0, 1, 2, 3, 4, 5].map(i => <div key={i} className="flex items-center gap-4">{bar("32px", 32)}{bar("30%")}{bar("15%")}{bar("20%")}</div>)}</div>
+    </div>
+  );
+}
+
+// Shown when the hotel server cannot be reached from this computer.
+export function ScreenError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div role="alert" className="mx-auto mt-16 max-w-md rounded-2xl border bg-white p-8 text-center" style={{ borderColor: BORDER }}>
+      <h1 className="text-lg font-semibold" style={{ color: TEXT }}>Can't reach the hotel server</h1>
+      <p className="mt-2 text-sm leading-relaxed" style={{ color: MUTED }}>This computer has lost its connection to the server in the back office. Check the network cable or Wi-Fi, then try again. Nothing you saved has been lost.</p>
+      <button onClick={onRetry} className="mt-5 h-11 rounded-[10px] px-5 text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Try again</button>
+    </div>
   );
 }
 
@@ -1497,7 +1520,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
     date.setDate(date.getDate() + days);
     return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   };
-  const baseGuest = ALL_GUESTS.find(d => d.id === selectedId) ?? ALL_GUESTS[0];
+  // A quiet day has nobody to check out; the placeholder keeps the hooks below in order.
+  const baseGuest = ALL_GUESTS.find(d => d.id === selectedId) ?? ALL_GUESTS[0] ?? { id: "", guest: "", av: "", room: "", type: "", nights: 0, checkin: "", checkout: "", deposit: 0, vip: false, phone: "", visits: 0, dueToday: false };
   const addedNights = extensionMap[selectedId] ?? 0;
   const g = {
     ...baseGuest,
@@ -1566,6 +1590,14 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
   );
 
   // ── POST-CHECKOUT SUCCESS STATE ─────────────────────────────────────────
+  if (ALL_GUESTS.length === 0) return (
+    <div>
+      <PageHeader title="Guest Check-Out" sub={`Business date ${fmtDate(BUSINESS_DATE)}`} />
+      <div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
+        <EmptyState icon={SignOut} message="Nobody is checked in, so there is no one to check out. Guests appear here once they check in." />
+      </div>
+    </div>
+  );
   if (isCheckedOut) return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -2466,7 +2498,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         {["All", "VIP", "Outstanding", "DND", "Attention", "Departing"].map(f => <button key={f} onClick={() => setIhFilter(f)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold transition-all" style={{ backgroundColor: ihFilter===f ? PRIMARY : "white", color: ihFilter===f ? "white" : MUTED, borderColor: ihFilter===f ? PRIMARY : BORDER }}>{f}</button>)}
         <span className="ml-auto text-xs" style={{ color: SUBTLE }}>{filtered.length} of {guests.length}</span>
       </div>
-      {filtered.length === 0 ? <EmptyState icon={Users} message="No guests match your filters" /> : (
+      {filtered.length === 0 ? <EmptyState icon={Users} message={guests.length === 0 ? "Nobody is checked in. Guests appear here once they check in." : "No guests match your filters"} cta={guests.length === 0 ? "Go to Check-In" : undefined} onCta={() => nav?.("check-in", "Check-In")} /> : (
         <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full min-w-[1050px]">
             <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["Room", "Guest", "Check-in", "Check-out", "Nights Left", "Balance", "Flags", "Actions"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
@@ -2885,6 +2917,14 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
     setShowCharge(false); setCharge({ cat: "Restaurant", desc: "", qty: "1", amount: "" });
     add({ type: "success", title: "Charge posted", body: `${charge.cat} · ₦${total.toLocaleString()}` });
   };
+  if (STAYS.length === 0) return (
+    <div>
+      <PageHeader title="Folio Management" sub="Open guest folios" />
+      <div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
+        <EmptyState icon={Receipt} message="No open folios. A folio opens when a guest checks in." cta="Go to Check-In" onCta={() => nav?.("check-in", "Check-In")} />
+      </div>
+    </div>
+  );
   return (
     <div>
       <PageHeader title="Folio — BK-2848" sub="Emmanuel Adeyemi · Room 202 · 22–24 Jun 2026"

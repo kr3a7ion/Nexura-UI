@@ -30,6 +30,7 @@ stampNow
 } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
 import { DateInput } from "./DateInput";
+import { ARRIVALS as FO_ARRIVALS } from "./mock/frontOffice";
 
 export function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
   const isFemale = gender === "F";
@@ -1724,10 +1725,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
 
 // FD-03 Room Assignment Board
 export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
-  const UNASSIGNED_ARRIVALS = [
-    { id: "BK-2851", guest: "Emmanuel Adeyemi", av: "EA", type: "Standard", eta: "12:00", vip: false, nights: 1 },
-    { id: "BK-2852", guest: "Fatima Al-Hassan", av: "FA", type: "Deluxe", eta: "16:00", vip: true, nights: 4 },
-  ];
+  const UNASSIGNED_ARRIVALS = FO_ARRIVALS.filter(a => !a.room).map(({ id, guest, av, type, eta, vip, nights }) => ({ id, guest, av, type, eta, vip, nights }));
   const ALL_ROOMS = [
     { id: "101", type: "Standard", floor: 1, status: "Occupied", hkSt: "Occupied", guest: "Adaeze Okonkwo" },
     { id: "102", type: "Standard", floor: 1, status: "Available", hkSt: "Inspected", guest: null },
@@ -1740,7 +1738,7 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
     { id: "301", type: "Suite", floor: 3, status: "Available", hkSt: "Inspected", guest: null },
     { id: "302", type: "Deluxe", floor: 3, status: "Occupied", hkSt: "Occupied", guest: "Ibrahim Lawal" },
     { id: "304", type: "Standard", floor: 3, status: "Occupied", hkSt: "Occupied", guest: "Chukwuemeka Obi" },
-    { id: "501", type: "Suite", floor: 5, status: "Available", hkSt: "Inspected", guest: null },
+    { id: "501", type: "Suite", floor: 5, status: "Occupied", hkSt: "Occupied", guest: "Dr. Chukwuemeka Bello" },
   ];
   const [selGuest, setSelGuest] = useState<string | null>(null);
   const [assigned, setAssigned] = useState<Record<string, string>>({});

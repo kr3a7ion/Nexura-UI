@@ -93,6 +93,9 @@ export const actBg = (t: string) => ({ checkin: "#F0FDF4", checkout: "#F8FAFC", 
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 export const uid = () => Math.random().toString(36).slice(2);
+// Design review: add ?state=loading|error|empty|offline to the address to see a screen in that state.
+export const DEMO_STATE = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("state");
+
 // Mock "today" for every screen until the hotel server supplies the business date.
 export const BUSINESS_DATE = new Date(2026, 5, 24);
 // One date format everywhere: "24 Jun 2026". Accepts a Date or an ISO "2026-06-24" string.
