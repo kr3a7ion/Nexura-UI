@@ -765,30 +765,8 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
       />
 
       {/* KPI strip */}
-      <div className="grid grid-cols-4 gap-3 mb-5">
-        {kpi.map(k => {
-          const KIcon = k.icon;
-          return (
-            <div key={k.label} className="bg-white rounded-xl border overflow-hidden flex"
-              style={{ borderColor: BORDER }}>
-              {/* Left accent bar */}
-              <div className="w-1 flex-shrink-0" style={{ backgroundColor: k.color }} />
-              <div className="flex items-center gap-3 px-4 py-4 flex-1">
-                {/* Icon bubble */}
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: `${k.color}14` }}>
-                  <KIcon size={18} style={{ color: k.color }} />
-                </div>
-                {/* Text */}
-                <div>
-                  <p className="text-2xl font-bold leading-none mb-1" style={{ color: k.color, fontFamily: mono }}>{k.value}</p>
-                  <p className="text-xs font-semibold" style={{ color: TEXT }}>{k.label}</p>
-                  <p className="text-xs" style={{ color: SUBTLE }}>{k.sub}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div className="grid grid-cols-1 gap-4 mb-5 sm:grid-cols-4">
+        {kpi.map(k => <StatCard key={k.label} label={k.label} value={String(k.value)} sub={k.sub} icon={k.icon} accent={k.color} />)}
       </div>
 
       {/* Quick filter tabs */}
@@ -1995,18 +1973,18 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
   };
   const TABS = ["Profile", "Stay History", "Preferences", "Folio History", "Requests & Complaints", "Notes"];
   const STAYS = [
-    { id: "BK-2849", dates: "24–27 Jun 2025", room: "Suite 501", nights: 3, total: 273375, status: "Confirmed" },
+    { id: "BK-2849", dates: "24–27 Jun 2026", room: "Suite 501", nights: 3, total: 273375, status: "Confirmed" },
     { id: "BK-2741", dates: "15–18 May 2025", room: "Suite 501", nights: 3, total: 273375, status: "Checked Out" },
     { id: "BK-2630", dates: "8–10 Apr 2025", room: "Suite 502", nights: 2, total: 182250, status: "Checked Out" },
     { id: "BK-2511", dates: "10–12 Mar 2025", room: "Suite 501", nights: 2, total: 182250, status: "Checked Out" },
     { id: "BK-2390", dates: "12–13 Feb 2025", room: "Deluxe 302", nights: 1, total: 55000, status: "Checked Out" },
   ];
   const FOLIO_HIST = [
-    { stay: "24–27 Jun 2025", charges: [{ cat: "Room", desc: "Suite 501 × 3 nights", amt: 273375 }, { cat: "Restaurant", desc: "Room Service × 2", amt: 17000 }, { cat: "Bar", desc: "Minibar charges", amt: 8200 }], total: 298575, settled: false },
+    { stay: "24–27 Jun 2026", charges: [{ cat: "Room", desc: "Suite 501 × 3 nights", amt: 273375 }, { cat: "Restaurant", desc: "Room Service × 2", amt: 17000 }, { cat: "Bar", desc: "Minibar charges", amt: 8200 }], total: 298575, settled: false },
     { stay: "15–18 May 2025", charges: [{ cat: "Room", desc: "Suite 501 × 3 nights", amt: 273375 }, { cat: "Laundry", desc: "Express laundry × 4", amt: 8000 }], total: 281375, settled: true },
   ];
   const NOTES = [
-    { id: 1, author: "Grace Mensah", role: "Hotel Manager", ts: "24 Jun 2025 · 08:30", note: "VIP confirmed for arrival today. Champagne and fruit basket prepared and placed in room. Suite 501 upgraded per standing preference." },
+    { id: 1, author: "Grace Mensah", role: "Hotel Manager", ts: "24 Jun 2026 · 08:30", note: "VIP confirmed for arrival today. Champagne and fruit basket prepared and placed in room. Suite 501 upgraded per standing preference." },
     { id: 2, author: "John Abubakar", role: "Front Desk", ts: "18 May 2025 · 12:15", note: "Guest requested extra towels on check-in. Noted preference for firm pillows. Very pleasant interaction." },
     { id: 3, author: "Fatima Al-Hassan", role: "Reservations", ts: "10 Mar 2025 · 09:00", note: "Corporate account confirmed — monthly visits for board meetings. Invoice to be directed to Bello & Associates Ltd." },
   ];
@@ -2160,7 +2138,7 @@ export function GuestProfileDetail({ add, nav, guestId = "G-002" }: { add: (t: O
                 <div className="space-y-2 mb-5">
                   <div className="p-3 rounded-xl flex items-start gap-3" style={{ backgroundColor: "#EFF6FF" }}>
                     <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: PRIMARY }} />
-                    <div className="flex-1"><div className="text-sm font-medium" style={{ color: TEXT }}>Champagne and fruit basket placed in room</div><div className="text-xs mt-0.5" style={{ color: MUTED }}>Submitted: 24 Jun 2025 · Fulfilled by Housekeeping</div></div>
+                    <div className="flex-1"><div className="text-sm font-medium" style={{ color: TEXT }}>Champagne and fruit basket placed in room</div><div className="text-xs mt-0.5" style={{ color: MUTED }}>Submitted: 24 Jun 2026 · Fulfilled by Housekeeping</div></div>
                     <Badge label="Fulfilled" colors={{ bg: "#DCFCE7", text: "#166534" }} />
                   </div>
                 </div>

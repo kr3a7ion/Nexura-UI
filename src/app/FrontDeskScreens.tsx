@@ -23,7 +23,7 @@ import {
 } from "recharts";
 import * as Ph from "@phosphor-icons/react";
 import {
-  type Role, type Toast, type ToastType, type AddToast, fmtN, uid, actC, actBg,
+  type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
@@ -709,8 +709,8 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     ["Reservation", selData.id, true],
                     ["Room Type", selData.type, false],
                     ["Assigned Room", selRoom ?? (selData.room || "—"), true],
-                    ["Check-in", "24 Jun 2025", false],
-                    ["Check-out", selData.nights === 3 ? "27 Jun 2025" : "25 Jun 2025", false],
+                    ["Check-in", fmtDate(BUSINESS_DATE), false],
+                    ["Check-out", selData.nights === 3 ? "27 Jun 2026" : "25 Jun 2026", false],
                     ["Nights", String(selData.nights), false],
                   ].map(([k, v, isMono]) => (
                     <div key={k as string} className="flex justify-between">
@@ -858,7 +858,7 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
   };
   return (
     <div>
-      <PageHeader title="Today's Arrivals" sub={`24 Jun 2025 · Check-in from ${PROPERTY_PROFILE.checkInTime}`} actions={<><BtnO label="Print Manifest" icon={Ph.FileText} onClick={() => add({ type: "info", title: "Arrival manifest sent to printer" })} /><BtnP label="Quick Check-In" icon={Ph.Key} onClick={() => nav && nav("check-in", "Check-In")} /></>} />
+      <PageHeader title="Today's Arrivals" sub={`${fmtDate(BUSINESS_DATE)} · Check-in from ${PROPERTY_PROFILE.checkInTime}`} actions={<><BtnO label="Print Manifest" icon={Ph.FileText} onClick={() => add({ type: "info", title: "Arrival manifest sent to printer" })} /><BtnP label="Quick Check-In" icon={Ph.Key} onClick={() => nav && nav("check-in", "Check-In")} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Expected" value={String(expected)} sub="Total today's arrivals" icon={Ph.CalendarCheck} accent={PRIMARY} />
         <StatCard label="Arrived" value={String(arrived)} sub="Checked in" icon={Ph.CheckCircle} accent={SUCCESS} />
@@ -1009,7 +1009,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
   };
   return (
     <div>
-      <PageHeader title="Today's Departures" sub={`24 Jun 2025 · Standard check-out ${PROPERTY_PROFILE.checkOutTime}`} actions={<><BtnO label="Print List" icon={Ph.FileText} onClick={() => add({ type: "info", title: "Departure list sent to printer" })} /><BtnP label={`Express Check-Out${selectedEligible.length ? ` (${selectedEligible.length})` : ""}`} icon={Ph.ArrowRight} onClick={() => setShowBulkConfirm(true)} /></>} />
+      <PageHeader title="Today's Departures" sub={`${fmtDate(BUSINESS_DATE)} · Standard check-out ${PROPERTY_PROFILE.checkOutTime}`} actions={<><BtnO label="Print List" icon={Ph.FileText} onClick={() => add({ type: "info", title: "Departure list sent to printer" })} /><BtnP label={`Express Check-Out${selectedEligible.length ? ` (${selectedEligible.length})` : ""}`} icon={Ph.ArrowRight} onClick={() => setShowBulkConfirm(true)} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Expected" value={String(dep.length)} sub="Departures today" icon={Ph.ArrowRight} accent={PRIMARY} />
         <StatCard label="Departed" value={String(departed)} sub="Rooms released" icon={Ph.CheckCircle} accent={SUCCESS} />
@@ -1058,7 +1058,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
                   <td className="px-4 py-3">
                     {!done && (
                       <div className="flex gap-1.5">
-                        <button onClick={() => { add({ type: "info", title: "Check-out initiated", body: `Room ${d.room} · ${d.guest}` }); nav && nav("check-out", "Check-Out", d.id); }} className="text-xs px-3 py-1.5 rounded-xl font-bold text-white hover:opacity-90 transition-all whitespace-nowrap" style={{ backgroundColor: TEAL }}>Check Out</button>
+                        <button onClick={() => { add({ type: "info", title: "Check-out initiated", body: `Room ${d.room} · ${d.guest}` }); nav && nav("check-out", "Check-Out", d.id); }} className="text-xs px-3 py-1.5 rounded-xl font-bold text-white hover:opacity-90 transition-all whitespace-nowrap" style={{ backgroundColor: PRIMARY }}>Check Out</button>
                         <button onClick={() => openDepartureAction("charge", d)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: BORDER }}>Post Charge</button>
                         {!d.lateFlag && !d.overstay && (
                           <button onClick={() => openDepartureAction("late", d)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold hover:bg-[#F4F4F5] transition-all whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Late Check-Out</button>

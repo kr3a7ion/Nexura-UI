@@ -22,7 +22,7 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 import {
-  type Role, type Toast, type ToastType, type AddToast, fmtN, uid, actC, actBg,
+  type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
@@ -65,7 +65,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-lg font-bold" style={{ color: TEXT }}>Management Dashboard</h1>
-          <div className="text-xs mt-0.5" style={{ color: MUTED }}>Grand Palms, Abuja &nbsp;·&nbsp; Business date: 01 Aug 2026</div>
+          <div className="text-xs mt-0.5" style={{ color: MUTED }}>Grand Palms, Abuja &nbsp;·&nbsp; Business date: {fmtDate(BUSINESS_DATE)}</div>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => go("new-reservation", "New Reservation")}
@@ -271,7 +271,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
               </div>
               <div>
                 <div className="text-xs font-semibold" style={{ color: TEXT }}>Night Audit</div>
-                <div className="text-xs" style={{ color: SUBTLE }}>Business date: 01 Aug 2026</div>
+                <div className="text-xs" style={{ color: SUBTLE }}>Business date: {fmtDate(BUSINESS_DATE)}</div>
               </div>
               <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full"
                 style={{ backgroundColor: auditRunning ? `${TEAL}14` : "#FEF3C7", color: auditRunning ? TEAL : "#92400E" }}>
@@ -282,7 +282,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
               Last run: <span style={{ fontFamily: "'JetBrains Mono', monospace", color: TEXT }}>31 Jul 2026 · 23:58</span>
             </div>
             {!auditRunning ? (
-              <button onClick={() => { setAuditRunning(true); add({ type: "info", title: "Night audit started", body: "Processing business date 01 Aug 2026…" }); setTimeout(() => { setAuditRunning(false); add({ type: "success", title: "Night audit complete", body: "Business date rolled to 02 Aug 2026." }); }, 4000); }}
+              <button onClick={() => { setAuditRunning(true); add({ type: "info", title: "Night audit started", body: `Processing business date ${fmtDate(BUSINESS_DATE)}…` }); setTimeout(() => { setAuditRunning(false); add({ type: "success", title: "Night audit complete", body: "Business date rolled to 02 Aug 2026." }); }, 4000); }}
                 className="w-full py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
                 style={{ backgroundColor: PRIMARY }}>
                 Run Night Audit
@@ -410,7 +410,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         <div className="flex items-center justify-between mb-5">
           <div>
             <h1 className="text-lg font-bold" style={{ color: TEXT }}>Front Desk</h1>
-            <div className="text-xs mt-0.5" style={{ color: MUTED }}>01 Aug 2026 · Morning shift 07:00–15:00</div>
+            <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · Morning shift 07:00–15:00</div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => go("walk-in", "Walk-In Registration")}
@@ -577,7 +577,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
     <div>
       <div className="flex items-center justify-between mb-5">
         <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>Housekeeping</h1>
-          <div className="text-xs mt-0.5" style={{ color: MUTED }}>01 Aug 2026 · Morning shift</div></div>
+          <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · Morning shift</div></div>
         <div className="flex gap-2">
           <button onClick={() => go("new-trip", "New Trip Request")}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border" style={{ borderColor: BORDER, color: MUTED }}>
@@ -643,7 +643,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
     <div>
       <div className="flex items-center justify-between mb-5">
         <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>Maintenance</h1>
-          <div className="text-xs mt-0.5" style={{ color: MUTED }}>01 Aug 2026 · Technician view</div></div>
+          <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · Technician view</div></div>
         <div className="flex gap-2">
           <button onClick={() => go("new-trip", "New Trip Request")}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border" style={{ borderColor: BORDER, color: MUTED }}>
@@ -755,7 +755,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
     <div>
       <div className="flex items-center justify-between mb-5">
         <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>Restaurant & POS</h1>
-          <div className="text-xs mt-0.5" style={{ color: MUTED }}>01 Aug 2026 · Breakfast 06:30–10:30</div></div>
+          <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · Breakfast 06:30–10:30</div></div>
         <div className="flex gap-2">
           <button onClick={() => go("new-trip", "New Trip Request")}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border" style={{ borderColor: BORDER, color: MUTED }}>
@@ -838,7 +838,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
       <div>
         <div className="flex items-center justify-between mb-5">
           <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>Finance &amp; Billing</h1>
-            <div className="text-xs mt-0.5" style={{ color: MUTED }}>01 Aug 2026 · Day close: Pending</div></div>
+            <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · Day close: Pending</div></div>
           <div className="flex gap-2">
             <button onClick={() => go("accounting-export", "Accounting Export")}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border" style={{ borderColor: BORDER, color: MUTED }}>
@@ -976,7 +976,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
       <div>
         <div className="flex items-center justify-between mb-5">
           <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>Reservations</h1>
-            <div className="text-xs mt-0.5" style={{ color: MUTED }}>01 Aug 2026 · Reservations Officer view</div></div>
+            <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · Reservations Officer view</div></div>
           <div className="flex gap-2">
             <button onClick={() => go("reservation-search", "Reservation Search")}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border" style={{ borderColor: BORDER, color: MUTED }}>
@@ -1102,7 +1102,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
     <div>
       <div className="flex items-center justify-between mb-5">
         <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>IT Administration</h1>
-          <div className="text-xs mt-0.5" style={{ color: MUTED }}>01 Aug 2026 · System status</div></div>
+          <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · System status</div></div>
         <button onClick={() => go("system-health", "System Health")}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>
           <Server size={13} />System Health
@@ -1189,7 +1189,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         <div className="flex items-start justify-between mb-5">
           <div>
             <h1 className="text-lg font-bold" style={{ color: TEXT }}>Fleet &amp; Transport</h1>
-            <div className="text-xs mt-0.5" style={{ color: MUTED }}>01 Aug 2026 · Fleet Supervisor view</div>
+            <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · Fleet Supervisor view</div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => go("vehicle-register", "Vehicle Register")}
@@ -1326,7 +1326,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
       <div>
         <div className="flex items-center justify-between mb-5">
           <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>My Dashboard</h1>
-            <div className="text-xs mt-0.5" style={{ color: MUTED }}>01 Aug 2026 · Driver view</div></div>
+            <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · Driver view</div></div>
           <button onClick={() => go("new-trip", "New Trip Request")}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>
             <Car size={13} />Request Trip
@@ -1398,7 +1398,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
     <div>
       <div className="flex items-center justify-between mb-5">
         <div><h1 className="text-lg font-bold" style={{ color: TEXT }}>Management Overview</h1>
-          <div className="text-xs mt-0.5" style={{ color: MUTED }}>01 Aug 2026 · Role: {role}</div></div>
+          <div className="text-xs mt-0.5" style={{ color: MUTED }}>{fmtDate(BUSINESS_DATE)} · Role: {role}</div></div>
         <div className="flex gap-2">
           <button onClick={() => go("new-reservation", "New Reservation")}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>
