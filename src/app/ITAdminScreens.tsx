@@ -1,7 +1,7 @@
 // Batch 17 — IT Admin & Devices (7 screens)
 // UserManagement, SystemHealth, SchemaUpdateStatus, DeviceManagement,
 // BackupRestore, AuditLog, ErrorLog
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import {
   Users, Shield, Server, HardDrive, Activity, Database,
   Cpu, Wifi, WifiOff, CheckCircle2, AlertTriangle, XCircle,
@@ -810,7 +810,7 @@ export function AuditLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <thead><TH cols={["Timestamp", "Actor", "Role", "Action", "Entity", "IP", "Device", ""]} /></thead>
           <tbody>
             {filtered.map((e, i) => (
-              <>
+              <Fragment key={i}>
                 <tr key={i} className="border-t cursor-pointer hover:bg-slate-50" style={{ borderColor: BORDER }} onClick={() => setExpandedRow(expandedRow === e.ts ? null : e.ts)}>
                   <td className="px-3 py-2.5 text-xs" style={{ color: MUTED, fontFamily: mono, whiteSpace: "nowrap" }}>{e.ts}</td>
                   <td className="px-3 py-2.5 text-xs font-semibold" style={{ color: TEXT }}>{e.actor}</td>
@@ -826,7 +826,7 @@ export function AuditLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                     <td colSpan={8} className="px-4 py-2.5 text-xs" style={{ color: MUTED }}><strong style={{ color: TEXT }}>Detail:</strong> {e.detail}</td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>

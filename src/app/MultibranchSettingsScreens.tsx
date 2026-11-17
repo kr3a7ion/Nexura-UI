@@ -21,6 +21,7 @@ import {
   BORDER, TEXT, MUTED, SUBTLE,
 } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO } from "./UIKit";
+import { TextOrDate } from "./DateInput";
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -55,7 +56,7 @@ function Inp({ label, defaultValue, type = "text", placeholder }: { label?: stri
   return (
     <div className={label ? "mb-3" : ""}>
       {label && <div className="text-xs font-medium mb-1" style={{ color: MUTED }}>{label}</div>}
-      <input aria-label={label} type={type} defaultValue={defaultValue} placeholder={placeholder} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, color: TEXT }} />
+      <TextOrDate aria-label={label} type={type} defaultValue={defaultValue} placeholder={placeholder} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, color: TEXT }} />
     </div>
   );
 }

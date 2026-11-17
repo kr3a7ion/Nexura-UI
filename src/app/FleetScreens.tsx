@@ -1,6 +1,6 @@
 // Batch 19 — Fleet Operations (5 screens)
 // DispatchBoard, TripDetail, NewTripRequest, DriverRoster, FleetCosting
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import {
   Car, Navigation, Users, Clock, MapPin, Flag, CheckCircle2,
   AlertTriangle, Plus, Search, Filter, Download, Phone,
@@ -23,6 +23,7 @@ import {
 fmtDate, BUSINESS_DATE, stampNow
 } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO, Badge } from "./UIKit";
+import { DateInput } from "./DateInput";
 
 // ─── Shared fleet data ────────────────────────────────────────────────────────
 
@@ -1010,7 +1011,7 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Date Needed *</div>
-                    <input aria-label="Date Needed " type="date" value={df.dateNeeded} onChange={e => setDf(f => ({ ...f, dateNeeded: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
+                    <DateInput aria-label="Date Needed " type="date" value={df.dateNeeded} onChange={e => setDf(f => ({ ...f, dateNeeded: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Time Needed</div>
@@ -1407,11 +1408,11 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                     </div>
                     <div>
                       <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Licence Expiry *</div>
-                      <input aria-label="Licence Expiry " type="date" value={nf.licExpiry} onChange={e => setNf(f => ({ ...f, licExpiry: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
+                      <DateInput aria-label="Licence Expiry " type="date" value={nf.licExpiry} onChange={e => setNf(f => ({ ...f, licExpiry: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
                     </div>
                     <div>
                       <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Medical Cert. Expiry *</div>
-                      <input aria-label="Medical Cert. Expiry " type="date" value={nf.medExpiry} onChange={e => setNf(f => ({ ...f, medExpiry: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
+                      <DateInput aria-label="Medical Cert. Expiry " type="date" value={nf.medExpiry} onChange={e => setNf(f => ({ ...f, medExpiry: e.target.value }))} className={inp} style={{ borderColor:BORDER }} />
                     </div>
                     <div>
                       <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Permit Reference</div>
@@ -1556,7 +1557,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                   const sp = DRIVER_STATUS_PILL[d.status];
                   const rowBg = isSuspended ? "#FFFAF0" : "white";
                   return (
-                    <>
+                    <Fragment key={d.id}>
                       <tr key={d.id} className="border-t cursor-pointer hover:bg-slate-50" style={{ borderColor:BORDER, backgroundColor:rowBg }} onClick={() => setSelected(sel ? null : d.id)}>
                         <td className="px-3 py-2.5">
                           <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white mb-0.5" style={{ backgroundColor:isSuspended?"#DC2626":PRIMARY }}>
@@ -1660,7 +1661,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -1884,7 +1885,7 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                 const cpk = v.km>0 ? (totalC/v.km).toFixed(0) : "—";
                 const cpt = v.trips>0 ? (totalC/v.trips).toFixed(0) : "—";
                 return (
-                  <>
+                  <Fragment key={v.plate}>
                     <tr key={v.plate} className="border-t cursor-pointer hover:bg-slate-50" style={{ borderColor:BORDER }} onClick={()=>setDrill(drill===v.plate?null:v.plate)}>
                       <td className="px-3 py-2.5 text-xs font-bold" style={{ color:PRIMARY, fontFamily:mono }}>{v.plate}</td>
                       <td className="px-3 py-2.5 text-xs" style={{ color:MUTED }}>{v.type}</td>
@@ -1909,7 +1910,7 @@ export function FleetCosting({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>

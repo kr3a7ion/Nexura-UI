@@ -40,6 +40,7 @@ import {
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
 
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
+import { TextOrDate } from "./DateInput";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
 function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
@@ -204,7 +205,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
   const CkIn = ({ type = "text", val, set, placeholder, err, readOnly }: {
     type?: string; val?: string; set?: (v: string) => void; placeholder?: string; err?: boolean; readOnly?: boolean;
   }) => (
-    <input type={type} value={val ?? ""} onChange={e => set?.(e.target.value)} placeholder={placeholder} readOnly={readOnly}
+    <TextOrDate type={type} value={val ?? ""} onChange={e => set?.(e.target.value)} placeholder={placeholder} readOnly={readOnly}
       className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
       style={{ border: `1.5px solid ${err ? ERROR : CK_DSH}`, backgroundColor: readOnly ? CK_BG : "white", color: TEXT }} />
   );
@@ -1700,7 +1701,7 @@ export function GuestMessaging({ add }: { add: (t: Omit<Toast, "id">) => void })
 
           <div className="px-5 py-3 border-t" style={{ borderColor:BORDER }}>
             <div className="flex items-center gap-2 mb-2">
-              <select value={cur.channel} className="text-xs px-2 py-1 rounded border outline-none" style={{ borderColor:BORDER, color:MUTED }}>
+              <select key={cur.name} defaultValue={cur.channel} aria-label="Channel" className="text-xs px-2 py-1 rounded border outline-none" style={{ borderColor:BORDER, color:MUTED }}>
                 {["WhatsApp","SMS","In-App"].map(c=><option key={c}>{c}</option>)}
               </select>
               <button onClick={()=>setShowCanned(c=>!c)} className="text-xs px-2 py-1 rounded border" style={{ color:MUTED, borderColor:BORDER }}>Canned Responses</button>

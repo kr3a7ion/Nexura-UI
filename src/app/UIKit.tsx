@@ -35,6 +35,7 @@ import {
   HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
 } from "./constants";
+import { TextOrDate } from "./DateInput";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -189,7 +190,7 @@ export function Inp({ label, placeholder, type, defaultValue, value, onChange, r
   return (
     <div>
       {label && <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>{label}</label>}
-      <input
+      <TextOrDate
         aria-label={label ?? placeholder}
         type={type ?? "text"}
         placeholder={placeholder}
@@ -625,7 +626,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   const Input = ({ type = "text", value, onChange, placeholder, err, mono: isMono }: {
     type?: string; value: string; onChange: (v: string) => void; placeholder?: string; err?: boolean; mono?: boolean;
   }) => (
-    <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+    <TextOrDate type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
       className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
       style={{ borderColor: err ? ERROR : PASS_DASH, border: `1.5px solid ${err ? ERROR : PASS_DASH}`, backgroundColor: "white", fontFamily: isMono ? mono : undefined }} />
   );

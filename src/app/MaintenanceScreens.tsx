@@ -34,6 +34,7 @@ import {
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
 } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
+import { DateInput } from "./DateInput";
 // MX-02 Work Order Detail
 export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const [status, setStatus] = useState("In Progress");
@@ -192,7 +193,7 @@ export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }
             {showFollowUp ? (
               <div className="space-y-2">
                 <select className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }}><option>Monthly PM — AC Unit</option><option>Quarterly — AC full service</option></select>
-                <input type="date" className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }} defaultValue="2026-07-24" />
+                <DateInput type="date" className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }} defaultValue="2026-07-24" />
                 <button onClick={() => { setShowFollowUp(false); add({ type: "success", title: "PM task created — AST-001" }); }} className="w-full py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Create PM Task</button>
               </div>
             ) : <p className="text-xs" style={{ color: SUBTLE }}>Create a preventive maintenance task from this work order to prevent recurrence.</p>}
@@ -473,7 +474,7 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowReschedule(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Reschedule — {showReschedule}</h3>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New Due Date</label><input aria-label="New Due Date" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New Due Date</label><DateInput aria-label="New Due Date" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowReschedule(null)} /><button disabled={!newDate} onClick={() => { add({ type: "info", title: `${showReschedule} rescheduled to ${newDate}` }); setShowReschedule(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Reschedule</button></div>
           </div>
         </>
@@ -598,7 +599,7 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
             <p className="text-xs mb-4" style={{ color: MUTED }}>{v.contact} · {v.phone}</p>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call Date</label><input aria-label="Call Date" type="date" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call Date</label><DateInput aria-label="Call Date" type="date" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Outcome</label><select aria-label="Outcome" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Resolved</option><option>Follow-up required</option><option>WO scheduled</option><option>Quote requested</option></select></div>
               </div>
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call Notes</label><textarea value={callNotes} onChange={e=>setCallNotes(e.target.value)} rows={3} placeholder="Summary of what was discussed…" aria-label="Summary of what was discussed" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>

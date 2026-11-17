@@ -29,6 +29,7 @@ import {
 stampNow
 } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
+import { DateInput } from "./DateInput";
 
 export function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
   const isFemale = gender === "F";
@@ -824,11 +825,11 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
               <div>
                 <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Check-In From</label>
-                <input aria-label="Check-In From" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateFrom ? TEAL : BORDER }} />
+                <DateInput aria-label="Check-In From" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateFrom ? TEAL : BORDER }} />
               </div>
               <div>
                 <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Check-In To</label>
-                <input aria-label="Check-In To" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateTo ? TEAL : BORDER }} />
+                <DateInput aria-label="Check-In To" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: dateTo ? TEAL : BORDER }} />
               </div>
               <div>
                 <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Room Type</label>
@@ -1573,7 +1574,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>Current check-out</label>
                 <p className="text-sm font-bold" style={{ color:TEXT }}>{res.checkout} at 11:00</p></div>
               <div><label className="text-xs font-semibold block mb-1" style={{ color:MUTED }}>New check-out date</label>
-                <input aria-label="New check-out date" type="date" value={newCheckout} onChange={e=>setNewCheckout(e.target.value)}
+                <DateInput aria-label="New check-out date" type="date" value={newCheckout} onChange={e=>setNewCheckout(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}/></div>
             </div>
             <div className="flex gap-3 px-5 pb-5">

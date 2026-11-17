@@ -39,6 +39,7 @@ import {
 
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { Av } from "./AdminScreens";
+import { DateInput, TextOrDate } from "./DateInput";
 export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [step, setStep] = useState(1);
   const [selRoom, setSelRoom] = useState<{ id: string; type: string; rate: number } | null>(null);
@@ -657,7 +658,7 @@ export function Announcements({ add }: { add: (t: Omit<Toast, "id">) => void }) 
               </div>
               <div className="grid grid-cols-2 gap-3 items-center">
                 <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Expires</label>
-                  <input aria-label="Expires" type="date" value={newAnn.expires} onChange={e=>setNewAnn(n=>({...n,expires:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} />
+                  <DateInput aria-label="Expires" type="date" value={newAnn.expires} onChange={e=>setNewAnn(n=>({...n,expires:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} />
                 </div>
                 <label className="flex items-center gap-2 mt-4 cursor-pointer">
                   <input type="checkbox" checked={newAnn.ackRequired} onChange={e=>setNewAnn(n=>({...n,ackRequired:e.target.checked}))} className="w-4 h-4 rounded" />
@@ -1251,17 +1252,17 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Check-In</label>
-                  <input aria-label="Check-In" type="date" value={form.checkin} onChange={e => upd("checkin", e.target.value)}
+                  <DateInput aria-label="Check-In" type="date" value={form.checkin} onChange={e => upd("checkin", e.target.value)}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Check-Out</label>
-                  <input aria-label="Check-Out" type="date" value={form.checkout} onChange={e => upd("checkout", e.target.value)}
+                  <DateInput aria-label="Check-Out" type="date" value={form.checkout} onChange={e => upd("checkout", e.target.value)}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>Cut-Off Date</label>
-                  <input aria-label="Cut-Off Date" type="date" value={form.cutoffDate} onChange={e => upd("cutoffDate", e.target.value)}
+                  <DateInput aria-label="Cut-Off Date" type="date" value={form.cutoffDate} onChange={e => upd("cutoffDate", e.target.value)}
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }} />
                 </div>
               </div>
@@ -1623,7 +1624,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                         {([["Organizer","organizer","text"],["Phone","phone","tel"],["Email","email","email"]] as [string,string,string][]).map(([label,field,type]) => (
                           <div key={field}>
                             <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>{label}</label>
-                            <input aria-label={label} type={type} value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                            <TextOrDate aria-label={label} type={type} value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
                               className="w-full px-3 py-2 rounded-lg text-sm"
                               style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }} />
                           </div>
@@ -1634,7 +1635,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                           {([["Check-In","checkin"],["Check-Out","checkout"],["Cut-Off","cutoffDate"]] as [string,string][]).map(([label,field]) => (
                             <div key={field}>
                               <label className="block text-xs font-bold mb-1" style={{ color: PASS_MUTED }}>{label}</label>
-                              <input aria-label={label} type="date" value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                              <DateInput aria-label={label} type="date" value={editForm[field] ?? ""} onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
                                 className="w-full px-2 py-2 rounded-lg text-xs"
                                 style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: "white", color: TEXT, outline: "none" }} />
                             </div>
@@ -3471,8 +3472,8 @@ export function LeaveManagement({ add }: { add: (t: Omit<Toast, "id">) => void }
               <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Staff Name</label><input value={newReq.staff} onChange={e=>setNewReq(r=>({...r,staff:e.target.value}))} placeholder="Full name…" aria-label="Full name" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
               <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Leave Type</label><select aria-label="Leave Type" value={newReq.type} onChange={e=>setNewReq(r=>({...r,type:e.target.value as LvType}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }}>{(["Annual","Sick","Casual","Maternity","Paternity","Compassionate","Study"] as LvType[]).map(t=><option key={t}>{t}</option>)}</select></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>From</label><input aria-label="From" type="date" value={newReq.from} onChange={e=>setNewReq(r=>({...r,from:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
-                <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>To</label><input aria-label="To" type="date" value={newReq.to} onChange={e=>setNewReq(r=>({...r,to:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
+                <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>From</label><DateInput aria-label="From" type="date" value={newReq.from} onChange={e=>setNewReq(r=>({...r,from:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
+                <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>To</label><DateInput aria-label="To" type="date" value={newReq.to} onChange={e=>setNewReq(r=>({...r,to:e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
               </div>
               <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Coverage Arrangement</label><input value={newReq.cover} onChange={e=>setNewReq(r=>({...r,cover:e.target.value}))} placeholder="Who will cover?" aria-label="Who will cover?" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor:BORDER, color:TEXT }} /></div>
               <div><label className="text-xs font-semibold mb-1 block" style={{ color:MUTED }}>Reason</label><textarea value={newReq.reason} onChange={e=>setNewReq(r=>({...r,reason:e.target.value}))} rows={2} placeholder="Brief reason…" aria-label="Brief reason" className="w-full px-3 py-2.5 rounded-xl border text-xs outline-none resize-none" style={{ borderColor:BORDER, color:TEXT }} /></div>

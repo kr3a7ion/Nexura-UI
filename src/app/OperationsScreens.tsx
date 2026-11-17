@@ -35,6 +35,7 @@ import {
 } from "./constants";
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, Av } from "./UIKit";
+import { DateInput } from "./DateInput";
 
 const HK_STATUS_CYCLE = ["Dirty", "In Progress", "Clean", "Inspected"] as const;
 
@@ -3156,13 +3157,13 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Check-in Date</label>
-                  <input aria-label="Check-in Date" value={grpForm.checkin} onChange={e=>setGrpForm(f=>({...f,checkin:e.target.value}))}
+                  <DateInput aria-label="Check-in Date" value={grpForm.checkin} onChange={e=>setGrpForm(f=>({...f,checkin:e.target.value}))}
                     type="date" className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}/>
                 </div>
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest block mb-1.5" style={{ color:MUTED }}>Check-out Date</label>
-                  <input aria-label="Check-out Date" value={grpForm.checkout} onChange={e=>setGrpForm(f=>({...f,checkout:e.target.value}))}
+                  <DateInput aria-label="Check-out Date" value={grpForm.checkout} onChange={e=>setGrpForm(f=>({...f,checkout:e.target.value}))}
                     type="date" className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border:`1.5px solid ${BORDER}`, backgroundColor:"white" }}/>
                 </div>
