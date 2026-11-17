@@ -1732,7 +1732,7 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
     { id: "104", type: "Standard", floor: 1, status: "Available", hkSt: "Clean", guest: null },
     { id: "201", type: "Deluxe", floor: 2, status: "Reserved", hkSt: "Inspected", guest: null },
     { id: "202", type: "Deluxe", floor: 2, status: "Occupied", hkSt: "Occupied", guest: "Emmanuel Adeyemi" },
-    { id: "203", type: "Suite", floor: 2, status: "Occupied", hkSt: "Occupied", guest: "Fatima Musa" },
+    { id: "203", type: "Suite", floor: 2, status: "Occupied", hkSt: "Occupied", guest: "Halima Yusuf" },
     { id: "204", type: "Standard", floor: 2, status: "Maintenance", hkSt: "Maintenance", guest: null },
     { id: "301", type: "Suite", floor: 3, status: "Available", hkSt: "Inspected", guest: null },
     { id: "302", type: "Deluxe", floor: 3, status: "Occupied", hkSt: "Occupied", guest: "Ibrahim Lawal" },

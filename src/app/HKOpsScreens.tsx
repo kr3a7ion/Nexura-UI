@@ -26,27 +26,28 @@ import {
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
-  HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
-  HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
+  INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
-stampNow, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
+stampNow, ORANGE_INK, TEAL_INK, WARNING_INK, fmtDate, BUSINESS_DATE } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
+import { roomsFor, hkRooms, ATTENDANTS as HK_ATTENDANTS } from "./mock/housekeeping";
 // HK-04 Inspection Log
 export function InspectionLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const CHECKLIST = ["Bed made correctly", "Linen clean & pressed", "Bathroom scrubbed", "Toilet disinfected", "Minibar restocked", "Amenities replenished", "Floors vacuumed/mopped", "Surfaces dusted", "Mirrors polished", "TV/AC functioning", "Curtains aligned", "No items left behind"];
   const LOGS = [
-    { id: "INS-041", room: "104", attendant: "Grace Achebe", inspector: "Grace Mensah", ts: "Today 09:45", score: 18, total: 20, reclean: false, notes: "Minor dust on top shelf. Otherwise excellent.", status: "Passed", checks: CHECKLIST.map((item,i) => ({ item, pass: i !== 7 })) },
-    { id: "INS-040", room: "102", attendant: "Grace Achebe", inspector: "Grace Mensah", ts: "Today 09:30", score: 12, total: 20, reclean: true, notes: "Bathroom not cleaned. Bed linen stained. Re-assigned to Amaka.", status: "Re-clean", checks: CHECKLIST.map((item,i) => ({ item, pass: i < 2 || i > 6 })) },
+    { id: "INS-041", room: "103", attendant: "Amaka Osei", inspector: "Grace Mensah", ts: "Today 09:40", score: 18, total: 20, reclean: false, notes: "Minor dust on top shelf. Otherwise excellent.", status: "Passed", checks: CHECKLIST.map((item,i) => ({ item, pass: i !== 7 })) },
+    { id: "INS-040", room: "102", attendant: "Fatima Musa", inspector: "Grace Mensah", ts: "Today 09:30", score: 12, total: 20, reclean: true, notes: "Bathroom not cleaned. Bed linen stained. Re-assigned to Amaka.", status: "Re-clean", checks: CHECKLIST.map((item,i) => ({ item, pass: i < 2 || i > 6 })) },
     { id: "INS-039", room: "301", attendant: "Amaka Osei", inspector: "David Okafor", ts: "Yesterday 16:00", score: 20, total: 20, reclean: false, notes: "Spotless. Perfect score.", status: "Passed", checks: CHECKLIST.map(item => ({ item, pass: true })) },
     { id: "INS-038", room: "203", attendant: "Ngozi Ike", inspector: "Grace Mensah", ts: "Yesterday 14:30", score: 17, total: 20, reclean: false, notes: "Minibar not restocked. Items 5 and 11 failed.", status: "Passed", checks: CHECKLIST.map((item,i) => ({ item, pass: i !== 4 && i !== 10 })) },
-    { id: "INS-037", room: "501", attendant: "Grace Achebe", inspector: "David Okafor", ts: "Yesterday 11:00", score: 20, total: 20, reclean: false, notes: "Suite inspection passed fully.", status: "Passed", checks: CHECKLIST.map(item => ({ item, pass: true })) },
+    { id: "INS-037", room: "501", attendant: "Fatima Musa", inspector: "David Okafor", ts: "Yesterday 11:00", score: 20, total: 20, reclean: false, notes: "Suite inspection passed fully.", status: "Passed", checks: CHECKLIST.map(item => ({ item, pass: true })) },
   ];
   const iC: Record<string, { bg: string; text: string }> = { Passed: { bg: "#DCFCE7", text: "#166534" }, "Re-clean": { bg: "#FEE2E2", text: "#991B1B" } };
-  const ATTENDANTS = ["Grace Achebe", "Amaka Osei", "Ngozi Ike"];
+  const ATTENDANTS = HK_ATTENDANTS;
   const attScores = ATTENDANTS.map(a => {
     const al = LOGS.filter(l => l.attendant === a);
     const avg = al.length ? Math.round(al.reduce((s,l) => s + (l.score/l.total*100), 0) / al.length) : 0;
@@ -54,7 +55,7 @@ export function InspectionLog({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   });
   return (
     <div>
-      <PageHeader title="Inspection Log" sub="Supervisor inspections with per-item checklist results" actions={<BtnP label="New inspection" icon={Plus} />} />
+      <PageHeader title="Inspection Log" sub="Supervisor checks of cleaned rooms, item by item" actions={<BtnP label="New inspection" icon={Plus} />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Inspected today" value={String(LOGS.filter(l=>l.ts.startsWith("Today")).length)} sub="Rooms checked" icon={CheckCircle2} accent={SUCCESS} />
         <StatCard label="Re-clean required" value={String(LOGS.filter(l=>l.reclean).length)} sub="Failed inspection" icon={AlertTriangle} accent={ERROR} />
@@ -124,7 +125,7 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   const [showIssue, setShowIssue] = useState(false);
   const [issueItem, setIssueItem] = useState("");
   const [issueQty, setIssueQty] = useState("1");
-  const [issueAtt, setIssueAtt] = useState("Grace Achebe");
+  const [issueAtt, setIssueAtt] = useState("Fatima Musa");
   const ITEMS = [
     { name: "Bath Towels", cat: "Linen", floor: "All", current: 45, par: 80, reorder: 30, unit: "pcs", soiled: 8, lost: 1 },
     { name: "Hand Towels", cat: "Linen", floor: "All", current: 60, par: 80, reorder: 30, unit: "pcs", soiled: 5, lost: 0 },
@@ -211,15 +212,14 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
 // HK-08 Housekeeping Schedule
 export function HousekeepingSchedule({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const ATTENDANTS = ["Grace Achebe", "Amaka Osei", "Ngozi Ike"];
-  const ROOMS = ["101","102","103","104","201","202","203","204","301","302","303","304"];
+  const ATTENDANTS = HK_ATTENDANTS;
+  // Same rooms and attendants as the board.
+  const board = hkRooms();
+  const ROOMS = board.map(r => r.id);
   const SHIFTS = ["Morning (07:00–15:00)", "Evening (15:00–23:00)", "Night (23:00–07:00)"];
   const [shift, setShift] = useState(SHIFTS[0]);
-  const [assignments, setAssignments] = useState<Record<string, string>>({
-    "101": "Grace Achebe", "102": "Grace Achebe", "103": "Amaka Osei", "104": "Grace Achebe",
-    "201": "Ngozi Ike", "202": "Ngozi Ike", "203": "", "204": "",
-    "301": "Amaka Osei", "302": "Ngozi Ike", "303": "", "304": "",
-  });
+  const [assignments, setAssignments] = useState<Record<string, string>>(Object.fromEntries(board.map(r => [r.id, r.attendant ?? ""])));
+
   const [published, setPublished] = useState(false);
   const toggleAssign = (room: string, att: string) => {
     setAssignments(p => ({ ...p, [room]: p[room] === att ? "" : att }));
@@ -236,7 +236,7 @@ export function HousekeepingSchedule({ add }: { add: (t: Omit<Toast, "id">) => v
   const MAX_LOAD = 6;
   return (
     <div>
-      <PageHeader title="Housekeeping Schedule" sub="Room assignments per attendant · Click cell to assign" actions={<><BtnO label="Balance workload" icon={RefreshCw} onClick={autoBalance} /><BtnP label={published ? "Published ✓" : "Publish Schedule"} icon={published ? CheckCircle2 : Send} onClick={() => { setPublished(true); add({ type: "success", title: "Schedule published", body: "Field devices notified" }); }} /></>} />
+      <PageHeader title="Housekeeping Schedule" sub="Who cleans which room this shift. Select a circle to assign a room." actions={<><BtnO label="Balance workload" icon={RefreshCw} onClick={autoBalance} /><BtnP label={published ? "Published" : "Publish schedule"} icon={published ? CheckCircle2 : Send} onClick={() => { setPublished(true); add({ type: "success", title: "Schedule published", body: "Field devices notified" }); }} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Rooms scheduled" value={String(ROOMS.filter(r=>assignments[r]).length)} sub={`of ${ROOMS.length} total`} icon={CalendarDays} accent={PRIMARY} />
         <StatCard label="Unassigned" value={String(ROOMS.filter(r=>!assignments[r]).length)} sub="Need assignment" icon={AlertTriangle} accent={WARNING} />
@@ -490,81 +490,95 @@ export function KeyCardMgmt({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 }
 
 // HK-02 My Tasks (tablet-optimised)
-export function HKMyTasks({ add }: { add: (t: Omit<Toast, "id">) => void }) {
+export function HKMyTasks({ add, staffName }: { add: (t: Omit<Toast, "id">) => void; staffName: string }) {
   const [statuses, setStatuses] = useState<Record<string, string>>({});
+  const [requested, setRequested] = useState<Set<string>>(new Set());
   const [showInspect, setShowInspect] = useState<string | null>(null);
   const [showIssue, setShowIssue] = useState<string | null>(null);
   const [issueDesc, setIssueDesc] = useState("");
-  const [dndRooms, setDndRooms] = useState<Set<string>>(new Set());
+  const mine = roomsFor(staffName);
+  const [dndRooms, setDndRooms] = useState<Set<string>>(new Set(mine.filter(r => r.dnd).map(r => r.id)));
 
   const setStatus = (id: string, s: string) => {
     setStatuses(p => ({ ...p, [id]: s }));
-    add({ type: "success", title: `Room ${id} marked ${s}` });
+    add({ type: "success", title: s === "In Progress" ? `Room ${id}: cleaning started` : `Room ${id} marked ${s.toLowerCase()}` });
   };
 
   // Sort: priority first, then by floor
-  const sorted = [...HK_TASK_ROOMS].sort((a, b) => {
+  // Work still to do first, then priority, then room number.
+  const done = (r: typeof mine[number]) => ["Clean", "Inspected"].includes(statuses[r.id] ?? r.hkSt);
+  const sorted = [...mine].sort((a, b) => {
+    if (done(a) !== done(b)) return done(a) ? 1 : -1;
     if (a.priority && !b.priority) return -1;
     if (!a.priority && b.priority) return 1;
     return Number(a.id) - Number(b.id);
   });
 
-  const completed = sorted.filter(r => (statuses[r.id] ?? r.hkStatus) === "Clean").length;
+  const completed = sorted.filter(r => ["Clean", "Inspected"].includes(statuses[r.id] ?? r.hkSt)).length;
   const total = sorted.length;
-  const pct = Math.round((completed / total) * 100);
+  const pct = total ? Math.round((completed / total) * 100) : 0;
+  if (total === 0) return (
+    <div>
+      <PageHeader title="My Tasks" sub={`${fmtDate(BUSINESS_DATE)} · Morning shift`} />
+      <div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}><EmptyState icon={BedDouble} message="No rooms are assigned to you today. Rooms appear here once a supervisor assigns them on the schedule." /></div>
+    </div>
+  );
 
   return (
     <div>
-      <PageHeader title="My Tasks — Grace Achebe" sub="24 Jun 2026 · Morning Shift" />
+      <PageHeader title="My Tasks" sub={`${staffName} · ${fmtDate(BUSINESS_DATE)} · Morning shift`} />
       {/* Progress summary bar */}
       <div className="bg-white rounded-xl border p-4 mb-5" style={{ borderColor: BORDER }}>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold" style={{ color: TEXT }}>{completed} of {total} rooms cleaned</span>
-          <span className="text-sm font-bold" style={{ color: pct === 100 ? SUCCESS : PRIMARY, fontFamily: mono }}>{pct}%</span>
+          <span className="text-sm font-semibold" style={{ color: TEXT }}>{pct}%</span>
         </div>
         <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E2E8F0" }}>
           <div className="h-2.5 rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: pct === 100 ? SUCCESS : PRIMARY }} />
         </div>
         <div className="flex gap-4 mt-3">
-          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: TEXT }}>{total - completed}</span> remaining</span>
-          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: ORANGE_INK }}>{sorted.filter(r=>r.priority).length}</span> priority</span>
-          <span className="text-xs" style={{ color: MUTED }}><span className="font-bold" style={{ color: TEAL_INK }}>{dndRooms.size}</span> DND active</span>
+          <span className="text-xs" style={{ color: MUTED }}><span className="font-semibold" style={{ color: TEXT }}>{total - completed}</span> remaining</span>
+          <span className="text-xs" style={{ color: MUTED }}><span className="font-semibold" style={{ color: TEXT }}>{sorted.filter(r=>r.priority).length}</span> priority</span>
+          <span className="text-xs" style={{ color: MUTED }}><span className="font-semibold" style={{ color: TEXT }}>{dndRooms.size}</span> do not disturb</span>
         </div>
       </div>
       <div className="space-y-3">
         {sorted.map(r => {
-          const st = statuses[r.id] ?? r.hkStatus;
+          const st = statuses[r.id] ?? r.hkSt;
+          const waiting = requested.has(r.id) || (st === "Clean" && r.awaitingInspection);
           const stC = hkC[st] ?? { bg: "#F4F4F5", text: "#374151" };
           const isDND = dndRooms.has(r.id);
           return (
-            <div key={r.id} className="bg-white rounded-xl border p-5" style={{ borderColor: r.priority ? ORANGE : isDND ? `${ERROR}40` : BORDER, borderWidth: r.priority || isDND ? 2 : 1 }}>
+            <div key={r.id} className="bg-white rounded-xl border p-5" style={{ borderColor: r.priority ? "#FDBA74" : BORDER, borderWidth: r.priority || isDND ? 2 : 1 }}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl font-black text-white flex-shrink-0" style={{ backgroundColor: st === "Clean" ? SUCCESS : PRIMARY }}>{r.id}</div>
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center text-xl font-semibold flex-shrink-0" style={{ backgroundColor: "#F1F5F9", color: TEXT }}>{r.id}</div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xl font-bold" style={{ color: TEXT }}>Room {r.id}</span>
-                      {r.priority && <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>PRIORITY</span>}
-                      {isDND && <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>DND</span>}
+                      <span className="text-lg font-semibold" style={{ color: TEXT }}>Room {r.id}</span>
+                      {r.priority && <span className="text-xs px-1.5 py-0.5 rounded-md" style={{ backgroundColor: "#FFF7ED", color: ORANGE_INK }}>Priority</span>}
+                      {isDND && <span className="text-xs px-1.5 py-0.5 rounded-md" style={{ backgroundColor: "#F1F5F9", color: TEXT }}>Do not disturb</span>}
+                      {waiting && <span className="text-xs px-1.5 py-0.5 rounded-md" style={{ backgroundColor: "#EEF2FF", color: "#4338CA" }}>Awaiting inspection</span>}
                     </div>
-                    <div className="text-sm mt-0.5" style={{ color: MUTED }}>{r.type} · Floor {r.floor} · {r.guestStatus}</div>
-                    {r.notes && <div className="text-sm mt-1 font-medium" style={{ color: ORANGE_INK }}>{r.notes}</div>}
+                    <div className="text-sm mt-0.5" style={{ color: MUTED }}>{r.type} · Floor {r.floor} · {r.guestState}</div>
+                    {r.note && <div className="text-sm mt-1" style={{ color: TEXT }}>{r.note}</div>}
                   </div>
                 </div>
-                <Badge label={st} colors={stC} />
+                <Badge label={st === "In Progress" ? "In progress" : st === "Inspected" ? "Ready" : st} colors={stC} />
               </div>
               {/* Primary action */}
               <div className="flex gap-2 flex-wrap mb-2">
-                {st === "Dirty" && <button onClick={() => setStatus(r.id, "In Progress")} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY, minHeight: 52 }}>Start cleaning</button>}
-                {st === "In Progress" && <button onClick={() => setStatus(r.id, "Clean")} className="flex-1 py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: SUCCESS, minHeight: 52 }}>Mark cleaned</button>}
-                {st === "Clean" && <button onClick={() => setShowInspect(r.id)} className="flex-1 py-3 rounded-xl text-sm font-bold" style={{ backgroundColor: "#DCFCE7", color: SUCCESS, minHeight: 52 }}>Request inspection</button>}
-                {st === "Inspected" && <div className="flex-1 py-3 rounded-xl text-sm font-bold text-center flex items-center justify-center" style={{ backgroundColor: "#EFF6FF", color: PRIMARY, minHeight: 52 }}>✓ Inspected</div>}
+                {st === "Dirty" && <button onClick={() => setStatus(r.id, "In Progress")} disabled={isDND} title={isDND ? "Guest has asked not to be disturbed" : undefined} className="flex-1 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY, minHeight: 48 }}>Start cleaning</button>}
+                {st === "In Progress" && <button onClick={() => setStatus(r.id, "Clean")} className="flex-1 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY, minHeight: 48 }}>Mark clean</button>}
+                {st === "Clean" && !waiting && <button onClick={() => setShowInspect(r.id)} className="flex-1 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY, minHeight: 48 }}>Request inspection</button>}
+                {st === "Clean" && waiting && <div className="flex-1 rounded-xl text-sm text-center flex items-center justify-center" style={{ backgroundColor: "#F8FAFC", color: MUTED, minHeight: 48 }}>Waiting for the supervisor to inspect</div>}
+                {st === "Inspected" && <div className="flex-1 rounded-xl text-sm text-center flex items-center justify-center" style={{ backgroundColor: "#F0FDF4", color: "#166534", minHeight: 48 }}>Inspected and ready</div>}
               </div>
               {/* Secondary actions */}
               <div className="flex gap-2 flex-wrap">
-                <button onClick={() => { setShowIssue(r.id); setIssueDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: ORANGE_INK, borderColor: `${ORANGE}40`, minHeight: 44 }}>Report issue</button>
-                <button onClick={() => { setDndRooms(p => { const n = new Set(p); isDND ? n.delete(r.id) : n.add(r.id); return n; }); add({ type: isDND ? "info" : "warning", title: isDND ? `DND cleared — Room ${r.id}` : `DND set — Room ${r.id}` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: isDND ? ERROR : MUTED, borderColor: isDND ? `${ERROR}40` : BORDER, minHeight: 44 }}>{isDND ? "Clear DND" : "Mark DND"}</button>
-                <button onClick={() => add({ type: "info", title: `Lost item logged — Room ${r.id}` })} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: MUTED, borderColor: BORDER, minHeight: 44 }}>Log L&F</button>
+                <button onClick={() => { setShowIssue(r.id); setIssueDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>Report a fault</button>
+                <button onClick={() => { setDndRooms(p => { const n = new Set(p); isDND ? n.delete(r.id) : n.add(r.id); return n; }); add({ type: "info", title: isDND ? `Room ${r.id}: do not disturb cleared` : `Room ${r.id}: do not disturb noted` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>{isDND ? "Clear do not disturb" : "Do not disturb"}</button>
+                <button onClick={() => add({ type: "info", title: `Room ${r.id}: found item logged` })} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>Log found item</button>
               </div>
             </div>
           );
@@ -575,9 +589,9 @@ export function HKMyTasks({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowInspect(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-2" style={{ color: TEXT }}>Request Inspection — Room {showInspect}</h3>
-            <p className="text-sm mb-4" style={{ color: MUTED }}>An inspector will be notified to verify Room {showInspect} is ready for the next guest.</p>
-            <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setShowInspect(null)} /><button onClick={() => { add({ type: "success", title: `Inspection requested — Room ${showInspect}` }); setStatus(showInspect, "Inspected"); setShowInspect(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Request</button></div>
+            <h3 className="text-base font-semibold mb-2" style={{ color: TEXT }}>Request inspection for room {showInspect}</h3>
+            <p className="text-sm mb-4" style={{ color: MUTED }}>The supervisor is told room {showInspect} is clean and ready to check.</p>
+            <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setShowInspect(null)} /><button onClick={() => { add({ type: "success", title: `Room ${showInspect}: inspection requested` }); setRequested(p => new Set(p).add(showInspect)); setShowInspect(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Request</button></div>
           </div>
         </>
       )}
@@ -586,9 +600,9 @@ export function HKMyTasks({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowIssue(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Report Issue — Room {showIssue}</h3>
-            <textarea value={issueDesc} onChange={e => setIssueDesc(e.target.value)} placeholder="Describe the issue…" aria-label="Describe the issue" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
-            <div className="flex gap-3 mt-3"><BtnO label="Cancel" onClick={() => setShowIssue(null)} /><button disabled={!issueDesc.trim()} onClick={() => { add({ type: "warning", title: `Issue reported — Room ${showIssue}`, body: issueDesc }); setShowIssue(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Report</button></div>
+            <h3 className="text-base font-semibold mb-3" style={{ color: TEXT }}>Report a fault in room {showIssue}</h3>
+            <textarea value={issueDesc} onChange={e => setIssueDesc(e.target.value)} placeholder="What is wrong, and where in the room?" aria-label="Describe the fault" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
+            <div className="flex gap-3 mt-3"><BtnO label="Cancel" onClick={() => setShowIssue(null)} /><button disabled={!issueDesc.trim()} onClick={() => { add({ type: "success", title: `Room ${showIssue}: fault sent to Maintenance`, body: issueDesc }); setShowIssue(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Send to Maintenance</button></div>
           </div>
         </>
       )}

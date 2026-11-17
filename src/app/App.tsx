@@ -144,12 +144,12 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "pin-management") return <PINManagement add={add} nav={nav} />;
   // Housekeeping
   if (screen === "hk-board") return <HKBoard add={add} nav={nav} />;
-  if (screen === "hk-tasks") return <HKMyTasks add={add} />;
+  if (screen === "hk-tasks") return <HKMyTasks add={add} staffName={staffName} />;
   if (screen === "hk-inspection") return <InspectionLog add={add} />;
   if (screen === "linen-supplies") return <LinenSupplies add={add} />;
   if (screen === "hk-schedule") return <HousekeepingSchedule add={add} />;
   if (screen === "lost-found") return <LostFound add={add} />;
-  if (screen === "dnd-log") return <DNDLog add={add} />;
+  if (screen === "dnd-log") return <DNDLog add={add} staffName={staffName} />;
   // Maintenance
   if (screen === "work-orders") return <WorkOrders add={add} nav={nav} />;
   if (screen === "work-order-detail") return <WorkOrderDetail add={add} />;

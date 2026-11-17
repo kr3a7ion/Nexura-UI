@@ -28,11 +28,11 @@ import {
   PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
-  HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
-  HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
+  INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
@@ -40,7 +40,8 @@ import {
 
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { TextOrDate } from "./DateInput";
-import { ARRIVALS as FO_ARRIVALS, departures } from "./mock/frontOffice";
+import { ARRIVALS as FO_ARRIVALS, departures, STAYS } from "./mock/frontOffice";
+import { isManagerLogin } from "./mock/staffLogin";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
 function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
@@ -2056,10 +2057,10 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const [claimant, setClaimant] = useState({ name: "", id: "", phone: "" });
   const [shipAddr, setShipAddr] = useState("");
   const LF = [
-    { id: "LF-0041", desc: "iPhone 14 Pro (Black)", cat: "Electronics", storage: "Front Desk Safe B-2", room: "204", guestRes: "R-1024", guest: "Mrs. Adeola Bello", date: "22 Jun 2026", loggedBy: "Grace Achebe", claimedBy: "", status: "Held" },
+    { id: "LF-0041", desc: "iPhone 14 Pro (Black)", cat: "Electronics", storage: "Front Desk Safe B-2", room: "204", guestRes: "R-1024", guest: "Mrs. Adeola Bello", date: "22 Jun 2026", loggedBy: "Fatima Musa", claimedBy: "", status: "Held" },
     { id: "LF-0040", desc: "Gold Bracelet", cat: "Jewellery", storage: "Safe Box 1", room: "315", guestRes: "R-1018", guest: "Dr. Emeka Chukwu", date: "20 Jun 2026", loggedBy: "Ngozi Ike", claimedBy: "Dr. Emeka Chukwu", status: "Claimed" },
     { id: "LF-0039", desc: "Blue Patagonia Jacket", cat: "Clothing", storage: "HK Store Room A", room: "108", guestRes: "R-1015", guest: "Ms. Sarah Okafor", date: "18 Jun 2026", loggedBy: "Amaka Osei", claimedBy: "", status: "Held" },
-    { id: "LF-0038", desc: "Laptop Charger (Dell)", cat: "Electronics", storage: "Front Desk Shelf", room: "221", guestRes: "R-1010", guest: "Mr. Tunde Adeyemi", date: "15 Jun 2026", loggedBy: "Grace Achebe", claimedBy: "Mr. Tunde Adeyemi", status: "Shipped" },
+    { id: "LF-0038", desc: "Laptop Charger (Dell)", cat: "Electronics", storage: "Front Desk Shelf", room: "221", guestRes: "R-1010", guest: "Mr. Tunde Adeyemi", date: "15 Jun 2026", loggedBy: "Fatima Musa", claimedBy: "Mr. Tunde Adeyemi", status: "Shipped" },
     { id: "LF-0037", desc: "Prescription Glasses", cat: "Personal", storage: "Front Desk Safe B-1", room: "401", guestRes: "R-1002", guest: "Mrs. Ngozi Eze", date: "10 Jun 2026", loggedBy: "Ngozi Ike", claimedBy: "", status: "Held" },
     { id: "LF-0036", desc: "Children's Stuffed Bear", cat: "Clothing", storage: "Disposed — 30-day expired", room: "103", guestRes: "R-0999", guest: "Mr. Femi Adesanya", date: "1 Jun 2026", loggedBy: "Amaka Osei", claimedBy: "", status: "Disposed" },
   ];
@@ -2083,13 +2084,13 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item ID", "Description / category", "Storage location", "Room", "Guest (res)", "Found", "Logged by", "Status", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>{visible.map(item => (
             <tr key={item.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER }}>
-              <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{item.id}</td>
+              <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: MUTED }}>{item.id}</td>
               <td className="px-4 py-3"><div className="text-sm font-medium" style={{ color: TEXT }}>{item.desc}</div><div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{item.cat}</div></td>
               <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.storage}</td>
-              <td className="px-4 py-3 font-bold" style={{ color: PRIMARY }}>{item.room}</td>
+              <td className="px-4 py-3 text-sm font-semibold" style={{ color: TEXT }}>{item.room}</td>
               <td className="px-4 py-3"><div className="text-xs font-medium" style={{ color: TEXT }}>{item.guest}</div><div className="text-xs" style={{ color: SUBTLE }}>{item.guestRes}</div></td>
-              <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.date}</td>
-              <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.loggedBy}</td>
+              <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: TEXT }}>{item.date}</td>
+              <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: TEXT }}>{item.loggedBy}</td>
               <td className="px-4 py-3"><Badge label={item.status} colors={stC[item.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
               <td className="px-4 py-3">
                 {item.status === "Held" && (
@@ -2137,35 +2138,35 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   );
 }
 
-export function DNDLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
+export function DNDLog({ add, staffName }: { add: (t: Omit<Toast, "id">) => void; staffName: string }) {
   const THRESHOLD_WARN = 8;
   const THRESHOLD_CRITICAL = 12;
-  const INITIAL = [
-    { room: "315", guest: "Mrs. Adaeze Okeke", res: "R-1031", dndStart: "24 Jun 07:12", hours: 14.3, checkout: "25 Jun", overridden: false, wellness: [{ time: "24 Jun 15:20", by: "Grace Achebe", outcome: "No response — knocked twice" }] },
-    { room: "410", guest: "Mr. Bolu Adeyemi", res: "R-1028", dndStart: "24 Jun 09:00", hours: 12.5, checkout: "24 Jun", overridden: false, wellness: [] },
-    { room: "204", guest: "Dr. Chinyere Obi", res: "R-1025", dndStart: "24 Jun 14:30", hours: 7.0, checkout: "26 Jun", overridden: false, wellness: [] },
-    { room: "108", guest: "Mr. Folarin Ojo", res: "R-1022", dndStart: "23 Jun 22:00", hours: 4.5, checkout: "24 Jun", overridden: true, wellness: [{ time: "24 Jun 06:00", by: "Night Manager", outcome: "Checked — guest responded, requested late sleep" }] },
-    { room: "301", guest: "Mrs. Kemi Lawal", res: "R-1019", dndStart: "24 Jun 11:00", hours: 3.2, checkout: "25 Jun", overridden: false, wellness: [] },
-  ];
+  // In-house guests from the shared Front Office data; hours are as of the time the board was last updated.
+  const DND_DETAIL: Record<string, { dndStart: string; hours: number; overridden: boolean; wellness: { time: string; by: string; outcome: string }[] }> = {
+    "302": { dndStart: "23 Jun 21:30", hours: 13.0, overridden: false, wellness: [{ time: "24 Jun 09:30", by: "Amaka Osei", outcome: "No response, knocked twice" }] },
+    "203": { dndStart: "23 Jun 22:00", hours: 12.5, overridden: true, wellness: [{ time: "24 Jun 08:00", by: "Night manager", outcome: "Guest answered; late check-out agreed" }] },
+  };
+  const INITIAL = STAYS.filter(s => s.dnd && DND_DETAIL[s.room]).map(s => ({ room: s.room, guest: s.guest, res: s.id, checkout: s.checkout, ...DND_DETAIL[s.room] }));
   type Row = typeof INITIAL[0];
   const [rows, setRows] = useState<Row[]>(INITIAL);
   const [showOverride, setShowOverride] = useState<string | null>(null);
   const [overrideReason, setOverrideReason] = useState("");
-  const [managerPin, setManagerPin] = useState("");
+  const [mgrUser, setMgrUser] = useState("");
+  const [mgrPass, setMgrPass] = useState("");
 
   const logCheck = (room: string) => {
     const now = new Date();
     const ts = `${BUSINESS_DATE.getDate()} Jun ${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}`;
-    setRows(p => p.map(r => r.room === room ? { ...r, wellness: [...r.wellness, { time: ts, by: "Current User", outcome: "Wellness check logged — awaiting response" }] } : r));
-    add({ type: "info", title: `Wellness check recorded — Room ${room}`, body: `${ts} · This record is audited for liability` });
+    setRows(p => p.map(r => r.room === room ? { ...r, wellness: [...r.wellness, { time: ts, by: staffName, outcome: "Wellness check logged, awaiting response" }] } : r));
+    add({ type: "info", title: `Room ${room}: wellness check recorded`, body: `${ts}. This record cannot be edited.` });
   };
 
   const confirmOverride = () => {
-    if (managerPin !== "1234") { add({ type: "error", title: "Incorrect manager PIN" }); return; }
-    if (!overrideReason.trim()) { add({ type: "error", title: "Override reason is required" }); return; }
+    if (!overrideReason.trim()) { add({ type: "error", title: "Write down why the room must be entered" }); return; }
+    if (!isManagerLogin(mgrUser, mgrPass)) { add({ type: "error", title: "That is not a manager's username and password" }); return; }
     setRows(p => p.map(r => r.room === showOverride ? { ...r, overridden: true } : r));
-    add({ type: "warning", title: `DND overridden — Room ${showOverride}`, body: overrideReason });
-    setShowOverride(null); setOverrideReason(""); setManagerPin("");
+    add({ type: "warning", title: `Room ${showOverride}: do not disturb overridden by ${mgrUser.trim()}`, body: overrideReason });
+    setShowOverride(null); setOverrideReason(""); setMgrUser(""); setMgrPass("");
   };
 
   const escalated = rows.filter(r => r.hours >= THRESHOLD_CRITICAL && !r.overridden);
@@ -2180,42 +2181,42 @@ export function DNDLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
   return (
     <div>
-      <PageHeader title="Do Not Disturb Log" sub="Wellness check as liability record · Override requires manager PIN + reason" />
+      <PageHeader title="Do Not Disturb Log" sub="Rooms asking not to be disturbed. Long requests need a wellness check; entering the room needs a manager." />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Active DND" value={String(rows.filter(r=>!r.overridden).length)} sub="Do Not Disturb now" icon={AlertCircle} accent={ERROR} />
-        <StatCard label="Escalated (12h+)" value={String(escalated.length)} sub="Wellness check required" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Warning (8–12h)" value={String(warned.length)} sub="Monitor closely" icon={Clock} accent={ORANGE} />
-        <StatCard label="Overridden" value={String(rows.filter(r=>r.overridden).length)} sub="Manager-authorized entry" icon={CheckCircle2} accent={SUCCESS} />
+        <StatCard label="Do not disturb now" value={String(rows.filter(r=>!r.overridden).length)} sub="Rooms" icon={AlertCircle} accent={ERROR} />
+        <StatCard label="Over 12 hours" value={String(escalated.length)} sub="Wellness check needed" icon={AlertTriangle} accent={ERROR} />
+        <StatCard label="8 to 12 hours" value={String(warned.length)} sub="Keep an eye on" icon={Clock} accent={ORANGE} />
+        <StatCard label="Overridden" value={String(rows.filter(r=>r.overridden).length)} sub="Entry approved by a manager" icon={CheckCircle2} accent={SUCCESS} />
       </div>
       {escalated.length > 0 && (
         <div className="mb-4 flex items-start gap-3 px-4 py-3 rounded-xl" style={{ backgroundColor: "#FEF2F2", border: `1px solid #FECACA` }}>
           <AlertTriangle size={16} style={{ color: ERROR, marginTop: 1, flexShrink: 0 }} />
-          <div><div className="text-sm font-semibold" style={{ color: ERROR }}>{escalated.length} room{escalated.length>1?"s":""} flagged — DND exceeds {THRESHOLD_CRITICAL} hours</div><div className="text-xs mt-0.5" style={{ color: "#991B1B" }}>Rooms {escalated.map(r=>r.room).join(", ")} require immediate wellness check. Log check results for liability documentation.</div></div>
+          <div><div className="text-sm font-semibold" style={{ color: ERROR }}>{escalated.length === 1 ? "1 room has" : `${escalated.length} rooms have`} asked not to be disturbed for over {THRESHOLD_CRITICAL} hours</div><div className="text-sm mt-0.5" style={{ color: "#991B1B" }}>Check on room{escalated.length > 1 ? "s" : ""} {escalated.map(r=>r.room).join(", ")} now and log what happened.</div></div>
         </div>
       )}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Guest (res)", "DND since", "Duration", "Checkout", "Wellness checks", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Guest", "Since", "For", "Check-out", "Wellness checks", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {rows.map(r => (
               <tr key={r.room} className="border-t" style={{ borderColor: BORDER, backgroundColor: rowBg(r) }}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg font-black" style={{ color: r.hours >= THRESHOLD_CRITICAL && !r.overridden ? ERROR : PRIMARY }}>{r.room}</span>
+                    <span className="text-base font-semibold" style={{ color: TEXT }}>{r.room}</span>
                     {r.hours >= THRESHOLD_CRITICAL && !r.overridden && <AlertTriangle size={14} style={{ color: ERROR }} />}
-                    {r.overridden && <span className="text-xs px-1.5 py-0.5 rounded font-bold" style={{ backgroundColor: "#DCFCE7", color: "#166534" }}>Override</span>}
+                    {r.overridden && <span className="text-xs px-1.5 py-0.5 rounded-md" style={{ backgroundColor: "#F1F5F9", color: TEXT }}>Overridden</span>}
                   </div>
                 </td>
-                <td className="px-4 py-3"><div className="text-sm font-medium" style={{ color: TEXT }}>{r.guest}</div><div className="text-xs" style={{ color: SUBTLE }}>{r.res}</div></td>
-                <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{r.dndStart}</td>
-                <td className="px-4 py-3"><span className="text-sm font-black" style={{ color: durationColor(r), fontFamily: mono }}>{r.hours.toFixed(1)}h</span></td>
+                <td className="px-4 py-3"><div className="text-sm font-medium" style={{ color: TEXT }}>{r.guest}</div><div className="text-xs" style={{ color: MUTED }}>{r.res}</div></td>
+                <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: TEXT }}>{r.dndStart}</td>
+                <td className="px-4 py-3"><span className="text-sm font-semibold" style={{ color: durationColor(r) }}>{r.hours.toFixed(1)} h</span></td>
                 <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{r.checkout}</td>
                 <td className="px-4 py-3">
-                  {r.wellness.length === 0 ? <span className="text-xs" style={{ color: SUBTLE }}>None recorded</span> : (
+                  {r.wellness.length === 0 ? <span className="text-sm" style={{ color: MUTED }}>None yet</span> : (
                     <div className="space-y-1">
                       {r.wellness.map((w, i) => (
-                        <div key={i} className="text-xs" style={{ color: MUTED }}>
-                          <span style={{ fontFamily: mono }}>{w.time}</span> — <span style={{ color: TEXT }}>{w.outcome}</span>
+                        <div key={i} className="text-sm" style={{ color: MUTED }}>
+                          {w.time}, {w.by}: <span style={{ color: TEXT }}>{w.outcome}</span>
                         </div>
                       ))}
                     </div>
@@ -2223,8 +2224,8 @@ export function DNDLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1.5 flex-col">
-                    <button onClick={() => logCheck(r.room)} className="text-xs px-2.5 py-1.5 rounded border font-medium whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Log check</button>
-                    {!r.overridden && <button onClick={() => { setShowOverride(r.room); setOverrideReason(""); setManagerPin(""); }} className="text-xs px-2.5 py-1.5 rounded border whitespace-nowrap" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Override DND</button>}
+                    <button onClick={() => logCheck(r.room)} className="text-sm h-9 px-3 rounded-lg border font-medium whitespace-nowrap" style={{ color: TEXT, borderColor: BORDER }}>Log check</button>
+                    {!r.overridden && <button onClick={() => { setShowOverride(r.room); setOverrideReason(""); setMgrUser(""); setMgrPass(""); }} className="text-sm h-9 px-3 rounded-lg border whitespace-nowrap" style={{ color: ERROR, borderColor: "#FECACA" }}>Enter room</button>}
                   </div>
                 </td>
               </tr>
@@ -2233,7 +2234,7 @@ export function DNDLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         </table>
         <div className="px-5 py-3 border-t flex items-center gap-2" style={{ borderColor: BORDER, backgroundColor: "#F8FAFC" }}>
           <Info size={13} style={{ color: SUBTLE, flexShrink: 0 }} />
-          <span className="text-xs" style={{ color: SUBTLE }}>All wellness check entries are timestamped, attributed, and immutable for liability documentation. Override requires manager PIN and documented reason.</span>
+          <span className="text-sm" style={{ color: MUTED }}>Every check is saved with the time and who did it, and cannot be edited. Entering a room needs a written reason and a manager's sign-in.</span>
         </div>
       </div>
       {/* Override modal */}
@@ -2241,13 +2242,16 @@ export function DNDLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowOverride(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
-            <div className="flex items-center justify-between mb-1"><h3 className="text-base font-bold" style={{ color: ERROR }}>Override DND — Room {showOverride}</h3><button aria-label="Close" onClick={() => setShowOverride(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>This action is audited. Provide a documented reason and authenticate with your manager PIN.</p>
+            <div className="flex items-center justify-between mb-1"><h3 className="text-base font-semibold" style={{ color: TEXT }}>Enter room {showOverride}</h3><button aria-label="Close" onClick={() => setShowOverride(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
+            <p className="text-sm mb-4" style={{ color: MUTED }}>The guest asked not to be disturbed. Write down why staff must go in; a manager then signs in to approve. This is recorded.</p>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Override reason</label><textarea value={overrideReason} onChange={e => setOverrideReason(e.target.value)} placeholder="e.g. Guest has not responded after 2 wellness checks. GM authorized entry for welfare check." aria-label="e.g. Guest has not responded after 2 wellness checks. GM authorized entry for welfare check" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label><input type="password" value={managerPin} onChange={e => setManagerPin(e.target.value)} placeholder="Enter PIN" aria-label="Enter PIN" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label htmlFor="dnd-reason" className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Reason</label><textarea id="dnd-reason" value={overrideReason} onChange={e => setOverrideReason(e.target.value)} placeholder="For example: no answer after two wellness checks" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label htmlFor="dnd-mgr-user" className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Manager username</label><input id="dnd-mgr-user" autoComplete="off" value={mgrUser} onChange={e => setMgrUser(e.target.value)} className="w-full h-11 px-3 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <div><label htmlFor="dnd-mgr-pass" className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Password</label><input id="dnd-mgr-pass" type="password" autoComplete="off" value={mgrPass} onChange={e => setMgrPass(e.target.value)} className="w-full h-11 px-3 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              </div>
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowOverride(null)} /><button disabled={!overrideReason.trim() || !managerPin} onClick={confirmOverride} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Authorize override</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowOverride(null)} /><button disabled={!overrideReason.trim() || !mgrUser || !mgrPass} onClick={confirmOverride} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Approve entry</button></div>
           </div>
         </>
       )}

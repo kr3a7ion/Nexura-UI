@@ -24,3 +24,8 @@ export const LOGIN_ACCOUNTS: LoginAccount[] = [
   { username: "musa.ibrahim", password: "demo123", name: "Alhaji Musa Ibrahim", role: "ORG", roleName: "Owner", destination: "org-portal", branches: 4, kind: "cloud" },
   { username: "ops.admin", password: "demo123", name: "System Admin", role: "PLT", roleName: "Platform Admin", destination: "admin-console", branches: 5, kind: "cloud" },
 ];
+
+// A manager approves an override at someone else's screen with their own username and password.
+// shortcut: checks the demo accounts in the browser; the hotel server checks it once sign-in is wired.
+export const isManagerLogin = (username: string, password: string) =>
+  LOGIN_ACCOUNTS.some(a => a.role === "MGT" && a.username === username.trim().toLowerCase() && a.password === password);
