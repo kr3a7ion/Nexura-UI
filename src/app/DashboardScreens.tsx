@@ -26,14 +26,15 @@ import {
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
-  HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
-  HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
+  INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, LiveClock, SyncPill, Av } from "./UIKit";
+import { hkRooms } from "./mock/housekeeping";
 
 export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
   const [auditRunning, setAuditRunning] = useState(false);
@@ -597,7 +598,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RoleCard title="Room Status Grid">
           <div className="p-4 grid grid-cols-2 gap-2">
-            {HK_ROOMS.slice(0, 8).map(r => {
+            {hkRooms().slice(0, 8).map(r => {
               const c = hkC[r.hkSt] ?? { bg: "#F3F4F6", text: "#374151" };
               return (
                 <div key={r.id} className="flex items-center justify-between p-2.5 rounded-lg border" style={{ borderColor: BORDER }}>
@@ -613,7 +614,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
         </RoleCard>
         <RoleCard title="My Attendants">
           {[
-            { name: "Grace Achebe", rooms: 14, done: 9, status: "Active" },
+            { name: "Fatima Musa", rooms: 14, done: 9, status: "Active" },
             { name: "Amaka Osei", rooms: 13, done: 7, status: "Active" },
             { name: "Ngozi Ike", rooms: 13, done: 5, status: "On break" },
           ].map(a => (

@@ -157,7 +157,7 @@ export const recentAct = [
 export const NOTIFS = [
   { id: 1, category: "Emergency", title: "Fire alarm — Zone B test scheduled", body: "Scheduled drill 10:30–10:45.", time: "2m", color: "#EF4444", icon: AlertTriangle, unread: true },
   { id: 2, category: "Reservation", title: "VIP arrival — Dr. Chukwuemeka Bello", body: "Suite 501 · Arriving 14:00 · Champagne requested", time: "8m", color: "#6366F1", icon: Star, unread: true },
-  { id: 3, category: "Housekeeping", title: "Room 212 ready for inspection", body: "Attendant Grace Achebe completed cleaning", time: "15m", color: "#22C55E", icon: BedDouble, unread: true },
+  { id: 3, category: "Housekeeping", title: "Room 212 ready for inspection", body: "Attendant Fatima Musa completed cleaning", time: "15m", color: "#22C55E", icon: BedDouble, unread: true },
   { id: 4, category: "Maintenance", title: "Work order WO-0089 overdue", body: "AC unit — Room 316. Assigned: Emeka Nwosu", time: "32m", color: "#F97316", icon: Wrench, unread: false },
   { id: 5, category: "Finance", title: "End-of-day summary ready", body: "Total revenue: ₦1,247,800.", time: "1h", color: "#14B8A6", icon: DollarSign, unread: false },
   { id: 6, category: "Door Lock", title: "Card activation queued — Room 204", body: "Pending internet. Retry every 2 min.", time: "1h", color: "#8B5CF6", icon: Lock, unread: false },
@@ -195,7 +195,7 @@ export const RES_GRID = [
   { room:"202", guest:"Fatima Garba",        start:4,  end:7,  color:TEAL,   status:"Confirmed",   rate:55000, source:"Online",   nights:3, id:"BK-2867" },
   { room:"202", guest:"Alhaji Musa Sule",    start:9,  end:13, color:TEAL,   status:"Confirmed",   rate:55000, source:"Phone",    nights:4, id:"BK-2877" },
   // Room 203
-  { room:"203", guest:"Fatima Musa",         start:0,  end:4,  color:SUCCESS, status:"Checked In",  rate:55000, source:"Online",   nights:4, id:"BK-2850" },
+  { room:"203", guest:"Halima Yusuf",        start:0,  end:4,  color:SUCCESS, status:"Checked In",  rate:55000, source:"Online",   nights:4, id:"BK-2850" },
   { room:"203", guest:"Chukwuemeka Bello",   start:5,  end:8,  color:TEAL,   status:"Confirmed",   rate:55000, source:"Direct",   nights:3, id:"BK-2868" },
   // Room 204 (Maintenance until day 2, then available)
   { room:"204", guest:"Yemi Ogundimu",       start:3,  end:6,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Walk-in",  nights:3, id:"BK-2869" },
@@ -214,7 +214,7 @@ export const RES_GRID = [
 export const IN_HOUSE = [
   { room: "101", guest: "Adaeze Okonkwo", checkin: "22 Jun", checkout: "25 Jun", nights: 1, vip: true, balance: 0 },
   { room: "202", guest: "Emmanuel Adeyemi", checkin: "23 Jun", checkout: "26 Jun", nights: 2, vip: false, balance: 45000 },
-  { room: "203", guest: "Fatima Musa", checkin: "21 Jun", checkout: "24 Jun", nights: 0, vip: true, balance: 0 },
+  { room: "203", guest: "Halima Yusuf", checkin: "21 Jun", checkout: "24 Jun", nights: 0, vip: true, balance: 0 },
   { room: "304", guest: "Chukwuemeka Obi", checkin: "24 Jun", checkout: "28 Jun", nights: 4, vip: false, balance: 120000 },
   { room: "302", guest: "Ibrahim Lawal", checkin: "23 Jun", checkout: "25 Jun", nights: 1, vip: false, balance: 0 },
 ];
@@ -224,18 +224,6 @@ export const WORK_ORDERS = [
   { id: "WO-0089", location: "Lobby", cat: "Plumbing", priority: "Medium", status: "Reported", tech: "Unassigned", age: "3h" },
   { id: "WO-0088", location: "Restaurant", cat: "Equipment", priority: "Low", status: "Assigned", tech: "Chidi Ike", age: "1d" },
   { id: "WO-0087", location: "Room 102", cat: "Furniture", priority: "Low", status: "Completed", tech: "Chidi Ike", age: "2d" },
-];
-export const HK_ROOMS = [
-  { id: "101", type: "Standard", floor: 1, hkSt: "Dirty", attendant: "Grace Achebe", priority: false, dnd: false },
-  { id: "102", type: "Standard", floor: 1, hkSt: "Clean", attendant: "Grace Achebe", priority: false, dnd: false },
-  { id: "103", type: "Deluxe", floor: 1, hkSt: "In Progress", attendant: "Amaka Osei", priority: true, dnd: false },
-  { id: "104", type: "Standard", floor: 1, hkSt: "Inspected", attendant: "Grace Achebe", priority: false, dnd: false },
-  { id: "201", type: "Deluxe", floor: 2, hkSt: "Occupied", attendant: "Ngozi Ike", priority: false, dnd: false },
-  { id: "202", type: "Deluxe", floor: 2, hkSt: "DND", attendant: "Ngozi Ike", priority: false, dnd: true },
-  { id: "203", type: "Suite", floor: 2, hkSt: "Dirty", attendant: "Unassigned", priority: true, dnd: false },
-  { id: "204", type: "Standard", floor: 2, hkSt: "Maintenance", attendant: "—", priority: false, dnd: false },
-  { id: "301", type: "Suite", floor: 3, hkSt: "Clean", attendant: "Amaka Osei", priority: false, dnd: false },
-  { id: "302", type: "Deluxe", floor: 3, hkSt: "In Progress", attendant: "Ngozi Ike", priority: false, dnd: false },
 ];
 export const STAFF = [
   { id: "EMP-001", name: "Grace Mensah", role: "Hotel Manager", dept: "Management", phone: "+234 801 234 5678", status: "Active", lastLogin: "Today 07:04", av: "GM" },
@@ -344,14 +332,14 @@ export const KEY_LOG = [
 ];
 export const ACTIVE_PINS = [
   { room: "101", guest: "Adaeze Okonkwo", hint: "74**12", validFrom: "22 Jun 14:05", validTo: "25 Jun 11:00", status: "Active", by: "John A." },
-  { room: "203", guest: "Fatima Musa", hint: "91**47", validFrom: "21 Jun 13:00", validTo: "24 Jun 12:00", status: "Expiring", by: "Grace M." },
+  { room: "203", guest: "Halima Yusuf", hint: "91**47", validFrom: "21 Jun 13:00", validTo: "24 Jun 12:00", status: "Expiring", by: "Grace M." },
   { room: "304", guest: "Chukwuemeka Obi", hint: "55**88", validFrom: "24 Jun 10:01", validTo: "28 Jun 11:00", status: "Active", by: "John A." },
 ];
 export const LOST_FOUND = [
   { id: "LF-041", desc: "Black iPhone 14 Pro", location: "Room 304", date: "24 Jun", loggedBy: "Amaka Osei", claimedBy: "—", status: "Held" },
   { id: "LF-040", desc: "Gold wristwatch (Casio)", location: "Restaurant", date: "23 Jun", loggedBy: "Ngozi Ike", claimedBy: "—", status: "Held" },
   { id: "LF-039", desc: "Blue laptop bag", location: "Lobby", date: "22 Jun", loggedBy: "John Abubakar", claimedBy: "Tunde Lawal", status: "Claimed" },
-  { id: "LF-038", desc: "Reading glasses", location: "Room 212", date: "21 Jun", loggedBy: "Grace Achebe", claimedBy: "—", status: "Disposed" },
+  { id: "LF-038", desc: "Reading glasses", location: "Room 212", date: "21 Jun", loggedBy: "Fatima Musa", claimedBy: "—", status: "Disposed" },
 ];
 export const DND_ROOMS = [
   { room: "202", guest: "Emmanuel Adeyemi", checkout: "26 Jun 11:00", dndStart: "08:15", hours: 2.2, wellness: "—", flag: false },
@@ -449,11 +437,6 @@ export const DEVICES = [
   { name: "HK Tablet #1", type: "Tablet", dept: "Housekeeping", ip: "192.168.1.31", mac: "AA:BB:CC:DD:EE:03", lastSeen: "8m ago", status: "Online" },
   { name: "HK Tablet #2", type: "Tablet", dept: "Housekeeping", ip: "192.168.1.32", mac: "AA:BB:CC:DD:EE:04", lastSeen: "1h ago", status: "Idle" },
   { name: "Restaurant POS", type: "PC", dept: "Restaurant", ip: "192.168.1.41", mac: "AA:BB:CC:DD:EE:05", lastSeen: "5m ago", status: "Online" },
-];
-export const HK_TASK_ROOMS = [
-  { id: "101", type: "Standard", floor: 1, guestStatus: "Checked Out", hkStatus: "Dirty", notes: "Extra pillows requested for next guest", priority: true },
-  { id: "102", type: "Standard", floor: 1, guestStatus: "Vacant", hkStatus: "Dirty", notes: "", priority: false },
-  { id: "203", type: "Suite", floor: 2, guestStatus: "Checked Out", hkStatus: "Dirty", notes: "VIP arrival today — champagne pre-positioned", priority: true },
 ];
 export const INV_CONS = [
   { month: "Jan", val: 45 }, { month: "Feb", val: 52 }, { month: "Mar", val: 61 },

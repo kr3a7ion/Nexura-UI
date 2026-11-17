@@ -26,161 +26,139 @@ import {
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
-  HK_ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
-  HK_TASK_ROOMS, INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
+  INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, Av } from "./UIKit";
 import { DateInput } from "./DateInput";
+import { hkRooms, ATTENDANTS } from "./mock/housekeeping";
 
-const HK_STATUS_CYCLE = ["Dirty", "In Progress", "Clean", "Inspected"] as const;
 
 export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
-  const EXTENDED_ROOMS = [
-    { id: "101", type: "Deluxe", floor: 1, hkSt: "Dirty", attendant: "Grace Achebe", priority: "High", since: "08:00", dnd: false, inspectionFlag: false, guestState: "Departure" },
-    { id: "102", type: "Standard", floor: 1, hkSt: "In Progress", attendant: "Grace Achebe", priority: null, since: "09:15", dnd: false, inspectionFlag: false, guestState: "Stayover" },
-    { id: "103", type: "Standard", floor: 1, hkSt: "Clean", attendant: "Amaka Osei", priority: null, since: "09:40", dnd: false, inspectionFlag: true, guestState: "Vacant" },
-    { id: "104", type: "Deluxe", floor: 1, hkSt: "Inspected", attendant: "Grace Achebe", priority: null, since: "09:45", dnd: false, inspectionFlag: false, guestState: "Arrival" },
-    { id: "201", type: "Standard", floor: 2, hkSt: "Dirty", attendant: "Ngozi Ike", priority: null, since: "08:30", dnd: true, inspectionFlag: false, guestState: "Stayover" },
-    { id: "202", type: "Deluxe", floor: 2, hkSt: "Dirty", attendant: null, priority: "High", since: "08:00", dnd: false, inspectionFlag: false, guestState: "Departure" },
-    { id: "203", type: "Standard", floor: 2, hkSt: "In Progress", attendant: "Ngozi Ike", priority: null, since: "09:30", dnd: false, inspectionFlag: false, guestState: "Stayover" },
-    { id: "301", type: "Junior Suite", floor: 3, hkSt: "Dirty", attendant: "Amaka Osei", priority: null, since: "09:00", dnd: false, inspectionFlag: false, guestState: "Departure" },
-    { id: "302", type: "Standard", floor: 3, hkSt: "Clean", attendant: "Amaka Osei", priority: null, since: "10:00", dnd: false, inspectionFlag: false, guestState: "Arrival" },
-    { id: "304", type: "Junior Suite", floor: 3, hkSt: "Dirty", attendant: "Ngozi Ike", priority: "High", since: "08:15", dnd: false, inspectionFlag: false, guestState: "Departure" },
-    { id: "501", type: "Presidential Suite", floor: 5, hkSt: "Inspected", attendant: "Grace Achebe", priority: null, since: "09:55", dnd: false, inspectionFlag: false, guestState: "Occupied" },
-  ];
-  const [rooms, setRooms] = useState(EXTENDED_ROOMS);
+  const [rooms, setRooms] = useState(hkRooms);
   const [search, setSearch] = useState("");
   const [floorFilter, setFloorFilter] = useState("All");
   const [attFilter, setAttFilter] = useState("All");
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkTarget, setBulkTarget] = useState("");
+  // Colour marks the column only; text stays in the body colours.
   const COLS = [
-    { id: "Dirty", label: "Dirty", color: "#D97706", bg: "#FFFBEB" },
-    { id: "In Progress", label: "In Progress", color: "#2563EB", bg: "#EFF6FF" },
-    { id: "Clean", label: "Clean", color: "#059669", bg: "#F0FDF4" },
-    { id: "Inspected", label: "Inspected", color: "#7C3AED", bg: "#F5F3FF" },
-  ];
-  const ATTENDANTS = ["All", ...Array.from(new Set(EXTENDED_ROOMS.map(r => r.attendant).filter(Boolean))) as string[]];
-  const FLOORS = ["All", "1", "2", "3", "5"];
+    { id: "Dirty", label: "Dirty", color: "#D97706", next: "Start cleaning", done: "cleaning started" },
+    { id: "In Progress", label: "In progress", color: "#2563EB", next: "Mark clean", done: "marked clean" },
+    { id: "Clean", label: "Clean", color: "#059669", next: "Pass inspection", done: "passed inspection" },
+    { id: "Inspected", label: "Ready", color: "#7C3AED", next: "", done: "" },
+  ] as const;
+  const FLOORS = ["All", ...Array.from(new Set(rooms.map(r => String(r.floor))))];
   const filtered = rooms.filter(r =>
     (!search || r.id.includes(search) || (r.attendant || "").toLowerCase().includes(search.toLowerCase())) &&
     (floorFilter === "All" || String(r.floor) === floorFilter) &&
     (attFilter === "All" || r.attendant === attFilter)
   );
-  const moveTo = (roomId: string, colId: string) => {
-    setRooms(prev => prev.map(r => r.id === roomId ? { ...r, hkSt: colId } : r));
-    add({ type: "success", title: `Room ${roomId} → ${colId}` });
+  const moveTo = (roomId: string, ci: number) => {
+    setRooms(prev => prev.map(r => r.id === roomId ? { ...r, hkSt: COLS[ci + 1].id } : r));
+    add({ type: "success", title: `Room ${roomId} ${COLS[ci].done}` });
   };
   const bulkMove = () => {
     if (!bulkTarget || selected.length === 0) return;
-    setRooms(prev => prev.map(r => selected.includes(r.id) ? { ...r, hkSt: bulkTarget } : r));
-    add({ type: "success", title: `${selected.length} rooms → ${bulkTarget}` });
+    setRooms(prev => prev.map(r => selected.includes(r.id) ? { ...r, hkSt: bulkTarget as typeof r.hkSt } : r));
+    add({ type: "success", title: `${selected.length} rooms moved to ${COLS.find(c => c.id === bulkTarget)?.label.toLowerCase()}` });
     setSelected([]); setBulkTarget("");
   };
   const toggleSel = (id: string) => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
-  const guestStateColor = (gs: string) => gs === "Departure" ? ERROR : gs === "Arrival" ? TEAL : gs === "Stayover" ? MUTED : SUBTLE;
+  const guestStateColor = (gs: string) => gs === "Departure" ? ERROR : gs === "Arrival" ? TEAL_INK : MUTED;
+  const flag = (text: string, bg: string, color: string) => <span className="text-xs px-1.5 py-0.5 rounded-md" style={{ backgroundColor: bg, color }}>{text}</span>;
   return (
     <div>
-      <PageHeader title="Housekeeping Board" sub="Floor-by-floor room status · Click advance button to update"
-        actions={<><BtnO label="Print report" icon={Download} /><BtnP label="Assign rooms" icon={Plus} onClick={() => add({ type: "info", title: "Open schedule to assign rooms" })} /></>} />
-      {/* Counts strip */}
+      <PageHeader title="Housekeeping Board" sub="Rooms by cleaning status. Move a room on with the button on its card."
+        actions={<><BtnO label="Print report" icon={Download} onClick={() => window.print()} /><BtnP label="Assign rooms" icon={Plus} onClick={() => nav?.("hk-schedule", "Schedule")} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         {COLS.map(c => { const n = rooms.filter(r => r.hkSt === c.id).length; const pri = rooms.filter(r => r.hkSt === c.id && r.priority).length; return (
-          <div key={c.id} className="bg-white rounded-xl p-4 border flex items-center gap-3" style={{ borderColor: BORDER }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-black flex-shrink-0" style={{ backgroundColor: c.bg, color: c.color }}>{n}</div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{c.label}</div>
-              {pri > 0 && <div className="text-xs mt-0.5 font-semibold" style={{ color: ERROR }}>{pri} priority</div>}
-            </div>
+          <div key={c.id} className="bg-white rounded-xl p-4 border" style={{ borderColor: BORDER }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: MUTED }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />{c.label}</div>
+            <div className="mt-1 flex items-baseline gap-2"><span className="text-2xl font-semibold" style={{ color: TEXT }}>{n}</span>{pri > 0 && <span className="text-xs" style={{ color: ERROR }}>{pri} priority</span>}</div>
           </div>
         ); })}
       </div>
-      {/* Filter bar */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Room or attendant…" aria-label="Room or attendant" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-44" style={{ borderColor: BORDER }} /></div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs" style={{ color: MUTED }}>Floor:</span>
-          {FLOORS.map(f => <button key={f} onClick={() => setFloorFilter(f)} className="text-xs px-2 py-1.5 rounded-lg border" style={{ backgroundColor: floorFilter === f ? PRIMARY : "white", color: floorFilter === f ? "white" : MUTED, borderColor: floorFilter === f ? PRIMARY : BORDER }}>{f}</button>)}
+        <div className="relative"><Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Room or attendant" aria-label="Room or attendant" className="pl-8 pr-3 h-9 text-sm rounded-lg border bg-white outline-none w-52" style={{ borderColor: BORDER }} /></div>
+        <div className="flex items-center gap-1.5" role="group" aria-label="Floor">
+          <span className="text-sm" style={{ color: MUTED }}>Floor</span>
+          {FLOORS.map(f => <button key={f} onClick={() => setFloorFilter(f)} aria-pressed={floorFilter === f} className="text-sm h-9 min-w-9 px-2.5 rounded-lg border" style={{ backgroundColor: floorFilter === f ? PRIMARY : "white", color: floorFilter === f ? "white" : TEXT, borderColor: floorFilter === f ? PRIMARY : BORDER }}>{f}</button>)}
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs" style={{ color: MUTED }}>Attendant:</span>
-          <select aria-label="Attendant" value={attFilter} onChange={e => setAttFilter(e.target.value)} className="text-xs px-2 py-1.5 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
-            {ATTENDANTS.map(a => <option key={a}>{a}</option>)}
+        <label className="flex items-center gap-1.5 text-sm" style={{ color: MUTED }}>Attendant
+          <select value={attFilter} onChange={e => setAttFilter(e.target.value)} className="text-sm h-9 px-2 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
+            {["All", ...ATTENDANTS].map(a => <option key={a}>{a}</option>)}
           </select>
-        </div>
-        {selected.length > 0 && (
+        </label>
+        {selected.length > 0 ? (
           <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs" style={{ color: MUTED }}>{selected.length} selected</span>
-            <select value={bulkTarget} onChange={e => setBulkTarget(e.target.value)} className="text-xs px-2 py-1.5 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER }}>
+            <span className="text-sm" style={{ color: MUTED }}>{selected.length} selected</span>
+            <select aria-label="Move selected rooms to" value={bulkTarget} onChange={e => setBulkTarget(e.target.value)} className="text-sm h-9 px-2 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER }}>
               <option value="">Move to…</option>
               {COLS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
-            <button onClick={bulkMove} disabled={!bulkTarget} className="text-xs px-3 py-1.5 rounded-lg font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Apply</button>
-            <button onClick={() => setSelected([])} className="text-xs px-2 py-1.5 rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}>Clear</button>
+            <button onClick={bulkMove} disabled={!bulkTarget} className="text-sm h-9 px-3 rounded-lg font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Move</button>
+            <button onClick={() => setSelected([])} className="text-sm h-9 px-3 rounded-lg border" style={{ color: TEXT, borderColor: BORDER }}>Clear</button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 ml-auto text-sm" style={{ color: MUTED }}>
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: ERROR }} />Departure</span>
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: TEAL_INK }} />Arrival</span>
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: MUTED }} />Stayover or vacant</span>
           </div>
         )}
-        {/* Legend */}
-        <div className="flex items-center gap-3 ml-auto text-xs" style={{ color: SUBTLE }}>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: ERROR }} />Departure</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: TEAL }} />Arrival</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: MUTED }} />Stayover</span>
-        </div>
       </div>
-      {/* Kanban columns */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {COLS.map((col, ci) => {
           const colRooms = filtered.filter(r => r.hkSt === col.id);
           return (
-            <div key={col.id} className="rounded-xl border overflow-hidden" style={{ borderColor: BORDER, borderTop: `3px solid ${col.color}` }}>
-              <div className="px-4 py-3 border-b flex items-center justify-between" style={{ backgroundColor: col.bg, borderColor: BORDER }}>
-                <span className="text-sm font-semibold" style={{ color: col.color }}>{col.label}</span>
-                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: col.color + "22", color: col.color }}>{colRooms.length}</span>
+            <section key={col.id} aria-label={col.label} className="rounded-xl border overflow-hidden" style={{ borderColor: BORDER, borderTop: `3px solid ${col.color}` }}>
+              <div className="px-4 py-3 border-b flex items-center justify-between bg-white" style={{ borderColor: BORDER }}>
+                <h2 className="text-sm font-semibold" style={{ color: TEXT }}>{col.label}</h2>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: "#F1F5F9", color: TEXT }}>{colRooms.length}</span>
               </div>
-              <div className="p-2 space-y-2 min-h-64" style={{ backgroundColor: "#F9FAFB" }}>
+              <div className="p-2 space-y-2 min-h-64" style={{ backgroundColor: "#F8FAFC" }}>
                 {colRooms.length === 0 && (
-                  <div className="flex items-center justify-center h-20 text-xs rounded-xl border-2 border-dashed" style={{ color: col.color + "70", borderColor: col.color + "30" }}>No rooms</div>
+                  <div className="flex items-center justify-center h-20 text-sm rounded-xl border-2 border-dashed" style={{ color: MUTED, borderColor: BORDER }}>No rooms</div>
                 )}
                 {colRooms.map(r => (
-                  <div key={r.id} className="bg-white rounded-xl border overflow-hidden hover:shadow-sm transition-shadow" style={{ borderColor: selected.includes(r.id) ? PRIMARY : (r.priority ? ORANGE : BORDER), borderWidth: selected.includes(r.id) || r.priority ? 2 : 1 }}>
-                    {/* Card header */}
-                    <div className="px-3 py-2.5 flex items-center justify-between" style={{ backgroundColor: col.bg }}>
-                      <div className="flex items-center gap-2">
-                        <input type="checkbox" checked={selected.includes(r.id)} onChange={() => toggleSel(r.id)} className="w-3.5 h-3.5" />
-                        <span className="text-lg font-black" style={{ color: col.color }}>{r.id}</span>
-                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: guestStateColor(r.guestState) }} title={r.guestState} />
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {r.dnd && <span className="text-xs px-1 py-0.5 rounded font-bold" style={{ backgroundColor: "#F3F4F6", color: MUTED }}>DND</span>}
-                        {r.priority && <span className="text-xs px-1 py-0.5 rounded font-bold text-white" style={{ backgroundColor: ERROR }}>!</span>}
-                        {r.inspectionFlag && <span className="text-xs px-1 py-0.5 rounded font-bold" style={{ backgroundColor: "#EEF2FF", color: "#4338CA" }}>INS</span>}
-                      </div>
+                  <article key={r.id} className="bg-white rounded-xl border p-3" style={{ borderColor: selected.includes(r.id) ? PRIMARY : r.priority ? "#FDBA74" : BORDER, borderWidth: selected.includes(r.id) || r.priority ? 2 : 1 }}>
+                    <div className="flex items-start justify-between gap-2">
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" checked={selected.includes(r.id)} onChange={() => toggleSel(r.id)} aria-label={`Select room ${r.id}`} className="w-4 h-4" />
+                        <span className="text-lg font-semibold" style={{ color: TEXT }}>{r.id}</span>
+                      </label>
+                      <span className="text-xs pt-1" style={{ color: MUTED }}>{r.since}</span>
                     </div>
-                    <div className="px-3 pb-3 pt-1">
-                      <div className="flex items-center justify-between text-xs mb-1.5" style={{ color: MUTED }}>
-                        <span>{r.type} · F{r.floor}</span>
-                        <span style={{ fontFamily: mono }}>{r.since}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span style={{ color: guestStateColor(r.guestState), fontWeight: 600 }}>{r.guestState}</span>
-                        {r.attendant ? <div className="flex items-center gap-1"><div className="w-4 h-4 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: col.color, fontSize: 12 }}>{r.attendant[0]}</div><span style={{ color: MUTED, fontSize: 12 }}>{r.attendant.split(" ")[0]}</span></div> : <span style={{ color: SUBTLE, fontSize: 12 }}>Unassigned</span>}
-                      </div>
-                      <div className="flex gap-1">
-                        {ci < COLS.length - 1 && (
-                          <button onClick={() => moveTo(r.id, COLS[ci + 1].id)} className="flex-1 text-xs py-1.5 rounded-lg font-semibold text-white" style={{ backgroundColor: COLS[ci + 1].color }}>
-                            → {COLS[ci + 1].label}
-                          </button>
-                        )}
-                        {nav && <button onClick={() => nav("work-orders", "Work Orders")} className="text-xs px-2 py-1.5 rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}>WO</button>}
-                      </div>
+                    <div className="text-sm mt-0.5" style={{ color: MUTED }}>{r.type} · Floor {r.floor}</div>
+                    <div className="flex items-center justify-between text-sm mt-1.5">
+                      <span className="flex items-center gap-1.5 font-medium" style={{ color: guestStateColor(r.guestState) }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: guestStateColor(r.guestState) }} />{r.guestState}</span>
+                      <span style={{ color: r.attendant ? TEXT : ERROR }}>{r.attendant ?? "Unassigned"}</span>
                     </div>
-                  </div>
+                    {(r.priority || r.dnd || r.awaitingInspection) && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {r.priority && flag("Priority", "#FFF7ED", ORANGE_INK)}
+                        {r.dnd && flag("Do not disturb", "#F1F5F9", TEXT)}
+                        {r.awaitingInspection && flag("Awaiting inspection", "#EEF2FF", "#4338CA")}
+                      </div>
+                    )}
+                    {r.note && <p className="text-xs mt-2" style={{ color: MUTED }}>{r.note}</p>}
+                    <div className="flex gap-1.5 mt-3">
+                      {col.next && (
+                        <button onClick={() => moveTo(r.id, ci)} disabled={r.dnd && ci === 0} title={r.dnd && ci === 0 ? "Guest has asked not to be disturbed" : undefined} className="flex-1 text-sm h-9 rounded-lg border font-medium disabled:opacity-40" style={{ color: TEXT, borderColor: BORDER }}>
+                          {col.next}
+                        </button>
+                      )}
+                      {nav && <button onClick={() => nav("work-orders", "Work Orders")} aria-label={`Report a fault in room ${r.id}`} title="Report a fault" className="h-9 w-9 flex items-center justify-center rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}><Wrench size={15} /></button>}
+                    </div>
+                  </article>
                 ))}
               </div>
-            </div>
+            </section>
           );
         })}
       </div>
