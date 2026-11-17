@@ -22,7 +22,7 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 import {
-  type Role, type Toast, type ToastType, type AddToast, fmtN, uid, actC, actBg,
+  type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
@@ -2125,7 +2125,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
 
 // B4-2 Rate Calendar
 export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const TODAY = new Date(2026, 7, 1);
+  const TODAY = BUSINESS_DATE;
   const [offset,        setOffset]        = useState(0);
   const [viewDays,      setViewDays]      = useState<7|14>(7);
   const [planName,      setPlanName]      = useState("Standard Rate");
@@ -2651,7 +2651,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
 // B4-3 Availability Board
 export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
-  const TODAY = new Date(2026, 7, 1);
+  const TODAY = BUSINESS_DATE;
   const [offset,      setOffset]      = useState(0);
   const [viewDays,    setViewDays]    = useState<7|14>(14);
   const [drillCell,   setDrillCell]   = useState<{ code:string; type:string; date:string; dateObj:Date; sold:number; avail:number; total:number }|null>(null);

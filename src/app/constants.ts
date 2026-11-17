@@ -93,6 +93,13 @@ export const actBg = (t: string) => ({ checkin: "#F0FDF4", checkout: "#F8FAFC", 
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 export const uid = () => Math.random().toString(36).slice(2);
+// Mock "today" for every screen until the hotel server supplies the business date.
+export const BUSINESS_DATE = new Date(2026, 5, 24);
+// One date format everywhere: "24 Jun 2026". Accepts a Date or an ISO "2026-06-24" string.
+export const fmtDate = (d: Date | string) => {
+  const date = typeof d === "string" ? new Date(Number(d.slice(0, 4)), Number(d.slice(5, 7)) - 1, Number(d.slice(8, 10))) : d;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+};
 export const fmtN = (v: number) => v >= 1e6 ? `₦${(v / 1e6).toFixed(2)}M` : v >= 1e3 ? `₦${(v / 1e3).toFixed(0)}K` : `₦${v}`;
 
 // ─── Data ─────────────────────────────────────────────────────────────────────

@@ -22,7 +22,7 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 import {
-  type Role, type Toast, type ToastType, type AddToast, fmtN, uid, actC, actBg,
+  type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
   occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
@@ -50,7 +50,7 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
   const [bookingId, setBookingId] = useState("");
   const initialForm = {
     firstName: "", lastName: "", phone: "", email: "", nationality: "Nigerian", address: "",
-    idType: "International Passport", idNumber: "", checkin: "2026-08-04", checkout: "2026-08-05",
+    idType: "International Passport", idNumber: "", checkin: "2026-06-24", checkout: "2026-06-25",
     adults: "1", children: "0", deposit: "", paymentMethod: "Cash", paymentRef: "", specialRequests: "",
   };
   const [form, setForm] = useState(initialForm);
@@ -169,7 +169,7 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
           <div className="bg-white rounded-xl border p-5 h-fit" style={{ borderColor: BORDER }}>
             <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Booking Summary</h3>
             <div className="space-y-2.5 text-sm">
-              {[["Guest", guestName || "Not entered"], ["Room", selRoom ? `${selRoom.id} · ${selRoom.type}` : "Not selected"], ["Check-in", form.checkin || "Not selected"], ["Check-out", form.checkout || "Not selected"], ["Guests", `${form.adults || "0"} adult${form.adults === "1" ? "" : "s"} · ${form.children || "0"} children`], ["Nights", nights > 0 ? String(nights) : "Invalid dates"]].map(([k,v]) => (
+              {[["Guest", guestName || "Not entered"], ["Room", selRoom ? `${selRoom.id} · ${selRoom.type}` : "Not selected"], ["Check-in", form.checkin ? fmtDate(form.checkin) : "Not selected"], ["Check-out", form.checkout || "Not selected"], ["Guests", `${form.adults || "0"} adult${form.adults === "1" ? "" : "s"} · ${form.children || "0"} children`], ["Nights", nights > 0 ? String(nights) : "Invalid dates"]].map(([k,v]) => (
                 <div key={k} className="flex justify-between"><span style={{ color: MUTED }}>{k}</span><span className="font-medium" style={{ color: TEXT }}>{v}</span></div>
               ))}
               <div className="border-t my-2" style={{ borderColor: BORDER }} />
@@ -1057,7 +1057,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 
   const totalBlocked = (g: Group) => g.rooms.Standard + g.rooms.Deluxe + g.rooms.Suite;
   const pickupPct    = (g: Group) => totalBlocked(g) === 0 ? 0 : Math.round((g.rooming.length / totalBlocked(g)) * 100);
-  const cutoffDays   = (g: Group) => Math.round((new Date(g.cutoffDate).getTime() - Date.now()) / 86400000);
+  const cutoffDays   = (g: Group) => Math.round((new Date(g.cutoffDate).getTime() - BUSINESS_DATE.getTime()) / 86400000);
   const statusStage  = (g: Group) => {
     if (g.status === "Departed")    return 4;
     if (g.status === "Active")      return 3;
@@ -1357,7 +1357,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                 ["Active Groups",  String(groups.length),                        "Confirmed & Tentative", Users,        TEAL   ],
                 ["Rooms Blocked",  String(totalBlock),                           "Across all groups",      BedDouble,    PRIMARY],
                 ["Guests Assigned",String(totalPickedUp),                        "Rooming list total",     UserCheck,    SUCCESS],
-                ["Est. Revenue",   `₦${(totalRevenue/1000000).toFixed(1)}M`,    "Combined value",         DollarSign,   ORANGE ],
+                ["Est. Revenue",   fmtN(totalRevenue),    "Combined value",         DollarSign,   ORANGE ],
               ] as [string,string,string,React.ElementType,string][]).map(([label, value, sub, Icon, accent]) => (
                 <div key={label} className="rounded-2xl p-5 border" style={{ backgroundColor: PASS_BG, borderColor: PASS_BORDER }}>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: `${accent}14` }}>
@@ -1488,8 +1488,8 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                         <p className="text-xs truncate" style={{ color: PASS_MUTED }}>{g.email}</p>
                       </div>
                       <div className="w-28 flex-shrink-0 pl-2">
-                        <p className="text-xs font-semibold" style={{ color: TEXT }}>{g.checkin}</p>
-                        <p className="text-xs" style={{ color: PASS_MUTED }}>{g.nights}n · {g.checkout}</p>
+                        <p className="text-xs font-semibold" style={{ color: TEXT }}>{fmtDate(g.checkin)}</p>
+                        <p className="text-xs" style={{ color: PASS_MUTED }}>{g.nights}n · {fmtDate(g.checkout)}</p>
                       </div>
                       <div className="w-16 flex-shrink-0 text-center">
                         <p className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>{totalBlocked(g)}</p>
@@ -1504,7 +1504,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                         </div>
                       </div>
                       <div className="w-24 flex-shrink-0 text-right">
-                        <p className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>₦{(g.estValue/1000000).toFixed(1)}M</p>
+                        <p className="text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>{fmtN(g.estValue)}</p>
                       </div>
                       <div className="w-24 flex-shrink-0 text-right">
                         <span className="text-xs px-2 py-1 rounded-full font-bold" style={{ backgroundColor: sc.bg, color: sc.text }}>{g.status}</span>
@@ -1902,7 +1902,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                         <button onClick={() => {
                           if (!newCharge.description || !newCharge.amount) return;
                           setGroups(prev => prev.map(x => x.id === g.id ? {
-                            ...x, folio: [...x.folio, { id: x.folio.length + 1, description: newCharge.description, amount: Number(newCharge.amount), date: new Date().toISOString().split("T")[0], category: "extra" as const }],
+                            ...x, folio: [...x.folio, { id: x.folio.length + 1, description: newCharge.description, amount: Number(newCharge.amount), date: "2026-06-24", category: "extra" as const }],
                           } : x));
                           setNewCharge({ description: "", amount: "" });
                           add({ type: "success", title: "Charge added to folio" });
@@ -1926,7 +1926,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                                 <span style={{ color: TEXT }}>{line.description}</span>
                               </div>
                             </td>
-                            <td className="px-5 py-3 text-xs" style={{ color: PASS_MUTED, fontFamily: mono }}>{line.date}</td>
+                            <td className="px-5 py-3 text-xs" style={{ color: PASS_MUTED, fontFamily: mono }}>{fmtDate(line.date)}</td>
                             <td className="px-5 py-3 text-right font-semibold" style={{ color: line.category === "payment" ? SUCCESS : TEXT, fontFamily: mono }}>
                               {line.category === "payment" ? "–" : ""}₦{Math.abs(line.amount).toLocaleString()}
                             </td>
@@ -1958,7 +1958,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                           setGroups(prev => prev.map(x => x.id === g.id ? {
                             ...x,
                             depositPaid: x.depositPaid + amt,
-                            folio: [...x.folio, { id: x.folio.length + 1, description: `Payment received`, amount: -amt, date: new Date().toISOString().split("T")[0], category: "payment" as const }],
+                            folio: [...x.folio, { id: x.folio.length + 1, description: `Payment received`, amount: -amt, date: "2026-06-24", category: "payment" as const }],
                           } : x));
                           add({ type: "success", title: `₦${amt.toLocaleString()} recorded — ${g.id}` });
                           setPaymentInput({ show: false, amount: "", groupId: "" });
@@ -2808,7 +2808,7 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
 
   // Days until check-in (using checkin string like "28 Jun 2026")
   const checkinDate = new Date(selectedRes.checkin + " 2026");
-  const daysToCheckin = Math.ceil((checkinDate.getTime() - Date.now()) / 86400000);
+  const daysToCheckin = Math.ceil((checkinDate.getTime() - BUSINESS_DATE.getTime()) / 86400000);
   const withinWindow  = daysToCheckin <= 2;
 
   const lookupResult = ALL_RES.find(r =>
@@ -2851,25 +2851,8 @@ export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => voi
       <PageHeader title="Cancellation & Refund" sub="Process reservation cancellations with policy enforcement and refund tracking" />
 
       {/* KPI strip */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
-        {kpi.map(k => {
-          const KI = k.icon;
-          return (
-            <div key={k.label} className="bg-white rounded-xl border overflow-hidden flex" style={{ borderColor: BORDER }}>
-              <div className="w-1 flex-shrink-0" style={{ backgroundColor: k.color }} />
-              <div className="flex items-center gap-3 px-4 py-4 flex-1">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${k.color}14` }}>
-                  <KI size={18} style={{ color: k.color }} />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold leading-none mb-1" style={{ color: k.color, fontFamily: mono }}>{k.value}</p>
-                  <p className="text-xs font-semibold" style={{ color: TEXT }}>{k.label}</p>
-                  <p className="text-xs" style={{ color: SUBTLE }}>{k.sub}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div className="grid grid-cols-1 gap-4 mb-5 sm:grid-cols-3">
+        {kpi.map(k => <StatCard key={k.label} label={k.label} value={String(k.value)} sub={k.sub} icon={k.icon} accent={k.color} />)}
       </div>
 
       {/* Reservation lookup bar */}

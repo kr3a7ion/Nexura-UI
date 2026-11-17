@@ -23,7 +23,7 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 import {
-  type Role, type Toast, type ToastType, type AddToast, fmtN, uid, actC, actBg,
+  type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
@@ -241,7 +241,7 @@ export function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: num
   );
 }
 export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
-  const TODAY = new Date(2026, 7, 1);
+  const TODAY = BUSINESS_DATE;
   const [offset, setOffset] = useState(0);
   const [filterType, setFilterType] = useState("All");
   const [filterFloor, setFilterFloor] = useState("All");
@@ -496,7 +496,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   const [manualRate, setManualRate] = useState(false);
 
   const [form, setForm] = useState({
-    checkin: "2026-08-04", checkout: "2026-08-07",
+    checkin: "2026-06-24", checkout: "2026-06-27",
     adults: "2", children: "0",
     roomType: "Deluxe", roomNumber: "",
     source: "Phone",
@@ -653,7 +653,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               {form.guestName || "Guest"} · {form.roomType}{form.roomNumber ? ` Rm ${form.roomNumber}` : ""}
             </p>
             <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.38)" }}>
-              {form.checkin} → {form.checkout} · {nights}N · ₦{total.toLocaleString()} incl. VAT
+              {fmtDate(form.checkin)} → {fmtDate(form.checkout)} · {nights}N · ₦{total.toLocaleString()} incl. VAT
             </p>
           </div>
         </div>
@@ -714,26 +714,26 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
               onClick={() => clickable && setStep(i + 1)}
               className="flex-1 flex flex-col items-center justify-center py-5 px-2 relative transition-all"
               style={{
-                backgroundColor: active ? TEAL : done ? `${TEAL}18` : "transparent",
+                backgroundColor: active ? PRIMARY : done ? `${PRIMARY}18` : "transparent",
                 borderRight: i < 5 ? `1px dashed ${PASS_DASH}` : undefined,
                 cursor: clickable ? "pointer" : "default",
               }}
-              onMouseEnter={e => { if (clickable && !active) e.currentTarget.style.backgroundColor = `${TEAL}28`; }}
-              onMouseLeave={e => { if (clickable && !active) e.currentTarget.style.backgroundColor = `${TEAL}18`; }}>
+              onMouseEnter={e => { if (clickable && !active) e.currentTarget.style.backgroundColor = `${PRIMARY}28`; }}
+              onMouseLeave={e => { if (clickable && !active) e.currentTarget.style.backgroundColor = `${PRIMARY}18`; }}>
 
               {/* Top-right badge */}
               <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5">
                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ backgroundColor: active ? "rgba(255,255,255,0.25)" : done ? TEAL : PASS_BORDER, color: active ? "white" : done ? "white" : PASS_MUTED, fontSize: 12 }}>
+                  style={{ backgroundColor: active ? "rgba(255,255,255,0.25)" : done ? PRIMARY : PASS_BORDER, color: active ? "white" : done ? "white" : PASS_MUTED, fontSize: 12 }}>
                   {done ? <CheckCircle size={10} color="white" weight="bold" /> : i + 1}
                 </div>
                 {done && (
-                  <span className="font-bold rounded" style={{ fontSize: 7, color: TEAL, letterSpacing: "0.06em" }}>EDIT</span>
+                  <span className="font-bold rounded" style={{ fontSize: 12, color: PRIMARY }}>Edit</span>
                 )}
               </div>
 
-              <SI size={24} style={{ color: active ? "white" : done ? TEAL : PASS_MUTED }} />
-              <p className="text-center mt-2 font-bold leading-tight" style={{ fontSize: 12, color: active ? "white" : done ? TEAL : PASS_MUTED, letterSpacing: "0.05em" }}>
+              <SI size={24} style={{ color: active ? "white" : done ? PRIMARY : PASS_MUTED }} />
+              <p className="text-center mt-2 font-bold leading-tight" style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : PASS_MUTED, letterSpacing: "0.05em" }}>
                 {label.toUpperCase()}
               </p>
             </button>
@@ -748,7 +748,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: PASS_BG, border: `1.5px solid ${PASS_BORDER}` }}>
 
             {/* Teal header band */}
-            <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: TEAL }}>
+            <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: PRIMARY }}>
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ letterSpacing: "0.1em" }}>Step {step} of 6</p>
                 <p className="text-base font-bold text-white mt-0.5">{STEPS[step - 1]}</p>
@@ -1184,7 +1184,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                 <div className="space-y-3">
                   {([
                     { title:"Dates & Room", icon: CalendarDots, items:[
-                      ["Check-In",form.checkin],["Check-Out",form.checkout],["Nights",String(nights)],
+                      ["Check-In",fmtDate(form.checkin)],["Check-Out",fmtDate(form.checkout)],["Nights",String(nights)],
                       ["Room",`${form.roomType}${form.roomNumber ? ` · Rm ${form.roomNumber}` : ""}`],
                       ["Guests",`${form.adults}A · ${form.children}C`],["Source",form.source],
                     ] as [string,string][] },
@@ -1218,7 +1218,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                     const SI = sec.icon;
                     return (
                       <div key={sec.title} className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${PASS_BORDER}` }}>
-                        <div className="flex items-center gap-2 px-4 py-2.5" style={{ backgroundColor: TEAL }}>
+                        <div className="flex items-center gap-2 px-4 py-2.5" style={{ backgroundColor: PRIMARY }}>
                           <SI size={12} color="white" style={{ opacity: 0.8 }} />
                           <p className="text-xs font-bold uppercase tracking-wider text-white" style={{ opacity: 0.9 }}>{sec.title}</p>
                         </div>
@@ -1264,7 +1264,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
           <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: "#F9FAFB", border: `1.5px solid #E2E8F0` }}>
 
             {/* Teal header band */}
-            <div className="px-5 py-4 flex items-center justify-between" style={{ backgroundColor: TEAL }}>
+            <div className="px-5 py-4 flex items-center justify-between" style={{ backgroundColor: PRIMARY }}>
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ letterSpacing: "0.12em" }}>Summary</p>
                 <p className="text-lg font-bold text-white mt-0.5">{form.guestName || "New Guest"}</p>
@@ -1299,8 +1299,8 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
             {/* Stay grid — 2-up like boarding pass fields */}
             <div className="px-5 pt-3 pb-4 grid grid-cols-2 gap-x-4 gap-y-3" style={{ borderBottom: "1.5px dashed #CBD5E1" }}>
               {([
-                ["CHECK-IN",  form.checkin],
-                ["CHECK-OUT", form.checkout],
+                ["Check-in",  fmtDate(form.checkin)],
+                ["Check-out", fmtDate(form.checkout)],
                 ["ROOM TYPE", form.roomType],
                 ["ROOM NO",   form.roomNumber || "TBA"],
                 ["NIGHTS",    String(nights)],
@@ -1405,7 +1405,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                   {form.guestName ? form.guestName.toUpperCase() : "PENDING GUEST"}
                 </p>
                 <p className="text-xs mt-0.5" style={{ color: PASS_MUTED, fontFamily: mono }}>
-                  {form.roomType.toUpperCase()}{form.roomNumber ? ` · RM ${form.roomNumber}` : ""} · {form.checkin}
+                  {form.roomType}{form.roomNumber ? ` · Room ${form.roomNumber}` : ""} · {fmtDate(form.checkin)}
                 </p>
               </div>
             </div>
@@ -1415,7 +1415,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
           <div className="mt-3 space-y-2">
             <button onClick={proceed}
               className="w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm"
-              style={{ backgroundColor: step === 6 ? SUCCESS : TEAL, color: "white" }}>
+              style={{ backgroundColor: step === 6 ? SUCCESS : PRIMARY, color: "white" }}>
               {step === 6
                 ? <><CheckCircle size={15} weight="bold" /> Confirm Reservation</>
                 : <>{STEPS[step]} <ArrowRight size={14} weight="bold" /></>}
@@ -1537,7 +1537,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
   const addDaysLabel = (label: string, days: number) => {
     const [day, mon] = label.split(" ");
     const months: Record<string, number> = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
-    const date = new Date(2025, months[mon] ?? 0, Number(day));
+    const date = new Date(2026, months[mon] ?? 0, Number(day));
     date.setDate(date.getDate() + days);
     return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   };
@@ -1699,7 +1699,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-Out & Settlement · Business date 25 Jun 2025</p>
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT, letterSpacing: "0.1em" }}>Check-Out & Settlement · Business date {fmtDate(BUSINESS_DATE)}</p>
           <h1 className="text-2xl font-bold mt-0.5" style={{ color: TEXT }}>Guest Check-Out</h1>
         </div>
       </div>
@@ -2491,7 +2491,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
   const addDaysLabel = (label: string, days: number) => {
     const [day, mon] = label.split(" ");
     const months: Record<string, number> = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
-    const date = new Date(2025, months[mon] ?? 0, Number(day));
+    const date = new Date(2026, months[mon] ?? 0, Number(day));
     date.setDate(date.getDate() + days);
     return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   };
@@ -2558,7 +2558,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 relative">
                       <button onClick={() => nav && nav("check-out", "Guest Folio", revokedAccess.includes(g.id) ? `${g.id}|revoked` : g.id)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold hover:bg-[#F4F4F5] transition-colors" style={{ color: PRIMARY, borderColor: BORDER }}>Folio</button>
-                      <button onClick={() => nav && nav("check-out", "Check-Out", revokedAccess.includes(g.id) ? `${g.id}|revoked` : g.id)} className="text-xs px-2.5 py-1.5 rounded-lg font-semibold text-white transition-colors hover:opacity-90" style={{ backgroundColor: TEAL }}>Check Out</button>
+                      <button onClick={() => nav && nav("check-out", "Check-Out", revokedAccess.includes(g.id) ? `${g.id}|revoked` : g.id)} className="text-xs px-2.5 py-1.5 rounded-lg font-semibold text-white transition-colors hover:opacity-90" style={{ backgroundColor: PRIMARY }}>Check Out</button>
                       <div className="relative">
                         <button aria-label="More actions" onClick={() => setMoreMenu(moreMenu === g.room ? null : g.room)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#F4F4F5] transition-colors" style={{ color: SUBTLE }}><DotsThree size={13} weight="bold" /></button>
                         {moreMenu === g.room && (
@@ -2939,7 +2939,7 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
   };
   return (
     <div>
-      <PageHeader title="Folio — BK-2848" sub="Emmanuel Adeyemi · Room 202 · 23–25 Jun 2025"
+      <PageHeader title="Folio — BK-2848" sub="Emmanuel Adeyemi · Room 202 · 23–25 Jun 2026"
         actions={<><BtnO label="Print Folio" icon={FileText} /><BtnO label="Split Folio" icon={Stack} /><BtnP label="Post Charge" icon={Plus} onClick={() => setShowCharge(true)} /></>} />
       {/* Header stat bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
