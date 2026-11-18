@@ -5,8 +5,7 @@ import {
 } from "@phosphor-icons/react";
 import type { Screen } from "../../constants";
 import {
-  BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono,
-} from "../../constants";
+  BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
 import {
   MAINTENANCE_EXCEPTIONS, MAINTENANCE_KPIS, MAINTENANCE_QUEUE,
@@ -74,7 +73,7 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
           <div className="mt-3 flex flex-wrap gap-2"><Badge label="Manager" colors={{ bg: BG, text: PRIMARY }} /><Badge label="Maintenance" colors={{ bg: BG, text: PRIMARY }} /></div>
         </div>
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-          <div className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: BORDER, color: MUTED }}><Buildings size={14} style={{ color: accent }} />Grand Palms · Abuja</div>
+          <div className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: BORDER, color: MUTED }}><Buildings size={14} style={{ color: accent }} />{propertyLabel()}</div>
           <div className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: "#A7F3D0", backgroundColor: "#ECFDF5", color: SUCCESS }}><span className="h-2 w-2 rounded-full" style={{ backgroundColor: SUCCESS }} />Synced 14 sec ago</div>
         </div>
       </section>

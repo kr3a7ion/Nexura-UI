@@ -3,7 +3,7 @@ import {
   ArrowRight, Check, DeviceMobile, Globe, PushPin, Shield, SquaresFour,
 } from "@phosphor-icons/react";
 import type { Role, Screen } from "../constants";
-import { BUSINESS_DATE } from "../constants";
+import { BUSINESS_DATE, propertyLabel } from "../constants";
 import { BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, WARNING, display } from "../constants";
 import { Badge, EmptyState, PageHeader, StatCard } from "../UIKit";
 import { DEPARTMENT_HOME } from "../mock/departmentHome";
@@ -77,7 +77,7 @@ export function SuiteHome({
     <div>
       <PageHeader
         title={`${greeting}, ${firstName}`}
-        sub={`${today} · ${ROLE_LABELS[role]} · Grand Palms Abuja`}
+        sub={`${today} · ${ROLE_LABELS[role]} · ${propertyLabel()}`}
         actions={
           <div className="hidden items-center gap-2 rounded-full border bg-white px-3 py-2 text-xs font-semibold md:flex" style={{ borderColor: BORDER, color: MUTED }}>
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: SUCCESS }} />

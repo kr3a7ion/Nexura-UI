@@ -61,6 +61,7 @@ export const PROPERTY_PROFILE = {
   checkInTime: "14:00",
   checkOutTime: "11:00",
 };
+export const propertyLabel = () => `${PROPERTY_PROFILE.name}, ${PROPERTY_PROFILE.city}`;
 
 // ─── Color Maps ──────────────────────────────────────────────────────────────
 export const resStC: Record<string, { bg: string; text: string }> = {
@@ -160,15 +161,8 @@ export const NOTIFS = [
 ];
 // The hotel's rooms. Status is where each room stands on the business date; Front Office,
 // Housekeeping and the grid all use this list.
-export const ROOMS = [
-  { id: "101", type: "Deluxe", floor: 1, status: "Occupied" },   { id: "102", type: "Standard", floor: 1, status: "Cleaning" },
-  { id: "103", type: "Standard", floor: 1, status: "Available" }, { id: "104", type: "Deluxe", floor: 1, status: "Available" },
-  { id: "118", type: "Standard", floor: 1, status: "Occupied" },  { id: "201", type: "Standard", floor: 2, status: "Cleaning" },
-  { id: "202", type: "Deluxe", floor: 2, status: "Occupied" },    { id: "203", type: "Suite", floor: 2, status: "Occupied" },
-  { id: "302", type: "Deluxe", floor: 3, status: "Occupied" },    { id: "303", type: "Deluxe", floor: 3, status: "Reserved" },
-  { id: "304", type: "Standard", floor: 3, status: "Occupied" },  { id: "501", type: "Suite", floor: 5, status: "Occupied" },
-  { id: "502", type: "Suite", floor: 5, status: "Reserved" },
-];
+export { ROOMS } from "./mock/property";
+import { ROOMS } from "./mock/property";
 // Counted from ROOMS so every screen shows the same hotel.
 export const roomSt = ([["Occupied", ORANGE], ["Available", SUCCESS], ["Cleaning", WARNING], ["Reserved", TEAL], ["Maintenance", ERROR], ["Out of service", "#6B7280"]] as const)
   .map(([status, color]) => ({ status, color, count: ROOMS.filter(r => r.status.toLowerCase() === status.toLowerCase()).length }));
@@ -402,9 +396,9 @@ export const STAFF_RPT = [
   { dept: "Restaurant", hours: 390, attend: 94, staff: 3 },
 ];
 export const RATE_PLANS = [
-  { id: "RP-001", name: "Standard Rate", rooms: ["Standard", "Deluxe", "Suite"], base: 35000, active: true, dates: "Year-round" },
+  { id: "RP-001", name: "Standard Rate", rooms: ["Standard", "Deluxe", "Executive", "Suite"], base: 35000, active: true, dates: "Year-round" },
   { id: "RP-002", name: "Corporate Rate", rooms: ["Standard", "Deluxe"], base: 28000, active: true, dates: "Year-round" },
-  { id: "RP-003", name: "Weekend Special", rooms: ["Standard", "Deluxe", "Suite"], base: 42000, active: true, dates: "Fri–Sun" },
+  { id: "RP-003", name: "Weekend Special", rooms: ["Standard", "Deluxe", "Executive", "Suite"], base: 42000, active: true, dates: "Fri–Sun" },
   { id: "RP-004", name: "Group Rate (10+)", rooms: ["Standard", "Deluxe"], base: 25000, active: true, dates: "Year-round" },
   { id: "RP-005", name: "Christmas Promo", rooms: ["Suite"], base: 110000, active: false, dates: "Dec 20 – Jan 5" },
 ];

@@ -44,6 +44,7 @@ import { ARRIVALS as FO_ARRIVALS, departures, STAYS } from "./mock/frontOffice";
 import { isManagerLogin } from "./mock/staffLogin";
 import { FOUND_ITEMS, logFoundItem, hkRooms } from "./mock/housekeeping";
 import { UI, controlClass, controlStyle, SectionTitle, Stepper, Row } from "./ui";
+import { roomPrice } from "./mock/property";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
 function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
@@ -148,10 +149,9 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
   const selData = ALL_ARRIVALS.find(a => a.id === selRes);
   // Rooms free tonight, straight from Housekeeping; only clean or inspected rooms can be given out.
   const AVAIL_ROOMS = hkRooms().filter(r => r.guestState === "Vacant" || (selData && r.id === selData.room));
-  const ready = (r: { hkSt: string }) => r.hkSt === "Clean" || r.hkSt === "Inspected";
-  const RATE_MAP: Record<string, number> = { Standard: 35000, Deluxe: 55000, Suite: 91125 };
+  const ready = (r: { hkSt: string; note: string }) => (r.hkSt === "Clean" || r.hkSt === "Inspected") && !r.note.startsWith("Out of order");
   const selectedRoomData = AVAIL_ROOMS.find(r => r.id === selRoom);
-  const nightlyRate = selData && selectedRoomData && approvedUpgradeRoom === selRoom ? RATE_MAP[selectedRoomData.type] : selData?.rate ?? 0;
+  const nightlyRate = selData && selectedRoomData && approvedUpgradeRoom === selRoom ? roomPrice(selectedRoomData.type) : selData?.rate ?? 0;
   const subtotal = selData ? nightlyRate * selData.nights : 0;
   const vat = Math.round(subtotal * 0.075);
   const total = subtotal + vat;
@@ -161,7 +161,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
   const handleRoomSelection = (roomId: string) => {
     const room = AVAIL_ROOMS.find(r => r.id === roomId);
     if (!room || !selData) return;
-    const isUpgrade = RATE_MAP[room.type] > selData.rate;
+    const isUpgrade = roomPrice(room.type) > selData.rate;
     if (isUpgrade && approvedUpgradeRoom !== roomId) {
       setUpgradeCandidate(roomId);
       setUpgradeReason("");
@@ -319,8 +319,8 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                 <SecLabel>Available rooms</SecLabel>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                   {AVAIL_ROOMS.map(r => {
-                    const isUpgrade = r.type !== selData.type && (r.type === "Suite" || (r.type === "Deluxe" && selData.type === "Standard"));
-                    const rateDiff = (RATE_MAP[r.type] ?? selData.rate) - selData.rate;
+                    const isUpgrade = roomPrice(r.type) > roomPrice(selData.type);
+                    const rateDiff = (roomPrice(r.type) || selData.rate) - selData.rate;
                     const sel = selRoom === r.id;
                     return (
                       <button key={r.id} onClick={() => handleRoomSelection(r.id)} disabled={!ready(r)}
@@ -343,7 +343,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                 </div>
                 {upgradeCandidate && (() => {
                   const room = AVAIL_ROOMS.find(r => r.id === upgradeCandidate);
-                  const rateDiff = room ? RATE_MAP[room.type] - selData.rate : 0;
+                  const rateDiff = room ? roomPrice(room.type) - selData.rate : 0;
                   return room ? (
                     <div className="rounded-xl p-4 space-y-4" style={{ backgroundColor: "#F5F3FF", border: "1.5px solid #DDD6FE" }}>
                       <div className="flex items-start gap-3">

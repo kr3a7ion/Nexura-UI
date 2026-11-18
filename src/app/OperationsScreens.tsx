@@ -31,12 +31,13 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK, propertyLabel } from "./constants";
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, Av } from "./UIKit";
 import { DateInput } from "./DateInput";
 import { hkRooms, updateRoom, ATTENDANTS } from "./mock/housekeeping";
-import { inHouseGuests } from "./mock/frontOffice";
+import { inHouseGuests, gridBookings } from "./mock/frontOffice";
+import { ROOM_TYPES, replaceRoomTypes } from "./mock/property";
 
 
 export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
@@ -1066,7 +1067,7 @@ export function DailySummary({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 
   return (
     <div>
-      <PageHeader title="Daily Summary" sub={`${BDATE} · Grand Palms Hotel, Abuja`} actions={
+      <PageHeader title="Daily Summary" sub={`${BDATE} · ${propertyLabel()}`} actions={
         <div className="flex gap-2 items-center">
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold" style={{ backgroundColor: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}>
             {dayStatus === "Closed" && <Lock size={12} />}{dayStatus}
@@ -1249,7 +1250,7 @@ export function StockDashboard({ add }: { add: (t: Omit<Toast, "id">) => void })
   const critical = PRODUCTS_SD.filter(i => i.current === 0);
   return (
     <div>
-      <PageHeader title="Stock Dashboard" sub="Live inventory overview · Grand Palms Hotel, Abuja" actions={
+      <PageHeader title="Stock Dashboard" sub={`Live inventory overview · ${propertyLabel()}`} actions={
         <div className="flex gap-2">
           <BtnO label="Export" icon={Download} onClick={() => add({ type:"info", title:"Exporting inventory report" })} />
           <BtnP label="Log transaction" icon={Plus} onClick={() => add({ type:"info", title:"New stock transaction" })} />
@@ -1365,19 +1366,17 @@ export function StockDashboard({ add }: { add: (t: Omit<Toast, "id">) => void })
 export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   type RT = { code:string; name:string; count:number; available:number; maxOcc:number; beds:string; size:string; amenities:string[]; base:number; description:string; order:number };
 
-  const INIT: RT[] = [
-    { code:"STD", name:"Standard Room", count:10, available:6, maxOcc:2, beds:"1 King or 2 Twin", size:"28 m²",
-      amenities:["Air Conditioning","Free Wi-Fi","Flat-screen TV","Mini Fridge","Safe","Kettle","En-suite Shower"],
-      base:35000, description:"Comfortable standard rooms ideal for business and leisure travellers.", order:1 },
-    { code:"DLX", name:"Deluxe Room", count:8, available:4, maxOcc:3, beds:"1 King + Sofa Bed", size:"38 m²",
-      amenities:["Air Conditioning","Free Wi-Fi","Smart TV","Minibar","In-room Safe","Work Desk","Bathtub + Shower","Premium Toiletries","Balcony"],
-      base:55000, description:"Spacious deluxe rooms with balcony views and premium furnishings.", order:2 },
-    { code:"STE", name:"Suite", count:4, available:2, maxOcc:4, beds:"1 King + Separate Lounge", size:"65 m²",
-      amenities:["Air Conditioning","Free Wi-Fi","65\" Smart TV","Full Minibar","Butler Service","Kitchenette","Jacuzzi","Panoramic Balcony","Dining Area","VIP Amenity Kit"],
-      base:95000, description:"Flagship suites with panoramic views, butler service, and luxury amenities.", order:3 },
-  ];
+  // Room types and their rooms come from the property setup; changes here are saved back to it.
+  const withCounts = (list: Omit<RT, "count" | "available">[]): RT[] => list.map(t => ({ ...t,
+    count: ROOMS.filter(r => r.type === t.name).length, available: ROOMS.filter(r => r.type === t.name && r.status === "Available").length }));
+  const INIT: RT[] = withCounts(ROOM_TYPES);
 
-  const [roomTypes,     setRoomTypes]     = useState<RT[]>(INIT);
+  const [roomTypes, setRoomTypesState] = useState<RT[]>(INIT);
+  const setRoomTypes = (fn: (prev: RT[]) => RT[]) => setRoomTypesState(prev => {
+    const next = fn(prev);
+    replaceRoomTypes(next.map(({ count: _c, available: _a, ...t }) => t));
+    return next;
+  });
   const [selected,      setSelected]      = useState<RT>(INIT[0]);
   const [showEdit,      setShowEdit]      = useState(false);
   const [showAddType,   setShowAddType]   = useState(false);
@@ -1401,7 +1400,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
   const initAssign = () => {
     const m: Record<string,string> = {};
     ROOMS.forEach(r => {
-      m[r.id] = r.type==="Suite" ? "STE" : r.type==="Deluxe" ? "DLX" : r.type==="Standard" ? "STD" : "";
+      m[r.id] = ROOM_TYPES.find(t => t.name === r.type)?.code ?? "";
     });
     return m;
   };
@@ -1489,6 +1488,8 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
   };
 
   const deleteType = (code: string) => {
+    const inUse = assignedRooms(roomTypes.find(r => r.code === code) ?? selected).length;
+    if (inUse) { add({ type: "warning", title: `Move its ${inUse} rooms to another type first` }); return; }
     const el = cardRefs.current[code];
     if (el) {
       el.style.transition = "transform 0.3s cubic-bezier(0.4,0,1,1), opacity 0.3s ease";
@@ -1837,7 +1838,10 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
           </div>
           <div className="flex gap-3 px-6 py-4 border-t" style={{ borderColor:BORDER }}>
             <button onClick={()=>setShowManage(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border" style={{ color:MUTED, borderColor:BORDER }}>Cancel</button>
-            <button onClick={()=>{ setShowManage(false); add({ type:"success", title:"Room assignments saved", body:`${assignedRooms(selected).length} rooms assigned to ${selected.name}` }); }}
+            <button onClick={()=>{
+              ROOMS.forEach(r => { const t = roomTypes.find(x => x.code === roomAssign[r.id]); if (t) r.type = t.name; });
+              setRoomTypes(prev => withCounts(prev));
+              setShowManage(false); add({ type:"success", title:"Room assignments saved", body:`${assignedRooms(selected).length} rooms assigned to ${selected.name}` }); }}
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: tC(selected.code) }}>
               Save Assignments
             </button>
@@ -2047,7 +2051,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
 
       {/* ══ ANALYTICS MODAL ══ */}
       {showAnalytics && (
-        <ModalShell title={`${selected.name} Analytics`} sub="June 2026 · Grand Palms Abuja" onClose={()=>setShowAnalytics(false)} wide>
+        <ModalShell title={`${selected.name} Analytics`} sub={`June 2026 · ${propertyLabel()}`} onClose={()=>setShowAnalytics(false)} wide>
           <div className="px-6 py-5">
             {(() => {
               const A = ANALYTICS[selected.code] ?? { revenue:0, nights:0, adr:selected.base, revpar:0, occ:[0,0,0,0,0,0,0], dRev:0, dOcc:0 };
@@ -2127,24 +2131,22 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const overviewDays = Array.from({ length: 30 }, (_, i) => {
     const d = new Date(TODAY); d.setDate(TODAY.getDate() + i); return d;
   });
-  const TYPES = [
-    { code:"STD", name:"Standard Room", total:10, mult:1    },
-    { code:"DLX", name:"Deluxe Room",   total:8,  mult:1.57 },
-    { code:"STE", name:"Suite",         total:4,  mult:2.71 },
-  ];
+  // Room types, counts and price ratios come from the property setup.
+  const TYPES = [...ROOM_TYPES].sort((a, b) => a.order - b.order).map((t, _i, all) => ({
+    code: t.code, name: t.name, total: ROOMS.filter(r => r.type === t.name).length, mult: t.base / (all[0]?.base || 1) }));
   const TYPE_COLOR: Record<string,string> = { STD: PRIMARY, DLX: TEAL, STE: ORANGE };
 
   /* availability uses an absolute day index from TODAY to be stable */
   const getAvailAbs = (code: string, absDay: number) => {
     const total = TYPES.find(t=>t.code===code)!.total;
-    const dow = ((TODAY.getDay() + absDay) % 7 + 7) % 7;
-    const isWk = dow===5||dow===6;
-    const seed = (absDay*7+code.charCodeAt(0))%11;
-    return Math.max(0, total - Math.min(total, Math.round((isWk?0.85:0.55)*total+(seed-5)*0.3)));
+    const name = TYPES.find(t=>t.code===code)!.name;
+    const night = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + absDay, 12);
+    const booked = gridBookings().filter(b => ROOMS.find(r => r.id === b.room)?.type === name && b.checkin <= night && b.checkout > night).length;
+    return Math.max(0, total - booked);
   };
   const getAvail = (code: string, di: number) => getAvailAbs(code, offset + di);
 
-  const getBase     = () => RATE_PLANS.find(p=>p.name===planName)?.base ?? 35000;
+  const getBase     = () => RATE_PLANS.find(p=>p.name===planName)?.base ?? ([...ROOM_TYPES].sort((a, b) => a.order - b.order)[0]?.base ?? 0);
   const getPlanRate = (mult: number) => Math.round(getBase() * mult);
   const cKey        = (code: string, di: number) => `${code}|${days[di].toISOString().slice(0,10)}`;
   const cKeyAbs     = (code: string, d: Date)    => `${code}|${d.toISOString().slice(0,10)}`;
@@ -2651,11 +2653,9 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
   const LABEL_W = 180;
   const ROW_H   = viewDays===7 ? 82 : 70;
   const days    = Array.from({ length: DAYS }, (_, i) => { const d = new Date(TODAY); d.setDate(TODAY.getDate()+offset+i); return d; });
-  const TYPES   = [
-    { code:"STD", name:"Standard", total:10, color:PRIMARY },
-    { code:"DLX", name:"Deluxe",   total:8,  color:TEAL_INK   },
-    { code:"STE", name:"Suite",    total:4,  color:ORANGE_INK },
-  ];
+  const TYPE_COLORS = [PRIMARY, TEAL_INK, ORANGE_INK, "#6D28D9", "#0369A1"];
+  const TYPES   = [...ROOM_TYPES].sort((a, b) => a.order - b.order)
+    .map((t, i) => ({ code: t.code, name: t.name, total: ROOMS.filter(r => r.type === t.name).length, color: TYPE_COLORS[i % TYPE_COLORS.length] }));
   const totalInv  = TYPES.reduce((s,t)=>s+t.total, 0);
   const todayIdx  = days.findIndex(d=>d.toDateString()===TODAY.toDateString());
   const canGoBack = offset > 0;
@@ -2667,11 +2667,11 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
   const getSold = (code: string, di: number) => {
     const rt  = TYPES.find(t=>t.code===code)!;
     const d   = days[di];
-    const dow = d.getDay();
-    const isWk = dow===5||dow===6;
-    const seed = (di*5+code.charCodeAt(0))%7;
+    // Sold rooms are the same bookings the Reservation Grid shows, plus any group blocks held here.
+    const night = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12);
+    const booked = gridBookings().filter(b => ROOMS.find(r => r.id === b.room)?.type === rt.name && b.checkin <= night && b.checkout > night).length;
     const grp  = groupBlocks.filter(g=>g.type===code&&di>=g.start&&di<g.end).reduce((s,g)=>s+g.rooms,0);
-    return Math.min(rt.total, Math.round((isWk?0.82:0.6)*rt.total+(seed-3)*0.4)+grp);
+    return Math.min(rt.total, booked + grp);
   };
 
   const avgOcc7 = Math.round(
