@@ -50,7 +50,7 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
   HK: {
     stats: [
       stat("Rooms to clean", String(hkRooms().filter(r => r.hkSt === "Dirty").length), `${hkRooms().filter(r => r.hkSt === "Dirty" && r.guestState === "Departure").length} are departures`, "hk-board", "Housekeeping Board"),
-      stat("Being cleaned", String(hkRooms().filter(r => r.hkSt === "In Progress").length), "In progress now", "hk-board", "Housekeeping Board"),
+      stat("Being cleaned", String(hkRooms().filter(r => r.hkSt === "In Progress").length), [...new Set(hkRooms().filter(r => r.hkSt === "In Progress").map(r => r.attendant).filter(Boolean))].join(" and ") || "Nobody yet", "hk-board", "Housekeeping Board"),
       stat("To inspect", String(hkRooms().filter(r => r.awaitingInspection).length), "Cleaned, not yet checked", "hk-inspection", "Inspection Log"),
       stat("Lost and found", String(FOUND_ITEMS.filter(i => i.status === "Held").length), "Waiting to be claimed", "lost-found", "Lost & Found"),
     ],

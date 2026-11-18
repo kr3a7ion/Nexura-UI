@@ -1193,6 +1193,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                 <div className="w-64 space-y-1.5 text-sm">
                   <div className="flex justify-between"><span style={{ color: CK_MUT }}>Charges subtotal</span><span style={{ fontFamily: mono }}>₦{subtotal.toLocaleString()}</span></div>
                   <div className="flex justify-between"><span style={{ color: CK_MUT }}>VAT (7.5%)</span><span style={{ fontFamily: mono }}>₦{taxTotal.toLocaleString()}</span></div>
+                  <div className="flex justify-between font-medium"><span style={{ color: TEXT }}>Total charges</span><span>₦{(subtotal + taxTotal).toLocaleString()}</span></div>
                   <div className="flex justify-between"><span style={{ color: CK_MUT }}>Deposit paid</span><span style={{ color: TEXT, fontFamily: mono }}>−₦{g.deposit.toLocaleString()}</span></div>
                   {gDiscount > 0 && <div className="flex justify-between"><span style={{ color: CK_MUT }}>Discount</span><span style={{ color: TEXT, fontFamily: mono }}>−₦{gDiscount.toLocaleString()}</span></div>}
                   <div className="flex justify-between font-semibold text-base border-t pt-2" style={{ borderColor: CK_BD, color: balance > 0 ? ERROR : SUCCESS }}>
