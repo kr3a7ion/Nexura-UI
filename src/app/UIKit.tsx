@@ -27,7 +27,7 @@ import {
   mono, display, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, IN_HOUSE, WORK_ORDERS,
+  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
   STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
@@ -150,25 +150,20 @@ export function StatCard({ label, value, sub, delta, deltaPositive, icon: Icon, 
   label: string; value: string; sub: string; delta?: string; deltaPositive?: boolean; icon: React.ElementType; accent: string;
 }) {
   return (
-    <div className="rounded-2xl p-5 relative overflow-hidden"
-      style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
-      {/* Top accent line */}
-      <div className="absolute top-0 left-5 right-5 h-px rounded-b-full opacity-80" style={{ background: `linear-gradient(90deg, ${accent}, ${accent}40)` }} />
-
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors"
-          style={{ background: `linear-gradient(135deg, ${accent}20, ${accent}0a)`, border: `1px solid ${accent}18` }}>
-          <Icon size={21} style={{ color: accent }} />
+    <div className="bg-white p-5" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.card }}>
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${accent}14` }}>
+          <Icon size={16} style={{ color: accent }} />
         </div>
+        <div className="text-sm font-medium flex-1 min-w-0" style={{ color: MUTED }}>{label}</div>
         {delta && (
-          <div className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${deltaPositive ? "text-emerald-700" : "text-rose-600"}`}
-            style={{ backgroundColor: deltaPositive ? "#ECFDF5" : "#FFF1F2" }}>
+          <div className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+            style={{ color: deltaPositive ? "#047857" : "#BE123C", backgroundColor: deltaPositive ? "#ECFDF5" : "#FFF1F2" }}>
             {deltaPositive ? <TrendUp size={11} weight="bold" /> : <TrendDown size={11} weight="bold" />}
             {delta}
           </div>
         )}
       </div>
-      <div className="text-sm font-medium mb-1" style={{ color: MUTED }}>{label}</div>
       <div className="leading-none mb-1.5" style={{ color: TEXT, fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em" }}>{value}</div>
       <div className="text-sm" style={{ color: MUTED }}>{sub}</div>
     </div>
@@ -275,7 +270,9 @@ const BAR_STYLE: Record<string, { bg: string; edge: string; text: string }> = {
 const ROOM_STATUS_DOT: Record<string, string> = { Occupied: "#0F766E", Available: "#16A34A", Cleaning: "#B45309", Reserved: "#0369A1", Maintenance: "#DC2626" };
 
 export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
-  const DAYS = 14, MIN_DW = 64, RH = 56, ROOMW = 184;
+  // A week on narrow screens so names stay readable; two weeks when there is room.
+  const [DAYS] = useState(() => (typeof window !== "undefined" && window.innerWidth < 1280 ? 7 : 14));
+  const MIN_DW = 64, RH = 56, ROOMW = 184;
   const pct = (days: number) => `${(days / DAYS) * 100}%`;
   const [offset, setOffset] = useState(-2); // open two days back so in-house stays show where they began
   const [type, setType] = useState<"All" | "Standard" | "Deluxe" | "Suite">("All");
@@ -1057,16 +1054,17 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
   const filteredDue = ALL_GUESTS.filter(d => d.dueToday && !(extensionMap[d.id] > 0) && (!q || d.guest.toLowerCase().includes(q) || d.room.includes(q)));
   const filteredIH  = ALL_GUESTS.filter(d => (!d.dueToday || extensionMap[d.id] > 0) && (!q || d.guest.toLowerCase().includes(q) || d.room.includes(q)));
 
+  const pick = (id: string) => {
+    setSelectedId(id); setPayMethod("Cash"); setCashAmt(""); setCardAmt(""); setCardRef(""); setBankRef(""); setCorporateRef("");
+    setEarlyDepartureReason(""); setShowReleaseConfirm(false); setShowRevokeConfirm(false);
+    setShowSplitFolio(false); setSplitLines([]); setShowTransferCharge(false); setTransferLine(null); setShowExtendStay(false);
+  };
   const GuestRow = ({ d }: { d: typeof ALL_GUESTS[0] }) => {
     const active = d.id === selectedId;
     const done   = checkedOutIds.includes(d.id);
     const displayedCheckout = checkoutOverrides[d.id] ?? d.checkout;
     return (
-      <button onClick={() => {
-        setSelectedId(d.id); setPayMethod("Cash"); setCashAmt(""); setCardAmt(""); setCardRef(""); setBankRef(""); setCorporateRef("");
-        setEarlyDepartureReason(""); setShowReleaseConfirm(false); setShowRevokeConfirm(false);
-        setShowSplitFolio(false); setSplitLines([]); setShowTransferCharge(false); setTransferLine(null); setShowExtendStay(false);
-      }}
+      <button onClick={() => pick(d.id)}
         className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl mb-0.5 text-left transition-all relative"
         style={{ backgroundColor: done ? `${SUCCESS}10` : active ? UI.selectedBg : "transparent", boxShadow: active ? `inset 3px 0 0 ${UI.focus}` : undefined }}>
         {done && <div className="absolute top-1.5 right-2 w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ backgroundColor: SUCCESS }}><CheckCircle size={9} color="white" weight="bold" /></div>}
@@ -1091,7 +1089,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
 
       <div className="flex flex-col xl:flex-row gap-5 items-start">
         {/* ── GUEST LIST PANEL ── */}
-        <div className="w-full xl:w-64 flex-shrink-0 overflow-hidden bg-white xl:sticky xl:top-4" style={{ border: `1px solid ${CK_BD}`, borderRadius: UI.radius.card }}>
+        <div className="hidden xl:block w-64 flex-shrink-0 overflow-hidden bg-white sticky top-4" style={{ border: `1px solid ${CK_BD}`, borderRadius: UI.radius.card }}>
           <div className="px-4 pt-4 pb-2">
             <h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Guests in house</h2>
             <p className="text-sm" style={{ color: MUTED }}>{ALL_GUESTS.length} guests</p>
@@ -1130,7 +1128,15 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         </div>
 
         {/* ── MAIN CONTENT ── */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full">
+          {/* Narrow screens: pick the guest from a list instead of the side panel */}
+          <div className="xl:hidden mb-4 max-w-md">
+            <Field label="Guest" htmlFor="co-guest">
+              <select id="co-guest" value={selectedId} onChange={e => pick(e.target.value)} className={controlClass} style={controlStyle()}>
+                {ALL_GUESTS.map(d => <option key={d.id} value={d.id}>{d.guest} · room {d.room}{d.dueToday ? " · leaving today" : ""}</option>)}
+              </select>
+            </Field>
+          </div>
 
       <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_360px] gap-5 items-start">
         {/* ── FOLIO ── */}
@@ -1409,9 +1415,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowSplitFolio(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-2xl overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Folio allocation</p>
-              <p className="text-base font-bold text-white mt-0.5">Split Folio · {g.guest}</p>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
+              <p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Split the folio · {g.guest}</p>
             </div>
             <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
               <div>
@@ -1472,9 +1477,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowTransferCharge(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: TEAL }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.65 }}>Audited folio transfer</p>
-              <p className="text-base font-bold text-white mt-0.5">Transfer charge</p>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
+              <p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Transfer charge</p>
             </div>
             <div className="p-6 space-y-4">
               <div>
@@ -1529,9 +1533,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowExtendStay(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Stay management</p>
-              <p className="text-base font-bold text-white mt-0.5">Extend Stay · Room {g.room}</p>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
+              <p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Extend the stay · room {g.room}</p>
             </div>
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold" style={{ backgroundColor: "#F0FDF4", color: "#065F46", border: "1px solid #BBF7D0" }}>
@@ -1589,9 +1592,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowRevokeConfirm(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-md overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: ERROR }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.65 }}>Access provider confirmation</p>
-              <p className="text-base font-bold text-white mt-0.5">Revoke Room {g.room} Credentials</p>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
+              <p className="text-base font-semibold" style={{ color: ERROR, fontFamily: display }}>End key access for room {g.room}</p>
             </div>
             <div className="p-6">
               <div className="flex items-start gap-3 p-3 rounded-xl mb-4" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>
@@ -1607,7 +1609,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                   setAccessRevoked(p => ({ ...p, [selectedId]: true }));
                   setShowRevokeConfirm(false);
                   add({ type: "success", title: "Access revoked", body: `Room ${g.room} · TTLock confirmed immediate revocation` });
-                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: ERROR }}>Confirm revoke</button>
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: ERROR }}>End key access</button>
               </div>
             </div>
           </div>
@@ -1618,9 +1620,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onClick={() => setShowReleaseConfirm(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Final confirmation</p>
-              <p className="text-base font-bold text-white mt-0.5">Release Room {g.room} to Housekeeping</p>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
+              <p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Release room {g.room} to housekeeping</p>
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -1668,9 +1669,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => { setVoidLine(null); setVoidReason(""); }} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md" style={{ border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: ERROR, borderRadius: "1rem 1rem 0 0" }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Irreversible action</p>
-              <p className="text-base font-bold text-white mt-0.5">Void charge</p>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
+              <p className="text-base font-semibold" style={{ color: ERROR, fontFamily: display }}>Void charge</p>
             </div>
             <div className="px-6 py-4">
               <p className="text-xs mb-4 p-3 rounded-xl" style={{ color: CK_MUT, backgroundColor: CK_BG }}>
@@ -1710,9 +1710,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }}
             onClick={() => { setShowDiscount(false); setDiscountAmt(""); setDiscountReason(""); setManagerPin(""); }} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md" style={{ border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: ORANGE, borderRadius: "1rem 1rem 0 0" }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Folio adjustment</p>
-              <p className="text-base font-bold text-white mt-0.5">Apply discount</p>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
+              <p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Apply discount</p>
             </div>
             <div className="px-6 py-4 space-y-3">
               <div>
@@ -1759,9 +1758,8 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }}
             onClick={() => { setShowLateCharge(false); setLateChargeDesc(""); setLateChargeAmt(""); }} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md" style={{ border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: PRIMARY, borderRadius: "1rem 1rem 0 0" }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Folio</p>
-              <p className="text-base font-bold text-white mt-0.5">Post late charge</p>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
+              <p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Post late charge</p>
             </div>
             <div className="px-6 py-4 space-y-3">
               <div>
@@ -1925,14 +1923,11 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setGuestAction(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${BORDER}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: guestAction.type === "revoke" ? ERROR : PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>
-                {guestAction.type === "message" ? "Guest Communication" : guestAction.type === "charge" ? "Folio" : guestAction.type === "extend" ? "Stay Management" : guestAction.type === "move" ? "Room Assignment" : "Emergency Security Action"}
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
+              <p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>
+                {guestAction.type === "message" ? "Message the guest" : guestAction.type === "charge" ? "Post a charge" : guestAction.type === "extend" ? "Extend the stay" : guestAction.type === "move" ? "Move to another room" : "End room access"}
               </p>
-              <p className="text-base font-bold text-white mt-0.5">
-                {guestAction.type === "message" ? "Message Guest" : guestAction.type === "charge" ? "Post Charge" : guestAction.type === "extend" ? "Extend Stay" : guestAction.type === "move" ? "Move Room" : "Revoke Room Access"}
-              </p>
-              <p className="text-xs text-white mt-1" style={{ opacity: 0.7 }}>{actionGuest.guest} · Room {actionGuest.room} · {actionGuest.id}</p>
+              <p className="text-sm mt-0.5" style={{ color: MUTED }}>{actionGuest.guest} · Room {actionGuest.room} · {actionGuest.id}</p>
             </div>
             <div className="p-6 space-y-4">
               {guestAction.type === "message" && (
@@ -2067,7 +2062,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                 {guestAction.type === "revoke" && <button disabled={!revokeReason} onClick={() => {
                   setRevokedAccess(ids => ids.includes(actionGuest.id) ? ids : [...ids, actionGuest.id]);
                   add({ type: "error", title: `Emergency revoke — Room ${actionGuest.room}`, body: `${revokeReason} · Management and Front Desk notified` }); setGuestAction(null);
-                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ERROR }}>Confirm revoke</button>}
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ERROR }}>End key access</button>}
               </div>
             </div>
           </div>
@@ -2447,13 +2442,13 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
         </div>
         <table className="w-full">
           <thead><tr style={{ backgroundColor: "#F9FAFB" }}>
-            <th className="px-4 py-3 w-8"><input type="checkbox" onChange={e => setSelected(e.target.checked ? filtered.map(f=>f.id) : [])} /></th>
+            <th className="px-4 py-3 w-8"><input aria-label="Select all" type="checkbox" onChange={e => setSelected(e.target.checked ? filtered.map(f=>f.id) : [])} /></th>
             {["Folio / res", "Guest", "Room", "Dates", "Charges", "Payments", "Balance", "Days open", "Last pulse", "Flags", ""].map((h,i) => <th key={i} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}
           </tr></thead>
           <tbody>
             {filtered.map(f => (
               <tr key={f.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER, backgroundColor: f.flags.highBalance && f.balance > 0 ? "#FFFBEB" : "transparent" }}>
-                <td className="px-4 py-3"><input type="checkbox" checked={selected.includes(f.id)} onChange={() => toggleSel(f.id)} /></td>
+                <td className="px-4 py-3"><input aria-label={`Select ${f.id}`} type="checkbox" checked={selected.includes(f.id)} onChange={() => toggleSel(f.id)} /></td>
                 <td className="px-3 py-3">
                   <div className="text-xs font-bold" style={{ color: PRIMARY, fontFamily: mono }}>{f.id}</div>
                   <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{f.res}</div>

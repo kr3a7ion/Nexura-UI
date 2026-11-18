@@ -27,7 +27,7 @@ import {
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, IN_HOUSE, WORK_ORDERS,
+  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
   STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
@@ -793,10 +793,9 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setArrivalAction(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${BORDER}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: arrivalAction.type === "noshow" ? ERROR : PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>{arrivalAction.type === "assign" ? "Room Readiness" : arrivalAction.type === "note" ? "Reservation Context" : "Destructive Status Change"}</p>
-              <p className="text-base font-bold text-white mt-0.5">{arrivalAction.type === "assign" ? "Pre-Assign Room" : arrivalAction.type === "note" ? "Add Arrival Note" : "Mark No Show"}</p>
-              <p className="text-xs text-white mt-1" style={{ opacity: 0.7 }}>{activeArrival.guest} · {activeArrival.id} · ETA {activeArrival.eta}</p>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
+              <p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>{arrivalAction.type === "assign" ? "Assign a room" : arrivalAction.type === "note" ? "Add an arrival note" : "Mark as no-show"}</p>
+              <p className="text-sm mt-0.5" style={{ color: MUTED }}>{activeArrival.guest} · {activeArrival.id} · ETA {activeArrival.eta}</p>
             </div>
             <div className="p-6 space-y-4">
               {arrivalAction.type === "assign" && (
@@ -930,7 +929,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowBulkConfirm(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${BORDER}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: PRIMARY }}><p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>Express processing</p><p className="text-base font-bold text-white mt-0.5">Bulk check-out</p></div>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}><p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Bulk check-out</p></div>
             <div className="p-6 space-y-4">
               {selectedEligible.length === 0 ? <div className="text-center py-5"><Ph.CheckSquare size={28} className="mx-auto mb-2" style={{ color: SUBTLE }} /><p className="text-sm font-semibold" style={{ color: TEXT }}>Select one or more zero-balance rooms.</p><p className="text-xs mt-1" style={{ color: MUTED }}>{eligibleForExpress.length} departure{eligibleForExpress.length === 1 ? "" : "s"} currently eligible.</p></div> : <>
                 <div className="space-y-2">{selectedEligible.map(item => <div key={item.id} className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: `1px solid ${BORDER}` }}><div><p className="text-sm font-bold" style={{ color: TEXT }}>Room {item.room} · {item.guest}</p><p className="text-xs" style={{ color: MUTED }}>Zero balance · {item.method} on file</p></div><Ph.CheckCircle size={16} weight="fill" style={{ color: SUCCESS }} /></div>)}</div>
@@ -945,10 +944,10 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setDepAction(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${BORDER}` }}>
-            <div className="px-6 py-4" style={{ backgroundColor: depAction.type === "late" ? ORANGE : PRIMARY }}><p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>{depAction.type === "late" ? "Manager Approval" : "Guest Folio"}</p><p className="text-base font-bold text-white mt-0.5">{depAction.type === "late" ? "Approve Late Check-Out" : "Post Late Charge"}</p><p className="text-xs text-white mt-1" style={{ opacity: 0.7 }}>{activeDeparture.guest} · Room {activeDeparture.room}</p></div>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}><p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>{depAction.type === "late" ? "Approve late check-out" : "Post a late charge"}</p><p className="text-sm mt-0.5" style={{ color: MUTED }}>{activeDeparture.guest} · Room {activeDeparture.room}</p></div>
             <div className="p-6 space-y-4">
               {depAction.type === "late" ? <>
-                <div className="grid grid-cols-2 gap-3"><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New checkout</label><input aria-label="New checkout" type="time" value={lateTime} onChange={e => setLateTime(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}` }} /></div><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Manager PIN *</label><input type="password" value={lateManagerPin} onChange={e => setLateManagerPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${lateManagerPin.length >= 4 ? BORDER : ERROR}` }} /></div></div>
+                <div className="grid grid-cols-2 gap-3"><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New checkout</label><input type="time" value={lateTime} onChange={e => setLateTime(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}` }} /></div><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Manager PIN *</label><input type="password" value={lateManagerPin} onChange={e => setLateManagerPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${lateManagerPin.length >= 4 ? BORDER : ERROR}` }} /></div></div>
                 <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason *</label><textarea value={lateReason} onChange={e => setLateReason(e.target.value)} rows={3} placeholder="Flight delay, guest request, loyalty benefit…" aria-label="Flight delay, guest request, loyalty benefit" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
               </> : <>
                 <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Description *</label><input value={chargeDesc} onChange={e => setChargeDesc(e.target.value)} placeholder="Minibar, room service, damages…" aria-label="Minibar, room service, damages" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
@@ -1128,10 +1127,10 @@ export function KeyCardLog({ add }: { add?: (t: Omit<Toast, "id">) => void }) {
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
         <div className="flex items-center gap-3 px-5 py-3 border-b flex-wrap" style={{ backgroundColor: "#F8FAFC", borderColor: BORDER }}>
           <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search guest, ref, room…" aria-label="Search guest, ref, room" className="pl-7 pr-3 py-1.5 text-xs rounded-xl border bg-white outline-none w-48" style={{ borderColor: BORDER }} /></div>
-          <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
+          <select aria-label="Event" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
             {EVENT_TYPES.map(t => <option key={t}>{t}</option>)}
           </select>
-          <select value={roomFilter} onChange={e => setRoomFilter(e.target.value)} className="px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
+          <select aria-label="Room" value={roomFilter} onChange={e => setRoomFilter(e.target.value)} className="px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
             <option value="">All rooms</option>
             {["101","202","203","302","304","501"].map(r => <option key={r}>{r}</option>)}
           </select>
@@ -1365,7 +1364,7 @@ export function ShiftHandover({ add }: { add: (t: Omit<Toast, "id">) => void }) 
     <div>
       <PageHeader title="Shift Handover" sub="Morning Shift → Evening Shift · 24 Jun 2026"
         actions={
-          <select value={dept} onChange={e=>setDept(e.target.value)} className="px-3 py-2 text-sm rounded-xl border outline-none" style={{ borderColor:BORDER, color:TEXT }}>
+          <select aria-label="Department" value={dept} onChange={e=>setDept(e.target.value)} className="px-3 py-2 text-sm rounded-xl border outline-none" style={{ borderColor:BORDER, color:TEXT }}>
             {DEPTS.map(d => <option key={d}>{d}</option>)}
           </select>
         }
@@ -1375,7 +1374,7 @@ export function ShiftHandover({ add }: { add: (t: Omit<Toast, "id">) => void }) 
           {SECTIONS.map(s => (
             <div key={s.key} className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
               <h3 className="text-sm font-semibold mb-2" style={{ color: TEXT }}>{s.label}</h3>
-              <textarea value={notes[s.key]??""} onChange={e=>setNotes(n=>({...n,[s.key]:e.target.value}))}
+              <textarea aria-label={s.label} value={notes[s.key]??""} onChange={e=>setNotes(n=>({...n,[s.key]:e.target.value}))}
                 placeholder={s.placeholder}
                 className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none resize-none" rows={3}
                 style={{ borderColor: BORDER, color: TEXT, backgroundColor:"#FAFAFA" }} />
@@ -1488,7 +1487,7 @@ export function GuestMessaging({ add }: { add: (t: Omit<Toast, "id">) => void })
     <div>
       <PageHeader title="Guest Messaging" sub="In-house guest communications with SLA tracking"
         actions={
-          <select value={deptF} onChange={e=>setDeptF(e.target.value)} className="px-3 py-2 text-sm rounded-xl border outline-none" style={{ borderColor:BORDER, color:TEXT }}>
+          <select aria-label="Department" value={deptF} onChange={e=>setDeptF(e.target.value)} className="px-3 py-2 text-sm rounded-xl border outline-none" style={{ borderColor:BORDER, color:TEXT }}>
             {depts.map(d=><option key={d}>{d}</option>)}
           </select>
         }
@@ -1965,14 +1964,13 @@ export function LostFound({ add, staffName }: { add: (t: Omit<Toast, "id">) => v
           <div className="flex gap-1.5">{["All","Held","Claimed","Shipped","Disposed"].map(f => <button key={f} onClick={() => setFilter(f)} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ borderColor: filter===f ? PRIMARY : BORDER, backgroundColor: filter===f ? PRIMARY : "white", color: filter===f ? "white" : MUTED }}>{f}</button>)}</div>
         </div>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item ID", "Description / category", "Storage location", "Room", "Guest (res)", "Found", "Logged by", "Status", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item", "Kept in", "Room", "Guest", "Found", "Logged by", "Status", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>{visible.map(item => (
             <tr key={item.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER }}>
-              <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: MUTED }}>{item.id}</td>
-              <td className="px-4 py-3"><div className="text-sm font-medium" style={{ color: TEXT }}>{item.desc}</div><div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{item.cat}</div></td>
-              <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.storage}</td>
+              <td className="px-4 py-3"><div className="text-sm font-medium" style={{ color: TEXT }}>{item.desc}</div><div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{item.cat} · {item.id}</div></td>
+              <td className="px-4 py-3 text-sm" style={{ color: MUTED }}>{item.storage}</td>
               <td className="px-4 py-3 text-sm font-semibold" style={{ color: TEXT }}>{item.room}</td>
-              <td className="px-4 py-3"><div className="text-xs font-medium" style={{ color: TEXT }}>{item.guest}</div><div className="text-xs" style={{ color: SUBTLE }}>{item.guestRes}</div></td>
+              <td className="px-4 py-3"><div className="text-sm whitespace-nowrap" style={{ color: TEXT }}>{item.guest}</div><div className="text-xs" style={{ color: SUBTLE }}>{item.guestRes}</div></td>
               <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: TEXT }}>{item.date}</td>
               <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: TEXT }}>{item.loggedBy}</td>
               <td className="px-4 py-3"><Badge label={item.status} colors={stC[item.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
@@ -2024,10 +2022,10 @@ export function LostFound({ add, staffName }: { add: (t: Omit<Toast, "id">) => v
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between mb-4"><h3 className="text-base font-semibold" style={{ color: TEXT }}>Record claim for {showClaim}</h3><button aria-label="Close" onClick={() => setShowClaim(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Claimant name</label><input value={claimant.name} onChange={e => setClaimant(p=>({...p,name:e.target.value}))} placeholder="Full name" aria-label="Full name" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Claimant name</label><input value={claimant.name} onChange={e => setClaimant(p=>({...p,name:e.target.value}))} placeholder="Full name" aria-label="Full name" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>ID / NIN</label><input value={claimant.id} onChange={e => setClaimant(p=>({...p,id:e.target.value}))} placeholder="Gov ID number" aria-label="Gov ID number" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Phone</label><input value={claimant.phone} onChange={e => setClaimant(p=>({...p,phone:e.target.value}))} placeholder="+234…" aria-label="Phone" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>ID / NIN</label><input value={claimant.id} onChange={e => setClaimant(p=>({...p,id:e.target.value}))} placeholder="Gov ID number" aria-label="Gov ID number" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Phone</label><input value={claimant.phone} onChange={e => setClaimant(p=>({...p,phone:e.target.value}))} placeholder="+234…" aria-label="Phone" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               </div>
             </div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowClaim(null)} /><button disabled={!claimant.name || !claimant.id} onClick={() => { setStatuses(p=>({...p,[showClaim!]:"Claimed"})); add({ type: "success", title: `${showClaim} claimed by ${claimant.name}` }); setShowClaim(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>Confirm claim</button></div>
@@ -2040,7 +2038,7 @@ export function LostFound({ add, staffName }: { add: (t: Omit<Toast, "id">) => v
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowShip(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between mb-4"><h3 className="text-base font-semibold" style={{ color: TEXT }}>Ship {showShip} to the guest</h3><button aria-label="Close" onClick={() => setShowShip(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Delivery address</label><textarea value={shipAddr} onChange={e => setShipAddr(e.target.value)} placeholder="Street, City, State, Postal Code" aria-label="Street, City, State, Postal Code" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+            <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Delivery address</label><textarea value={shipAddr} onChange={e => setShipAddr(e.target.value)} placeholder="Street, City, State, Postal Code" aria-label="Street, City, State, Postal Code" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
             <div className="mt-3 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>Shipping cost will be charged to guest folio. Ensure item is properly packaged and labelled with {showShip} before handover to courier.</div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowShip(null)} /><button disabled={!shipAddr.trim()} onClick={() => { setStatuses(p=>({...p,[showShip!]:"Shipped"})); add({ type: "success", title: `${showShip} marked for shipping` }); setShowShip(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: TEAL_INK }}>Confirm shipment</button></div>
           </div>
@@ -2372,7 +2370,7 @@ export function InvoiceReceipts({ add }: { add: (t: Omit<Toast, "id">) => void }
             <div className="space-y-2 mb-4 p-3 rounded-xl" style={{ backgroundColor: "#F0FDF4", border:"1px solid #BBF7D0" }}>
               <div className="text-xs font-semibold" style={{ color: "#166534" }}>Record payment</div>
               <input type="number" value={payAmt} onChange={e => setPayAmt(e.target.value)} placeholder={`Max ₦${(sel.total-sel.paid).toLocaleString()}`} className="w-full px-2.5 py-2 rounded-lg border text-sm outline-none" style={{ borderColor: "#BBF7D0" }} />
-              <select value={payMethod} onChange={e => setPayMethod(e.target.value)} className="w-full px-2.5 py-2 rounded-lg border text-sm outline-none" style={{ borderColor: "#BBF7D0" }}>
+              <select aria-label="Payment method" value={payMethod} onChange={e => setPayMethod(e.target.value)} className="w-full px-2.5 py-2 rounded-lg border text-sm outline-none" style={{ borderColor: "#BBF7D0" }}>
                 {["Cash","Card","Bank Transfer","POS Terminal"].map(m => <option key={m}>{m}</option>)}
               </select>
               <div className="flex gap-2">

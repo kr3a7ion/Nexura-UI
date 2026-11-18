@@ -1,4 +1,6 @@
-import type { Role, Screen } from "../constants";
+import { ROOMS, type Role, type Screen } from "../constants";
+import { STAYS, ARRIVALS, departures } from "./frontOffice";
+import { hkRooms, FOUND_ITEMS } from "./housekeeping";
 
 export type HomeStat = { label: string; value: string; sub: string; screen: Screen; screenLabel: string };
 export type HomeAlert = { text: string; from: string; since: string; tone: "error" | "warning"; screen: Screen; screenLabel: string };
@@ -6,45 +8,51 @@ export type HomeAlert = { text: string; from: string; since: string; tone: "erro
 const stat = (label: string, value: string, sub: string, screen: Screen, screenLabel: string): HomeStat => ({ label, value, sub, screen, screenLabel });
 const alert = (text: string, from: string, since: string, tone: HomeAlert["tone"], screen: Screen, screenLabel: string): HomeAlert => ({ text, from, since, tone, screen, screenLabel });
 
-const FRONT_DESK: HomeStat[] = [
-  stat("Arrivals left", "12", "18 expected, 6 checked in", "arrivals", "Arrivals List"),
-  stat("Departures left", "3", "12 expected, 9 checked out", "departures", "Departures List"),
-  stat("Rooms ready", "14", "9 more being cleaned", "room-assignment", "Room Assignment"),
-  stat("In house", "104", "78% of 123 rooms", "in-house-guests", "In-House Guests"),
-];
-const LATE_ARRIVAL = alert("Chinedu Okafor (VIP) arrives 12:30 and the room is still being cleaned", "Front Office", "10:42", "error", "room-assignment", "Room Assignment");
+// Room and guest figures are counted from the Front Office and Housekeeping data, so Suite Home agrees with every screen.
+const occ = () => `${Math.round(STAYS.length / ROOMS.length * 100)}%`;
+const frontDesk = (): HomeStat[] => {
+  const rooms = hkRooms(), vacant = rooms.filter(r => r.guestState === "Vacant");
+  const ready = vacant.filter(r => r.hkSt === "Clean" || r.hkSt === "Inspected").length;
+  return [
+    stat("Arrivals left", String(ARRIVALS.length), `${ARRIVALS.filter(a => !a.room).length} still need a room`, "arrivals", "Arrivals List"),
+    stat("Departures left", String(departures().length), "Leaving today", "departures", "Departures List"),
+    stat("Rooms ready", String(ready), `${vacant.length - ready} more being cleaned`, "room-assignment", "Room Assignment"),
+    stat("In house", String(STAYS.length), `${occ()} of ${ROOMS.length} rooms`, "in-house-guests", "In-House Guests"),
+  ];
+};
+const LATE_ARRIVAL = alert("Ngozi Adeyemi (VIP) arrives 16:00 and has no room yet", "Front Office", "10:42", "error", "room-assignment", "Room Assignment");
 
 // Mock figures. What each role sees first on Suite Home: the four numbers that drive their shift, and what is waiting on them.
-export const HOME_TODAY: Record<Role, { stats: HomeStat[]; alerts: HomeAlert[] }> = {
+export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert[] }> => ({
   MGT: {
     stats: [
-      stat("Occupancy tonight", "78%", "96 of 123 rooms", "dashboard-mgmt", "Management Overview"),
+      stat("Occupancy tonight", occ(), `${STAYS.length} of ${ROOMS.length} rooms`, "dashboard-mgmt", "Management Overview"),
       stat("Revenue today", "₦4,200,000", "Up ₦310,000 on yesterday", "daily-summary", "Daily Summary"),
-      stat("Arrivals left", "12", "18 expected", "arrivals", "Arrivals List"),
+      stat("Arrivals left", String(ARRIVALS.length), `${ARRIVALS.filter(a => !a.room).length} still need a room`, "arrivals", "Arrivals List"),
       stat("Open complaints", "2", "1 older than a day", "complaint-dashboard", "Complaint Dashboard"),
     ],
     alerts: [
       LATE_ARRIVAL,
-      alert("Air conditioner fault in room 408 is overdue", "Maintenance", "Yesterday", "error", "work-orders", "Work Orders"),
+      alert("Air conditioner fault in room 302 is overdue", "Maintenance", "Yesterday", "error", "work-orders", "Work Orders"),
       alert("Diesel is below 25%", "Inventory", "09:10", "warning", "generator-diesel", "Generator & Diesel"),
     ],
   },
-  FD: { stats: FRONT_DESK, alerts: [LATE_ARRIVAL, alert("Tobi Adeyemi has no deposit on his reservation", "Front Office", "09:55", "warning", "arrivals", "Arrivals List")] },
+  FD: { stats: frontDesk(), alerts: [LATE_ARRIVAL, alert("Tobi Adeyemi has no deposit on his reservation", "Front Office", "09:55", "warning", "arrivals", "Arrivals List")] },
   RSV: {
     stats: [
       stat("New bookings today", "9", "4 by phone, 5 at the desk", "reservation-grid", "Reservation Grid"),
       stat("On the waitlist", "3", "2 for this weekend", "waitlist", "Waitlist"),
-      stat("Free rooms tonight", "27", "Across 3 room types", "availability-board", "Availability Board"),
+      stat("Free rooms tonight", String(ROOMS.length - STAYS.length - ARRIVALS.filter(a => a.room).length), "After today's arrivals with rooms", "availability-board", "Availability Board"),
       stat("Cancellations", "1", "Refund waiting", "cancellation", "Cancellation & Refund"),
     ],
     alerts: [alert("Suites are sold out on Saturday", "Front Office", "Today", "warning", "availability-board", "Availability Board")],
   },
   HK: {
     stats: [
-      stat("Rooms to clean", "9", "3 are departures", "hk-board", "Housekeeping Board"),
-      stat("Being cleaned", "2", "Grace and Ngozi", "hk-board", "Housekeeping Board"),
-      stat("To inspect", "2", "Cleaned, not yet checked", "hk-inspection", "Inspection Log"),
-      stat("Lost and found", "1", "Logged today", "lost-found", "Lost & Found"),
+      stat("Rooms to clean", String(hkRooms().filter(r => r.hkSt === "Dirty").length), `${hkRooms().filter(r => r.hkSt === "Dirty" && r.guestState === "Departure").length} are departures`, "hk-board", "Housekeeping Board"),
+      stat("Being cleaned", String(hkRooms().filter(r => r.hkSt === "In Progress").length), "In progress now", "hk-board", "Housekeeping Board"),
+      stat("To inspect", String(hkRooms().filter(r => r.awaitingInspection).length), "Cleaned, not yet checked", "hk-inspection", "Inspection Log"),
+      stat("Lost and found", String(FOUND_ITEMS.filter(i => i.status === "Held").length), "Waiting to be claimed", "lost-found", "Lost & Found"),
     ],
     alerts: [alert("Room 202 is a priority departure with nobody assigned", "Housekeeping", "08:00", "error", "hk-board", "Housekeeping Board")],
   },
@@ -53,9 +61,9 @@ export const HOME_TODAY: Record<Role, { stats: HomeStat[]; alerts: HomeAlert[] }
       stat("Open work orders", "7", "2 urgent", "work-orders", "Work Orders"),
       stat("Due today", "3", "Preventive tasks", "preventive-schedule", "Preventive Schedule"),
       stat("Diesel level", "24%", "About 9 hours left", "generator-diesel", "Generator & Diesel"),
-      stat("Rooms out of order", "2", "408 and 109", "work-orders", "Work Orders"),
+      stat("Rooms out of order", "0", "All rooms in service", "work-orders", "Work Orders"),
     ],
-    alerts: [alert("Air conditioner fault in room 408 is overdue", "Maintenance", "Yesterday", "error", "work-orders", "Work Orders")],
+    alerts: [alert("Air conditioner fault in room 302 is overdue", "Maintenance", "Yesterday", "error", "work-orders", "Work Orders")],
   },
   RT: {
     stats: [
@@ -102,4 +110,4 @@ export const HOME_TODAY: Record<Role, { stats: HomeStat[]; alerts: HomeAlert[] }
     ],
     alerts: [],
   },
-};
+});

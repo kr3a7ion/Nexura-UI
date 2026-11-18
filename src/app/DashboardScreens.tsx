@@ -25,7 +25,7 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, IN_HOUSE, WORK_ORDERS,
+  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
   STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
@@ -35,7 +35,7 @@ import {
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, LiveClock, SyncPill, Av } from "./UIKit";
 import { hkRooms } from "./mock/housekeeping";
-import { STAYS, ARRIVALS, departures } from "./mock/frontOffice";
+import { STAYS, ARRIVALS, departures, inHouseGuests } from "./mock/frontOffice";
 
 export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
   const [auditRunning, setAuditRunning] = useState(false);
@@ -846,7 +846,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <RoleCard title="Open Folios">
-            {IN_HOUSE.filter(g => g.balance > 0).map((g, i) => (
+            {inHouseGuests().filter(g => g.balance > 0).map((g, i) => (
               <div key={g.room} className="flex items-center gap-3 px-5 py-3 border-b cursor-pointer hover:bg-[#F8FAFC] transition-colors"
                 style={{ borderColor: BORDER }} onClick={() => go("folio", "Folio Management")}>
                 <Av gender={i % 2 === 0 ? "M" : "F"} size={30} />
@@ -1398,7 +1398,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
           })}
         </RoleCard>
         <RoleCard title="Today's Guest Activity">
-          {IN_HOUSE.slice(0, 4).map((g, i) => (
+          {inHouseGuests().slice(0, 4).map((g, i) => (
             <div key={g.room} className="flex items-center gap-3 px-5 py-3 border-b" style={{ borderColor: BORDER }}>
               <Av gender={i % 2 === 0 ? "M" : "F"} size={32} />
               <div className="flex-1 min-w-0">

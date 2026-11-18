@@ -25,7 +25,7 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, IN_HOUSE, WORK_ORDERS,
+  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
   STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
@@ -261,10 +261,10 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border: `1px solid ${BORDER}` }}>
             <div className="flex items-center justify-between mb-4"><h3 className="text-base font-bold" style={{ color: TEXT }}>Issue to attendant</h3><button aria-label="Close" onClick={() => setShowIssue(false)} style={{ color: SUBTLE }}><X size={18} /></button></div>
             <div className="space-y-3">
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Item</label><select aria-label="Item" value={issueItem} onChange={e => setIssueItem(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option value="">Select item…</option>{ITEMS.map(i => <option key={i.name}>{i.name}</option>)}</select></div>
+              <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Item</label><select aria-label="Item" value={issueItem} onChange={e => setIssueItem(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option value="">Select item…</option>{ITEMS.map(i => <option key={i.name}>{i.name}</option>)}</select></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Quantity</label><input aria-label="Quantity" type="number" min="1" value={issueQty} onChange={e => setIssueQty(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Attendant</label><select aria-label="Attendant" value={issueAtt} onChange={e => setIssueAtt(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>{HK_ATTENDANTS.map(a=><option key={a}>{a}</option>)}</select></div>
+                <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Quantity</label><input aria-label="Quantity" type="number" min="1" value={issueQty} onChange={e => setIssueQty(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Attendant</label><select aria-label="Attendant" value={issueAtt} onChange={e => setIssueAtt(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>{HK_ATTENDANTS.map(a=><option key={a}>{a}</option>)}</select></div>
               </div>
             </div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowIssue(false)} /><button disabled={!issueItem} onClick={() => { add({ type: "success", title: `${issueQty}× ${issueItem} issued to ${issueAtt}` }); setShowIssue(false); setIssueItem(""); setIssueQty("1"); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Issue</button></div>
@@ -310,7 +310,7 @@ export function HousekeepingSchedule({ add }: { add: (t: Omit<Toast, "id">) => v
       </div>
       {/* Shift selector */}
       <div className="flex items-center gap-3 mb-5">
-        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Shift:</span>
+        <span className="text-sm font-medium" style={{ color: MUTED }}>Shift</span>
         {SHIFTS.map(s => <button key={s} onClick={() => setShift(s)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold" style={{ backgroundColor: shift===s ? PRIMARY : "white", color: shift===s ? "white" : MUTED, borderColor: shift===s ? PRIMARY : BORDER }}>{s}</button>)}
       </div>
       {/* Attendant workload summary */}

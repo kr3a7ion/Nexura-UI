@@ -1632,7 +1632,7 @@ export function DriverRoster({ add }: { add: (t: Omit<Toast,"id">) => void }) {
                             <div className="flex items-center gap-3">
                               <Car size={14} style={{ color:PRIMARY }} />
                               <span className="text-xs font-bold" style={{ color:PRIMARY }}>Assign vehicle to {d.name}</span>
-                              <select value={assignVehicleId} onChange={e => setAssignVehicleId(e.target.value)} className="flex-1 max-w-xs px-3 py-1.5 border rounded-lg text-xs outline-none" style={{ borderColor:PRIMARY }}>
+                              <select aria-label="Vehicle" value={assignVehicleId} onChange={e => setAssignVehicleId(e.target.value)} className="flex-1 max-w-xs px-3 py-1.5 border rounded-lg text-xs outline-none" style={{ borderColor:PRIMARY }}>
                                 <option value="">Select vehicle…</option>
                                 {VEHICLES.filter(v => v.status !== "maintenance").map(v => (
                                   <option key={v.id} value={v.id}>{v.plate} — {v.make} {v.model} ({v.status})</option>
@@ -2289,11 +2289,11 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
 
       {/* Filters + history */}
       <div className="flex flex-wrap gap-2 mb-3 items-center">
-        <select value={filterDriver} onChange={e => setFilterDriver(e.target.value)} className="px-3 py-2 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
+        <select aria-label="Driver" value={filterDriver} onChange={e => setFilterDriver(e.target.value)} className="px-3 py-2 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
           <option value="All">All drivers</option>
           {DRIVERS.map(d => <option key={d.id}>{d.name}</option>)}
         </select>
-        <select value={filterDate} onChange={e => setFilterDate(e.target.value)} className="px-3 py-2 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
+        <select aria-label="Date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="px-3 py-2 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
           <option value="All">All dates</option>
           {dates.map(d => <option key={d}>{d}</option>)}
         </select>
@@ -2853,7 +2853,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
           <div>
             <div className="flex flex-wrap gap-2 mb-3 items-center">
               <div className="text-sm font-bold" style={{ color: TEXT }}>Trip history</div>
-              <select value={filterDate} onChange={e => setFilterDate(e.target.value)} className="ml-auto px-3 py-2 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
+              <select aria-label="Date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="ml-auto px-3 py-2 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER }}>
                 <option value="All">All dates</option>
                 {dates.map(d => <option key={d}>{d}</option>)}
               </select>

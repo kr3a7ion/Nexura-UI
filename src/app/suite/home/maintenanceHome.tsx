@@ -51,7 +51,7 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
   ];
 
   if (viewState === "Loading") {
-    return <div><PageHeader title="Maintenance" sub="Loading engineering operations…" actions={<Sel value={viewState} onChange={event => setViewState(event.target.value as ViewState)} options={["Ready", "Loading", "Empty", "Error"]} />} /><div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 4 }, (_, index) => <div key={index} className="h-40 animate-pulse rounded-2xl border bg-white" style={{ borderColor: BORDER }} />)}</div><div className="mt-5 h-80 animate-pulse rounded-2xl border bg-white" style={{ borderColor: BORDER }} /></div>;
+    return <div><PageHeader title="Maintenance" sub="Loading engineering operations…" /><div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 4 }, (_, index) => <div key={index} className="h-40 animate-pulse rounded-2xl border bg-white" style={{ borderColor: BORDER }} />)}</div><div className="mt-5 h-80 animate-pulse rounded-2xl border bg-white" style={{ borderColor: BORDER }} /></div>;
   }
 
   if (viewState === "Error") {
@@ -59,12 +59,12 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
   }
 
   if (viewState === "Empty") {
-    return <div><PageHeader title="Maintenance" sub="Engineering and asset operations" actions={<Sel value={viewState} onChange={event => setViewState(event.target.value as ViewState)} options={["Ready", "Loading", "Empty", "Error"]} />} /><div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}><EmptyState icon={CheckCircle} message="There are no open work orders or preventive tasks requiring action." cta="Open asset register" onCta={() => nav("asset-register", "Asset Register")} /></div></div>;
+    return <div><PageHeader title="Maintenance" sub="Engineering and asset operations" /><div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}><EmptyState icon={CheckCircle} message="There are no open work orders or preventive tasks requiring action." cta="Open asset register" onCta={() => nav("asset-register", "Asset Register")} /></div></div>;
   }
 
   return (
     <div>
-      <PageHeader title="Maintenance & Engineering command centre" sub="Today’s work orders, assets, power and preventive-maintenance operations." actions={<Sel value={viewState} onChange={event => setViewState(event.target.value as ViewState)} options={["Ready", "Loading", "Empty", "Error"]} />} />
+      <PageHeader title="Maintenance & Engineering command centre" sub="Today’s work orders, assets, power and preventive-maintenance operations." />
 
       <section className="mb-5 flex flex-col gap-4 rounded-2xl border bg-white p-5 lg:flex-row lg:items-center" style={{ borderColor: BORDER }}>
         <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl" style={{ backgroundColor: `${accent}14`, color: accent }}><Wrench size={27} weight="duotone" /></div>
