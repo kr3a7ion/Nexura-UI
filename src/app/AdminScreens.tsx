@@ -1864,7 +1864,7 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
         <div className="lg:col-span-3">
           <div className="flex items-center gap-2 mb-3 flex-wrap">
             <div className="text-xs font-semibold uppercase tracking-wider mr-auto" style={{ color: MUTED }}>Rooms by floor</div>
-            <select value={typeFilter} onChange={event => setTypeFilter(event.target.value)} className="text-xs px-2.5 py-1.5 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: MUTED }}><option>All</option><option>Standard</option><option>Deluxe</option><option>Suite</option></select>
+            <select aria-label="Room type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)} className="text-xs px-2.5 py-1.5 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: MUTED }}><option>All</option><option>Standard</option><option>Deluxe</option><option>Suite</option></select>
             {floors.map(f => <button key={f} onClick={() => setFloorFilter(f)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold transition-all" style={{ backgroundColor: floorFilter===f ? PRIMARY : "white", color: floorFilter===f ? "white" : MUTED, borderColor: floorFilter===f ? PRIMARY : BORDER }}>{f === "All" ? "All floors" : `Floor ${f}`}</button>)}
           </div>
           {Object.entries(grouped).filter(([,rooms]) => rooms.length > 0).map(([floor, rooms]) => (

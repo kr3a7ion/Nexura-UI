@@ -110,3 +110,40 @@ const ALL_ARRIVALS = [
 ];
 
 export const ARRIVALS = EMPTY ? [] : ALL_ARRIVALS;
+
+// Every booking the Reservation Grid draws: guests in house, today's arrivals with a room,
+// and future bookings. Dates are real dates so the grid can place them on any day.
+export type GridBooking = { id: string; room: string; guest: string; checkin: Date; checkout: Date; status: "Checked in" | "Confirmed" | "Pending"; rate: number; source: string; vip: boolean };
+const year = BUSINESS_DATE.getFullYear();
+const dayMonth = (s: string) => new Date(`${s} ${year}`);
+const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const RATE: Record<string, number> = { Standard: 35000, Deluxe: 55000, Suite: 85000 };
+const FUTURE: [string, string, string, string, number, GridBooking["status"], string][] = [
+  // id, room, guest, check-in (ISO), nights, status, source
+  ["BK-2861", "101", "Blessing Eze", "2026-06-25", 3, "Confirmed", "Phone"],
+  ["BK-2874", "101", "Chioma Okafor", "2026-07-01", 3, "Confirmed", "Online"],
+  ["BK-2863", "102", "Musa Ibrahim", "2026-06-26", 3, "Confirmed", "Online"],
+  ["BK-2875", "102", "Kemi Suleiman", "2026-07-02", 3, "Pending", "Phone"],
+  ["BK-2876", "103", "Damilola Ogunleye", "2026-06-27", 4, "Confirmed", "Walk-in"],
+  ["BK-2866", "104", "Prof. Emeka Eze", "2026-06-25", 4, "Pending", "Direct"],
+  ["BK-2871", "118", "Bola Adewale", "2026-06-25", 2, "Confirmed", "Online"],
+  ["BK-2849", "201", "Dr. Hassan Umar", "2026-06-26", 5, "Confirmed", "Online"],
+  ["BK-2867", "202", "Fatima Garba", "2026-06-25", 3, "Confirmed", "Online"],
+  ["BK-2877", "202", "Alhaji Musa Sule", "2026-07-03", 4, "Confirmed", "Phone"],
+  ["BK-2869", "203", "Yemi Ogundimu", "2026-06-26", 3, "Confirmed", "Walk-in"],
+  ["BK-2879", "302", "Grace Uchenna", "2026-06-27", 3, "Confirmed", "Online"],
+  ["BK-2870", "303", "Dr. Afolake Oladele", "2026-06-28", 5, "Confirmed", "Direct"],
+  ["BK-2880", "304", "Ade Adeleke", "2026-06-29", 3, "Pending", "Direct"],
+  ["BK-2881", "501", "Ifeoma Nnaji", "2026-06-30", 4, "Confirmed", "Corporate"],
+];
+const roomType = (room: string) => ({ "101": "Deluxe", "104": "Deluxe", "202": "Deluxe", "302": "Deluxe", "303": "Deluxe", "203": "Suite", "501": "Suite", "502": "Suite" } as Record<string, string>)[room] ?? "Standard";
+export const gridBookings = (): GridBooking[] => [
+  ...STAYS.map(s => ({ id: s.id, room: s.room, guest: s.guest, checkin: dayMonth(s.checkin), checkout: dayMonth(s.checkout), status: "Checked in" as const, rate: RATE[s.type], source: "Front desk", vip: s.vip })),
+  ...ARRIVALS.filter(a => a.room).map(a => ({ id: a.id, room: a.room, guest: a.guest, checkin: BUSINESS_DATE, checkout: addDays(BUSINESS_DATE, a.nights), status: (a.status === "Pending" ? "Pending" : "Confirmed") as GridBooking["status"], rate: a.rate, source: "Phone", vip: a.vip })),
+  ...(EMPTY ? [] : FUTURE.map(([id, room, guest, iso, n, status, source]) => {
+    const checkin = new Date(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
+    return { id, room, guest, checkin, checkout: addDays(checkin, n), status, rate: RATE[roomType(room)], source, vip: false };
+  })),
+];
+// Arrivals still waiting for a room; the grid shows them above the rooms.
+export const unassignedArrivals = () => ARRIVALS.filter(a => !a.room);
