@@ -25,7 +25,7 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, IN_HOUSE, WORK_ORDERS,
+  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
   STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
@@ -3314,7 +3314,7 @@ export function LeaveManagement({ add }: { add: (t: Omit<Toast, "id">) => void }
           <div className="flex-1">
             {/* filters */}
             <div className="flex gap-2 mb-3 flex-wrap">
-              <select value={deptF} onChange={e=>setDeptF(e.target.value)} className="px-3 py-2 rounded-xl border text-xs outline-none" style={{ borderColor:BORDER, color:TEXT }}>
+              <select aria-label="Department" value={deptF} onChange={e=>setDeptF(e.target.value)} className="px-3 py-2 rounded-xl border text-xs outline-none" style={{ borderColor:BORDER, color:TEXT }}>
                 {depts.map(d=><option key={d}>{d}</option>)}
               </select>
               {(["All","Pending","Approved","Rejected","Cancelled"] as const).map(s=>(

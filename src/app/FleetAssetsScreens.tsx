@@ -245,7 +245,7 @@ export function VehicleRegister({ add, nav }: { add: (t: Omit<Toast,"id">) => vo
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search plate, make, model…" aria-label="Search plate, make, model" className="text-xs outline-none" style={{ color:TEXT, width:160 }} />
         </div>
         {[["Status","filterStatus",["all","active","maintenance","off-road","decommissioned"]],["Ownership","filterOwnership",["all","owned","leased","contractor"]],["Documents","filterDocState",["all","valid","expiring-soon","expired"]]].map(([label, key, opts]) => (
-          <select key={key as string} value={key==="filterStatus"?filterStatus:key==="filterOwnership"?filterOwnership:filterDocState} onChange={e=>key==="filterStatus"?setFilterStatus(e.target.value):key==="filterOwnership"?setFilterOwnership(e.target.value):setFilterDocState(e.target.value)} className="px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
+          <select aria-label={key==="filterStatus"?"Status":key==="filterOwnership"?"Ownership":"Documents"} key={key as string} value={key==="filterStatus"?filterStatus:key==="filterOwnership"?filterOwnership:filterDocState} onChange={e=>key==="filterStatus"?setFilterStatus(e.target.value):key==="filterOwnership"?setFilterOwnership(e.target.value):setFilterDocState(e.target.value)} className="px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor:BORDER }}>
             {(opts as string[]).map(o=><option key={o} value={o}>{o==="all"?`All ${label}`:o.charAt(0).toUpperCase()+o.slice(1)}</option>)}
           </select>
         ))}

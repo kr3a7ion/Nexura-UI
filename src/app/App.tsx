@@ -541,11 +541,11 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
 
             <div className="hidden min-w-0 sm:block">
               <div className="flex items-center gap-2 text-sm font-bold" style={{ color: TEXT }}><span className="h-2 w-2 rounded-full" style={{ backgroundColor: screen === "suite-home" ? TEAL : currentDepartment?.accent ?? TEAL }} />{screen === "suite-home" ? "Nexura Suite" : currentDepartment?.name}</div>
-              <div className="mt-0.5 flex items-center gap-1 text-xs" style={{ color: SUBTLE }}><button onClick={() => nav("suite-home", "Suite Home")}>Suite Home</button>{screen !== "suite-home" && <><CaretRight size={9} /><span className="truncate">{activeLabel}</span></>}</div>
+              <div className="mt-0.5 flex items-center gap-1 text-xs whitespace-nowrap" style={{ color: SUBTLE }}><button className="whitespace-nowrap" onClick={() => nav("suite-home", "Suite Home")}>Suite Home</button>{screen !== "suite-home" && <><CaretRight size={9} /><span className="truncate">{activeLabel}</span></>}</div>
             </div>
 
             <div className="mx-auto flex max-w-xl flex-1 justify-center px-2">
-              <button onClick={() => setCommandOpen(true)} className="flex h-9 w-full max-w-md items-center gap-2 rounded-xl border px-3 text-left text-sm" style={{ backgroundColor: BG, borderColor: BORDER, color: MUTED }}><MagnifyingGlass size={15} /><span className="truncate">Search or jump to a screen…</span><span className="ml-auto hidden rounded-md border bg-white px-1.5 py-0.5 text-xs sm:inline" style={{ borderColor: BORDER, color: SUBTLE }}>⌘ K</span></button>
+              <button onClick={() => setCommandOpen(true)} className="flex h-9 w-full max-w-md items-center gap-2 rounded-xl border px-3 text-left text-sm" style={{ backgroundColor: BG, borderColor: BORDER, color: MUTED }}><MagnifyingGlass size={15} /><span className="truncate">Search or jump to a screen…</span><span className="ml-auto hidden rounded-md border bg-white px-1.5 py-0.5 text-xs whitespace-nowrap xl:inline" style={{ borderColor: BORDER, color: SUBTLE }}>⌘ K</span></button>
             </div>
 
             <div className="flex flex-shrink-0 items-center gap-2">

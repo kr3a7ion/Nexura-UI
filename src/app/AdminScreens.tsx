@@ -810,7 +810,7 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                 className="pl-9 pr-4 py-2.5 w-full border rounded-lg text-sm outline-none transition-colors"
                 style={{ borderColor: q ? PRIMARY : BORDER, boxShadow: q ? `0 0 0 2px ${PRIMARY}15` : undefined }} />
             </div>
-            <select value={sourceF} onChange={e => setSourceF(e.target.value)}
+            <select aria-label="Booking source" value={sourceF} onChange={e => setSourceF(e.target.value)}
               className="px-3 py-2.5 border rounded-lg text-sm outline-none"
               style={{ borderColor: sourceF !== "All" ? TEAL : BORDER }}>
               {["All","Phone","Email","Walk-in","Online","OTA"].map(s => <option key={s}>{s}</option>)}
@@ -3063,7 +3063,7 @@ export function FolioVoidReversal({ add }: { add: (t: Omit<Toast, "id">) => void
 
                 {/* Typed acknowledgement */}
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Type to confirm: <span style={{ fontFamily: mono }}>{ackRequired}</span></label>
-                <input value={ackText} onChange={e=>setAckText(e.target.value)} placeholder={ackRequired} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: ackText && ackText !== ackRequired ? ERROR : BORDER, fontFamily: mono }} /></div>
+                <input aria-label="Type to confirm" value={ackText} onChange={e=>setAckText(e.target.value)} placeholder={ackRequired} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: ackText && ackText !== ackRequired ? ERROR : BORDER, fontFamily: mono }} /></div>
 
                 {/* Manager PIN */}
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Manager PIN</label>
@@ -3528,7 +3528,7 @@ export function ComplaintManagement({ add }: { add: (t: Omit<Toast, "id">) => vo
                 <button key={s} onClick={()=>setSevF(s)} className="px-3 py-1.5 rounded-xl text-xs font-medium border" style={{ backgroundColor:sevF===s?PRIMARY:"white", color:sevF===s?"white":MUTED, borderColor:sevF===s?PRIMARY:BORDER }}>{s}</button>
               ))}
             </div>
-            <select value={stF} onChange={e=>setStF(e.target.value as "All"|CmpStatus)} className="px-3 py-1.5 rounded-xl border text-xs outline-none" style={{ borderColor:BORDER, color:TEXT }}>
+            <select aria-label="Status" value={stF} onChange={e=>setStF(e.target.value as "All"|CmpStatus)} className="px-3 py-1.5 rounded-xl border text-xs outline-none" style={{ borderColor:BORDER, color:TEXT }}>
               {["All","Open","In Progress","Resolved","Closed","Escalated"].map(s=><option key={s}>{s}</option>)}
             </select>
           </div>

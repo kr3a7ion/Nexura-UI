@@ -550,7 +550,7 @@ export function SyncSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <div className="space-y-4">
           <SectionCard title="Connection">
             <FieldRow label="Central server URL">
-              <input value={url} onChange={e => setUrl(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: isHttp ? ERROR : BORDER, fontFamily: mono }} />
+              <input aria-label="Sync server address" value={url} onChange={e => setUrl(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: isHttp ? ERROR : BORDER, fontFamily: mono }} />
               {isHttp && (
                 <div className="mt-1.5 flex items-start gap-1.5 text-xs p-2 rounded-lg" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>
                   <AlertTriangle size={12} className="mt-0.5 shrink-0" />
@@ -559,13 +559,13 @@ export function SyncSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) {
               )}
             </FieldRow>
             <FieldRow label="Branch ID">
-              <input defaultValue="GRND-PALMS-ABJ-001" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, fontFamily: mono }} readOnly />
+              <input aria-label="Branch code" defaultValue="GRND-PALMS-ABJ-001" className="w-full px-3 py-2 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, fontFamily: mono }} readOnly />
             </FieldRow>
             <FieldRow label="Sync key">
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <input type={showKey ? "text" : "password"} defaultValue="sk_live_gp_abj_7x4m2qnr9c" className="w-full px-3 py-2 pr-8 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, fontFamily: mono }} readOnly />
-                  <button onClick={() => setShowKey(p => !p)} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: MUTED }}>{showKey ? <EyeOff size={13} /> : <Eye size={13} />}</button>
+                  <input aria-label="API key" type={showKey ? "text" : "password"} defaultValue="sk_live_gp_abj_7x4m2qnr9c" className="w-full px-3 py-2 pr-8 border rounded-xl text-xs outline-none" style={{ borderColor: BORDER, fontFamily: mono }} readOnly />
+                  <button aria-label={showKey ? "Hide the key" : "Show the key"} onClick={() => setShowKey(p => !p)} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: MUTED }}>{showKey ? <EyeOff size={13} /> : <Eye size={13} />}</button>
                 </div>
                 <button onClick={rotateKey} disabled={rotating} className="flex items-center gap-1 px-3 py-2 rounded-xl border text-xs" style={{ borderColor: BORDER, color: WARNING_INK }}>
                   <RotateCcw size={12} className={rotating ? "animate-spin" : ""} />

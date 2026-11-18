@@ -192,7 +192,7 @@ export function UserManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
         <table className="w-full">
           <thead>
             <tr style={{ backgroundColor: "#F9FAFB" }}>
-              <th className="px-3 py-2.5 w-8"><input type="checkbox" onChange={e => setSelected(e.target.checked ? filtered.map(u => u.id) : [])} checked={selected.length === filtered.length && filtered.length > 0} /></th>
+              <th className="px-3 py-2.5 w-8"><input aria-label="Select all users" type="checkbox" onChange={e => setSelected(e.target.checked ? filtered.map(u => u.id) : [])} checked={selected.length === filtered.length && filtered.length > 0} /></th>
               {["User", "Role", "Department", "Status", "MFA", "Last Login", "Actions"].map(c => (
                 <th key={c} className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{c}</th>
               ))}

@@ -69,7 +69,7 @@ function ReportShell({
         actions={
           <div className="flex items-center gap-2">
             <ExportState state={exportState} onDownload={() => { add({ type: "success", title: `${title} exported as ${exportFmt}` }); setExportState("idle"); }} />
-            <select value={exportFmt} onChange={e => setExportFmt(e.target.value as typeof exportFmt)} className="px-2 py-2 rounded-xl border text-xs outline-none" style={{ borderColor: BORDER, color: MUTED }}>
+            <select aria-label="Export format" value={exportFmt} onChange={e => setExportFmt(e.target.value as typeof exportFmt)} className="px-2 py-2 rounded-xl border text-xs outline-none" style={{ borderColor: BORDER, color: MUTED }}>
               {["PDF", "Excel", "CSV"].map(f => <option key={f}>{f}</option>)}
             </select>
             <BtnO label="Export" icon={Download} onClick={triggerExport} />
@@ -456,7 +456,7 @@ export function DepartmentReports({ add }: { add: (t: Omit<Toast, "id">) => void
   return (
     <ReportShell title="Department Reports" sub="Per-department KPIs, productivity, and incidents" add={add}
       filterSlot={
-        <select value={dept} onChange={e => setDept(e.target.value)} className="ml-2 px-3 py-1.5 rounded-xl border text-xs outline-none" style={{ borderColor: BORDER, color: TEXT }}>
+        <select aria-label="Department" value={dept} onChange={e => setDept(e.target.value)} className="ml-2 px-3 py-1.5 rounded-xl border text-xs outline-none" style={{ borderColor: BORDER, color: TEXT }}>
           {DEPTS.map(d => <option key={d}>{d}</option>)}
         </select>
       }

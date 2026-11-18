@@ -172,13 +172,6 @@ export const ROOMS = [
 // Counted from ROOMS so every screen shows the same hotel.
 export const roomSt = ([["Occupied", ORANGE], ["Available", SUCCESS], ["Cleaning", WARNING], ["Reserved", TEAL], ["Maintenance", ERROR], ["Out of service", "#6B7280"]] as const)
   .map(([status, color]) => ({ status, color, count: ROOMS.filter(r => r.status.toLowerCase() === status.toLowerCase()).length }));
-export const IN_HOUSE = [
-  { room: "101", guest: "Adaeze Okonkwo", checkin: "22 Jun", checkout: "25 Jun", nights: 1, vip: true, balance: 0 },
-  { room: "202", guest: "Emmanuel Adeyemi", checkin: "23 Jun", checkout: "26 Jun", nights: 2, vip: false, balance: 45000 },
-  { room: "203", guest: "Halima Yusuf", checkin: "21 Jun", checkout: "24 Jun", nights: 0, vip: true, balance: 0 },
-  { room: "304", guest: "Chukwuemeka Obi", checkin: "24 Jun", checkout: "28 Jun", nights: 4, vip: false, balance: 120000 },
-  { room: "302", guest: "Ibrahim Lawal", checkin: "23 Jun", checkout: "25 Jun", nights: 1, vip: false, balance: 0 },
-];
 export const WORK_ORDERS = [
   { id: "WO-0091", location: "Room 207", cat: "Electrical", priority: "High", status: "In Progress", tech: "Emeka Nwosu", age: "1h 20m" },
   { id: "WO-0090", location: "Room 316", cat: "HVAC", priority: "High", status: "Overdue", tech: "Emeka Nwosu", age: "19h" },

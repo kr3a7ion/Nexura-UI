@@ -25,7 +25,7 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, IN_HOUSE, WORK_ORDERS,
+  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
   STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
@@ -36,6 +36,7 @@ import {
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, Av } from "./UIKit";
 import { DateInput } from "./DateInput";
 import { hkRooms, updateRoom, ATTENDANTS } from "./mock/housekeeping";
+import { inHouseGuests } from "./mock/frontOffice";
 
 
 export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
@@ -94,7 +95,7 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
           {FLOORS.map(f => <button key={f} onClick={() => setFloorFilter(f)} aria-pressed={floorFilter === f} className="text-sm h-9 min-w-9 px-2.5 rounded-lg border" style={{ backgroundColor: floorFilter === f ? PRIMARY : "white", color: floorFilter === f ? "white" : TEXT, borderColor: floorFilter === f ? PRIMARY : BORDER }}>{f}</button>)}
         </div>
         <label className="flex items-center gap-1.5 text-sm" style={{ color: MUTED }}>Attendant
-          <select value={attFilter} onChange={e => setAttFilter(e.target.value)} className="text-sm h-9 px-2 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
+          <select aria-label="Filter" value={attFilter} onChange={e => setAttFilter(e.target.value)} className="text-sm h-9 px-2 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
             {["All", ...ATTENDANTS].map(a => <option key={a}>{a}</option>)}
           </select>
         </label>
@@ -232,7 +233,7 @@ export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; 
         <table className="w-full">
           <thead>
             <tr style={{ backgroundColor: "#F9FAFB", borderBottom: `2px solid ${BORDER}` }}>
-              <th className="px-4 py-3 w-8"><input type="checkbox" checked={selected.length === visible.length && visible.length > 0} onChange={toggleAll} className="rounded" /></th>
+              <th className="px-4 py-3 w-8"><input aria-label="Select all" type="checkbox" checked={selected.length === visible.length && visible.length > 0} onChange={toggleAll} className="rounded" /></th>
               {["ID","Title / Location","Category","Priority","Status","Reported By","Reported At","SLA Due","Assigned To","Age",""].map(h => (
                 <th key={h} className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>
               ))}
@@ -242,7 +243,7 @@ export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; 
             {visible.map(w => (
               <tr key={w.id} className="border-t hover:bg-[#F9FAFB] transition-colors cursor-pointer" style={{ borderColor: "#F4F4F5", backgroundColor: w.status === "Overdue" ? "#FFF5F5" : "white" }}
                 onClick={() => nav && nav("work-order-detail", w.id)}>
-                <td className="px-4 py-3" onClick={e => { e.stopPropagation(); toggleRow(w.id); }}><input type="checkbox" checked={selected.includes(w.id)} onChange={() => toggleRow(w.id)} className="rounded" /></td>
+                <td className="px-4 py-3" onClick={e => { e.stopPropagation(); toggleRow(w.id); }}><input aria-label={`Select ${w.id}`} type="checkbox" checked={selected.includes(w.id)} onChange={() => toggleRow(w.id)} className="rounded" /></td>
                 <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{w.id}</td>
                 <td className="px-3 py-3">
                   <div className="flex items-center gap-1.5">
@@ -477,7 +478,7 @@ export function InternalChat({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           {/* Compose */}
           <div className="px-5 py-3 border-t" style={{ borderColor: BORDER }}>
             <div className="flex items-center gap-3">
-              <input value={msg} onChange={e => setMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && send()}
+              <input aria-label="Message" value={msg} onChange={e => setMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && send()}
                 placeholder={activeView === "channel" ? `Message #${activeCh}…` : `Message ${activeDM.split(" ")[0]}…`}
                 className="flex-1 px-4 py-2.5 border rounded-xl text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }} />
               <button aria-label="Send" onClick={send} className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: PRIMARY }}>
@@ -556,7 +557,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
     if (order.length === 0) return;
     if (payMethod === "cash" && cashInNum < total) { add({ type: "warning", title: "Insufficient cash tendered" }); return; }
     if (payMethod === "complimentary" && !compReason.trim()) { add({ type: "warning", title: "Complimentary reason required" }); return; }
-    if (payMethod === "room") { const g = IN_HOUSE.find(x => x.room === selectedRoom); add({ type: "success", title: "Posted to room folio", body: `₦${total.toLocaleString()} → Room ${selectedRoom} · ${g?.guest ?? ""}` }); }
+    if (payMethod === "room") { const g = inHouseGuests().find(x => x.room === selectedRoom); add({ type: "success", title: "Posted to room folio", body: `₦${total.toLocaleString()} → Room ${selectedRoom} · ${g?.guest ?? ""}` }); }
     else add({ type: "success", title: `Payment received — ${payMethod.toUpperCase()}`, body: `₦${total.toLocaleString()} · ${activeTable}` });
     setOrder([]); setCashIn(""); setCompReason("");
   };
@@ -704,7 +705,7 @@ export function POSTerminal({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
                 </button>
                 {showRoomPicker && (
                   <div className="mt-1 rounded-xl border shadow-sm overflow-hidden" style={{ borderColor: BORDER }}>
-                    {IN_HOUSE.map(g => <button key={g.room} onClick={() => { setSelectedRoom(g.room); setShowRoomPicker(false); }} className="w-full px-3 py-2 text-left text-xs hover:bg-[#F8FAFC] border-b last:border-0" style={{ borderColor: "#F4F4F5", color: TEXT }}><span className="font-semibold">Room {g.room}</span> — {g.guest}</button>)}
+                    {inHouseGuests().map(g => <button key={g.room} onClick={() => { setSelectedRoom(g.room); setShowRoomPicker(false); }} className="w-full px-3 py-2 text-left text-xs hover:bg-[#F8FAFC] border-b last:border-0" style={{ borderColor: "#F4F4F5", color: TEXT }}><span className="font-semibold">Room {g.room}</span> — {g.guest}</button>)}
                   </div>
                 )}
               </div>
@@ -1894,11 +1895,11 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Display Name <span style={{ color:ERROR }}>*</span></label>
-                <input value={editVals.name} onChange={e=>setEditVals(p=>({...p,name:e.target.value}))} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} />
+                <input aria-label="Display Name" value={editVals.name} onChange={e=>setEditVals(p=>({...p,name:e.target.value}))} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Base Rate (₦/night) <span style={{ color:ERROR }}>*</span></label>
-                <input type="number" value={editVals.base} onChange={e=>setEditVals(p=>({...p,base:e.target.value}))} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER, fontFamily:mono }} />
+                <input aria-label="Base Rate (₦/night)" type="number" value={editVals.base} onChange={e=>setEditVals(p=>({...p,base:e.target.value}))} className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none" style={{ borderColor: BORDER, fontFamily:mono }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Max occupancy</label>

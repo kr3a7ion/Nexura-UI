@@ -53,7 +53,7 @@ export default function FrontOfficeHome({ nav }: { nav: Nav }) {
   if (viewState === "Loading") {
     return (
       <div>
-        <PageHeader title="Front Office" sub="Loading today's guest operations…" actions={<Sel value={viewState} onChange={event => setViewState(event.target.value as ViewState)} options={["Ready", "Loading", "Empty", "Error"]} />} />
+        <PageHeader title="Front Office" sub="Loading today's guest operations…" />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 4 }, (_, index) => <div key={index} className="h-40 animate-pulse rounded-2xl border" style={{ borderColor: BORDER, backgroundColor: "white" }} />)}</div>
         <div className="mt-5 h-80 animate-pulse rounded-2xl border bg-white" style={{ borderColor: BORDER }} />
       </div>
@@ -74,7 +74,7 @@ export default function FrontOfficeHome({ nav }: { nav: Nav }) {
   if (viewState === "Empty") {
     return (
       <div>
-        <PageHeader title="Front Office" sub="Guest operations command centre" actions={<Sel value={viewState} onChange={event => setViewState(event.target.value as ViewState)} options={["Ready", "Loading", "Empty", "Error"]} />} />
+        <PageHeader title="Front Office" sub="Guest operations command centre" />
         <div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
           <EmptyState icon={CalendarCheck} message="There are no arrivals, departures or pending guest tasks for today." cta="Create reservation" onCta={() => nav("new-reservation", "New Reservation")} />
         </div>
@@ -87,7 +87,7 @@ export default function FrontOfficeHome({ nav }: { nav: Nav }) {
       <PageHeader
         title="Front Office command centre"
         sub="Today’s reservation, arrival and guest-stay operations."
-        actions={<Sel value={viewState} onChange={event => setViewState(event.target.value as ViewState)} options={["Ready", "Loading", "Empty", "Error"]} />}
+       
       />
 
       <section className="mb-5 flex flex-col gap-4 rounded-2xl border bg-white p-5 lg:flex-row lg:items-center" style={{ borderColor: BORDER }}>

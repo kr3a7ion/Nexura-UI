@@ -70,11 +70,11 @@ export const addInspection = (i: Omit<Inspection, "id">) => {
 // Lost and found: attendants log items from My Tasks; the front desk works the list.
 export type FoundItem = { id: string; desc: string; cat: string; storage: string; room: string; guestRes: string; guest: string; date: string; loggedBy: string; claimedBy: string; status: string };
 export const FOUND_ITEMS: FoundItem[] = [
-  { id: "LF-0041", desc: "iPhone 14 Pro (black)", cat: "Electronics", storage: "Front desk safe B-2", room: "204", guestRes: "BK-2790", guest: "Mrs. Adeola Bello", date: "22 Jun 2026", loggedBy: "Fatima Musa", claimedBy: "", status: "Held" },
-  { id: "LF-0040", desc: "Gold bracelet", cat: "Jewellery", storage: "Safe box 1", room: "315", guestRes: "BK-2784", guest: "Dr. Emeka Chukwu", date: "20 Jun 2026", loggedBy: "Ngozi Ike", claimedBy: "Dr. Emeka Chukwu", status: "Claimed" },
-  { id: "LF-0039", desc: "Blue Patagonia jacket", cat: "Clothing", storage: "Housekeeping store A", room: "108", guestRes: "BK-2779", guest: "Ms. Sarah Okafor", date: "18 Jun 2026", loggedBy: "Amaka Osei", claimedBy: "", status: "Held" },
-  { id: "LF-0038", desc: "Laptop charger (Dell)", cat: "Electronics", storage: "Front desk shelf", room: "221", guestRes: "BK-2770", guest: "Mr. Tunde Adeyemi", date: "15 Jun 2026", loggedBy: "Fatima Musa", claimedBy: "Mr. Tunde Adeyemi", status: "Shipped" },
-  { id: "LF-0037", desc: "Prescription glasses", cat: "Personal", storage: "Front desk safe B-1", room: "401", guestRes: "BK-2761", guest: "Mrs. Ngozi Eze", date: "10 Jun 2026", loggedBy: "Ngozi Ike", claimedBy: "", status: "Held" },
+  { id: "LF-0041", desc: "iPhone 14 Pro (black)", cat: "Electronics", storage: "Front desk safe B-2", room: "202", guestRes: "BK-2790", guest: "Mrs. Adeola Bello", date: "22 Jun 2026", loggedBy: "Fatima Musa", claimedBy: "", status: "Held" },
+  { id: "LF-0040", desc: "Gold bracelet", cat: "Jewellery", storage: "Safe box 1", room: "302", guestRes: "BK-2784", guest: "Dr. Emeka Chukwu", date: "20 Jun 2026", loggedBy: "Ngozi Ike", claimedBy: "Dr. Emeka Chukwu", status: "Claimed" },
+  { id: "LF-0039", desc: "Blue Patagonia jacket", cat: "Clothing", storage: "Housekeeping store A", room: "104", guestRes: "BK-2779", guest: "Ms. Sarah Okafor", date: "18 Jun 2026", loggedBy: "Amaka Osei", claimedBy: "", status: "Held" },
+  { id: "LF-0038", desc: "Laptop charger (Dell)", cat: "Electronics", storage: "Front desk shelf", room: "203", guestRes: "BK-2770", guest: "Mr. Tunde Adeyemi", date: "15 Jun 2026", loggedBy: "Fatima Musa", claimedBy: "Mr. Tunde Adeyemi", status: "Shipped" },
+  { id: "LF-0037", desc: "Prescription glasses", cat: "Personal", storage: "Front desk safe B-1", room: "501", guestRes: "BK-2761", guest: "Mrs. Ngozi Eze", date: "10 Jun 2026", loggedBy: "Ngozi Ike", claimedBy: "", status: "Held" },
   { id: "LF-0036", desc: "Child's stuffed bear", cat: "Clothing", storage: "Disposed after 30 days", room: "103", guestRes: "BK-2752", guest: "Mr. Femi Adesanya", date: "1 Jun 2026", loggedBy: "Amaka Osei", claimedBy: "", status: "Disposed" },
 ];
 export const logFoundItem = (i: Omit<FoundItem, "id" | "status" | "claimedBy">) => {

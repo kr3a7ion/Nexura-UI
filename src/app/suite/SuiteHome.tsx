@@ -7,7 +7,7 @@ import { BUSINESS_DATE } from "../constants";
 import { BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, WARNING, display } from "../constants";
 import { Badge, EmptyState, PageHeader, StatCard } from "../UIKit";
 import { DEPARTMENT_HOME } from "../mock/departmentHome";
-import { HOME_TODAY } from "../mock/suiteHome";
+import { homeToday } from "../mock/suiteHome";
 import type { Department, DepartmentId } from "./departments";
 
 const META: Record<DepartmentId, { description: string; live: string }> = {
@@ -53,7 +53,7 @@ export function SuiteHome({
   const now = new Date();
   const greeting = now.getHours() < 12 ? "Good morning" : now.getHours() < 17 ? "Good afternoon" : "Good evening";
   const today = BUSINESS_DATE.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
-  const { stats, alerts } = HOME_TODAY[role];
+  const { stats, alerts } = homeToday()[role];
   // Pinned departments come first, so a separate "Pinned" list is not needed.
   const ordered = [...departments].sort((a, b) => Number(pinned.includes(b.id)) - Number(pinned.includes(a.id)));
 
