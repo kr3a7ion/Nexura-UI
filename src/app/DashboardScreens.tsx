@@ -47,6 +47,8 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
   const roomRevenue = STAYS.reduce((t, st) => t + (NIGHTLY[st.type] ?? 0), 0);
   const unassigned = ARRIVALS.filter(a => !a.room).length;
   const leaving = departures().length;
+  const complaints = STAYS.reduce((t, st) => t + st.complaints, 0);
+  const guestsWithComplaints = STAYS.filter(st => st.complaints > 0).length;
 
   const ALERTS = [
     { icon: Wrench, label: "2 work orders overdue", sub: "WO-0090 · WO-0088 — SLA breached", color: ERROR, screen: "work-orders", sl: "Work Orders" },
@@ -65,11 +67,13 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
           <BtnP label="New reservation" icon={Plus} onClick={() => go("new-reservation", "New Reservation")} />
         </div>} />
 
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+      <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 mb-5">
         <StatCard label="Occupancy tonight" value={`${Math.round(occupied / ROOMS.length * 100)}%`} sub={`${occupied} of ${ROOMS.length} rooms`} icon={Building2} accent={PRIMARY} />
-        <StatCard label="Room revenue tonight" value={`₦${roomRevenue.toLocaleString()}`} sub={`Average ₦${Math.round(roomRevenue / Math.max(1, occupied)).toLocaleString()} a room`} icon={DollarSign} accent={SUCCESS} />
+        <StatCard label="Room revenue tonight" value={`₦${roomRevenue.toLocaleString()}`} sub={`ADR ₦${Math.round(roomRevenue / Math.max(1, occupied)).toLocaleString()} · RevPAR ₦${Math.round(roomRevenue / ROOMS.length).toLocaleString()}`} icon={DollarSign} accent={SUCCESS} />
         <StatCard label="Arrivals today" value={String(ARRIVALS.length)} sub={unassigned ? `${unassigned} still need a room` : "All have rooms"} icon={ArrowDownToLine} accent={PRIMARY} />
         <StatCard label="Departures today" value={String(leaving)} sub={`${STAYS.length - leaving} guests staying on`} icon={ArrowUpFromLine} accent={MUTED} />
+        <StatCard label="Guests in house" value={String(STAYS.length)} sub={`${STAYS.filter(st => st.vip).length} VIP`} icon={Users} accent={ORANGE} />
+        <StatCard label="Open complaints" value={String(complaints)} sub={complaints ? `From ${guestsWithComplaints} guest${guestsWithComplaints === 1 ? "" : "s"}` : "None open"} icon={AlertTriangle} accent={ERROR} />
       </div>
 
       {/* ── Main grid: chart + room status + revenue donut ───────────────── */}
