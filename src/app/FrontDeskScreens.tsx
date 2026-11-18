@@ -27,13 +27,13 @@ import {
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
+  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, IN_HOUSE, WORK_ORDERS,
   STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK, stampNow } from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK, stampNow, display } from "./constants";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -42,7 +42,8 @@ import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, B
 import { TextOrDate } from "./DateInput";
 import { ARRIVALS as FO_ARRIVALS, departures, STAYS } from "./mock/frontOffice";
 import { isManagerLogin } from "./mock/staffLogin";
-import { FOUND_ITEMS, logFoundItem } from "./mock/housekeeping";
+import { FOUND_ITEMS, logFoundItem, hkRooms } from "./mock/housekeeping";
+import { UI, controlClass, controlStyle, SectionTitle, Stepper, Row } from "./ui";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
 function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
@@ -61,6 +62,26 @@ function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) 
     </div>
   );
 }
+// Kept outside CheckInWizard so inputs keep focus while typing.
+const Notch = () => null;
+const SecLabel = ({ children }: { children: string }) => <SectionTitle>{children}</SectionTitle>;
+const FL = ({ children, req }: { children: string; req?: boolean }) => (
+  <label className="block text-sm font-medium mb-1.5" style={{ color: TEXT }}>
+    {children}{req && <span style={{ color: ERROR }} aria-hidden> *</span>}
+  </label>
+);
+const CkIn = ({ type = "text", val, set, placeholder, err, readOnly, label }: {
+  label?: string; type?: string; val?: string; set?: (v: string) => void; placeholder?: string; err?: boolean; readOnly?: boolean;
+}) => (
+  <TextOrDate type={type} value={val ?? ""} onChange={e => set?.(e.target.value)} placeholder={placeholder} readOnly={readOnly} aria-label={label}
+    aria-invalid={err || undefined} className={controlClass} style={{ ...controlStyle(err), backgroundColor: readOnly ? UI.surface : "white" }} />
+);
+const CkSl = ({ val, set, opts, label }: { val: string; set: (v: string) => void; opts: string[]; label?: string }) => (
+  <select aria-label={label} value={val} onChange={e => set(e.target.value)} className={controlClass} style={controlStyle()}>
+    {opts.map(o => <option key={o} value={o}>{o || "Choose…"}</option>)}
+  </select>
+);
+
 export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omit<Toast, "id">) => void; initialReservationId?: string }) {
   const [step, setStep] = useState(1);
   const [selRes, setSelRes] = useState<string | null>(null);
@@ -89,23 +110,18 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
   const [pinRevealed, setPinRevealed] = useState(true);
   const [upgradeCandidate, setUpgradeCandidate] = useState<string | null>(null);
   const [upgradeReason, setUpgradeReason] = useState("");
-  const [upgradeManagerPin, setUpgradeManagerPin] = useState("");
+  const [mgrUser, setMgrUser] = useState("");
+  const [mgrPass, setMgrPass] = useState("");
   const [approvedUpgradeRoom, setApprovedUpgradeRoom] = useState<string | null>(null);
 
-  const STEPS = ["Select Reservation", "Verify Guest", "Assign Room", "Registration", "Payment", "Access Credentials", "Receipt & Documents"];
+  const STEPS = ["Choose the reservation", "Check identity", "Assign a room", "Registration card", "Take payment", "Room key", "Receipt and documents"];
   const STEP_SHORT = ["Reservation", "Identity", "Room", "Registration", "Payment", "Access", "Receipt"];
-  const STEP_ICONS = [Ph.CalendarCheck, Ph.UserCheck, Ph.Bed, Ph.FileText, Ph.CreditCard, Ph.Key, Ph.DownloadSimple];
 
   const ALL_ARRIVALS = FO_ARRIVALS.map(a => ({ ...a, deposit: a.rate }));
 
   const ARRIVALS = searchQ.trim()
     ? ALL_ARRIVALS.filter(a => a.guest.toLowerCase().includes(searchQ.toLowerCase()) || a.id.toLowerCase().includes(searchQ.toLowerCase()))
     : ALL_ARRIVALS;
-  const AVAIL_ROOMS = [
-    { id: "102", type: "Standard", floor: 1, hkSt: "Inspected" }, { id: "104", type: "Standard", floor: 1, hkSt: "Clean" },
-    { id: "201", type: "Deluxe", floor: 2, hkSt: "Inspected" }, { id: "301", type: "Suite", floor: 3, hkSt: "Inspected" },
-    { id: "501", type: "Suite", floor: 5, hkSt: "Inspected" },
-  ];
   const doReset = () => {
     setStep(1); setSelRes(null); setSelRoom(null); setSearchQ("");
     setIdNum(""); setIdType("International Passport"); setIdIssueDate(""); setIdExp(""); setIdCaptured(false); setNationality("Nigerian");
@@ -113,7 +129,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
     setPayMethod("Cash"); setCashReceived(""); setPayRef(""); setCorporateAccount("Bello & Associates Ltd."); setPurchaseOrder("");
     setCredType("both"); setCardCount(1); setEncoded(false);
     setPinGen(false); setPinCode(""); setPinRevealed(true);
-    setUpgradeCandidate(null); setUpgradeReason(""); setUpgradeManagerPin(""); setApprovedUpgradeRoom(null);
+    setUpgradeCandidate(null); setUpgradeReason(""); (setMgrUser(""), setMgrPass("")); setApprovedUpgradeRoom(null);
   };
   const selectReservation = (id: string) => {
     setSelRes(id);
@@ -122,7 +138,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
     setTermsAccepted(false); setSignatureCaptured(false);
     setCashReceived(""); setPayRef(""); setPurchaseOrder("");
     setEncoded(false); setPinGen(false); setPinCode("");
-    setUpgradeCandidate(null); setUpgradeReason(""); setUpgradeManagerPin(""); setApprovedUpgradeRoom(null);
+    setUpgradeCandidate(null); setUpgradeReason(""); (setMgrUser(""), setMgrPass("")); setApprovedUpgradeRoom(null);
   };
   useEffect(() => {
     if (initialReservationId && ALL_ARRIVALS.some(a => a.id === initialReservationId)) {
@@ -130,6 +146,9 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
     }
   }, [initialReservationId]);
   const selData = ALL_ARRIVALS.find(a => a.id === selRes);
+  // Rooms free tonight, straight from Housekeeping; only clean or inspected rooms can be given out.
+  const AVAIL_ROOMS = hkRooms().filter(r => r.guestState === "Vacant" || (selData && r.id === selData.room));
+  const ready = (r: { hkSt: string }) => r.hkSt === "Clean" || r.hkSt === "Inspected";
   const RATE_MAP: Record<string, number> = { Standard: 35000, Deluxe: 55000, Suite: 91125 };
   const selectedRoomData = AVAIL_ROOMS.find(r => r.id === selRoom);
   const nightlyRate = selData && selectedRoomData && approvedUpgradeRoom === selRoom ? RATE_MAP[selectedRoomData.type] : selData?.rate ?? 0;
@@ -146,7 +165,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
     if (isUpgrade && approvedUpgradeRoom !== roomId) {
       setUpgradeCandidate(roomId);
       setUpgradeReason("");
-      setUpgradeManagerPin("");
+      (setMgrUser(""), setMgrPass(""));
       return;
     }
     setSelRoom(roomId);
@@ -154,11 +173,12 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
     setUpgradeCandidate(null);
   };
   const approveUpgrade = () => {
-    if (!upgradeCandidate || !upgradeReason || upgradeManagerPin.length < 4) return;
+    if (!upgradeCandidate || !upgradeReason) return;
+    if (!isManagerLogin(mgrUser, mgrPass)) { add({ type: "error", title: "That is not a manager's username and password" }); return; }
     setApprovedUpgradeRoom(upgradeCandidate);
     setSelRoom(upgradeCandidate);
     setUpgradeCandidate(null);
-    add({ type: "success", title: "Room upgrade authorised", body: `Manager approval recorded · ${upgradeReason}` });
+    add({ type: "success", title: "Upgrade approved", body: `Approved by ${mgrUser.trim()} · ${upgradeReason}` }); setMgrUser(""); setMgrPass("");
   };
   const credOk = (credType === "card" ? encoded : credType === "pin" ? pinGen : encoded && pinGen);
   const canNext =
@@ -179,136 +199,35 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
     "";
 
   // ── Design tokens (boarding-pass palette) ───────────────────────────────
-  const CK_BG  = "#F9FAFB";
+  const CK_BG  = "#F8FAFC";
   const CK_BD  = "#E2E8F0";
   const CK_DSH = "#CBD5E1";
   const CK_MUT = "#475569";
 
   // ── Micro-components ────────────────────────────────────────────────────
-  const Notch = () => (
-    <div className="flex items-center px-5" style={{ margin: "-1px 0", position: "relative", zIndex: 2, backgroundColor: CK_BG }}>
-      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: "white", border: `1.5px solid ${CK_BD}`, marginLeft: -8 }} />
-      <div className="flex-1 border-t-2 border-dashed" style={{ borderColor: CK_DSH }} />
-      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: "white", border: `1.5px solid ${CK_BD}`, marginRight: -8 }} />
-    </div>
-  );
-  const SecLabel = ({ children }: { children: string }) => (
-    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: CK_MUT }}>{children}</p>
-  );
-  const FL = ({ children, req }: { children: string; req?: boolean }) => (
-    <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: CK_MUT }}>
-      {children}{req && <span style={{ color: ERROR }}> *</span>}
-    </label>
-  );
-  const CkIn = ({ type = "text", val, set, placeholder, err, readOnly }: {
-    type?: string; val?: string; set?: (v: string) => void; placeholder?: string; err?: boolean; readOnly?: boolean;
-  }) => (
-    <TextOrDate type={type} value={val ?? ""} onChange={e => set?.(e.target.value)} placeholder={placeholder} readOnly={readOnly}
-      className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
-      style={{ border: `1.5px solid ${err ? ERROR : CK_DSH}`, backgroundColor: readOnly ? CK_BG : "white", color: TEXT }} />
-  );
-  const CkSl = ({ val, set, opts }: { val: string; set: (v: string) => void; opts: string[] }) => (
-    <select value={val} onChange={e => set(e.target.value)}
-      className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none"
-      style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
-      {opts.map(o => <option key={o}>{o}</option>)}
-    </select>
-  );
 
-  const SIcon = STEP_ICONS[step - 1];
 
   return (
     <div>
-      {/* ── Page header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 mb-4">
-        {step > 1 && (
-          <button onClick={() => setStep(s => Math.max(1, s - 1))}
-            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
-            style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
-            <Ph.CaretLeft size={16} style={{ color: CK_MUT }} />
-          </button>
-        )}
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT }}>
-            Step {step} of 7 · {STEPS[step - 1]}
-          </p>
-          <h1 className="text-2xl font-bold leading-tight mt-0.5" style={{ color: TEXT }}>Guest Check-In</h1>
-        </div>
+      <PageHeader title="Guest Check-In" sub="Seven steps from the reservation to the room key. The summary on the right follows along." />
+      <div className="bg-white px-5 py-4 mb-5 overflow-x-auto" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.card }}>
+        <Stepper steps={STEP_SHORT} current={step} onStep={setStep} />
       </div>
 
-      {/* ── Boarding-pass step bar ──────────────────────────────────────────── */}
-      <div className="md:hidden mb-4 rounded-xl p-4" style={{ border: `1.5px solid ${CK_BD}`, backgroundColor: CK_BG }}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: PRIMARY }}>
-            <SIcon size={19} color="white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-bold truncate" style={{ color: TEXT }}>{STEPS[step - 1]}</p>
-              <span className="text-xs font-bold" style={{ color: PRIMARY }}>{step} / {STEPS.length}</span>
-            </div>
-            <div className="w-full rounded-full h-1.5 mt-2" style={{ backgroundColor: CK_DSH }}>
-              <div className="h-1.5 rounded-full transition-all" style={{ width: `${(step / STEPS.length) * 100}%`, backgroundColor: PRIMARY }} />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="hidden md:flex items-stretch gap-0 mb-6 rounded-xl overflow-hidden" style={{ border: `1.5px solid ${CK_BD}`, backgroundColor: CK_BG }}>
-        {STEP_ICONS.map((SI, i) => {
-          const done   = i + 1 < step;
-          const active = i + 1 === step;
-          const clickable = done;
-          return (
-            <button key={i} disabled={!clickable}
-              onClick={() => clickable && setStep(i + 1)}
-              className="flex-1 flex flex-col items-center justify-center py-5 px-1 relative transition-all"
-              style={{
-                backgroundColor: active ? PRIMARY : done ? `${PRIMARY}10` : "transparent",
-                borderRight: i < 6 ? `1px dashed ${CK_DSH}` : undefined,
-                cursor: clickable ? "pointer" : "default",
-              }}>
-              <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: active ? "rgba(255,255,255,0.25)" : done ? PRIMARY : CK_BD }}>
-                  {done
-                    ? <Ph.CheckCircle size={10} color="white" weight="fill" />
-                    : <span style={{ color: active ? "white" : CK_MUT, fontSize: 12, fontWeight: 700 }}>{i + 1}</span>}
-                </div>
-                              </div>
-              <SI size={22} style={{ color: active ? "white" : done ? PRIMARY : CK_MUT }} />
-              <p className="text-center mt-2 font-bold leading-tight"
-                style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : CK_MUT }}>
-                {STEP_SHORT[i]}
-              </p>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
 
         {/* ── Step panel ───────────────────────────────────────────────────── */}
-        <div className="lg:col-span-2">
-          <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
-
-            {/* PRIMARY header band */}
-            <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: PRIMARY }}>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Step {step} of 7</p>
-                <p className="text-base font-bold text-white mt-0.5">{STEPS[step - 1]}</p>
-              </div>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
-                <SIcon size={18} color="white" />
-              </div>
+        <div>
+          <div className="bg-white overflow-hidden" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.card }}>
+            <div className="px-6 pt-5 pb-1">
+              <h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>{step}. {STEPS[step - 1]}</h2>
             </div>
 
-            <Notch />
-
-            <div className="p-6 space-y-6">
+            <div className="p-6 pt-4 space-y-6">
 
               {/* ── Step 1: Select Reservation ─────────────────────────────── */}
               {step === 1 && (<>
-                <SecLabel>Today's Arrivals</SecLabel>
+                <SecLabel>Today's arrivals</SecLabel>
                 <div className="relative">
                   <Ph.MagnifyingGlass size={14} className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: CK_MUT }} />
                   <input value={searchQ} onChange={e => setSearchQ(e.target.value)}
@@ -325,7 +244,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     {ARRIVALS.map(a => (
                       <button key={a.id} onClick={() => selectReservation(a.id)}
                         className="w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all"
-                        style={{ border: selRes === a.id ? `2px solid ${PRIMARY}` : `1.5px dashed ${CK_DSH}`, backgroundColor: selRes === a.id ? `${PRIMARY}08` : "white" }}>
+                        style={{ border: selRes === a.id ? `2px solid ${PRIMARY}` : `1px solid ${CK_BD}`, backgroundColor: selRes === a.id ? `${PRIMARY}08` : "white" }}>
                         <div className="w-10 h-10 rounded-full flex items-center justify-center text-white flex-shrink-0"
                           style={{ backgroundColor: a.vip ? ORANGE : PRIMARY }}><Ph.User size={18} weight="bold" /></div>
                         <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: selRes === a.id ? PRIMARY : CK_DSH }} />
@@ -363,12 +282,12 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                 <section>
                   <SecLabel>Identity verification</SecLabel>
                   <div className="grid grid-cols-2 gap-4">
-                    <div><FL>Full name (from ID)</FL><CkIn val={selData.guest} readOnly /></div>
-                    <div><FL>Nationality</FL><CkSl val={nationality} set={setNationality} opts={["Nigerian","Ghanaian","Kenyan","South African","British","American","Other"]} /></div>
-                    <div><FL>ID document type</FL><CkSl val={idType} set={setIdType} opts={["International Passport","National ID Card","Driver's License","Voter's Card"]} /></div>
-                    <div><FL req>ID number</FL><CkIn val={idNum} set={setIdNum} placeholder="A12345678" err={step === 2 && !idNum.trim()} /></div>
-                    <div><FL>Issue date</FL><CkIn type="date" val={idIssueDate} set={setIdIssueDate} err={!idDatesValid} /></div>
-                    <div><FL req>Expiry date</FL><CkIn type="date" val={idExp} set={setIdExp} err={!idExp || !idDatesValid} /></div>
+                    <div><FL>Full name (from ID)</FL><CkIn label="Full name (from ID)" val={selData.guest} readOnly /></div>
+                    <div><FL>Nationality</FL><CkSl label="Nationality" val={nationality} set={setNationality} opts={["Nigerian","Ghanaian","Kenyan","South African","British","American","Other"]} /></div>
+                    <div><FL>ID document type</FL><CkSl label="ID document type" val={idType} set={setIdType} opts={["International Passport","National ID Card","Driver's License","Voter's Card"]} /></div>
+                    <div><FL req>ID number</FL><CkIn label="ID number" val={idNum} set={setIdNum} placeholder="A12345678" err={step === 2 && !idNum.trim()} /></div>
+                    <div><FL>Issue date</FL><CkIn label="Issue date" type="date" val={idIssueDate} set={setIdIssueDate} err={!idDatesValid} /></div>
+                    <div><FL req>Expiry date</FL><CkIn label="Expiry date" type="date" val={idExp} set={setIdExp} err={!idExp || !idDatesValid} /></div>
                   </div>
                   {!idDatesValid && <p className="text-xs mt-2 font-semibold" style={{ color: ERROR }}>Expiry date must be after the issue date.</p>}
                 </section>
@@ -379,9 +298,9 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     <p className="text-sm font-medium mb-1" style={{ color: TEXT }}>{idCaptured ? "ID document captured" : "Upload or scan ID document"}</p>
                     <p className="text-xs mb-3" style={{ color: CK_MUT }}>{idCaptured ? "passport-front.jpg · 1.8 MB" : "JPG, PNG or PDF · Max 5 MB"}</p>
                     <button onClick={() => { setIdCaptured(true); add({ type: "success", title: "ID document captured", body: "Image quality verified" }); }}
-                      className="px-4 py-2 rounded-xl text-xs font-bold border-2"
-                      style={{ color: idCaptured ? SUCCESS : PRIMARY, borderColor: idCaptured ? SUCCESS : PRIMARY, backgroundColor: idCaptured ? "#F0FDF4" : `${PRIMARY}06` }}>
-                      {idCaptured ? "Replace Document" : "Choose File or Scan"}
+                      className="px-4 text-sm font-medium bg-white"
+                      style={{ height: 40, borderRadius: 10, color: TEXT, border: "1px solid #CBD5E1" }}>
+                      {idCaptured ? "Replace document" : "Choose a file or scan"}
                     </button>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs mt-3" style={{ backgroundColor: idCaptured ? "#F0FDF4" : `${PRIMARY}08`, color: idCaptured ? SUCCESS : PRIMARY, border: `1px solid ${idCaptured ? `${SUCCESS}30` : `${PRIMARY}22`}` }}>
@@ -394,7 +313,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
               {step === 3 && selData && (<>
                 {selData.type !== "Suite" && (
                   <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold" style={{ backgroundColor: "#F5F3FF", border: "1px solid #DDD6FE", color: "#7C3AED" }}>
-                    <Ph.Star size={12} />Upgrade available — Suite for +₦{(91125 - selData.rate).toLocaleString()}/night extra. Requires manager authorisation.
+                    <Ph.Star size={12} />A bigger room can be given as an upgrade. It needs a manager to approve it.
                   </div>
                 )}
                 <SecLabel>Available rooms</SecLabel>
@@ -404,9 +323,9 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     const rateDiff = (RATE_MAP[r.type] ?? selData.rate) - selData.rate;
                     const sel = selRoom === r.id;
                     return (
-                      <button key={r.id} onClick={() => handleRoomSelection(r.id)}
-                        className="rounded-xl overflow-hidden text-left transition-all hover:shadow-md"
-                        style={{ border: sel ? `2px solid ${PRIMARY}` : `1.5px dashed ${CK_DSH}`, backgroundColor: sel ? `${PRIMARY}06` : "white" }}>
+                      <button key={r.id} onClick={() => handleRoomSelection(r.id)} disabled={!ready(r)}
+                        className="rounded-xl overflow-hidden text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{ border: sel ? `2px solid ${PRIMARY}` : `1px solid ${CK_BD}`, backgroundColor: sel ? `${PRIMARY}06` : "white" }}>
                         <div className="px-4 py-3 flex items-center justify-between" style={{ backgroundColor: sel ? `${PRIMARY}10` : CK_BG }}>
                           <span className="text-xl font-black" style={{ color: sel ? PRIMARY : TEXT }}>{r.id}</span>
                           {sel && <Ph.CheckCircle size={16} weight="fill" style={{ color: PRIMARY }} />}
@@ -416,7 +335,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                           <Badge label={r.hkSt} colors={hkC[r.hkSt] ?? { bg: "#F3F4F6", text: "#374151" }} />
                           {isUpgrade && rateDiff > 0 && <div className="text-xs font-semibold" style={{ color: "#7C3AED" }}>+₦{rateDiff.toLocaleString()}/n upgrade</div>}
                           {approvedUpgradeRoom === r.id && <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: SUCCESS }}><Ph.ShieldCheck size={11} weight="fill" />Manager approved</div>}
-                          {r.type === selData.type && <div className="text-xs font-semibold" style={{ color: SUCCESS }}>Matching type</div>}
+                          {!ready(r) ? <div className="text-xs" style={{ color: MUTED }}>Not ready yet</div> : r.type === selData.type && <div className="text-xs font-medium" style={{ color: SUCCESS }}>Matching type</div>}
                         </div>
                       </button>
                     );
@@ -432,21 +351,22 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                           <Ph.ShieldCheck size={18} />
                         </div>
                         <div>
-                          <p className="text-sm font-bold" style={{ color: TEXT }}>Authorise upgrade to Room {room.id}</p>
+                          <p className="text-sm font-bold" style={{ color: TEXT }}>Approve upgrade to room {room.id}</p>
                           <p className="text-xs mt-0.5" style={{ color: CK_MUT }}>
                             {room.type} · +₦{rateDiff.toLocaleString()} per night · +₦{(rateDiff * selData.nights).toLocaleString()} stay total
                           </p>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div><FL req>Upgrade reason</FL><CkSl val={upgradeReason} set={setUpgradeReason} opts={["","Guest requested upgrade","VIP service recovery","Operational room move","Complimentary management upgrade"]} /></div>
-                        <div><FL req>Manager PIN</FL><CkIn type="password" val={upgradeManagerPin} set={setUpgradeManagerPin} placeholder="Enter approval PIN" /></div>
+                        <div className="sm:col-span-2"><FL req>Upgrade reason</FL><CkSl label="Upgrade reason" val={upgradeReason} set={setUpgradeReason} opts={["","Guest requested upgrade","VIP service recovery","Operational room move","Complimentary management upgrade"]} /></div>
+                        <div><FL req>Manager username</FL><CkIn label="Manager username" val={mgrUser} set={setMgrUser} /></div>
+                        <div><FL req>Manager password</FL><CkIn label="Manager password" type="password" val={mgrPass} set={setMgrPass} /></div>
                       </div>
                       <div className="flex items-center justify-end gap-2">
                         <button onClick={() => setUpgradeCandidate(null)} className="px-4 py-2 rounded-xl text-xs font-bold border" style={{ color: CK_MUT, borderColor: CK_DSH, backgroundColor: "white" }}>Cancel</button>
-                        <button onClick={approveUpgrade} disabled={!upgradeReason || upgradeManagerPin.length < 4}
+                        <button onClick={approveUpgrade} disabled={!upgradeReason || !mgrUser || !mgrPass}
                           className="px-4 py-2 rounded-xl text-xs font-bold text-white disabled:opacity-35"
-                          style={{ backgroundColor: PRIMARY }}>Authorise upgrade</button>
+                          style={{ backgroundColor: PRIMARY }}>Approve upgrade</button>
                       </div>
                     </div>
                   ) : null;
@@ -456,7 +376,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
               {/* ── Step 4: Registration ───────────────────────────────────── */}
               {step === 4 && selData && (<>
                 <section>
-                  <SecLabel>Terms & conditions</SecLabel>
+                  <SecLabel>Terms and conditions</SecLabel>
                   <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white" }}>
                     <div className="px-4 py-3 text-xs overflow-y-auto max-h-32" style={{ color: CK_MUT, lineHeight: 1.7, backgroundColor: CK_BG }}>
                       {PROPERTY_PROFILE.name}, {PROPERTY_PROFILE.city}. By checking in, the guest agrees to: (1) abide by hotel policies including quiet hours {PROPERTY_PROFILE.quietHours}; (2) accept responsibility for any damages caused to hotel property during the stay; (3) authorise the hotel to charge the card on file for any outstanding charges upon departure; (4) acknowledge that the hotel is not responsible for valuables left in rooms.
@@ -474,8 +394,8 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                 <section>
                   <SecLabel>Vehicle registration (optional)</SecLabel>
                   <div className="grid grid-cols-2 gap-4">
-                    <div><FL>Plate number</FL><CkIn val={vehicleReg} set={setVehicleReg} placeholder="ABJ-123-XY" /></div>
-                    <div><FL>Parking bay</FL><CkSl val={parkingBay} set={setParkingBay} opts={["Not required","Bay A1","Bay A2","Bay B1","Bay B2","Bay B3"]} /></div>
+                    <div><FL>Plate number</FL><CkIn label="Plate number" val={vehicleReg} set={setVehicleReg} placeholder="ABJ-123-XY" /></div>
+                    <div><FL>Parking bay</FL><CkSl label="Parking bay" val={parkingBay} set={setParkingBay} opts={["Not required","Bay A1","Bay A2","Bay B1","Bay B2","Bay B3"]} /></div>
                   </div>
                 </section>
                 <section>
@@ -510,7 +430,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     {["Cash", "POS / Card", "Bank Transfer", "Corporate Account"].map(m => (
                       <button key={m} onClick={() => setPayMethod(m)}
                         className="w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all"
-                        style={{ border: payMethod === m ? `2px solid ${PRIMARY}` : `1.5px dashed ${CK_DSH}`, backgroundColor: payMethod === m ? `${PRIMARY}08` : "white" }}>
+                        style={{ border: payMethod === m ? `2px solid ${PRIMARY}` : `1px solid ${CK_BD}`, backgroundColor: payMethod === m ? `${PRIMARY}08` : "white" }}>
                         <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
                           style={{ borderColor: payMethod === m ? PRIMARY : CK_DSH }}>
                           {payMethod === m && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PRIMARY }} />}
@@ -523,7 +443,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                   {payMethod === "Cash" && (
                     <div className="mt-3 space-y-2">
                       <FL req>Cash received (₦)</FL>
-                      <CkIn type="number" val={cashReceived} set={setCashReceived} placeholder={selData.deposit.toLocaleString()} />
+                      <CkIn label="Cash received" type="number" val={cashReceived} set={setCashReceived} placeholder={selData.deposit.toLocaleString()} />
                       {cashNum > 0 && (
                         <div className="px-3 py-2 rounded-lg text-sm font-bold" style={{ backgroundColor: cashNum >= selData.deposit ? "#F0FDF4" : "#FEF2F2", color: cashNum >= selData.deposit ? SUCCESS : ERROR }}>
                           {cashNum >= selData.deposit ? `Change due: ₦${change.toLocaleString()}` : `Shortfall: ₦${(selData.deposit - cashNum).toLocaleString()}`}
@@ -532,12 +452,12 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     </div>
                   )}
                   {(payMethod === "POS / Card" || payMethod === "Bank Transfer") && (
-                    <div className="mt-3"><FL req>Transaction reference</FL><CkIn val={payRef} set={setPayRef} placeholder="TRN-2024-XXXX" /></div>
+                    <div className="mt-3"><FL req>Transaction reference</FL><CkIn label="Transaction reference" val={payRef} set={setPayRef} placeholder="TRN-2024-XXXX" /></div>
                   )}
                   {payMethod === "Corporate Account" && (
                     <div className="mt-3 space-y-3">
-                      <div><FL req>Corporate account</FL><CkSl val={corporateAccount} set={setCorporateAccount} opts={["Bello & Associates Ltd.","Lagos Corp Group","Federal Ministry of Works"]} /></div>
-                      <div><FL req>Purchase Order #</FL><CkIn val={purchaseOrder} set={setPurchaseOrder} placeholder="PO-2025-001" /></div>
+                      <div><FL req>Corporate account</FL><CkSl label="Corporate account" val={corporateAccount} set={setCorporateAccount} opts={["Bello & Associates Ltd.","Lagos Corp Group","Federal Ministry of Works"]} /></div>
+                      <div><FL req>Purchase Order #</FL><CkIn label="Purchase Order #" val={purchaseOrder} set={setPurchaseOrder} placeholder="PO-2025-001" /></div>
                     </div>
                   )}
                 </section>
@@ -554,7 +474,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                     {(["card", "pin", "both"] as const).map(ct => (
                       <button key={ct} onClick={() => setCredType(ct)}
                         className="p-4 rounded-xl text-center transition-all"
-                        style={{ border: credType === ct ? `2px solid ${PRIMARY}` : `1.5px dashed ${CK_DSH}`, backgroundColor: credType === ct ? `${PRIMARY}08` : "white" }}>
+                        style={{ border: credType === ct ? `2px solid ${PRIMARY}` : `1px solid ${CK_BD}`, backgroundColor: credType === ct ? `${PRIMARY}08` : "white" }}>
                         <Ph.Key size={18} className="mx-auto mb-2" style={{ color: credType === ct ? PRIMARY : CK_MUT }} />
                         <div className="text-xs font-bold mb-0.5" style={{ color: credType === ct ? PRIMARY : TEXT }}>
                           {ct === "card" ? "Key Card" : ct === "pin" ? "PIN Code" : "Card + PIN"}
@@ -637,7 +557,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                   <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: "#D1FAE5" }}>
                     <Ph.CheckCircle size={32} weight="fill" style={{ color: SUCCESS }} />
                   </div>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: CK_MUT }}>Check-in complete</p>
+                  <p className="text-sm font-medium mb-2" style={{ color: SUCCESS }}>Check-in complete</p>
                   <p className="text-2xl font-bold mb-1" style={{ color: TEXT }}>{selData.guest}</p>
                   <p className="text-sm mb-1" style={{ color: CK_MUT }}>Room {selRoom ?? selData.room} · {selData.type} · {selData.nights} nights</p>
                   <p className="text-sm mb-6 font-semibold" style={{ color: SUCCESS }}>Folio opened · Access credentials active</p>
@@ -660,84 +580,57 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
             </div>
 
             {/* Navigation footer */}
-            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 px-6 pb-6 pt-0">
-              <div>
-                {!canNext && step < 7 && (
-                  <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: ERROR }}>
-                    <Ph.WarningCircle size={12} />{nextRequirement}
-                  </div>
-                )}
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 px-6 py-4" style={{ borderTop: `1px solid ${BORDER}`, backgroundColor: UI.surface }}>
+              <div className="flex items-center gap-3">
+                {step > 1 && step < 7 && <BtnO label="Back" icon={Ph.CaretLeft} onClick={() => setStep(s => Math.max(1, s - 1))} />}
+                {!canNext && step < 7 && <span className="text-sm" style={{ color: MUTED }}>{nextRequirement}</span>}
               </div>
               {step < 7 ? (
                 <button onClick={() => setStep(s => s + 1)} disabled={!canNext}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-35 hover:opacity-90 transition-opacity"
-                  style={{ backgroundColor: PRIMARY }}>
-                  {step === 6 ? "Proceed to Receipt" : "Continue"}<Ph.CaretRight size={14} />
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 text-sm font-semibold text-white disabled:opacity-40"
+                  style={{ backgroundColor: PRIMARY, height: 40, borderRadius: 10 }}>
+                  {`Continue to ${STEP_SHORT[step].toLowerCase()}`}
                 </button>
               ) : (
-                <button onClick={() => { add({ type: "success", title: "Check-in complete!", body: `${selData?.guest ?? "Guest"} · Room ${selRoom ?? selData?.room}` }); doReset(); }}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity"
-                  style={{ backgroundColor: SUCCESS }}>
-                  <Ph.CheckCircle size={14} weight="fill" />Finish & Close
-                </button>
+                <BtnP label="Finish" onClick={() => { add({ type: "success", title: "Check-in complete", body: `${selData?.guest ?? "Guest"} · Room ${selRoom ?? selData?.room}` }); doReset(); }} />
               )}
             </div>
           </div>
         </div>
 
         {/* ── Summary sidebar ──────────────────────────────────────────────── */}
-        <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
-          <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Booking summary</p>
-          </div>
-          <Notch />
-          <div className="p-5">
+        <div className="xl:sticky xl:top-4 bg-white overflow-hidden" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.card }}>
+          <div className="px-6 pt-5 pb-2"><h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Summary</h2></div>
+          <div className="px-6 pb-6">
             {selData ? (
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white flex-shrink-0"
-                    style={{ backgroundColor: selData.vip ? ORANGE : PRIMARY }}><Ph.User size={18} weight="bold" /></div>
-                  <div>
-                    <div className="text-sm font-bold" style={{ color: TEXT }}>{selData.guest}</div>
-                    {selData.vip && <div className="text-xs font-semibold" style={{ color: ORANGE_INK }}>VIP guest</div>}
-                  </div>
+                <div>
+                  <p className="text-base font-semibold" style={{ color: TEXT }}>{selData.vip && "★ "}{selData.guest}</p>
+                  <p className="text-sm" style={{ color: MUTED }}>{selData.id} · {selData.type}</p>
                 </div>
-                <div className="pt-3 space-y-2 text-xs border-t" style={{ borderColor: CK_DSH }}>
-                  {[
-                    ["Reservation", selData.id, true],
-                    ["Room Type", selData.type, false],
-                    ["Assigned Room", selRoom ?? (selData.room || "—"), true],
-                    ["Check-in", fmtDate(BUSINESS_DATE), false],
-                    ["Check-out", selData.nights === 3 ? "27 Jun 2026" : "25 Jun 2026", false],
-                    ["Nights", String(selData.nights), false],
-                  ].map(([k, v, isMono]) => (
-                    <div key={k as string} className="flex justify-between">
-                      <span style={{ color: CK_MUT }}>{k as string}</span>
-                      <span className="font-semibold" style={{ color: TEXT, fontFamily: isMono ? mono : undefined }}>{v as string}</span>
-                    </div>
-                  ))}
+                <div className="pt-2" style={{ borderTop: `1px solid ${BORDER}` }}>
+                  <Row label="Room" value={selRoom ?? (selData.room || "Not assigned yet")} />
+                  <Row label="Check-in" value={fmtDate(BUSINESS_DATE)} />
+                  <Row label="Check-out" value={fmtDate(new Date(BUSINESS_DATE.getFullYear(), BUSINESS_DATE.getMonth(), BUSINESS_DATE.getDate() + selData.nights))} />
+                  <Row label="Nights" value={selData.nights} />
                 </div>
                 {approvedUpgradeRoom && selectedRoomData && (
                   <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#F5F3FF", border: "1px solid #DDD6FE" }}>
                     <Ph.ShieldCheck size={14} weight="fill" style={{ color: "#7C3AED", flexShrink: 0 }} />
                     <div>
-                      <p className="font-bold" style={{ color: "#7C3AED" }}>Upgrade authorised</p>
+                      <p className="font-semibold" style={{ color: "#6D28D9" }}>Upgrade approved</p>
                       <p className="mt-0.5" style={{ color: CK_MUT }}>{selectedRoomData.type} at ₦{nightlyRate.toLocaleString()}/night</p>
                     </div>
                   </div>
                 )}
-                <div className="pt-3 space-y-1.5 text-xs border-t" style={{ borderColor: CK_DSH }}>
-                  {[
-                    ["Subtotal", `₦${subtotal.toLocaleString()}`, false],
-                    ["VAT 7.5%", `₦${vat.toLocaleString()}`, false],
-                    ["Total", `₦${total.toLocaleString()}`, true],
-                    ["Deposit Due", `₦${selData.deposit.toLocaleString()}`, true],
-                  ].map(([k, v, bold]) => (
-                    <div key={k as string} className="flex justify-between" style={{ fontWeight: (bold as boolean) ? 700 : 400 }}>
-                      <span style={{ color: CK_MUT }}>{k as string}</span>
-                      <span style={{ color: k === "Deposit Due" ? PRIMARY : TEXT, fontFamily: mono }}>{v as string}</span>
-                    </div>
-                  ))}
+                <div className="pt-2" style={{ borderTop: `1px solid ${BORDER}` }}>
+                  <Row label="Room charges" value={`₦${subtotal.toLocaleString()}`} />
+                  <Row label="VAT 7.5%" value={`₦${vat.toLocaleString()}`} />
+                  <Row label="Total" value={`₦${total.toLocaleString()}`} strong />
+                </div>
+                <div className="px-3 py-2.5 flex items-center justify-between" style={{ backgroundColor: "#F0FDFA", borderRadius: UI.radius.control }}>
+                  <span className="text-sm" style={{ color: TEAL_INK }}>Deposit due now</span>
+                  <span className="text-sm font-semibold" style={{ color: TEAL_INK }}>₦{selData.deposit.toLocaleString()}</span>
                 </div>
                 {step >= 6 && encoded && (
                   <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-semibold" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
@@ -751,20 +644,8 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                 )}
               </div>
             ) : (
-              <div className="text-xs text-center py-8" style={{ color: SUBTLE }}>Select a reservation to begin</div>
+              <div className="text-sm py-6" style={{ color: MUTED }}>Choose a reservation to begin.</div>
             )}
-            <div className="mt-4 pt-4 border-t" style={{ borderColor: CK_DSH }}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: CK_MUT }}>Progress</span>
-                <span className="text-xs font-bold" style={{ color: step === STEPS.length ? SUCCESS : PRIMARY }}>
-                  {step} / {STEPS.length}
-                </span>
-              </div>
-              <div className="w-full rounded-full h-1.5" style={{ backgroundColor: CK_DSH }}>
-                <div className="h-1.5 rounded-full transition-all" style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%`, backgroundColor: step === STEPS.length ? SUCCESS : PRIMARY }} />
-              </div>
-              <p className="text-xs mt-1.5 font-semibold" style={{ color: step === STEPS.length ? SUCCESS : CK_MUT }}>{STEPS[step - 1]}</p>
-            </div>
           </div>
         </div>
 
@@ -1002,7 +883,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
               return (
                 <tr key={d.room} className="border-t transition-colors" style={{ borderColor: BORDER, backgroundColor: rowBg, opacity: done ? 0.6 : 1 }}>
                   <td className="px-4 py-3">
-                    {!done && d.balance === 0 ? <button onClick={() => setSelectedRooms(rooms => rooms.includes(d.room) ? rooms.filter(room => room !== d.room) : [...rooms, d.room])} className="w-5 h-5 rounded flex items-center justify-center" style={{ border: `2px solid ${selectedRooms.includes(d.room) ? PRIMARY : BORDER}`, backgroundColor: selectedRooms.includes(d.room) ? PRIMARY : "white" }}>{selectedRooms.includes(d.room) && <Ph.Check size={11} color="white" weight="bold" />}</button> : <span className="text-xs" style={{ color: SUBTLE }}>—</span>}
+                    {!done && d.balance === 0 ? <button onClick={() => setSelectedRooms(rooms => rooms.includes(d.room) ? rooms.filter(room => room !== d.room) : [...rooms, d.room])} role="checkbox" aria-checked={selectedRooms.includes(d.room)} aria-label={`Select room ${d.room}`} className="w-5 h-5 rounded flex items-center justify-center" style={{ border: `2px solid ${selectedRooms.includes(d.room) ? PRIMARY : BORDER}`, backgroundColor: selectedRooms.includes(d.room) ? PRIMARY : "white" }}>{selectedRooms.includes(d.room) && <Ph.Check size={11} color="white" weight="bold" />}</button> : <span className="text-xs" style={{ color: SUBTLE }}>—</span>}
                   </td>
                   <td className="px-4 py-3">
                     <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-black text-white" style={{ backgroundColor: d.overstay && !done ? ERROR : PRIMARY }}>{d.room}</div>

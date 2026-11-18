@@ -136,11 +136,6 @@ export const revCat = [
   { name: "Rooms", value: 68, color: PRIMARY }, { name: "Restaurant", value: 18, color: TEAL },
   { name: "Events", value: 8, color: ORANGE }, { name: "Other", value: 6, color: SUBTLE },
 ];
-export const roomSt = [
-  { status: "Occupied", count: 62, color: ORANGE }, { status: "Available", count: 18, color: SUCCESS },
-  { status: "Cleaning", count: 9, color: WARNING }, { status: "Reserved", count: 6, color: TEAL },
-  { status: "Maintenance", count: 3, color: ERROR }, { status: "Out of Service", count: 2, color: "#6B7280" },
-];
 export const deptKPIs = [
   { dept: "Housekeeping", metric: "Rooms cleaned", value: "31/40", sub: "8 in progress", st: "warning", icon: BedDouble },
   { dept: "Maintenance", metric: "Open work orders", value: "7", sub: "2 overdue", st: "error", icon: Wrench },
@@ -163,54 +158,20 @@ export const NOTIFS = [
   { id: 6, category: "Door Lock", title: "Card activation queued — Room 204", body: "Pending internet. Retry every 2 min.", time: "1h", color: "#8B5CF6", icon: Lock, unread: false },
   { id: 7, category: "Chat", title: "Message from Housekeeping", body: "@reception Room 407 minibar restocked.", time: "2h", color: "#3B82F6", icon: MessageSquare, unread: false },
 ];
+// The hotel's rooms. Status is where each room stands on the business date; Front Office,
+// Housekeeping and the grid all use this list.
 export const ROOMS = [
-  { id: "101", type: "Standard", floor: 1, status: "Occupied" }, { id: "102", type: "Standard", floor: 1, status: "Available" },
-  { id: "103", type: "Deluxe", floor: 1, status: "Cleaning" }, { id: "104", type: "Standard", floor: 1, status: "Available" },
-  { id: "201", type: "Deluxe", floor: 2, status: "Reserved" }, { id: "202", type: "Deluxe", floor: 2, status: "Occupied" },
-  { id: "203", type: "Suite", floor: 2, status: "Occupied" }, { id: "204", type: "Standard", floor: 2, status: "Maintenance" },
-  { id: "301", type: "Suite", floor: 3, status: "Available" }, { id: "302", type: "Deluxe", floor: 3, status: "Occupied" },
-  { id: "304", type: "Standard", floor: 3, status: "Occupied" },
+  { id: "101", type: "Deluxe", floor: 1, status: "Occupied" },   { id: "102", type: "Standard", floor: 1, status: "Cleaning" },
+  { id: "103", type: "Standard", floor: 1, status: "Available" }, { id: "104", type: "Deluxe", floor: 1, status: "Available" },
+  { id: "118", type: "Standard", floor: 1, status: "Occupied" },  { id: "201", type: "Standard", floor: 2, status: "Cleaning" },
+  { id: "202", type: "Deluxe", floor: 2, status: "Occupied" },    { id: "203", type: "Suite", floor: 2, status: "Occupied" },
+  { id: "302", type: "Deluxe", floor: 3, status: "Occupied" },    { id: "303", type: "Deluxe", floor: 3, status: "Reserved" },
+  { id: "304", type: "Standard", floor: 3, status: "Occupied" },  { id: "501", type: "Suite", floor: 5, status: "Occupied" },
+  { id: "502", type: "Suite", floor: 5, status: "Reserved" },
 ];
-export const RES_GRID = [
-  // Room 101
-  { room:"101", guest:"Adaeze Okonkwo",     start:0,  end:3,  color:SUCCESS, status:"Checked In",  rate:35000, source:"Online",   nights:3, id:"BK-2847" },
-  { room:"101", guest:"Blessing Eze",        start:4,  end:7,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Phone",    nights:3, id:"BK-2861" },
-  { room:"101", guest:"Chioma Okafor",       start:10, end:13, color:TEAL,   status:"Confirmed",   rate:35000, source:"Online",   nights:3, id:"BK-2874" },
-  // Room 102
-  { room:"102", guest:"Peter Okafor",        start:0,  end:1,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Walk-in",  nights:1, id:"BK-2862" },
-  { room:"102", guest:"Musa Ibrahim",        start:3,  end:6,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Online",   nights:3, id:"BK-2863" },
-  { room:"102", guest:"Kemi Suleiman",       start:8,  end:11, color:TEAL,   status:"Confirmed",   rate:35000, source:"Phone",    nights:3, id:"BK-2875" },
-  // Room 103
-  { room:"103", guest:"Chidi Bello",         start:1,  end:4,  color:TEAL,   status:"Confirmed",   rate:45000, source:"Online",   nights:3, id:"BK-2848" },
-  { room:"103", guest:"Ngozi Adeyemi",       start:6,  end:10, color:TEAL,   status:"Confirmed",   rate:45000, source:"Phone",    nights:4, id:"BK-2864" },
-  // Room 104
-  { room:"104", guest:"Tunde Bakare",        start:2,  end:4,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Phone",    nights:2, id:"BK-2840" },
-  { room:"104", guest:"Aisha Mohammed",      start:5,  end:9,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Online",   nights:4, id:"BK-2865" },
-  { room:"104", guest:"Damilola Ogunleye",   start:11, end:14, color:TEAL,   status:"Confirmed",   rate:35000, source:"Walk-in",  nights:3, id:"BK-2876" },
-  // Room 201
-  { room:"201", guest:"Dr. Hassan Umar",     start:0,  end:5,  color:TEAL,   status:"Confirmed",   rate:55000, source:"Online",   nights:5, id:"BK-2849" },
-  { room:"201", guest:"Prof. Emeka Eze",     start:7,  end:11, color:TEAL,   status:"Confirmed",   rate:55000, source:"Direct",   nights:4, id:"BK-2866" },
-  // Room 202
-  { room:"202", guest:"Emmanuel Adeyemi",    start:0,  end:3,  color:SUCCESS, status:"Checked In",  rate:55000, source:"Phone",    nights:3, id:"BK-2848" },
-  { room:"202", guest:"Fatima Garba",        start:4,  end:7,  color:TEAL,   status:"Confirmed",   rate:55000, source:"Online",   nights:3, id:"BK-2867" },
-  { room:"202", guest:"Alhaji Musa Sule",    start:9,  end:13, color:TEAL,   status:"Confirmed",   rate:55000, source:"Phone",    nights:4, id:"BK-2877" },
-  // Room 203
-  { room:"203", guest:"Halima Yusuf",        start:0,  end:4,  color:SUCCESS, status:"Checked In",  rate:55000, source:"Online",   nights:4, id:"BK-2850" },
-  { room:"203", guest:"Chukwuemeka Bello",   start:5,  end:8,  color:TEAL,   status:"Confirmed",   rate:55000, source:"Direct",   nights:3, id:"BK-2868" },
-  // Room 204 (Maintenance until day 2, then available)
-  { room:"204", guest:"Yemi Ogundimu",       start:3,  end:6,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Walk-in",  nights:3, id:"BK-2869" },
-  // Room 301
-  { room:"301", guest:"Dr. Afolake Oladele", start:0,  end:6,  color:TEAL,   status:"Confirmed",   rate:85000, source:"Direct",   nights:6, id:"BK-2870" },
-  { room:"301", guest:"Chief Emeka Okafor",  start:7,  end:12, color:TEAL,   status:"Confirmed",   rate:85000, source:"Phone",    nights:5, id:"BK-2878" },
-  // Room 302
-  { room:"302", guest:"Ibrahim Lawal",       start:0,  end:2,  color:SUCCESS, status:"Checked In",  rate:55000, source:"Online",   nights:2, id:"BK-2855" },
-  { room:"302", guest:"Bola Adewale",        start:3,  end:7,  color:TEAL,   status:"Confirmed",   rate:55000, source:"Walk-in",  nights:4, id:"BK-2871" },
-  { room:"302", guest:"Grace Uchenna",       start:9,  end:12, color:TEAL,   status:"Confirmed",   rate:55000, source:"Online",   nights:3, id:"BK-2879" },
-  // Room 304
-  { room:"304", guest:"Chukwuemeka Obi",     start:0,  end:4,  color:SUCCESS, status:"Checked In",  rate:35000, source:"Online",   nights:4, id:"BK-2856" },
-  { room:"304", guest:"Ngozi Eze",           start:5,  end:8,  color:TEAL,   status:"Confirmed",   rate:35000, source:"Phone",    nights:3, id:"BK-2872" },
-  { room:"304", guest:"Ade Adeleke",         start:10, end:14, color:TEAL,   status:"Confirmed",   rate:35000, source:"Direct",   nights:4, id:"BK-2880" },
-];
+// Counted from ROOMS so every screen shows the same hotel.
+export const roomSt = ([["Occupied", ORANGE], ["Available", SUCCESS], ["Cleaning", WARNING], ["Reserved", TEAL], ["Maintenance", ERROR], ["Out of service", "#6B7280"]] as const)
+  .map(([status, color]) => ({ status, color, count: ROOMS.filter(r => r.status.toLowerCase() === status.toLowerCase()).length }));
 export const IN_HOUSE = [
   { room: "101", guest: "Adaeze Okonkwo", checkin: "22 Jun", checkout: "25 Jun", nights: 1, vip: true, balance: 0 },
   { room: "202", guest: "Emmanuel Adeyemi", checkin: "23 Jun", checkout: "26 Jun", nights: 2, vip: false, balance: 45000 },

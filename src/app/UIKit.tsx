@@ -27,7 +27,7 @@ import {
   mono, display, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
+  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, IN_HOUSE, WORK_ORDERS,
   STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
@@ -35,7 +35,8 @@ import {
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK } from "./constants";
 import { TextOrDate } from "./DateInput";
-import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, balanceOf } from "./mock/frontOffice";
+import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, balanceOf, gridBookings, unassignedArrivals, type GridBooking } from "./mock/frontOffice";
+import { UI, controlClass, controlStyle, Field, Card, SectionTitle, Stepper, Choice, Segmented, Row } from "./ui";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -149,8 +150,8 @@ export function StatCard({ label, value, sub, delta, deltaPositive, icon: Icon, 
   label: string; value: string; sub: string; delta?: string; deltaPositive?: boolean; icon: React.ElementType; accent: string;
 }) {
   return (
-    <div className="rounded-2xl p-5 relative overflow-hidden group cursor-default transition-all duration-300 hover:-translate-y-0.5"
-      style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}`, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+    <div className="rounded-2xl p-5 relative overflow-hidden"
+      style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
       {/* Top accent line */}
       <div className="absolute top-0 left-5 right-5 h-px rounded-b-full opacity-80" style={{ background: `linear-gradient(90deg, ${accent}, ${accent}40)` }} />
 
@@ -167,9 +168,9 @@ export function StatCard({ label, value, sub, delta, deltaPositive, icon: Icon, 
           </div>
         )}
       </div>
-      <div className="text-3xl font-bold leading-none mb-1.5 tracking-tight" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 700, letterSpacing: "-0.02em" }}>{value}</div>
-      <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: MUTED }}>{label}</div>
-      <div className="text-xs" style={{ color: SUBTLE }}>{sub}</div>
+      <div className="text-sm font-medium mb-1" style={{ color: MUTED }}>{label}</div>
+      <div className="leading-none mb-1.5" style={{ color: TEXT, fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em" }}>{value}</div>
+      <div className="text-sm" style={{ color: MUTED }}>{sub}</div>
     </div>
   );
 }
@@ -189,8 +190,8 @@ export function PageHeader({ title, sub, actions }: { title: string; sub?: strin
 export function BtnP({ label, icon: Icon, onClick, color }: { label: string; icon?: React.ElementType; onClick?: () => void; color?: string }) {
   return (
     <button onClick={onClick}
-      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-md hover:-translate-y-px active:translate-y-0"
-      style={{ backgroundColor: color ?? PRIMARY }}>
+      className="flex items-center justify-center gap-1.5 px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 whitespace-nowrap"
+      style={{ backgroundColor: color ?? PRIMARY, height: 40, borderRadius: 10 }}>
       {Icon && <Icon size={14} />}{label}
     </button>
   );
@@ -199,8 +200,8 @@ export function BtnP({ label, icon: Icon, onClick, color }: { label: string; ico
 export function BtnO({ label, icon: Icon, onClick }: { label: string; icon?: React.ElementType; onClick?: () => void }) {
   return (
     <button onClick={onClick}
-      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold border bg-white hover:bg-[#F4F4F5] transition-all hover:shadow-sm"
-      style={{ color: "#52525B", borderColor: "#D4D4D8" }}>
+      className="flex items-center justify-center gap-1.5 px-4 text-sm font-semibold border bg-white hover:bg-[#F8FAFC] transition-colors whitespace-nowrap"
+      style={{ color: TEXT, borderColor: "#CBD5E1", height: 40, borderRadius: 10 }}>
       {Icon && <Icon size={14} />}{label}
     </button>
   );
@@ -212,7 +213,7 @@ export function Inp({ label, placeholder, type, defaultValue, value, onChange, r
 }) {
   return (
     <div>
-      {label && <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>{label}</label>}
+      {label && <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>{label}</label>}
       <TextOrDate
         aria-label={label ?? placeholder}
         type={type ?? "text"}
@@ -221,8 +222,8 @@ export function Inp({ label, placeholder, type, defaultValue, value, onChange, r
         defaultValue={value === undefined ? defaultValue : undefined}
         onChange={e => onChange?.({ target: { value: e.target.value } })}
         readOnly={readOnly}
-        className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none"
-        style={{ borderColor: BORDER, color: TEXT, fontFamily: monoFont ? "'Inter', system-ui, sans-serif" : undefined }}
+        className={controlClass}
+        style={{ ...controlStyle(), fontFamily: monoFont ? "'Inter', system-ui, sans-serif" : undefined }}
       />
     </div>
   );
@@ -233,13 +234,13 @@ export function Sel({ label, options, value, onChange }: {
 }) {
   return (
     <div>
-      {label && <label className="text-xs font-medium uppercase tracking-wider block mb-1" style={{ color: MUTED }}>{label}</label>}
+      {label && <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>{label}</label>}
       <select
         aria-label={label}
         value={value}
         onChange={e => onChange?.({ target: { value: e.target.value } })}
-        className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none"
-        style={{ borderColor: BORDER, color: TEXT }}
+        className={controlClass}
+        style={controlStyle()}
       >
         {options.map(o => <option key={o}>{o}</option>)}
       </select>
@@ -264,253 +265,219 @@ export function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: num
     </div>
   );
 }
-export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
-  const TODAY = BUSINESS_DATE;
-  const [offset, setOffset] = useState(0);
-  const [filterType, setFilterType] = useState("All");
-  const [filterFloor, setFilterFloor] = useState("All");
-  const [filterStatus, setFilterStatus] = useState("All");
+// Bars run from the afternoon of check-in to the morning of check-out (half a day in from each
+// edge), so a guest leaving and a guest arriving on the same day sit side by side.
+const BAR_STYLE: Record<string, { bg: string; edge: string; text: string }> = {
+  "Checked in": { bg: "#CCFBF1", edge: "#0F766E", text: "#134E4A" },
+  Confirmed:    { bg: "#E0F2FE", edge: "#0369A1", text: "#0C4A6E" },
+  Pending:      { bg: "#FEF3C7", edge: "#B45309", text: "#78350F" },
+};
+const ROOM_STATUS_DOT: Record<string, string> = { Occupied: "#0F766E", Available: "#16A34A", Cleaning: "#B45309", Reserved: "#0369A1", Maintenance: "#DC2626" };
+
+export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
+  const DAYS = 14, MIN_DW = 64, RH = 56, ROOMW = 184;
+  const pct = (days: number) => `${(days / DAYS) * 100}%`;
+  const [offset, setOffset] = useState(-2); // open two days back so in-house stays show where they began
+  const [type, setType] = useState<"All" | "Standard" | "Deluxe" | "Suite">("All");
+  const [floor, setFloor] = useState("All");
   const [search, setSearch] = useState("");
-  type ResEntry = typeof RES_GRID[0];
-  const [selectedRes, setSelectedRes] = useState<{ room: string; res: ResEntry; dayIdx: number } | null>(null);
+  const [selected, setSelected] = useState<GridBooking | null>(null);
+  const bookings = gridBookings();
+  const waiting = unassignedArrivals();
 
-  const days = Array.from({ length: 14 }, (_, i) => { const d = new Date(TODAY); d.setDate(TODAY.getDate() + offset + i); return d; });
-  const DW = 58; const RH = 44;
-  const todayIdx = days.findIndex(d => d.toDateString() === TODAY.toDateString());
-  const allFloors = [...new Set(ROOMS.map(r => r.floor))].sort() as number[];
+  const start = new Date(BUSINESS_DATE); start.setDate(start.getDate() + offset);
+  const days = Array.from({ length: DAYS }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
+  const dayIndex = (d: Date) => Math.round((d.getTime() - start.getTime()) / 86400000);
+  const todayIdx = dayIndex(BUSINESS_DATE);
+  const floors = ["All", ...Array.from(new Set(ROOMS.map(r => String(r.floor))))];
+  const q = search.trim().toLowerCase();
+  const rooms = ROOMS.filter(r =>
+    (type === "All" || r.type === type) && (floor === "All" || String(r.floor) === floor) &&
+    (!q || r.id.includes(q) || bookings.some(b => b.room === r.id && b.guest.toLowerCase().includes(q))));
+  const booked = (d: Date) => rooms.filter(r => bookings.some(b => b.room === r.id && b.checkin <= d && b.checkout > d)).length;
+  const tonight = booked(BUSINESS_DATE);
+  const arriving = bookings.filter(b => b.status !== "Checked in" && b.checkin.toDateString() === BUSINESS_DATE.toDateString()).length + waiting.length;
+  const leaving = bookings.filter(b => b.checkout.toDateString() === BUSINESS_DATE.toDateString()).length;
+  const short = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const weekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-  const filteredRooms = ROOMS.filter(r => {
-    if (filterType !== "All" && r.type !== filterType) return false;
-    if (filterFloor !== "All" && r.floor !== Number(filterFloor)) return false;
-    if (filterStatus !== "All" && r.status !== filterStatus) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      const roomRes = RES_GRID.filter(gr => gr.room === r.id);
-      const matchGuest = roomRes.some(gr => gr.guest.toLowerCase().includes(q));
-      if (!`room ${r.id}`.includes(q) && !r.type.toLowerCase().includes(q) && !matchGuest) return false;
-    }
-    return true;
-  });
-
-  const occPerDay = days.map((_, di) => {
-    const adjDi = di + offset;
-    const occupied = filteredRooms.filter(room => RES_GRID.some(r => r.room === room.id && r.start <= adjDi && r.end > adjDi)).length;
-    return filteredRooms.length > 0 ? Math.round((occupied / filteredRooms.length) * 100) : 0;
-  });
-
-  const checkedIn = RES_GRID.filter(r => r.status === "Checked In").length;
-  const arrivals = RES_GRID.filter(r => r.start === 0).length;
-
-  const DetailPanel = () => {
-    if (!selectedRes) return null;
-    const { room, res } = selectedRes;
-    const sc = resStC[res.status] ?? { bg: "#F3F4F6", text: "#374151" };
-    const totalRate = res.rate * res.nights;
-    const arrDate = new Date(TODAY); arrDate.setDate(TODAY.getDate() + res.start);
-    const depDate = new Date(TODAY); depDate.setDate(TODAY.getDate() + res.end);
+  const bar = (b: GridBooking) => {
+    const from = dayIndex(b.checkin) + 0.5, to = dayIndex(b.checkout) + 0.5;
+    const left = Math.max(from, 0), right = Math.min(to, DAYS);
+    if (right <= 0 || left >= DAYS) return null;
+    const st = BAR_STYLE[b.status];
+    const isSel = selected?.id === b.id;
+    const nights = Math.round((b.checkout.getTime() - b.checkin.getTime()) / 86400000);
     return (
-      <div className="w-64 flex-shrink-0 bg-white rounded-xl border overflow-hidden flex flex-col" style={{ borderColor: BORDER }}>
-        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: BORDER, backgroundColor: "#F9FAFB" }}>
-          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>Reservation</span>
-          <button aria-label="Close" onClick={() => setSelectedRes(null)} className="p-0.5 rounded hover:bg-gray-100">
-            <XCircle size={13} style={{ color: MUTED }} weight="bold" />
-          </button>
-        </div>
-        <div className="p-4 flex-1">
-          <div className="flex items-center gap-2 mb-3">
-            <Av size={36} />
-            <div className="min-w-0">
-              <div className="text-sm font-bold truncate" style={{ color: TEXT }}>{res.guest}</div>
-              <div className="text-xs" style={{ color: MUTED }}>Room {room} · {res.nights}N</div>
-            </div>
-          </div>
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full inline-block mb-3" style={{ backgroundColor: sc.bg, color: sc.text }}>{res.status}</span>
-          {[
-            { label: "Booking ID",   value: res.id                                                              },
-            { label: "Check-in",     value: arrDate.toLocaleDateString("en-NG",{ day:"numeric", month:"short", year:"numeric" }) },
-            { label: "Check-out",    value: depDate.toLocaleDateString("en-NG",{ day:"numeric", month:"short", year:"numeric" }) },
-            { label: "Nights",       value: String(res.nights)                                                  },
-            { label: "Rate/Night",   value: `₦${res.rate.toLocaleString()}`                                     },
-            { label: "Total",        value: `₦${totalRate.toLocaleString()}`                                    },
-            { label: "Source",       value: res.source                                                          },
-          ].map(row => (
-            <div key={row.label} className="flex justify-between py-1.5 border-b last:border-b-0 text-xs" style={{ borderColor: BORDER }}>
-              <span style={{ color: MUTED }}>{row.label}</span>
-              <span className="font-semibold text-right" style={{ color: TEXT }}>{row.value}</span>
-            </div>
-          ))}
-        </div>
-        <div className="p-3 border-t flex flex-col gap-2" style={{ borderColor: BORDER }}>
-          <button onClick={() => { nav?.("reservation-detail", `${res.guest} — Rm ${room}`); setSelectedRes(null); }}
-            className="w-full text-xs font-semibold py-2 rounded-lg text-white" style={{ backgroundColor: PRIMARY }}>
-            Open Full Detail
-          </button>
-          <button onClick={() => { nav?.("check-in", "Check-In"); setSelectedRes(null); }}
-            className="w-full text-xs font-semibold py-2 rounded-lg border" style={{ borderColor: BORDER, color: TEXT }}>
-            Check In Guest
-          </button>
-        </div>
-      </div>
+      <button key={b.id} type="button" onClick={e => { e.stopPropagation(); setSelected(b); }}
+        title={`${b.guest} · ${short(b.checkin)} to ${short(b.checkout)} · ${b.status}`}
+        aria-label={`${b.guest}, room ${b.room}, ${short(b.checkin)} to ${short(b.checkout)}, ${b.status.toLowerCase()}`}
+        className="absolute flex items-center gap-1.5 px-2.5 text-left overflow-hidden"
+        style={{ left: `calc(${pct(left)} + 2px)`, width: `calc(${pct(right - left)} - 4px)`, top: 10, height: RH - 20, borderRadius: 8,
+          backgroundColor: st.bg, color: st.text, borderLeft: from >= 0 ? `3px solid ${st.edge}` : undefined,
+          outline: isSel ? `2px solid ${st.edge}` : undefined, outlineOffset: 1 }}>
+        {b.vip && <span aria-hidden className="text-xs flex-shrink-0">★</span>}
+        <span className="text-sm font-medium truncate">{b.guest}</span>
+        {right - left >= 3 && <span className="text-xs flex-shrink-0 opacity-80">{nights} night{nights === 1 ? "" : "s"}</span>}
+      </button>
     );
   };
 
   return (
     <div>
-      <PageHeader title="Reservation Grid" sub="14-day Gantt · Click empty cell to create · Click reservation bar for detail"
-        actions={<><BtnO label="Today" icon={CalendarDots} onClick={() => setOffset(0)} /><BtnP label="New Reservation" icon={Plus} onClick={() => nav && nav("new-reservation","New Reservation")} /></>} />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Active reservations" value={String(RES_GRID.length)} sub="All statuses" icon={CalendarDots} accent={PRIMARY} />
-        <StatCard label="Checked in" value={String(checkedIn)} sub="In-house tonight" icon={ArrowLineDown} accent={SUCCESS} />
-        <StatCard label="Arrivals today" value={String(arrivals)} sub="Check in today" icon={ArrowLineDown} accent={TEAL} />
-        <StatCard label="Occ. Today" value={`${occPerDay[todayIdx < 0 ? 0 : todayIdx] ?? 0}%`} sub="Filtered rooms" icon={Buildings} accent={ORANGE} />
-      </div>
-      <div className="flex gap-4">
-        {/* Sidebar filters */}
-        <div className="w-44 flex-shrink-0 space-y-4">
-          <div className="bg-white rounded-xl border p-3" style={{ borderColor: BORDER }}>
-            <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Search</div>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Guest or room…" aria-label="Guest or room"
-              className="w-full text-xs border rounded-lg px-2 py-1.5 outline-none" style={{ borderColor: BORDER, color: TEXT }} />
+      <PageHeader title="Reservation Grid" sub="Who is in which room, night by night. Select a free night to book it."
+        actions={<BtnP label="New reservation" icon={Plus} onClick={() => nav?.("new-reservation", "New Reservation")} />} />
+
+      <section className="bg-white overflow-hidden" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.card }}>
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-3 px-5 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
+          <div className="flex items-center gap-1">
+            <button type="button" aria-label="Previous week" onClick={() => setOffset(o => o - 7)} className="h-9 w-9 flex items-center justify-center rounded-lg border" style={{ borderColor: "#CBD5E1", color: TEXT }}><CaretLeft size={16} /></button>
+            <button type="button" onClick={() => setOffset(-2)} className="h-9 px-3 rounded-lg border text-sm font-medium" style={{ borderColor: "#CBD5E1", color: TEXT }}>Today</button>
+            <button type="button" aria-label="Next week" onClick={() => setOffset(o => o + 7)} className="h-9 w-9 flex items-center justify-center rounded-lg border" style={{ borderColor: "#CBD5E1", color: TEXT }}><CaretRight size={16} /></button>
           </div>
-          <div className="bg-white rounded-xl border p-3" style={{ borderColor: BORDER }}>
-            <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Room type</div>
-            {["All","Standard","Deluxe","Suite"].map(t => (
-              <button key={t} onClick={() => setFilterType(t)} className="w-full text-left text-xs px-2 py-1.5 rounded-lg mb-0.5 transition-colors"
-                style={{ backgroundColor: filterType === t ? "#EFF6FF" : "transparent", color: filterType === t ? PRIMARY : TEXT, fontWeight: filterType === t ? 600 : 400 }}>{t}</button>
-            ))}
-          </div>
-          <div className="bg-white rounded-xl border p-3" style={{ borderColor: BORDER }}>
-            <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Floor</div>
-            {["All",...allFloors.map(String)].map(f => (
-              <button key={f} onClick={() => setFilterFloor(f)} className="w-full text-left text-xs px-2 py-1.5 rounded-lg mb-0.5 transition-colors"
-                style={{ backgroundColor: filterFloor === f ? "#EFF6FF" : "transparent", color: filterFloor === f ? PRIMARY : TEXT, fontWeight: filterFloor === f ? 600 : 400 }}>
-                {f === "All" ? "All Floors" : `Floor ${f}`}
-              </button>
-            ))}
-          </div>
-          <div className="bg-white rounded-xl border p-3" style={{ borderColor: BORDER }}>
-            <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Legend</div>
-            {[{ label:"Checked In", color:SUCCESS }, { label:"Confirmed", color:TEAL_INK }, { label:"Pending", color:ORANGE_INK }, { label:"Checked Out", color:SUBTLE }].map(l => (
-              <div key={l.label} className="flex items-center gap-2 text-xs mb-1.5" style={{ color: TEXT }}>
-                <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: l.color }} />{l.label}
-              </div>
-            ))}
+          <span className="text-sm font-semibold" style={{ color: TEXT }}>{short(days[0])} – {fmtDate(days[DAYS - 1])}</span>
+          <div className="flex-1" />
+          <Segmented label="Room type" options={["All", "Standard", "Deluxe", "Suite"] as const} value={type} onChange={setType} />
+          <select aria-label="Floor" value={floor} onChange={e => setFloor(e.target.value)} className="h-9 px-2.5 rounded-lg border text-sm bg-white" style={{ borderColor: "#CBD5E1", color: TEXT }}>
+            {floors.map(f => <option key={f} value={f}>{f === "All" ? "All floors" : `Floor ${f}`}</option>)}
+          </select>
+          <div className="relative">
+            <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Guest or room" aria-label="Search guest or room"
+              className="h-9 pl-9 pr-3 rounded-lg border text-sm outline-none w-44" style={{ borderColor: "#CBD5E1", color: TEXT }} />
           </div>
         </div>
 
-        {/* Grid */}
-        <div className="flex-1 bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
-          <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: BORDER, backgroundColor: "#F9FAFB" }}>
-            <button onClick={() => setOffset(o => o - 7)} className="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}><CaretLeft size={13} weight="bold" />Prev 7</button>
-            <span className="text-sm font-semibold" style={{ color: TEXT }}>
-              {days[0].toLocaleDateString("en-NG",{day:"numeric",month:"short"})} – {days[13].toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"})}
-            </span>
-            <button onClick={() => setOffset(o => o + 7)} className="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}>Next 7<CaretRight size={13} weight="bold" /></button>
-          </div>
-          <div style={{ overflowX: "auto", maxHeight: 520 }}>
-            <div style={{ minWidth: 200 + DW * 14 }}>
-              {/* Header row */}
-              <div className="flex sticky top-0 z-10" style={{ backgroundColor: "#F9FAFB", borderBottom: `1px solid ${BORDER}` }}>
-                <div className="flex-shrink-0 flex items-center px-4 py-2" style={{ width: 200, borderRight: `1px solid ${BORDER}` }}>
-                  <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Room · {filteredRooms.length}</span>
-                </div>
-                {days.map((d, i) => {
-                  const isToday = i === todayIdx;
-                  return (
-                    <div key={i} className="flex-shrink-0 flex flex-col items-center justify-center py-1.5" style={{ width: DW, borderRight: `1px solid ${BORDER}`, backgroundColor: isToday ? "#EFF6FF" : "transparent" }}>
-                      <span className="text-xs font-semibold" style={{ color: isToday ? PRIMARY : TEXT }}>{d.toLocaleDateString("en-NG",{weekday:"short"})}</span>
-                      <span className="text-xs" style={{ color: isToday ? PRIMARY : SUBTLE }}>{d.getDate()}/{d.getMonth()+1}</span>
-                      {isToday && <span style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, }}>Today</span>}
-                    </div>
-                  );
-                })}
-              </div>
+        {/* Tonight at a glance and the key */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3 text-sm" style={{ borderBottom: `1px solid ${BORDER}`, backgroundColor: UI.surface }}>
+          <span style={{ color: TEXT }}><b className="font-semibold">{tonight}</b> of {rooms.length} rooms booked tonight</span>
+          <span style={{ color: MUTED }}>{arriving} arriving · {leaving} leaving today</span>
+          <span className="flex-1" />
+          {Object.entries(BAR_STYLE).map(([k, v]) => (
+            <span key={k} className="flex items-center gap-1.5" style={{ color: MUTED }}><span className="w-5 h-3.5 rounded" style={{ backgroundColor: v.bg, borderLeft: `3px solid ${v.edge}` }} />{k}</span>
+          ))}
+        </div>
 
-              {/* Room rows */}
-              {filteredRooms.map(room => {
-                const res = RES_GRID.filter(r => r.room === room.id);
-                const c = roomStC[room.status] ?? { bg: "#F3F4F6", text: "#374151" };
+        <div className="overflow-auto" style={{ maxHeight: "calc(100vh - 300px)", minHeight: 360 }}>
+          <div style={{ minWidth: ROOMW + MIN_DW * DAYS }}>
+            {/* Day header */}
+            <div className="flex sticky top-0 z-20 bg-white" style={{ borderBottom: `1px solid ${BORDER}` }}>
+              <div className="sticky left-0 z-10 bg-white flex items-end px-4 pb-2 text-xs font-medium flex-shrink-0" style={{ width: ROOMW, color: MUTED, borderRight: `1px solid ${BORDER}` }}>Room</div>
+              <div className="flex flex-1">{days.map((d, i) => {
+                const isToday = i === todayIdx;
                 return (
-                  <div key={room.id} className="flex relative" style={{ height: RH, borderBottom: "1px solid #F1F5F9" }}>
-                    <div className="flex-shrink-0 flex items-center gap-2 px-3 sticky left-0 z-10" style={{ width: 200, borderRight: `1px solid ${BORDER}`, backgroundColor: "white" }}>
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}>{room.id}</div>
-                      <div className="min-w-0"><div className="text-xs font-semibold truncate" style={{ color: TEXT }}>Room {room.id}</div><div className="text-xs" style={{ color: SUBTLE }}>{room.type} · F{room.floor}</div></div>
-                      <div className="ml-auto flex-shrink-0"><span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: c.bg, color: c.text }}>{room.status}</span></div>
-                    </div>
-                    <div className="relative flex-1 flex">
-                      {days.map((d, i) => {
-                        const adjI = i + offset;
-                        const isOccupied = res.some(r => r.start <= adjI && r.end > adjI);
-                        const isToday = i === todayIdx;
-                        return (
-                          <div key={i} className="flex-shrink-0 border-r"
-                            style={{ width: DW, height: RH, borderRightColor: "#F4F4F5",
-                              backgroundColor: isToday ? "rgba(18,58,115,0.04)" : undefined,
-                              cursor: isOccupied ? "default" : "pointer" }}
-                            onClick={() => {
-                              if (isOccupied) return;
-                              if (nav) nav("new-reservation", "New Reservation");
-                              else add({ type: "info", title: "New Reservation", body: `Room ${room.id} · ${d.toLocaleDateString("en-NG",{day:"numeric",month:"short"})}` });
-                            }}
-                            onMouseEnter={e => { if (!isOccupied) (e.currentTarget as HTMLElement).style.backgroundColor = "#EFF6FF"; }}
-                            onMouseLeave={e => { if (!isOccupied) (e.currentTarget as HTMLElement).style.backgroundColor = isToday ? "rgba(18,58,115,0.04)" : ""; }}
-                          />
-                        );
-                      })}
-                      {res.map((r, ri) => {
-                        const leftDay = r.start - offset;
-                        const endDay  = r.end   - offset;
-                        const visStart = Math.max(0, leftDay);
-                        const visEnd   = Math.min(14, endDay);
-                        if (visEnd <= 0 || visStart >= 14) return null;
-                        const barLeft  = visStart * DW + 2;
-                        const barWidth = (visEnd - visStart) * DW - 4;
-                        const isSelected = selectedRes?.res.id === r.id && selectedRes?.room === room.id;
-                        return (
-                          <div key={ri}
-                            className="absolute flex items-center gap-1.5 px-2 cursor-pointer rounded-md shadow-sm transition-opacity"
-                            style={{ left: barLeft, width: barWidth, height: RH - 14, top: 7,
-                              backgroundColor: r.color,
-                              opacity: isSelected ? 1 : 0.9,
-                              outline: isSelected ? `2px solid ${PRIMARY}` : "none",
-                              outlineOffset: 1 }}
-                            onClick={e => { e.stopPropagation(); setSelectedRes({ room: room.id, res: r, dayIdx: r.start }); }}>
-                            <span className="text-white text-xs font-semibold truncate">{r.guest}</span>
-                            {barWidth > 90 && <span className="text-white opacity-70 text-xs flex-shrink-0">{r.nights}N</span>}
-                          </div>
-                        );
-                      })}
-                    </div>
+                  <div key={i} className="flex flex-col items-center justify-center" style={{ width: pct(1), height: 56, backgroundColor: isToday ? "#F0FDFA" : weekend(d) ? UI.surface : undefined, borderRight: `1px solid #F1F5F9` }}>
+                    <span className="text-xs" style={{ color: isToday ? TEAL_INK : MUTED }}>{isToday ? "Today" : d.toLocaleDateString("en-GB", { weekday: "short" })}</span>
+                    <span className="text-base leading-tight" style={{ color: isToday ? TEAL_INK : TEXT, fontWeight: isToday ? 700 : 500 }}>{d.getDate()}</span>
+                    {(i === 0 || d.getDate() === 1) && <span className="text-xs leading-none" style={{ color: MUTED }}>{d.toLocaleDateString("en-GB", { month: "short" })}</span>}
                   </div>
                 );
-              })}
+              })}</div>
+            </div>
 
-              {/* Occupancy footer */}
-              <div className="flex sticky bottom-0 z-10" style={{ backgroundColor: "#F9FAFB", borderTop: `2px solid ${BORDER}` }}>
-                <div className="flex-shrink-0 px-3 py-2 flex items-center" style={{ width: 200, borderRight: `1px solid ${BORDER}` }}>
-                  <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Occupancy %</span>
+            {/* Arrivals still waiting for a room */}
+            {waiting.length > 0 && (
+              <div className="flex" style={{ borderBottom: `1px solid ${BORDER}`, backgroundColor: "#FFFBEB" }}>
+                <div className="sticky left-0 z-10 px-4 py-2.5 flex flex-col justify-center flex-shrink-0" style={{ width: ROOMW, backgroundColor: "#FFFBEB", borderRight: `1px solid ${BORDER}` }}>
+                  <span className="text-sm font-semibold" style={{ color: TEXT }}>No room yet</span>
+                  <button type="button" onClick={() => nav?.("room-assignment", "Room Assignment")} className="text-sm text-left font-medium" style={{ color: TEAL_INK }}>Assign rooms</button>
                 </div>
-                {occPerDay.map((occ, i) => (
-                  <div key={i} className="flex-shrink-0 flex flex-col items-center justify-center py-1.5" style={{ width: DW, borderRight: `1px solid ${BORDER}`, backgroundColor: i === todayIdx ? "#EFF6FF" : "transparent" }}>
-                    <span className="text-xs font-bold" style={{ color: occ >= 80 ? SUCCESS : occ >= 50 ? ORANGE : MUTED }}>{occ}%</span>
-                    <div className="w-8 h-1 rounded-full mt-0.5" style={{ backgroundColor: "#E2E8F0" }}>
-                      <div className="h-1 rounded-full" style={{ width: `${occ}%`, backgroundColor: occ >= 80 ? SUCCESS : occ >= 50 ? ORANGE : MUTED }} />
-                    </div>
-                  </div>
-                ))}
+                <div className="flex flex-wrap items-center gap-2 px-3 py-2">
+                  {waiting.map(a => (
+                    <span key={a.id} className="text-sm px-2.5 py-1 rounded-lg" style={{ backgroundColor: "white", border: "1px solid #FCD34D", color: "#78350F" }}>
+                      {a.vip && "★ "}{a.guest} · {a.type} · {a.nights} night{a.nights === 1 ? "" : "s"} from today
+                    </span>
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* Rooms */}
+            {rooms.map(r => (
+              <div key={r.id} className="flex" style={{ height: RH, borderBottom: `1px solid #F1F5F9` }}>
+                <div className="sticky left-0 z-10 bg-white flex flex-col justify-center px-4 flex-shrink-0" style={{ width: ROOMW, borderRight: `1px solid ${BORDER}` }}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold" style={{ color: TEXT }}>{r.id}</span>
+                    <span className="flex items-center gap-1.5 text-xs" style={{ color: MUTED }} title={`Room is ${r.status.toLowerCase()} now`}>
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ROOM_STATUS_DOT[r.status] ?? SUBTLE }} />{r.status}
+                    </span>
+                  </div>
+                  <div className="text-xs" style={{ color: MUTED }}>{r.type} · Floor {r.floor}</div>
+                </div>
+                <div className="relative flex flex-1">
+                  {days.map((d, i) => {
+                    const taken = bookings.some(b => b.room === r.id && b.checkin <= d && b.checkout > d);
+                    return (
+                      taken || d < BUSINESS_DATE
+                        ? <div key={i} aria-hidden className="h-full" style={{ width: pct(1), borderRight: `1px solid #F1F5F9`, backgroundColor: i === todayIdx ? "rgba(240,253,250,0.6)" : weekend(d) ? UI.surface : undefined }} />
+                        : <button key={i} type="button" aria-label={`Book room ${r.id} from ${short(d)}`}
+                            onClick={() => nav?.("new-reservation", "New Reservation", `${r.id}|${iso(d)}`)}
+                            className="h-full hover:bg-[#F0FDFA]"
+                            style={{ width: pct(1), borderRight: `1px solid #F1F5F9`, backgroundColor: i === todayIdx ? "rgba(240,253,250,0.6)" : weekend(d) ? UI.surface : undefined }} />
+                    );
+                  })}
+                  {bookings.filter(b => b.room === r.id).map(bar)}
+                </div>
+              </div>
+            ))}
+            {rooms.length === 0 && <EmptyState icon={MagnifyingGlass} message="No rooms match. Clear the search or pick another room type or floor." />}
+
+            {/* Nights booked per day */}
+            <div className="flex sticky bottom-0 z-20 bg-white" style={{ borderTop: `1px solid ${BORDER}` }}>
+              <div className="sticky left-0 z-10 bg-white px-4 py-2.5 text-xs font-medium flex-shrink-0" style={{ width: ROOMW, color: MUTED, borderRight: `1px solid ${BORDER}` }}>Rooms booked</div>
+              <div className="flex flex-1">{days.map((d, i) => {
+                const n = booked(d), full = rooms.length > 0 && n === rooms.length;
+                return <div key={i} className="flex items-center justify-center text-sm" style={{ width: pct(1), color: full ? ERROR : n / Math.max(rooms.length, 1) >= 0.8 ? ORANGE_INK : TEXT, fontWeight: i === todayIdx ? 600 : 400, backgroundColor: i === todayIdx ? "#F0FDFA" : undefined }}>{n}/{rooms.length}</div>;
+              })}</div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Detail side panel */}
-        {selectedRes && <DetailPanel />}
-      </div>
+      {/* Booking details */}
+      {selected && (() => {
+        const nights = Math.round((selected.checkout.getTime() - selected.checkin.getTime()) / 86400000);
+        const arrivesToday = selected.status !== "Checked in" && selected.checkin.toDateString() === BUSINESS_DATE.toDateString();
+        return (
+          <>
+            <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(15,23,42,0.25)" }} onClick={() => setSelected(null)} />
+            <aside role="dialog" aria-label={`Booking ${selected.id}`} className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-white flex flex-col" style={{ borderLeft: `1px solid ${BORDER}` }}>
+              <div className="flex items-start justify-between gap-3 px-6 py-5" style={{ borderBottom: `1px solid ${BORDER}` }}>
+                <div>
+                  <p className="text-sm" style={{ color: MUTED }}>{selected.id} · Room {selected.room}</p>
+                  <h2 className="text-lg font-semibold" style={{ color: TEXT, fontFamily: display }}>{selected.vip && "★ "}{selected.guest}</h2>
+                  <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-md" style={{ backgroundColor: BAR_STYLE[selected.status].bg, color: BAR_STYLE[selected.status].text }}>{selected.status}</span>
+                </div>
+                <button aria-label="Close" onClick={() => setSelected(null)} className="h-9 w-9 flex items-center justify-center rounded-lg" style={{ color: MUTED }}><XCircle size={20} /></button>
+              </div>
+              <div className="px-6 py-4 flex-1 overflow-y-auto">
+                <Row label="Check-in" value={fmtDate(selected.checkin)} />
+                <Row label="Check-out" value={fmtDate(selected.checkout)} />
+                <Row label="Nights" value={nights} />
+                <Row label="Rate per night" value={`₦${selected.rate.toLocaleString()}`} />
+                <Row label="Booked through" value={selected.source} />
+                <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${BORDER}` }}><Row label="Room total before VAT" value={`₦${(selected.rate * nights).toLocaleString()}`} strong /></div>
+              </div>
+              <div className="px-6 py-4 flex flex-col gap-2" style={{ borderTop: `1px solid ${BORDER}` }}>
+                {selected.status === "Checked in" && <BtnP label="Open check-out" onClick={() => nav?.("check-out", "Check-Out", selected.id)} />}
+                {arrivesToday && <BtnP label="Check in" onClick={() => nav?.("check-in", "Check-In")} />}
+                <BtnO label="Open reservation" onClick={() => nav?.("reservation-detail", `${selected.guest} — Rm ${selected.room}`)} />
+              </div>
+            </aside>
+          </>
+        );
+      })()}
     </div>
   );
 }
 
-export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void; initialGuestName?: string }) {
+export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; initialGuestName?: string }) {
+  // Opened from a free night on the grid: "101|2026-06-25" means that room from that date.
+  const fromGrid = /^(\d+)\|(\d{4}-\d{2}-\d{2})$/.exec(initialGuestName);
+  const gridRoom = fromGrid ? ROOMS.find(r => r.id === fromGrid[1]) : undefined;
+  const plusDays = (isoDate: string, n: number) => { const d = new Date(`${isoDate}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmed, setConfirmed] = useState(false);
@@ -520,13 +487,13 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   const [manualRate, setManualRate] = useState(false);
 
   const [form, setForm] = useState({
-    checkin: "2026-06-24", checkout: "2026-06-27",
+    checkin: fromGrid ? fromGrid[2] : "2026-06-24", checkout: fromGrid ? plusDays(fromGrid[2], 1) : "2026-06-27",
     adults: "2", children: "0",
-    roomType: "Deluxe", roomNumber: "",
+    roomType: gridRoom?.type ?? "Deluxe", roomNumber: gridRoom?.id ?? "",
     source: "Phone",
-    ratePlan: "Standard Rate", nightlyRate: "55000",
+    ratePlan: "Standard Rate", nightlyRate: ({ Standard: "35000", Deluxe: "55000", Suite: "85000" } as Record<string, string>)[gridRoom?.type ?? "Deluxe"],
     manualRateVal: "",
-    guestName: initialGuestName, phone: "", email: "",
+    guestName: fromGrid ? "" : initialGuestName, phone: "", email: "",
     nationality: "Nigerian", company: "", vip: false,
     idType: "Passport", idNum: "",
     specialNotes: "",
@@ -541,12 +508,11 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
     setErrors(e => { const n = { ...e }; delete n[k]; return n; });
   };
 
-  const ROOM_OPTIONS: Record<string, string[]> = {
-    Standard: ["101","102","104","204"],
-    Deluxe:   ["103","201","202","302"],
-    Suite:    ["203","301"],
-  };
-  const ROOM_PRICES: Record<string, number> = { Standard: 35000, Deluxe: 55000, Suite: 95000 };
+  // Rooms of each type with no booking overlapping the chosen nights.
+  const bookingsNow = gridBookings();
+  const stayFrom = new Date(`${form.checkin}T00:00:00`), stayTo = new Date(`${form.checkout}T00:00:00`);
+  const freeRooms = (t: string) => ROOMS.filter(r => r.type === t && !bookingsNow.some(b => b.room === r.id && b.checkin < stayTo && b.checkout > stayFrom)).map(r => r.id);
+  const ROOM_PRICES: Record<string, number> = { Standard: 35000, Deluxe: 55000, Suite: 85000 };
   const ROOM_DESC: Record<string, string> = {
     Standard: "King bed · Courtyard view · 28 m²",
     Deluxe:   "King bed · Pool view · 38 m²",
@@ -554,14 +520,14 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   };
 
   const EXTRAS_CATALOG = [
-    { name: "Champagne on Arrival",  price: 8500,  icon: Wine      },
-    { name: "Fruit Basket",          price: 3500,  icon: Gift      },
-    { name: "Extra Pillows",         price: 0,     icon: Bed },
-    { name: "Breakfast Included",    price: 4500,  icon: Coffee    },
-    { name: "Late Check-out (2 PM)", price: 15000, icon: Clock     },
-    { name: "Airport Pick-up",       price: 12000, icon: Car       },
-    { name: "Welcome Flowers",       price: 4000,  icon: Star      },
-    { name: "Laundry Package",       price: 6000,  icon: Package   },
+    { name: "Champagne on arrival",  price: 8500,  icon: Wine      },
+    { name: "Fruit basket",          price: 3500,  icon: Gift      },
+    { name: "Extra pillows",         price: 0,     icon: Bed },
+    { name: "Breakfast included",    price: 4500,  icon: Coffee    },
+    { name: "Late check-out (2 pm)", price: 15000, icon: Clock     },
+    { name: "Airport pick-up",       price: 12000, icon: Car       },
+    { name: "Welcome flowers",       price: 4000,  icon: Star      },
+    { name: "Laundry package",       price: 6000,  icon: Package   },
   ];
 
   const GUEST_SUGGESTIONS = ALL_RES.filter(r =>
@@ -578,7 +544,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
     : Number(form.nightlyRate) || ROOM_PRICES[form.roomType] || 55000;
   const extrasTotal = form.extras.reduce((s, ex) => {
     const cat = EXTRAS_CATALOG.find(e => e.name === ex);
-    return s + (cat ? (cat.name === "Breakfast Included" ? cat.price * nights : cat.price) : 0);
+    return s + (cat ? (cat.name === "Breakfast included" ? cat.price * nights : cat.price) : 0);
   }, 0);
   const subtotal = baseRate * nights + extrasTotal;
   const vat = Math.round(subtotal * 0.075);
@@ -587,27 +553,34 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
     ? Number(form.depositAmount)
     : Math.round(total * Number(form.depositPct) / 100);
 
-  const STEPS = ["Dates & Room", "Rate Plan", "Guest Details", "Extras", "Deposit", "Confirm"];
-  const STEP_ICONS = [CalendarDots, CurrencyDollar, Users, Package, CreditCard, CheckCircle];
+  const STEPS = ["Stay", "Rate", "Guest", "Extras", "Deposit", "Review"];
+  const STEP_SUB = ["When they arrive, how many guests and which room.", "The price per night for this stay.", "Who is staying. Search first to reuse a returning guest.", "Anything to prepare before they arrive.", "What the guest pays now to hold the room.", "Check everything, then confirm the booking."];
+  // Rate plans are priced against the Standard room; scale them to the chosen room type.
+  const planPrice = (base: number) => Math.round(ROOM_PRICES[form.roomType] * base / 35000 / 500) * 500;
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
     if (step === 1) {
-      if (!form.checkin) errs.checkin = "Required";
-      if (!form.checkout) errs.checkout = "Required";
+      if (!form.checkin) errs.checkin = "Choose a check-in date";
+      if (!form.checkout) errs.checkout = "Choose a check-out date";
       if (form.checkin && form.checkout && form.checkout <= form.checkin)
-        errs.checkout = "Must be after check-in";
+        errs.checkout = "Check-out must be after check-in";
+      else if (freeRooms(form.roomType).length === 0) errs.roomType = "No rooms of this type are free";
     }
     if (step === 3) {
-      if (!form.guestName.trim()) errs.guestName = "Required";
-      if (!form.phone.trim()) errs.phone = "Required";
-      if (!form.idNum.trim()) errs.idNum = "Required";
+      if (!form.guestName.trim()) errs.guestName = "Enter the guest's name";
+      if (!form.phone.trim()) errs.phone = "Enter a phone number";
+      if (!form.idNum.trim()) errs.idNum = "Enter the ID number";
     }
     if (step === 5 && Number(form.depositPct) > 0 && form.payMethod !== "Cash" && !form.payRef.trim())
-      errs.payRef = "Reference required";
+      errs.payRef = "Enter the reference so the payment can be matched";
     setErrors(errs);
+    // Take the person straight to the first field that needs fixing.
+    if (Object.keys(errs).length) setTimeout(() => (document.querySelector('[aria-invalid="true"]') as HTMLElement | null)?.focus(), 0);
     return Object.keys(errs).length === 0;
   };
+  // Each step starts at the top of the page.
+  useEffect(() => { document.querySelector("[data-suite-content]")?.scrollTo({ top: 0 }); window.scrollTo({ top: 0 }); }, [step]);
 
   const proceed = () => {
     if (!validate()) return;
@@ -621,840 +594,285 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
     setStep(s => s + 1);
   };
 
-  // ── Mini-helpers ──────────────────────────────────────────────────────────
-  const PASS_BG   = "#F9FAFB";
-  const PASS_BORDER = "#E2E8F0";
-  const PASS_MUTED  = "#475569";
-  const PASS_DASH   = "#CBD5E1";
-
-  const PassNotch = () => (
-    <div className="flex items-center" style={{ marginLeft: -1, marginRight: -1 }}>
-      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: "#EFF6FF", border: `1.5px solid ${PASS_BORDER}`, marginLeft: -8 }} />
-      <div className="flex-1 border-t-2 border-dashed" style={{ borderColor: PASS_DASH }} />
-      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: "#EFF6FF", border: `1.5px solid ${PASS_BORDER}`, marginRight: -8 }} />
-    </div>
-  );
-
-  const ErrMsg = ({ field }: { field: string }) => errors[field]
-    ? <p className="flex items-center gap-1 mt-1.5 text-xs font-medium" style={{ color: ERROR }}><WarningCircle size={11} weight="bold" />{errors[field]}</p>
-    : null;
-  const SLabel = ({ children }: { children: React.ReactNode }) => (
-    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PASS_MUTED }}>{children}</p>
-  );
-  const FLabel = ({ children, req }: { children: string; req?: boolean }) => (
-    <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: PASS_MUTED }}>
-      {children}{req && <span style={{ color: ERROR }}> *</span>}
-    </label>
-  );
-  const Input = ({ type = "text", value, onChange, placeholder, err, mono: isMono }: {
-    type?: string; value: string; onChange: (v: string) => void; placeholder?: string; err?: boolean; mono?: boolean;
+  // ── Pieces built on the global values (ui.tsx) ──────────────────────────
+  const Input = ({ id, type = "text", value, onChange, placeholder, err }: {
+    id: string; type?: string; value: string; onChange: (v: string) => void; placeholder?: string; err?: boolean;
   }) => (
-    <TextOrDate type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-      className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
-      style={{ borderColor: err ? ERROR : PASS_DASH, border: `1.5px solid ${err ? ERROR : PASS_DASH}`, backgroundColor: "white", fontFamily: isMono ? mono : undefined }} />
+    <TextOrDate id={id} type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+      aria-invalid={err || undefined} className={controlClass} style={controlStyle(err)} />
   );
-  const Tog = ({ on, toggle }: { on: boolean; toggle: () => void }) => (
-    <button role="switch" aria-checked={!!(on)} aria-label="Turn on or off" onClick={toggle} className="w-11 h-6 rounded-full relative flex-shrink-0 transition-colors"
-      style={{ backgroundColor: on ? TEAL : PASS_DASH }}>
-      <div className="absolute w-5 h-5 bg-white rounded-full top-0.5 shadow-sm transition-all" style={{ left: on ? 22 : 2 }} />
+  const Select = ({ id, value, onChange, options }: { id: string; value: string; onChange: (v: string) => void; options: string[] }) => (
+    <select id={id} value={value} onChange={e => onChange(e.target.value)} className={controlClass} style={controlStyle()}>
+      {options.map(o => <option key={o}>{o}</option>)}
+    </select>
+  );
+  const Tog = ({ on, toggle, label }: { on: boolean; toggle: () => void; label: string }) => (
+    <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={toggle} className="w-11 h-6 rounded-full relative flex-shrink-0 transition-colors"
+      style={{ backgroundColor: on ? UI.focus : "#CBD5E1" }}>
+      <span className="absolute w-5 h-5 bg-white rounded-full top-0.5 shadow-sm transition-all" style={{ left: on ? 22 : 2 }} />
     </button>
   );
+  const ToggleRow = ({ title, sub, on, toggle }: { title: string; sub?: string; on: boolean; toggle: () => void }) => (
+    <div className="flex items-center justify-between gap-4 py-3">
+      <div><p className="text-sm font-medium" style={{ color: TEXT }}>{title}</p>{sub && <p className="text-sm" style={{ color: MUTED }}>{sub}</p>}</div>
+      <Tog on={on} toggle={toggle} label={title} />
+    </div>
+  );
+  const Pills = ({ options, value, onChange, label }: { options: { v: string; l: string }[]; value: string; onChange: (v: string) => void; label: string }) => (
+    <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-2">
+      {options.map(o => {
+        const on = value === o.v;
+        return (
+          <button key={o.v} type="button" role="radio" aria-checked={on} onClick={() => onChange(o.v)}
+            className="px-4 text-sm transition-colors" style={{ height: 40, borderRadius: UI.radius.control, border: `${on ? 2 : 1}px solid ${on ? UI.focus : "#CBD5E1"}`, backgroundColor: on ? UI.selectedBg : "white", color: TEXT, fontWeight: on ? 600 : 400 }}>
+            {o.l}
+          </button>
+        );
+      })}
+    </div>
+  );
+  const naira = (n: number) => `₦${n.toLocaleString()}`;
+  const extraPrice = (name: string) => { const c = EXTRAS_CATALOG.find(e => e.name === name); return c ? (c.name === "Breakfast included" ? c.price * nights : c.price) : 0; };
 
-  // ── Post-confirm ──────────────────────────────────────────────────────────
+  // ── After confirming ──────────────────────────────────────────────────────
   if (confirmed) return (
-    <div className="flex items-center justify-center py-12">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl shadow-2xl">
-        <div className="px-8 py-10 text-center relative" style={{ backgroundColor: PRIMARY }}>
-          <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 50% -10%, ${TEAL}35 0%, transparent 60%)` }} />
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
-              style={{ backgroundColor: `${TEAL}22`, border: `1.5px solid ${TEAL}55` }}>
-              <CheckCircle size={30} style={{ color: TEAL_INK }} weight="bold" />
-            </div>
-            <p className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.38)" }}>Reservation confirmed</p>
-            <p className="text-3xl font-bold text-white mb-1.5" style={{ fontFamily: mono }}>{confirmedId}</p>
-            <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.72)" }}>
-              {form.guestName || "Guest"} · {form.roomType}{form.roomNumber ? ` Rm ${form.roomNumber}` : ""}
+    <div className="max-w-xl mx-auto py-8">
+      <Card>
+        <div className="pt-8 text-center">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "#CCFBF1" }}>
+            <CheckCircle size={28} style={{ color: TEAL_INK }} weight="bold" />
+          </div>
+          <p className="text-sm" style={{ color: MUTED }}>Reservation confirmed</p>
+          <h1 className="text-2xl font-semibold mt-1" style={{ color: TEXT, fontFamily: display }}>{confirmedId}</h1>
+          <p className="text-sm mt-1" style={{ color: TEXT }}>{form.guestName} · {form.roomType}{form.roomNumber ? `, room ${form.roomNumber}` : ""}</p>
+          <p className="text-sm" style={{ color: MUTED }}>{fmtDate(form.checkin)} to {fmtDate(form.checkout)} · {nights} night{nights === 1 ? "" : "s"} · {naira(total)} with VAT</p>
+          {(form.sendEmail || form.sendSMS || form.printRegCard) && (
+            <p className="text-sm mt-4" style={{ color: MUTED }}>
+              {[form.sendEmail && "Email confirmation queued", form.sendSMS && "SMS queued", form.printRegCard && "Registration card sent to the printer"].filter(Boolean).join(" · ")}
             </p>
-            <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.38)" }}>
-              {fmtDate(form.checkin)} → {fmtDate(form.checkout)} · {nights}N · ₦{total.toLocaleString()} incl. VAT
-            </p>
+          )}
+          <div className="grid grid-cols-2 gap-3 mt-6">
+            {form.checkin === "2026-06-24" ? <BtnP label="Check in now" onClick={() => nav?.("check-in", "Check-In")} /> : <BtnP label="Open reservation" onClick={() => nav?.("reservation-detail", confirmedId)} />}
+            <BtnO label="Back to the grid" onClick={() => nav?.("reservation-grid", "Reservation Grid")} />
           </div>
+          <button type="button" onClick={() => { setConfirmed(false); setStep(1); setForm(f => ({ ...f, guestName: "", phone: "", email: "", idNum: "", extras: [], roomNumber: "", depositAmount: "", payRef: "", specialNotes: "" })); }}
+            className="mt-3 h-10 text-sm font-medium" style={{ color: TEAL_INK }}>Book another room</button>
         </div>
-        <div className="bg-white px-6 pt-5 pb-6">
-          <div className="flex flex-wrap gap-2 justify-center mb-5">
-            {form.sendEmail && <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold" style={{ backgroundColor: "#DCFCE7", color: SUCCESS }}><CheckCircle size={11} weight="bold" />Email sent</span>}
-            {form.sendSMS   && <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold" style={{ backgroundColor: "#DCFCE7", color: SUCCESS }}><CheckCircle size={11} weight="bold" />SMS sent</span>}
-            {form.printRegCard && <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}><FileText size={11} weight="bold" />Reg card printing…</span>}
-          </div>
-          <div className="grid grid-cols-2 gap-2 mb-2">
-            <button onClick={() => nav?.("check-in","Check-In")} className="py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: PRIMARY }}>Check in now</button>
-            <button onClick={() => nav?.("reservation-detail", confirmedId)} className="py-3 rounded-xl text-sm font-bold border" style={{ borderColor: BORDER, color: TEXT }}>View reservation</button>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => nav?.("reservation-grid","Reservation Grid")} className="py-2.5 rounded-xl text-xs font-medium border" style={{ borderColor: BORDER, color: MUTED }}>Back to grid</button>
-            <button onClick={() => { setConfirmed(false); setStep(1); setForm(f => ({ ...f, guestName:"", phone:"", email:"", idNum:"", extras:[], roomNumber:"", depositAmount:"", payRef:"", specialNotes:"" })); }}
-              className="py-2.5 rounded-xl text-xs font-medium" style={{ color: MUTED }}>New Reservation</button>
-          </div>
-        </div>
-      </div>
+      </Card>
     </div>
   );
 
-  const SIcon = STEP_ICONS[step - 1];
-
+  const types = ["Standard", "Deluxe", "Suite"];
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        {step > 1 && (
-          <button aria-label="Previous" onClick={() => setStep(s => s - 1)}
-            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
-            style={{ backgroundColor: PASS_BG, border: `1.5px solid ${PASS_BORDER}` }}>
-            <CaretLeft size={16} style={{ color: PASS_MUTED }} weight="bold" />
-          </button>
-        )}
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: PASS_MUTED }}>Step {step} of 6 · {STEPS[step - 1]}</p>
-          <h1 className="text-2xl font-bold leading-tight mt-0.5" style={{ color: TEXT }}>New Reservation</h1>
-        </div>
+      <PageHeader title="New reservation" sub="Book a room in six short steps. The summary on the right updates as you go." />
+
+      <div className="bg-white px-5 py-4 mb-5" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.card }}>
+        <Stepper steps={STEPS} current={step} onStep={setStep} />
       </div>
 
-      {/* Boarding-pass step progress */}
-      <div className="flex items-stretch gap-0 mb-6 rounded-xl overflow-hidden" style={{ border: `1.5px solid ${PASS_BORDER}`, backgroundColor: PASS_BG }}>
-        {([
-          { label: "Dates & Room",  icon: CalendarDots  },
-          { label: "Rate Plan",     icon: CurrencyDollar    },
-          { label: "Guest Details", icon: UserCheck     },
-          { label: "Extras",        icon: ShoppingCart  },
-          { label: "Deposit",       icon: CreditCard    },
-          { label: "Confirm",       icon: ClipboardText },
-        ] as { label: string; icon: React.ElementType }[]).map(({ label, icon: SI }, i) => {
-          const done   = i + 1 < step;
-          const active = i + 1 === step;
-          const clickable = done;
-          return (
-            <button key={i} disabled={!clickable} aria-label={done ? `Edit ${label.toLowerCase()}` : label} title={done ? "Edit this step" : undefined}
-              onClick={() => clickable && setStep(i + 1)}
-              className="flex-1 flex flex-col items-center justify-center py-5 px-2 relative transition-all"
-              style={{
-                backgroundColor: active ? PRIMARY : done ? `${PRIMARY}18` : "transparent",
-                borderRight: i < 5 ? `1px dashed ${PASS_DASH}` : undefined,
-                cursor: clickable ? "pointer" : "default",
-              }}
-              onMouseEnter={e => { if (clickable && !active) e.currentTarget.style.backgroundColor = `${PRIMARY}28`; }}
-              onMouseLeave={e => { if (clickable && !active) e.currentTarget.style.backgroundColor = `${PRIMARY}18`; }}>
-
-              {/* Top-right badge */}
-              <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ backgroundColor: active ? "rgba(255,255,255,0.25)" : done ? PRIMARY : PASS_BORDER, color: active ? "white" : done ? "white" : PASS_MUTED, fontSize: 12 }}>
-                  {done ? <CheckCircle size={10} color="white" weight="bold" /> : i + 1}
-                </div>
-              </div>
-
-              <SI size={24} style={{ color: active ? "white" : done ? PRIMARY : PASS_MUTED }} />
-              <p className="text-center mt-2 font-bold leading-tight" style={{ fontSize: 12, color: active ? "white" : done ? PRIMARY : PASS_MUTED }}>
-                {label}
-              </p>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-
-        {/* ── Step Panel ─────────────────────────────────────────────────── */}
-        <div className="lg:col-span-2">
-          <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: PASS_BG, border: `1.5px solid ${PASS_BORDER}` }}>
-
-            {/* Teal header band */}
-            <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: PRIMARY }}>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ }}>Step {step} of 6</p>
-                <p className="text-base font-bold text-white mt-0.5">{STEPS[step - 1]}</p>
-              </div>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-                <SIcon size={17} color="white" />
-              </div>
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
+        <Card title={`${step}. ${["Stay details", "Rate", "Guest details", "Extras", "Deposit", "Review and confirm"][step - 1]}`} sub={STEP_SUB[step - 1]}
+          footer={<>
+            {step > 1 ? <BtnO label="Back" icon={CaretLeft} onClick={() => setStep(s => s - 1)} /> : <span />}
+            <div className="flex items-center gap-3">
+              {step === 6 && <button type="button" onClick={() => add({ type: "info", title: "Saved as a draft", body: "Find it in Reservation Lookup." })} className="h-10 px-3 text-sm font-medium" style={{ color: MUTED }}>Save as draft</button>}
+              <BtnP label={step === 6 ? "Confirm reservation" : `Continue to ${STEPS[step].toLowerCase()}`} onClick={proceed} />
             </div>
+          </>}>
+          <div className="space-y-7">
 
-            {/* Notch tear-off */}
-            <PassNotch />
-
-            <div className="p-6 space-y-6">
-
-              {/* ── STEP 1: Dates & Room ────────────────────────────────── */}
-              {step === 1 && (<>
-                <section>
-                  <SLabel>Stay dates & source</SLabel>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <FLabel>Check-In</FLabel>
-                      <Input type="date" value={form.checkin} onChange={v => upd("checkin", v)} err={!!errors.checkin} />
-                      <ErrMsg field="checkin" />
-                    </div>
-                    <div>
-                      <FLabel>Check-Out</FLabel>
-                      <Input type="date" value={form.checkout} onChange={v => upd("checkout", v)} err={!!errors.checkout} />
-                      <ErrMsg field="checkout" />
-                    </div>
-                    <div>
-                      <FLabel>Source</FLabel>
-                      <select aria-label="Source" value={form.source} onChange={e => upd("source", e.target.value)}
-                        className="w-full px-4 py-3 border rounded-xl text-sm outline-none appearance-none" style={{ borderColor: BORDER }}>
-                        {["Phone","Walk-in","Email","Online","OTA","Corporate","Direct"].map(v => <option key={v}>{v}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  {nights > 0 && form.checkout > form.checkin && (
-                    <div className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
-                      style={{ backgroundColor: `${TEAL}14`, color: TEAL_INK }}>
-                      <CalendarDots size={11} weight="bold" />{nights} night{nights !== 1 ? "s" : ""} selected
-                    </div>
-                  )}
-                </section>
-
-                <section>
-                  <SLabel>Guests</SLabel>
-                  <div className="grid grid-cols-2 gap-3">
-                    {([["Adults","adults",["1","2","3","4"]],["Children","children",["0","1","2","3"]]] as [string,string,string[]][]).map(([lbl,key,opts]) => (
-                      <div key={key}>
-                        <FLabel>{lbl}</FLabel>
-                        <select aria-label={lbl} value={(form as unknown as Record<string,string>)[key]} onChange={e => upd(key, e.target.value)}
-                          className="w-full px-4 py-3 border rounded-xl text-sm outline-none appearance-none" style={{ borderColor: BORDER }}>
-                          {opts.map(v => <option key={v}>{v}</option>)}
-                        </select>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                <section>
-                  <SLabel>Room type</SLabel>
-                  <div className="space-y-2.5">
-                    {[{ type:"Standard",avail:4,price:35000 },{ type:"Deluxe",avail:4,price:55000 },{ type:"Suite",avail:2,price:95000 }].map(rt => {
-                      const sel = form.roomType === rt.type;
-                      return (
-                        <button key={rt.type}
-                          onClick={() => { upd("roomType", rt.type); upd("roomNumber", ""); upd("nightlyRate", String(rt.price)); }}
-                          className="w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all"
-                          style={{ border: sel ? `2px solid ${TEAL}` : `1.5px dashed ${PASS_DASH}`, backgroundColor: sel ? `${TEAL}08` : "white" }}>
-                          <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: sel ? TEAL : PASS_DASH }} />
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: sel ? `${TEAL}18` : "#F8FAFC" }}>
-                            <Bed size={18} style={{ color: sel ? TEAL : MUTED }} weight="bold" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm" style={{ color: sel ? TEAL : TEXT }}>{rt.type}</p>
-                            <p className="text-xs mt-0.5 truncate" style={{ color: MUTED }}>{ROOM_DESC[rt.type]}</p>
-                            <span className="inline-block mt-1.5 text-xs px-2 py-0.5 rounded-full font-semibold"
-                              style={{ backgroundColor: "#DCFCE7", color: SUCCESS }}>{rt.avail} available</span>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-xl font-bold" style={{ color: sel ? TEAL : PRIMARY, fontFamily: mono }}>₦{rt.price.toLocaleString()}</p>
-                            <p className="text-xs" style={{ color: MUTED }}>/night</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-
-                <section>
-                  <SLabel>Assign room (optional)</SLabel>
-                  <div className="flex flex-wrap gap-2">
-                    <button onClick={() => upd("roomNumber", "")}
-                      className="px-3.5 py-2 rounded-lg border text-xs font-semibold transition-all"
-                      style={{ borderColor: !form.roomNumber ? PRIMARY : BORDER, backgroundColor: !form.roomNumber ? "#EFF6FF" : "white", color: !form.roomNumber ? PRIMARY : MUTED }}>
-                      Assign at check-in
-                    </button>
-                    {(ROOM_OPTIONS[form.roomType] ?? []).map(rn => (
-                      <button key={rn} onClick={() => upd("roomNumber", rn)}
-                        className="px-3.5 py-2 rounded-lg border text-xs font-bold transition-all"
-                        style={{ borderColor: form.roomNumber === rn ? PRIMARY : BORDER, backgroundColor: form.roomNumber === rn ? "#EFF6FF" : "white", color: form.roomNumber === rn ? PRIMARY : TEXT }}>
-                        Rm {rn}
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              </>)}
-
-              {/* ── STEP 2: Rate Plan ───────────────────────────────────── */}
-              {step === 2 && (<>
-                <section>
-                  <SLabel>Plans for {form.roomType}</SLabel>
-                  <div className="space-y-2.5">
-                    {RATE_PLANS.filter(r => r.active && r.rooms.includes(form.roomType)).map((plan, idx) => {
-                      const sel = form.ratePlan === plan.name && !manualRate;
-                      return (
-                        <button key={plan.id}
-                          onClick={() => { upd("ratePlan", plan.name); upd("nightlyRate", plan.base.toString()); setManualRate(false); }}
-                          className="w-full flex items-start gap-4 p-4 rounded-xl text-left transition-all"
-                          style={{ border: sel ? `2px solid ${PRIMARY}` : `1.5px dashed ${PASS_DASH}`, backgroundColor: sel ? "#EFF6FF" : "white" }}>
-                          <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: sel ? PRIMARY : PASS_DASH }} />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-sm" style={{ color: sel ? PRIMARY : TEXT }}>{plan.name}</span>
-                              {idx === 0 && <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${TEAL}18`, color: TEAL_INK }}>Recommended</span>}
-                            </div>
-                            <p className="text-xs mt-1" style={{ color: MUTED }}>{plan.dates} · {plan.rooms.join(" · ")}</p>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-xl font-bold" style={{ color: sel ? PRIMARY : TEXT, fontFamily: mono }}>₦{plan.base.toLocaleString()}</p>
-                            <p className="text-xs" style={{ color: MUTED }}>/night</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-
-                    {/* Negotiated rate */}
-                    <div className="p-4 rounded-xl border-2 transition-all"
-                      style={{ borderColor: manualRate ? ORANGE : BORDER, backgroundColor: manualRate ? "#FFF7ED" : "white" }}>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-sm" style={{ color: manualRate ? ORANGE : TEXT }}>Negotiated / Override Rate</p>
-                          <p className="text-xs mt-0.5" style={{ color: MUTED }}>Manager authorisation required</p>
-                        </div>
-                        <Tog on={manualRate} toggle={() => setManualRate(m => !m)} />
-                      </div>
-                      {manualRate && (
-                        <div className="flex items-center gap-2 mt-3 pt-3 border-t" style={{ borderColor: `${ORANGE}30` }}>
-                          <span className="font-bold text-sm" style={{ color: MUTED }}>₦</span>
-                          <input type="number" value={form.manualRateVal} onChange={e => upd("manualRateVal", e.target.value)}
-                            placeholder="Enter nightly rate" aria-label="Enter nightly rate" className="flex-1 px-4 py-2.5 border rounded-xl text-sm outline-none"
-                            style={{ borderColor: BORDER, fontFamily: mono }} />
-                          <span className="text-xs" style={{ color: MUTED }}>/night</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </section>
-
-                <section className="p-5 rounded-xl" style={{ backgroundColor: "white", border: `1.5px dashed ${PASS_DASH}` }}>
-                  <SLabel>Breakdown — {nights}N</SLabel>
-                  <div className="space-y-2 text-sm">
-                    {Array.from({ length: Math.min(nights, 3) }, (_, i) => (
-                      <div key={i} className="flex justify-between">
-                        <span style={{ color: MUTED }}>Night {i + 1}</span>
-                        <span style={{ fontFamily: mono }}>₦{baseRate.toLocaleString()}</span>
-                      </div>
-                    ))}
-                    {nights > 3 && <p className="text-xs" style={{ color: MUTED }}>…{nights - 3} more nights</p>}
-                    <div className="border-t pt-3 mt-1 space-y-1.5" style={{ borderColor: BORDER }}>
-                      <div className="flex justify-between"><span style={{ color: MUTED }}>Subtotal</span><span style={{ fontFamily: mono }}>₦{(baseRate * nights).toLocaleString()}</span></div>
-                      <div className="flex justify-between"><span style={{ color: MUTED }}>VAT 7.5%</span><span style={{ fontFamily: mono }}>₦{Math.round(baseRate * nights * 0.075).toLocaleString()}</span></div>
-                      <div className="flex justify-between font-bold text-base pt-1">
-                        <span style={{ color: TEXT }}>Room total</span>
-                        <span style={{ color: PRIMARY, fontFamily: mono }}>₦{Math.round(baseRate * nights * 1.075).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              </>)}
-
-              {/* ── STEP 3: Guest Details ───────────────────────────────── */}
-              {step === 3 && (<>
-                <section>
-                  <SLabel><MagnifyingGlass size={13} style={{ display:"inline", marginRight:5, verticalAlign:"middle", color:TEAL_INK }} weight="bold" />Returning guest</SLabel>
-                  <div className="relative">
-                    <MagnifyingGlass size={15} className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: SUBTLE }} weight="bold" />
-                    <input value={guestSearchQ}
-                      onChange={e => { setGuestSearchQ(e.target.value); setShowGuestResults(true); }}
-                      onFocus={() => setShowGuestResults(true)}
-                      placeholder="Type guest name or booking ID…" aria-label="Type guest name or booking ID"
-                      className="pl-11 pr-4 py-3.5 w-full border-2 rounded-xl text-sm outline-none transition-colors"
-                      style={{ borderColor: guestSearchQ.length >= 2 ? TEAL : BORDER }} />
-                  </div>
-                  {showGuestResults && GUEST_SUGGESTIONS.length > 0 && (
-                    <div className="mt-1 rounded-xl border shadow-lg overflow-hidden bg-white" style={{ borderColor: BORDER }}>
-                      {GUEST_SUGGESTIONS.map(g => (
-                        <button key={g.id} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors"
-                          onClick={() => {
-                            const first = g.guest.split(" ")[0].toLowerCase();
-                            const last  = g.guest.split(" ").pop()?.toLowerCase() ?? "";
-                            upd("guestName", g.guest);
-                            upd("phone", `+234 80${g.id.slice(-1)} 000 ${g.id.slice(-4)}`);
-                            upd("email", `${first}.${last}@example.com`);
-                            upd("idNum", `NG${g.id.replace(/\D/g,"").slice(-8).padStart(8,"0")}`);
-                            setGuestSearchQ(g.guest);
-                            setShowGuestResults(false);
-                            add({ type: "info", title: "Profile loaded", body: g.guest });
-                          }}>
-                          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${TEAL}18` }}>
-                            <User size={16} style={{ color: TEAL_INK }} weight="bold" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold" style={{ color: TEXT }}>{g.guest}</p>
-                            <p className="text-xs truncate" style={{ color: MUTED }}>{g.id} · {g.checkin} – {g.checkout}</p>
-                          </div>
-                          <span className="text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0" style={{ backgroundColor: "#DCFCE7", color: SUCCESS }}>Returning</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <p className="mt-2 text-xs" style={{ color: MUTED }}>Or enter details below to register a new guest</p>
-                </section>
-
-                <section className="grid grid-cols-2 gap-4">
-                  <div>
-                    <FLabel req>Full name</FLabel>
-                    <Input value={form.guestName} onChange={v => upd("guestName",v)} placeholder="Chukwuemeka Bello" err={!!errors.guestName} />
-                    <ErrMsg field="guestName" />
-                  </div>
-                  <div>
-                    <FLabel req>Phone</FLabel>
-                    <Input value={form.phone} onChange={v => upd("phone",v)} placeholder="+234 80x xxx xxxx" err={!!errors.phone} />
-                    <ErrMsg field="phone" />
-                  </div>
-                </section>
-
-                <section className="grid grid-cols-2 gap-4">
-                  <div>
-                    <FLabel>Email</FLabel>
-                    <Input type="email" value={form.email} onChange={v => upd("email",v)} placeholder="guest@example.com" />
-                  </div>
-                  <div>
-                    <FLabel>Nationality</FLabel>
-                    <select aria-label="Nationality" value={form.nationality} onChange={e => upd("nationality",e.target.value)}
-                      className="w-full px-4 py-3 border rounded-xl text-sm outline-none appearance-none" style={{ borderColor: BORDER }}>
-                      {["Nigerian","Ghanaian","Kenyan","South African","British","American","Other"].map(v => <option key={v}>{v}</option>)}
-                    </select>
-                  </div>
-                </section>
-
-                <section className="grid grid-cols-2 gap-4">
-                  <div>
-                    <FLabel>ID type</FLabel>
-                    <select aria-label="ID type" value={form.idType} onChange={e => upd("idType",e.target.value)}
-                      className="w-full px-4 py-3 border rounded-xl text-sm outline-none appearance-none" style={{ borderColor: BORDER }}>
-                      {["Passport","National ID","Driver's Licence","NIN"].map(v => <option key={v}>{v}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <FLabel req>ID number</FLabel>
-                    <Input value={form.idNum} onChange={v => upd("idNum",v)} placeholder="Document number" err={!!errors.idNum} mono />
-                    <ErrMsg field="idNum" />
-                  </div>
-                </section>
-
-                <section>
-                  <FLabel>Company / Organisation</FLabel>
-                  <Input value={form.company} onChange={v => upd("company",v)} placeholder="For corporate bookings" />
-                </section>
-
-                <section>
-                  <FLabel>Special requests</FLabel>
-                  <textarea value={form.specialNotes} onChange={e => upd("specialNotes",e.target.value)}
-                    placeholder="High floor, anniversary, allergies, dietary needs…" aria-label="High floor, anniversary, allergies, dietary needs"
-                    rows={3} className="w-full px-4 py-3 border rounded-xl text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
-                </section>
-
-                <section className="flex items-center justify-between p-4 rounded-xl border-2 transition-all"
-                  style={{ borderColor: form.vip ? ORANGE : BORDER, backgroundColor: form.vip ? "#FFF7ED" : "white" }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: form.vip ? `${ORANGE}18` : "#F8FAFC" }}>
-                      <Star size={16} style={{ color: form.vip ? ORANGE : MUTED }} weight="bold" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm" style={{ color: form.vip ? ORANGE : TEXT }}>VIP guest</p>
-                      <p className="text-xs" style={{ color: MUTED }}>Priority service · Amenity upgrades</p>
-                    </div>
-                  </div>
-                  <Tog on={form.vip as boolean} toggle={() => upd("vip", !form.vip)} />
-                </section>
-              </>)}
-
-              {/* ── STEP 4: Extras ──────────────────────────────────────── */}
-              {step === 4 && (<>
-                <section>
-                  <SLabel>Add-ons & services</SLabel>
-                  <div className="grid grid-cols-2 gap-3">
-                    {EXTRAS_CATALOG.map(ex => {
-                      const sel = form.extras.includes(ex.name);
-                      const lp = ex.name === "Breakfast Included" ? ex.price * nights : ex.price;
-                      const EI = ex.icon;
-                      return (
-                        <button key={ex.name}
-                          onClick={() => upd("extras", sel ? form.extras.filter(e => e !== ex.name) : [...form.extras, ex.name])}
-                          className="flex items-center gap-3 p-3.5 rounded-xl text-left transition-all"
-                          style={{ border: sel ? `2px solid ${TEAL}` : `1.5px dashed ${PASS_DASH}`, backgroundColor: sel ? `${TEAL}08` : "white" }}>
-                          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: sel ? `${TEAL}18` : "#F1F5F9" }}>
-                            <EI size={16} style={{ color: sel ? TEAL : MUTED }} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold leading-tight" style={{ color: sel ? TEAL : TEXT }}>{ex.name}</p>
-                            <p className="text-xs mt-0.5 font-medium" style={{ color: MUTED }}>
-                              {lp === 0 ? "Complimentary" : `₦${lp.toLocaleString()}`}{ex.name === "Breakfast Included" && lp > 0 ? ` · ${nights}N` : ""}
-                            </p>
-                          </div>
-                          <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all"
-                            style={{ borderColor: sel ? TEAL : "#CBD5E1", backgroundColor: sel ? TEAL : "transparent" }}>
-                            {sel && <CheckCircle size={9} color="white" weight="bold" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-
-                {form.extras.length > 0 && (
-                  <section className="p-4 rounded-xl" style={{ backgroundColor: `${TEAL}08`, border: `1.5px solid ${TEAL}28` }}>
-                    <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{ color: TEAL_INK }}>Selected · {form.extras.length} add-on{form.extras.length !== 1 ? "s" : ""}</p>
-                    {form.extras.map(ex => {
-                      const cat = EXTRAS_CATALOG.find(e => e.name === ex);
-                      const lp = cat ? (cat.name === "Breakfast Included" ? cat.price * nights : cat.price) : 0;
-                      return (
-                        <div key={ex} className="flex justify-between text-xs mb-1.5">
-                          <span style={{ color: TEXT }}>{ex}</span>
-                          <span style={{ color: TEAL_INK, fontFamily: mono }}>{lp === 0 ? "Free" : `₦${lp.toLocaleString()}`}</span>
-                        </div>
-                      );
-                    })}
-                    <div className="flex justify-between font-bold text-sm border-t pt-2 mt-1" style={{ borderColor: `${TEAL}28` }}>
-                      <span style={{ color: TEAL_INK }}>Extras total</span>
-                      <span style={{ color: TEAL_INK, fontFamily: mono }}>₦{extrasTotal.toLocaleString()}</span>
-                    </div>
-                  </section>
-                )}
-
-                <section className="flex items-center justify-between p-4 rounded-xl border-2 transition-all"
-                  style={{ borderColor: form.transfer ? TEAL : BORDER, backgroundColor: form.transfer ? `${TEAL}08` : "white" }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: form.transfer ? `${TEAL}18` : "#F8FAFC" }}>
-                      <Truck size={16} style={{ color: form.transfer ? TEAL : MUTED }} weight="bold" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm" style={{ color: form.transfer ? TEAL : TEXT }}>Airport transfer</p>
-                      <p className="text-xs" style={{ color: MUTED }}>Driver at arrivals · ₦12,000</p>
-                    </div>
-                  </div>
-                  <Tog on={form.transfer as boolean} toggle={() => upd("transfer", !form.transfer)} />
-                </section>
-                {form.transfer && (
-                  <section>
-                    <FLabel>Flight number</FLabel>
-                    <Input value={form.flightNum} onChange={v => upd("flightNum",v)} placeholder="e.g. QR 1401" mono />
-                  </section>
-                )}
-              </>)}
-
-              {/* ── STEP 5: Deposit ─────────────────────────────────────── */}
-              {step === 5 && (<>
-                <section>
-                  <SLabel>Deposit percentage</SLabel>
-                  <div className="grid grid-cols-4 gap-2">
-                    {["0","25","50","100"].map(pct => (
-                      <button key={pct} onClick={() => { upd("depositPct", pct); upd("depositAmount",""); }}
-                        className="py-3 rounded-xl text-sm font-bold border-2 transition-all"
-                        style={{ borderColor: form.depositPct === pct ? PRIMARY : BORDER, backgroundColor: form.depositPct === pct ? "#EFF6FF" : "white", color: form.depositPct === pct ? PRIMARY : TEXT }}>
-                        {pct === "0" ? "None" : `${pct}%`}
-                      </button>
-                    ))}
-                  </div>
-                </section>
-
-                {/* Big deposit display */}
-                <section className="rounded-2xl p-6 text-center" style={{ backgroundColor: PRIMARY }}>
-                  <p className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.38)" }}>Deposit due</p>
-                  <p className="text-4xl font-bold text-white mb-1" style={{ fontFamily: mono }}>₦{depositAmt.toLocaleString()}</p>
-                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.38)" }}>{form.depositPct}% of ₦{total.toLocaleString()} total</p>
-                  <div className="flex justify-center gap-6 mt-3 text-xs">
-                    <span style={{ color: "rgba(255,255,255,0.4)" }}>Room ₦{(baseRate * nights).toLocaleString()}</span>
-                    {extrasTotal > 0 && <span style={{ color: TEAL_INK }}>Extras ₦{extrasTotal.toLocaleString()}</span>}
-                    <span style={{ color: "rgba(255,255,255,0.4)" }}>VAT ₦{vat.toLocaleString()}</span>
-                  </div>
-                </section>
-
-                <section>
-                  <FLabel>Override deposit amount (optional)</FLabel>
-                  <Input type="number" value={form.depositAmount} onChange={v => upd("depositAmount",v)}
-                    placeholder={`Blank = auto ₦${Math.round(total * Number(form.depositPct) / 100).toLocaleString()}`} mono />
-                </section>
-
-                {Number(form.depositPct) > 0 && (<>
-                  <section>
-                    <SLabel>Payment method</SLabel>
-                    <div className="grid grid-cols-3 gap-2">
-                      {["Cash","POS / Card","Bank Transfer"].map(m => (
-                        <button key={m} onClick={() => upd("payMethod", m)}
-                          className="py-3 rounded-xl text-xs font-bold border-2 transition-all"
-                          style={{ borderColor: form.payMethod === m ? PRIMARY : BORDER, backgroundColor: form.payMethod === m ? "#EFF6FF" : "white", color: form.payMethod === m ? PRIMARY : TEXT }}>
-                          {m}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                  {form.payMethod !== "Cash" && (
-                    <section>
-                      <FLabel req>{form.payMethod === "POS / Card" ? "POS Terminal Reference" : "Bank Transfer Reference"}</FLabel>
-                      <Input value={form.payRef} onChange={v => upd("payRef",v)}
-                        placeholder={form.payMethod === "POS / Card" ? "POS-00124381" : "NGBT-20260801-0042"}
-                        err={!!errors.payRef} mono />
-                      <ErrMsg field="payRef" />
-                    </section>
-                  )}
-                </>)}
-              </>)}
-
-              {/* ── STEP 6: Confirm ─────────────────────────────────────── */}
-              {step === 6 && (<>
-                <div className="space-y-3">
-                  {([
-                    { title:"Dates & Room", icon: CalendarDots, items:[
-                      ["Check-In",fmtDate(form.checkin)],["Check-Out",fmtDate(form.checkout)],["Nights",String(nights)],
-                      ["Room",`${form.roomType}${form.roomNumber ? ` · Rm ${form.roomNumber}` : ""}`],
-                      ["Guests",`${form.adults}A · ${form.children}C`],["Source",form.source],
-                    ] as [string,string][] },
-                    { title:"Rate", icon: CurrencyDollar, items:[
-                      ["Plan", manualRate ? "Negotiated" : form.ratePlan],
-                      ["Rate/Night",`₦${baseRate.toLocaleString()}`],
-                      ["Subtotal",`₦${(baseRate*nights).toLocaleString()}`],
-                      ...(extrasTotal > 0 ? [["Extras",`₦${extrasTotal.toLocaleString()}`] as [string,string]] : []),
-                      ["VAT 7.5%",`₦${vat.toLocaleString()}`],["Total",`₦${total.toLocaleString()}`],
-                    ] as [string,string][] },
-                    { title:"Guest", icon: Users, items:[
-                      ["Name",form.guestName||"–"],["Phone",form.phone||"–"],
-                      ["Email",form.email||"–"],["Nationality",form.nationality],
-                      ["ID",`${form.idType}: ${form.idNum||"–"}`],
-                      ...(form.company ? [["Company",form.company] as [string,string]] : []),
-                      ...(form.vip ? [["VIP","Yes ★"] as [string,string]] : []),
-                    ] as [string,string][] },
-                    { title:"Extras", icon: Package, items: form.extras.length > 0
-                      ? form.extras.map(e => {
-                          const cat = EXTRAS_CATALOG.find(x => x.name === e);
-                          const lp = cat ? (cat.name==="Breakfast Included" ? cat.price*nights : cat.price) : 0;
-                          return [e, lp === 0 ? "Free" : `₦${lp.toLocaleString()}`] as [string,string];
-                        })
-                      : [["None selected",""] as [string,string]] },
-                    { title:"Payment", icon: CreditCard, items:[
-                      ["Deposit",`₦${depositAmt.toLocaleString()} (${form.depositPct}%)`],
-                      ["Method", Number(form.depositPct) > 0 ? form.payMethod : "No deposit"],
-                      ...(form.payRef ? [["Ref",form.payRef] as [string,string]] : []),
-                    ] as [string,string][] },
-                  ] as { title:string; icon: typeof CalendarDots; items:[string,string][] }[]).map(sec => {
-                    const SI = sec.icon;
+            {step === 1 && (<>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Field label="Check-in" htmlFor="nr-in" required error={errors.checkin}><Input id="nr-in" type="date" value={form.checkin} onChange={v => upd("checkin", v)} err={!!errors.checkin} /></Field>
+                <Field label="Check-out" htmlFor="nr-out" required error={errors.checkout} hint={form.checkout > form.checkin ? `${nights} night${nights === 1 ? "" : "s"}` : undefined}><Input id="nr-out" type="date" value={form.checkout} onChange={v => upd("checkout", v)} err={!!errors.checkout} /></Field>
+                <Field label="Booked by" htmlFor="nr-src"><Select id="nr-src" value={form.source} onChange={v => upd("source", v)} options={["Phone", "Walk-in", "Email", "Online", "OTA", "Corporate", "Direct"]} /></Field>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Field label="Adults" htmlFor="nr-ad"><Select id="nr-ad" value={form.adults} onChange={v => upd("adults", v)} options={["1", "2", "3", "4"]} /></Field>
+                <Field label="Children" htmlFor="nr-ch"><Select id="nr-ch" value={form.children} onChange={v => upd("children", v)} options={["0", "1", "2", "3"]} /></Field>
+              </div>
+              <div>
+                <SectionTitle sub="Prices are per night before VAT. Availability is for the dates above.">Room type</SectionTitle>
+                <div className="space-y-2.5">
+                  {types.map(t => {
+                    const free = freeRooms(t).length;
                     return (
-                      <div key={sec.title} className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${PASS_BORDER}` }}>
-                        <div className="flex items-center gap-2 px-4 py-2.5" style={{ backgroundColor: PRIMARY }}>
-                          <SI size={12} color="white" style={{ opacity: 0.8 }} />
-                          <p className="text-xs font-bold uppercase tracking-wider text-white" style={{ opacity: 0.9 }}>{sec.title}</p>
-                        </div>
-                        <PassNotch />
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3" style={{ backgroundColor: PASS_BG }}>
-                          {sec.items.map(([k,v]) => (
-                            <div key={k}>
-                              <p className="text-xs font-bold uppercase" style={{ color: PASS_MUTED }}>{k}</p>
-                              <p className="text-xs font-semibold mt-0.5" style={{ color: TEXT }}>{v}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      <Choice key={t} name="room-type" selected={form.roomType === t} title={t} sub={ROOM_DESC[t]}
+                        badge={<span className="text-xs px-2 py-0.5 rounded-md" style={{ backgroundColor: free ? "#F0FDF4" : "#FEF2F2", color: free ? "#166534" : "#991B1B" }}>{free ? `${free} free` : "Full"}</span>}
+                        onSelect={() => { upd("roomType", t); upd("roomNumber", ""); upd("nightlyRate", String(ROOM_PRICES[t])); upd("ratePlan", "Standard Rate"); setManualRate(false); }}
+                        aside={<><span className="block text-base font-semibold" style={{ color: TEXT }}>{naira(ROOM_PRICES[t])}</span><span className="text-sm" style={{ color: MUTED }}>per night</span></>} />
                     );
                   })}
                 </div>
+              </div>
+              <div>
+                <SectionTitle sub="Leave it for check-in if you are not sure yet.">Room</SectionTitle>
+                <Pills label="Room" value={form.roomNumber} onChange={v => upd("roomNumber", v)}
+                  options={[{ v: "", l: "Assign at check-in" }, ...freeRooms(form.roomType).map(r => ({ v: r, l: `Room ${r}` }))]} />
+                {freeRooms(form.roomType).length === 0 && <p className="text-sm mt-2" style={{ color: ERROR }}>No {form.roomType.toLowerCase()} rooms are free for these nights. Try other dates or put the guest on the waitlist.</p>}
+              </div>
+            </>)}
 
-                <section className="p-4 rounded-xl" style={{ border: `1.5px dashed ${PASS_DASH}`, backgroundColor: "white" }}>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: PASS_MUTED }}>Notifications & documents</p>
-                  <div className="space-y-3">
-                    {([
-                      ["sendEmail","Send confirmation email"],
-                      ["sendSMS","Send SMS confirmation"],
-                      ["printRegCard","Print registration card"],
-                    ] as [keyof typeof form, string][]).map(([key,label]) => (
-                      <div key={key} className="flex items-center justify-between">
-                        <span className="text-sm" style={{ color: TEXT }}>{label}</span>
-                        <Tog on={form[key] as boolean} toggle={() => upd(key, !form[key])} />
-                      </div>
+            {step === 2 && (<>
+              <div className="space-y-2.5">
+                {RATE_PLANS.filter(r => r.active && r.rooms.includes(form.roomType)).map((plan, idx) => (
+                  <Choice key={plan.id} name="rate-plan" selected={form.ratePlan === plan.name && !manualRate} title={plan.name} sub={plan.dates}
+                    badge={idx === 0 ? <span className="text-xs px-2 py-0.5 rounded-md" style={{ backgroundColor: "#F0FDFA", color: TEAL_INK }}>Usual rate</span> : undefined}
+                    onSelect={() => { upd("ratePlan", plan.name); upd("nightlyRate", String(planPrice(plan.base))); setManualRate(false); }}
+                    aside={<><span className="block text-base font-semibold" style={{ color: TEXT }}>{naira(planPrice(plan.base))}</span><span className="text-sm" style={{ color: MUTED }}>per night</span></>} />
+                ))}
+              </div>
+              <div className="px-4" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.control + 2 }}>
+                <ToggleRow title="Agreed price" sub="A price agreed with the guest. A manager approves it at check-in." on={manualRate} toggle={() => setManualRate(m => !m)} />
+                {manualRate && (
+                  <div className="pb-4 max-w-xs"><Field label="Price per night (₦)" htmlFor="nr-rate"><Input id="nr-rate" type="number" value={form.manualRateVal} onChange={v => upd("manualRateVal", v)} placeholder="45000" /></Field></div>
+                )}
+              </div>
+              <div className="p-4" style={{ backgroundColor: UI.surface, borderRadius: UI.radius.control + 2 }}>
+                <Row label={`${naira(baseRate)} × ${nights} night${nights === 1 ? "" : "s"}`} value={naira(baseRate * nights)} />
+                <Row label="VAT 7.5%" value={naira(Math.round(baseRate * nights * 0.075))} />
+                <div className="mt-1 pt-1" style={{ borderTop: `1px solid ${BORDER}` }}><Row label="Room total" value={naira(Math.round(baseRate * nights * 1.075))} strong /></div>
+              </div>
+            </>)}
+
+            {step === 3 && (<>
+              <Field label="Returning guest" htmlFor="nr-find" hint="Type at least two letters of a name or a booking number.">
+                <div className="relative">
+                  <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: SUBTLE }} />
+                  <input id="nr-find" value={guestSearchQ} onChange={e => { setGuestSearchQ(e.target.value); setShowGuestResults(true); }} onFocus={() => setShowGuestResults(true)}
+                    placeholder="Search guests" className={controlClass} style={{ ...controlStyle(), paddingLeft: 40 }} />
+                </div>
+                {showGuestResults && GUEST_SUGGESTIONS.length > 0 && (
+                  <div className="mt-1 overflow-hidden bg-white" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.control, boxShadow: "0 8px 24px rgba(15,23,42,0.08)" }}>
+                    {GUEST_SUGGESTIONS.map(g => (
+                      <button key={g.id} type="button" className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 text-left"
+                        onClick={() => {
+                          const first = g.guest.split(" ")[0].toLowerCase(), last = g.guest.split(" ").pop()?.toLowerCase() ?? "";
+                          upd("guestName", g.guest); upd("phone", `+234 80${g.id.slice(-1)} 000 ${g.id.slice(-4)}`); upd("email", `${first}.${last}@example.com`);
+                          upd("idNum", `NG${g.id.replace(/\D/g, "").slice(-8).padStart(8, "0")}`);
+                          setGuestSearchQ(g.guest); setShowGuestResults(false); add({ type: "info", title: `${g.guest}'s details filled in` });
+                        }}>
+                        <span><span className="block text-sm font-medium" style={{ color: TEXT }}>{g.guest}</span><span className="text-sm" style={{ color: MUTED }}>{g.id} · stayed {g.checkin} to {g.checkout}</span></span>
+                        <span className="text-sm font-medium" style={{ color: TEAL_INK }}>Use</span>
+                      </button>
                     ))}
                   </div>
-                </section>
-              </>)}
+                )}
+              </Field>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Full name" htmlFor="nr-name" required error={errors.guestName}><Input id="nr-name" value={form.guestName} onChange={v => upd("guestName", v)} placeholder="As on their ID" err={!!errors.guestName} /></Field>
+                <Field label="Phone" htmlFor="nr-phone" required error={errors.phone}><Input id="nr-phone" value={form.phone} onChange={v => upd("phone", v)} placeholder="+234 80x xxx xxxx" err={!!errors.phone} /></Field>
+                <Field label="Email" htmlFor="nr-email" hint="For the confirmation and receipt"><Input id="nr-email" type="email" value={form.email} onChange={v => upd("email", v)} placeholder="guest@example.com" /></Field>
+                <Field label="Nationality" htmlFor="nr-nat"><Select id="nr-nat" value={form.nationality} onChange={v => upd("nationality", v)} options={["Nigerian", "Ghanaian", "Kenyan", "South African", "British", "American", "Other"]} /></Field>
+                <Field label="ID type" htmlFor="nr-idt"><Select id="nr-idt" value={form.idType} onChange={v => upd("idType", v)} options={["NIN", "Passport", "National ID", "Driver's Licence"]} /></Field>
+                <Field label="ID number" htmlFor="nr-idn" required error={errors.idNum}><Input id="nr-idn" value={form.idNum} onChange={v => upd("idNum", v)} placeholder="Document number" err={!!errors.idNum} /></Field>
+                <Field label="Company" htmlFor="nr-co" hint="Only for corporate bookings"><Input id="nr-co" value={form.company} onChange={v => upd("company", v)} /></Field>
+              </div>
+              <Field label="Special requests" htmlFor="nr-notes">
+                <textarea id="nr-notes" value={form.specialNotes} onChange={e => upd("specialNotes", e.target.value)} placeholder="High floor, anniversary, allergies…" rows={3}
+                  className="w-full px-3.5 py-2.5 text-sm outline-none resize-none focus:shadow-[0_0_0_3px_rgba(15,118,110,0.18)]" style={{ border: "1px solid #CBD5E1", borderRadius: UI.radius.control, color: TEXT }} />
+              </Field>
+              <div className="px-4" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.control + 2 }}>
+                <ToggleRow title="VIP guest" sub="Flags the booking for priority service and amenities." on={form.vip as boolean} toggle={() => upd("vip", !form.vip)} />
+              </div>
+            </>)}
 
-            </div>
-          </div>
-        </div>
+            {step === 4 && (<>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {EXTRAS_CATALOG.map(ex => {
+                  const on = form.extras.includes(ex.name), price = extraPrice(ex.name);
+                  return (
+                    <label key={ex.name} className="flex items-center gap-3 p-3.5 cursor-pointer" style={{ borderRadius: UI.radius.control + 2, border: `${on ? 2 : 1}px solid ${on ? UI.focus : "#CBD5E1"}`, backgroundColor: on ? UI.selectedBg : "white", margin: on ? 0 : 1 }}>
+                      <input type="checkbox" checked={on} onChange={() => upd("extras", on ? form.extras.filter(e => e !== ex.name) : [...form.extras, ex.name])} className="w-4 h-4 accent-[#0F766E]" />
+                      <span className="flex-1 text-sm font-medium" style={{ color: TEXT }}>{ex.name}</span>
+                      <span className="text-sm" style={{ color: MUTED }}>{price === 0 ? "Free" : naira(price)}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {form.extras.includes("Airport pick-up") && (
+                <div className="max-w-xs"><Field label="Flight number" htmlFor="nr-flight" hint="So the driver can track the arrival."><Input id="nr-flight" value={form.flightNum} onChange={v => upd("flightNum", v)} placeholder="QR 1401" /></Field></div>
+              )}
+            </>)}
 
-        {/* ── Boarding-Pass Summary ───────────────────────────────────────── */}
-        <div className="sticky top-4">
-
-          {/* Pass body */}
-          <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: "#F9FAFB", border: `1.5px solid #E2E8F0` }}>
-
-            {/* Teal header band */}
-            <div className="px-5 py-4 flex items-center justify-between" style={{ backgroundColor: PRIMARY }}>
+            {step === 5 && (<>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white opacity-60" style={{ }}>Summary</p>
-                <p className="text-lg font-bold text-white mt-0.5">{form.guestName || "New Guest"}</p>
+                <SectionTitle>How much to take now</SectionTitle>
+                <Pills label="Deposit" value={form.depositPct} onChange={v => { upd("depositPct", v); upd("depositAmount", ""); }}
+                  options={[{ v: "0", l: "No deposit" }, { v: "25", l: "25%" }, { v: "50", l: "50%" }, { v: "100", l: "Full amount" }]} />
               </div>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
-                <Bed size={17} color="white" weight="bold" />
+              <div className="p-5" style={{ backgroundColor: UI.surface, borderRadius: UI.radius.control + 2 }}>
+                <p className="text-sm" style={{ color: MUTED }}>Deposit due now</p>
+                <p className="mt-1" style={{ color: TEXT, fontSize: 28, fontWeight: 600 }}>{naira(depositAmt)}</p>
+                <p className="text-sm" style={{ color: MUTED }}>{form.depositAmount ? "Amount entered by hand" : `${form.depositPct}% of ${naira(total)}`}</p>
               </div>
-            </div>
-
-            {/* Guest status row */}
-            <div className="px-5 pt-3 pb-3 flex items-center justify-between" style={{ borderBottom: "1.5px dashed #CBD5E1" }}>
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: form.guestName ? (form.vip ? `${ORANGE}18` : `${TEAL}18`) : "#F1F5F9" }}>
-                  <User size={15} style={{ color: form.guestName ? (form.vip ? ORANGE : TEAL) : SUBTLE }} weight="bold" />
+              <Field label="Different amount (₦)" htmlFor="nr-dep" hint="Leave empty to use the percentage above."><Input id="nr-dep" type="number" value={form.depositAmount} onChange={v => upd("depositAmount", v)} /></Field>
+              {Number(form.depositPct) > 0 && (<>
+                <div>
+                  <SectionTitle>Paid by</SectionTitle>
+                  <Pills label="Payment method" value={form.payMethod} onChange={v => upd("payMethod", v)} options={["Cash", "POS / Card", "Bank Transfer"].map(m => ({ v: m, l: m === "POS / Card" ? "Card (POS)" : m === "Bank Transfer" ? "Bank transfer" : m }))} />
                 </div>
-                <span className="text-xs font-semibold" style={{ color: form.guestName ? TEXT : SUBTLE }}>
-                  {form.guestName || "Guest name pending"}
-                </span>
-              </div>
-              {form.vip && <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${ORANGE}18`, color: ORANGE_INK }}>★ VIP</span>}
-              {!form.guestName && <span className="text-xs font-bold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ backgroundColor: "#EFF6FF", color: PRIMARY, fontSize: 12 }}>STEP 3</span>}
-            </div>
+                {form.payMethod !== "Cash" && (
+                  <Field label={form.payMethod === "POS / Card" ? "POS receipt number" : "Transfer reference"} htmlFor="nr-ref" required error={errors.payRef}>
+                    <Input id="nr-ref" value={form.payRef} onChange={v => upd("payRef", v)} placeholder={form.payMethod === "POS / Card" ? "POS-00124381" : "NGBT-20260624-0042"} err={!!errors.payRef} />
+                  </Field>
+                )}
+              </>)}
+            </>)}
 
-            {/* Notch cutout row */}
-            <div className="flex items-center" style={{ marginLeft: -1, marginRight: -1 }}>
-              <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: "#EFF6FF", border: "1.5px solid #E2E8F0", marginLeft: -8 }} />
-              <div className="flex-1 border-t-2 border-dashed" style={{ borderColor: "#CBD5E1" }} />
-              <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: "#EFF6FF", border: "1.5px solid #E2E8F0", marginRight: -8 }} />
-            </div>
-
-            {/* Stay grid — 2-up like boarding pass fields */}
-            <div className="px-5 pt-3 pb-4 grid grid-cols-2 gap-x-4 gap-y-3" style={{ borderBottom: "1.5px dashed #CBD5E1" }}>
+            {step === 6 && (<>
               {([
-                ["Check-in",  fmtDate(form.checkin)],
-                ["Check-out", fmtDate(form.checkout)],
-                ["Room type", form.roomType],
-                ["Room",      form.roomNumber || "Not assigned"],
-                ["Nights",    String(nights)],
-                ["Guests",    `${form.adults} adults · ${form.children} children`],
-              ] as [string,string][]).map(([k,v]) => (
-                <div key={k}>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: "#64748B" }}>{k}</p>
-                  <p className="font-bold text-sm" style={{ color: TEXT, fontFamily: k === "CHECK-IN" || k === "CHECK-OUT" ? mono : undefined }}>{v}</p>
+                ["Stay", 1, [["Dates", `${fmtDate(form.checkin)} to ${fmtDate(form.checkout)}`], ["Nights", String(nights)], ["Room", `${form.roomType}${form.roomNumber ? `, room ${form.roomNumber}` : ", assigned at check-in"}`], ["Guests", `${form.adults} adult${form.adults === "1" ? "" : "s"}, ${form.children} child${form.children === "1" ? "" : "ren"}`], ["Booked by", form.source]]],
+                ["Rate", 2, [["Plan", manualRate ? "Agreed price" : form.ratePlan], ["Per night", naira(baseRate)]]],
+                ["Guest", 3, [["Name", form.guestName], ["Phone", form.phone], ["Email", form.email || "Not given"], ["ID", `${form.idType} ${form.idNum}`], ...(form.company ? [["Company", form.company]] : []), ...(form.vip ? [["VIP", "Yes"]] : []), ...(form.specialNotes ? [["Requests", form.specialNotes]] : [])]],
+                ["Extras", 4, form.extras.length ? form.extras.map(e => [e, extraPrice(e) ? naira(extraPrice(e)) : "Free"]) : [["Extras", "None"]]],
+                ["Deposit", 5, [["Due now", naira(depositAmt)], ["Paid by", Number(form.depositPct) > 0 ? form.payMethod : "No deposit"], ...(form.payRef ? [["Reference", form.payRef]] : [])]],
+              ] as [string, number, string[][]][]).map(([title, n, rows]) => (
+                <div key={title} style={{ borderBottom: `1px solid ${BORDER}` }} className="pb-4">
+                  <div className="flex items-center justify-between mb-1"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>{title}</h3><button type="button" onClick={() => setStep(n)} className="text-sm font-medium h-8" style={{ color: TEAL_INK }}>Change</button></div>
+                  {rows.map(([k, v]) => <Row key={k} label={k} value={v} />)}
                 </div>
               ))}
-            </div>
+              <div>
+                <SectionTitle>After confirming</SectionTitle>
+                <ToggleRow title="Email the confirmation" on={form.sendEmail as boolean} toggle={() => upd("sendEmail", !form.sendEmail)} />
+                <ToggleRow title="Text the confirmation" on={form.sendSMS as boolean} toggle={() => upd("sendSMS", !form.sendSMS)} />
+                <ToggleRow title="Print the registration card" on={form.printRegCard as boolean} toggle={() => upd("printRegCard", !form.printRegCard)} />
+              </div>
+            </>)}
+          </div>
+        </Card>
 
-            {/* Pricing section */}
-            <div className="px-5 py-4 space-y-2 text-sm" style={{ borderBottom: "1.5px dashed #CBD5E1" }}>
-              <div className="flex justify-between">
-                <span style={{ color: "#64748B" }}>Room × {nights}N</span>
-                <span style={{ color: TEXT, fontFamily: mono }}>₦{(baseRate * nights).toLocaleString()}</span>
-              </div>
-              {extrasTotal > 0 && (
-                <div className="flex justify-between">
-                  <span style={{ color: "#64748B" }}>Extras ({form.extras.length})</span>
-                  <span style={{ color: TEAL_INK, fontFamily: mono }}>₦{extrasTotal.toLocaleString()}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span style={{ color: "#64748B" }}>VAT 7.5%</span>
-                <span style={{ color: TEXT, fontFamily: mono }}>₦{vat.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between items-baseline pt-1.5 mt-1" style={{ borderTop: "1px solid #E2E8F0" }}>
-                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#64748B" }}>Total</span>
-                <span className="text-lg font-bold" style={{ color: PRIMARY, fontFamily: mono }}>₦{total.toLocaleString()}</span>
-              </div>
-              {Number(form.depositPct) > 0 && (
-                <div className="flex justify-between items-center px-3 py-2 rounded-lg" style={{ backgroundColor: `${TEAL}10` }}>
-                  <span className="text-xs font-medium" style={{ color: TEAL_INK }}>Deposit {form.depositPct}% due</span>
-                  <span className="text-sm font-bold" style={{ color: TEAL_INK, fontFamily: mono }}>₦{depositAmt.toLocaleString()}</span>
-                </div>
-              )}
+        {/* Summary */}
+        <aside className="xl:sticky xl:top-4">
+          <Card title="Summary">
+            <p className="text-base font-semibold" style={{ color: form.guestName ? TEXT : MUTED }}>{form.vip && "★ "}{form.guestName || "Guest not added yet"}</p>
+            <p className="text-sm" style={{ color: MUTED }}>{form.roomType}{form.roomNumber ? ` · Room ${form.roomNumber}` : " · Room at check-in"}</p>
+            <div className="mt-3 pt-2" style={{ borderTop: `1px solid ${BORDER}` }}>
+              <Row label="Check-in" value={fmtDate(form.checkin)} />
+              <Row label="Check-out" value={fmtDate(form.checkout)} />
+              <Row label="Guests" value={`${form.adults} + ${form.children}`} />
             </div>
-
-            {/* Extras tags */}
-            {form.extras.length > 0 && (
-              <div className="px-5 py-3" style={{ borderBottom: "1.5px dashed #CBD5E1" }}>
-                <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#64748B" }}>Add-ons</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {form.extras.map(ex => (
-                    <span key={ex} className="text-xs px-2 py-0.5 rounded font-medium"
-                      style={{ backgroundColor: `${TEAL}12`, color: TEAL_INK, border: `1px solid ${TEAL}28` }}>{ex}</span>
-                  ))}
-                </div>
+            <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${BORDER}` }}>
+              <Row label={`Room, ${nights} night${nights === 1 ? "" : "s"}`} value={naira(baseRate * nights)} />
+              {extrasTotal > 0 && <Row label={`Extras (${form.extras.length})`} value={naira(extrasTotal)} />}
+              <Row label="VAT 7.5%" value={naira(vat)} />
+              <div className="mt-1 pt-1" style={{ borderTop: `1px solid ${BORDER}` }}><Row label="Total" value={naira(total)} strong /></div>
+            </div>
+            {Number(form.depositPct) > 0 && (
+              <div className="mt-3 px-3 py-2.5 flex items-center justify-between" style={{ backgroundColor: "#F0FDFA", borderRadius: UI.radius.control }}>
+                <span className="text-sm" style={{ color: TEAL_INK }}>Deposit due now</span>
+                <span className="text-sm font-semibold" style={{ color: TEAL_INK }}>{naira(depositAmt)}</span>
               </div>
             )}
-
-            {/* QR Code stub */}
-            <div className="px-5 py-4 flex items-center gap-4" style={{ backgroundColor: "#F1F5F9" }}>
-              {/* QR graphic */}
-              <div className="flex-shrink-0">
-                <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {/* White background */}
-                  <rect width="72" height="72" rx="6" fill="white"/>
-                  {/* Finder TL */}
-                  <rect x="2" y="2" width="20" height="20" rx="3" fill={PRIMARY}/>
-                  <rect x="5" y="5" width="14" height="14" rx="1.5" fill="white"/>
-                  <rect x="8" y="8" width="8" height="8" rx="1" fill={PRIMARY}/>
-                  {/* Finder TR */}
-                  <rect x="50" y="2" width="20" height="20" rx="3" fill={PRIMARY}/>
-                  <rect x="53" y="5" width="14" height="14" rx="1.5" fill="white"/>
-                  <rect x="56" y="8" width="8" height="8" rx="1" fill={PRIMARY}/>
-                  {/* Finder BL */}
-                  <rect x="2" y="50" width="20" height="20" rx="3" fill={PRIMARY}/>
-                  <rect x="5" y="53" width="14" height="14" rx="1.5" fill="white"/>
-                  <rect x="8" y="56" width="8" height="8" rx="1" fill={PRIMARY}/>
-                  {/* Timing strip H */}
-                  {[26,30,34,38,42].map((x, i) => i%2===0 && <rect key={x} x={x} y="24" width="3" height="3" rx="0.5" fill={PRIMARY} opacity="0.7"/>)}
-                  {/* Timing strip V */}
-                  {[26,30,34,38,42].map((y, i) => i%2===0 && <rect key={y} x="24" y={y} width="3" height="3" rx="0.5" fill={PRIMARY} opacity="0.7"/>)}
-                  {/* Data modules */}
-                  {[
-                    [26,26],[30,26],[38,26],[42,26],
-                    [26,30],[34,30],[42,30],
-                    [28,34],[32,34],[36,34],[40,34],
-                    [26,38],[30,38],[38,38],
-                    [28,42],[34,42],[38,42],[42,42],
-                    [50,26],[54,26],[58,26],[62,26],
-                    [50,30],[58,30],[62,30],
-                    [52,34],[56,34],[60,34],
-                    [50,38],[54,38],[62,38],
-                    [52,42],[56,42],[60,42],
-                    [26,50],[30,50],[34,50],[42,50],
-                    [26,54],[34,54],[38,54],
-                    [28,58],[32,58],[36,58],[40,58],
-                    [26,62],[30,62],[38,62],[42,62],
-                  ].map(([x,y]) => (
-                    <rect key={`${x}-${y}`} x={x} y={y} width="3" height="3" rx="0.5" fill={PRIMARY} opacity="0.9"/>
-                  ))}
-                </svg>
-              </div>
-              {/* Label */}
-              <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: PASS_MUTED, fontSize: 12 }}>Scan to verify</p>
-                <p className="font-bold text-xs leading-snug truncate" style={{ color: PRIMARY, fontFamily: mono }}>
-                  {form.guestName || "Guest name pending"}
-                </p>
-                <p className="text-xs mt-0.5" style={{ color: PASS_MUTED, fontFamily: mono }}>
-                  {form.roomType}{form.roomNumber ? ` · Room ${form.roomNumber}` : ""} · {fmtDate(form.checkin)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* CTA below the pass */}
-          <div className="mt-3 space-y-2">
-            <button onClick={proceed}
-              className="w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm"
-              style={{ backgroundColor: step === 6 ? SUCCESS : PRIMARY, color: "white" }}>
-              {step === 6
-                ? <><CheckCircle size={15} weight="bold" /> Confirm Reservation</>
-                : <>{STEPS[step]} <ArrowRight size={14} weight="bold" /></>}
-            </button>
-            {step === 6 && (
-              <button onClick={() => add({ type: "info", title: "Saved as draft" })}
-                className="w-full py-2 text-xs text-center rounded-xl border bg-white hover:bg-gray-50 transition-colors"
-                style={{ borderColor: BORDER, color: MUTED }}>
-                Save as Draft
-              </button>
-            )}
-          </div>
-        </div>
-
+          </Card>
+        </aside>
       </div>
     </div>
   );
 }
+
 export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toast, "id">) => void; initialReservationId?: string }) {
 
   const ALL_GUESTS = checkoutGuests();
@@ -1575,7 +993,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
 
   const catColor: Record<string, string> = { Room: PRIMARY, Restaurant: TEAL, Bar: ORANGE, Laundry: MUTED, "Late Charge": ERROR };
 
-  const CK_BG  = "#F9FAFB";
+  const CK_BG  = "white";
   const CK_BD  = "#E2E8F0";
   const CK_DSH = "#CBD5E1";
   const CK_MUT = "#475569";
@@ -1599,28 +1017,13 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
   );
   if (isCheckedOut) return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT }}>Check-Out · {g.checkout}</p>
-          <h1 className="text-2xl font-bold mt-0.5" style={{ color: TEXT }}>Guest Check-Out</h1>
-        </div>
-      </div>
-      <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
-        <div className="px-6 py-4 flex items-center justify-between" style={{ backgroundColor: PRIMARY }}>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Check-Out Complete · {g.id}</p>
-            <p className="text-base font-bold text-white mt-0.5">{g.guest} · Room {g.room}</p>
-          </div>
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
-            <CheckCircle size={18} color="white" weight="bold" />
-          </div>
-        </div>
-        <Notch />
-        <div className="p-10 text-center">
+      <PageHeader title="Guest Check-Out" sub={`${g.guest} · Room ${g.room}`} />
+      <div className="overflow-hidden bg-white" style={{ border: `1px solid ${CK_BD}`, borderRadius: UI.radius.card }}>
+                <div className="p-10 text-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: "#D1FAE5" }}>
             <CheckCircle size={32} weight="bold" style={{ color: SUCCESS }} />
           </div>
-          <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: CK_MUT }}>Room released</p>
+          <p className="text-sm font-medium mb-2" style={{ color: SUCCESS }}>Checked out · {g.id}</p>
           <p className="text-2xl font-bold mb-1" style={{ color: TEXT }}>{g.guest}</p>
           <p className="text-sm mb-3" style={{ color: CK_MUT }}>Room {g.room} · {g.type} · {g.nights} night{g.nights !== 1 ? "s" : ""}</p>
           <p className="text-xs mb-6 px-4 py-2 rounded-xl inline-block font-semibold" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
@@ -1665,38 +1068,33 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         setShowSplitFolio(false); setSplitLines([]); setShowTransferCharge(false); setTransferLine(null); setShowExtendStay(false);
       }}
         className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl mb-0.5 text-left transition-all relative"
-        style={{ backgroundColor: done ? `${SUCCESS}10` : active ? PRIMARY : "transparent" }}>
+        style={{ backgroundColor: done ? `${SUCCESS}10` : active ? UI.selectedBg : "transparent", boxShadow: active ? `inset 3px 0 0 ${UI.focus}` : undefined }}>
         {done && <div className="absolute top-1.5 right-2 w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ backgroundColor: SUCCESS }}><CheckCircle size={9} color="white" weight="bold" /></div>}
         <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ backgroundColor: done ? SUCCESS : d.vip ? ORANGE : (active ? "rgba(255,255,255,0.3)" : PRIMARY) }}>
+          style={{ backgroundColor: done ? SUCCESS : d.vip ? ORANGE : PRIMARY }}>
           <User size={13} color="white" weight="bold" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold truncate leading-tight" style={{ color: active ? "white" : done ? SUCCESS : TEXT }}>{d.guest}</p>
-          <p className="text-xs truncate leading-tight" style={{ color: active ? "rgba(255,255,255,0.6)" : CK_MUT }}>Rm {d.room} · {displayedCheckout}</p>
+          <p className="text-sm font-medium truncate" style={{ color: done ? SUCCESS : TEXT }}>{d.guest}</p>
+          <p className="text-xs truncate" style={{ color: CK_MUT }}>Room {d.room} · {displayedCheckout}</p>
         </div>
         {!d.dueToday && !done
-          ? <span className="text-xs font-bold flex-shrink-0" style={{ color: active ? "rgba(255,255,255,0.65)" : TEAL, fontSize: 12 }}>Early</span>
-          : d.vip && !done && <span className="text-xs font-bold flex-shrink-0" style={{ color: active ? "rgba(255,255,255,0.65)" : ORANGE, fontSize: 12 }}>VIP</span>}
+          ? <span className="text-xs font-bold flex-shrink-0" style={{ color: TEAL_INK, fontSize: 12 }}>Early</span>
+          : d.vip && !done && <span className="text-xs font-bold flex-shrink-0" style={{ color: ORANGE_INK, fontSize: 12 }}>VIP</span>}
       </button>
     );
   };
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: CK_MUT }}>Check-Out & Settlement · Business date {fmtDate(BUSINESS_DATE)}</p>
-          <h1 className="text-2xl font-bold mt-0.5" style={{ color: TEXT }}>Guest Check-Out</h1>
-        </div>
-      </div>
+      <PageHeader title="Guest Check-Out" sub={`Settle the bill, take the key back and close the stay. Business date ${fmtDate(BUSINESS_DATE)}.`} />
 
       <div className="flex flex-col xl:flex-row gap-5 items-start">
         {/* ── GUEST LIST PANEL ── */}
-        <div className="w-full xl:w-64 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
-          <div className="px-4 py-3.5" style={{ backgroundColor: PRIMARY }}>
-            <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>In-House</p>
-            <p className="text-sm font-bold text-white mt-0.5">{ALL_GUESTS.length} guests · {fmtDate(BUSINESS_DATE)}</p>
+        <div className="w-full xl:w-64 flex-shrink-0 overflow-hidden bg-white xl:sticky xl:top-4" style={{ border: `1px solid ${CK_BD}`, borderRadius: UI.radius.card }}>
+          <div className="px-4 pt-4 pb-2">
+            <h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Guests in house</h2>
+            <p className="text-sm" style={{ color: MUTED }}>{ALL_GUESTS.length} guests</p>
           </div>
           <div className="p-2.5 border-b" style={{ borderColor: CK_BD }}>
             <div className="flex items-center gap-2 px-2.5 py-2 rounded-xl" style={{ backgroundColor: "white", border: `1.5px solid ${CK_DSH}` }}>
@@ -1710,7 +1108,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
             {filteredDue.length > 0 && (
               <>
                 <div className="flex items-center justify-between px-2 mb-1.5">
-                  <span className="font-bold" style={{ color: ERROR, fontSize: 12 }}>Due today</span>
+                  <span className="font-medium" style={{ color: ERROR, fontSize: 13 }}>Leaving today</span>
                   <span className="font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${ERROR}15`, color: ERROR, fontSize: 12 }}>{filteredDue.length}</span>
                 </div>
                 {filteredDue.map(d => <GuestRow key={d.id} d={d} />)}
@@ -1719,7 +1117,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
             {filteredIH.length > 0 && (
               <div className={filteredDue.length > 0 ? "mt-3" : ""}>
                 <div className="flex items-center justify-between px-2 mb-1.5">
-                  <span className="font-bold uppercase" style={{ color: TEAL_INK, fontSize: 12 }}>In-House</span>
+                  <span className="font-medium" style={{ color: TEAL_INK, fontSize: 13 }}>Leaving later</span>
                   <span className="font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${TEAL}15`, color: TEAL_INK, fontSize: 12 }}>{filteredIH.length}</span>
                 </div>
                 {filteredIH.map(d => <GuestRow key={d.id} d={d} />)}
@@ -1733,56 +1131,47 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
 
         {/* ── MAIN CONTENT ── */}
         <div className="flex-1 min-w-0">
-          {/* KPI row */}
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
-            <StatCard label="Charges" value={`₦${grand.toLocaleString()}`} sub={`${activeCharges.length} active items incl. tax`} icon={FileText} accent={PRIMARY} />
-            <StatCard label="Deposit paid" value={`₦${g.deposit.toLocaleString()}`} sub="At check-in" icon={CheckCircle} accent={SUCCESS} />
-            <StatCard label="Balance due" value={`₦${balance.toLocaleString()}`} sub="After deposit" icon={CurrencyDollar} accent={balance > 0 ? ERROR : SUCCESS} />
-            <StatCard label="Stays" value={String(g.visits)} sub={g.visits === 1 ? "First visit" : "Returning guest"} icon={Users} accent={TEAL} />
-          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_360px] gap-5 items-start">
         {/* ── FOLIO ── */}
-        <div className="lg:col-span-3 space-y-4">
-          <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Folio · {g.id}</p>
-                <p className="text-sm font-bold text-white mt-0.5">{g.guest} · Room {g.room} · {g.checkin}–{g.checkout}</p>
+        <div className="space-y-4 min-w-0">
+          <div className="overflow-hidden bg-white" style={{ border: `1px solid ${CK_BD}`, borderRadius: UI.radius.card }}>
+            <div className="flex flex-col gap-3 px-5 pt-5 pb-4">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>{g.vip && "★ "}{g.guest} · Room {g.room}</h2>
+                <p className="text-sm mt-0.5" style={{ color: MUTED }}>{g.id} · {g.checkin} to {g.checkout} · {g.visits === 1 ? "First stay" : `${g.visits} stays with us`}</p>
               </div>
-              <div className="flex gap-2 flex-wrap justify-end">
-                <button onClick={() => setShowDiscount(true)} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: ORANGE_INK, backgroundColor: `${ORANGE}20` }}>Apply discount</button>
-                <button onClick={() => setShowLateCharge(true)} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>+ Late Charge</button>
-                <button onClick={() => { setSplitLines([]); setSplitTarget("Guest Folio B"); setSplitReference(""); setShowSplitFolio(true); }} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Split folio</button>
-                <button onClick={() => { setTransferLine(null); setTransferTarget("Guest Folio"); setTransferReference(""); setTransferReason(""); setShowTransferCharge(true); }} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Transfer</button>
-                <button onClick={() => add({ type: "info", title: "Folio sent to printer" })} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Print</button>
-                <button onClick={() => add({ type: "info", title: "Folio emailed", body: g.guest })} className="text-xs px-3 py-1.5 rounded-lg font-bold flex-shrink-0" style={{ color: "white", backgroundColor: "rgba(255,255,255,0.18)" }}>Email</button>
+              <div className="flex gap-2 flex-wrap">
+                <button onClick={() => setShowDiscount(true)} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Apply discount</button>
+                <button onClick={() => setShowLateCharge(true)} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Add late charge</button>
+                <button onClick={() => { setSplitLines([]); setSplitTarget("Guest Folio B"); setSplitReference(""); setShowSplitFolio(true); }} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Split folio</button>
+                <button onClick={() => { setTransferLine(null); setTransferTarget("Guest Folio"); setTransferReference(""); setTransferReason(""); setShowTransferCharge(true); }} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Transfer a charge</button>
+                <button onClick={() => add({ type: "info", title: "Folio sent to printer" })} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Print folio</button>
+                <button onClick={() => add({ type: "info", title: "Folio emailed", body: g.guest })} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Email folio</button>
               </div>
             </div>
-            <Notch />
-            <div className="overflow-x-auto">
+                        <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr style={{ backgroundColor: CK_BG }}>
-                    {["Date", "Category", "Description", "Qty", "Unit", "Amount", "Tax", "By", ""].map((h, i) => (
-                      <th key={i} className="px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wider" style={{ color: CK_MUT }}>{h}</th>
+                    {["Date", "Type", "Item", "Amount", "VAT", "Posted by", ""].map((h, i) => (
+                      <th key={i} className={`px-3 py-2.5 text-sm font-medium whitespace-nowrap ${i === 3 || i === 4 ? "text-right" : "text-left"}`} style={{ color: MUTED, backgroundColor: UI.surface }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {charges.map((c, i) => (
                     <tr key={i} className="border-t transition-colors hover:bg-white" style={{ borderColor: CK_BD, opacity: c.reversed || c.movedTo ? 0.5 : 1 }}>
-                      <td className="px-3 py-3 text-xs" style={{ color: CK_MUT, fontFamily: mono }}>{c.date}</td>
-                      <td className="px-3 py-3"><span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: (catColor[c.cat] ?? MUTED) + "18", color: catColor[c.cat] ?? MUTED }}>{c.cat}</span></td>
-                      <td className="px-3 py-3 text-sm max-w-40" style={{ color: c.reversed || c.movedTo ? CK_MUT : TEXT }}>
+                      <td className="px-3 py-3 text-sm whitespace-nowrap" style={{ color: CK_MUT }}>{c.date}</td>
+                      <td className="px-3 py-3"><span className="text-xs px-2 py-0.5 rounded font-medium whitespace-nowrap" style={{ backgroundColor: (catColor[c.cat] ?? MUTED) + "18", color: catColor[c.cat] ?? MUTED }}>{c.cat}</span></td>
+                      <td className="px-3 py-3 text-sm" style={{ color: c.reversed || c.movedTo ? CK_MUT : TEXT }}>
                         {c.reversed ? <span className="line-through">{c.desc}</span> : c.desc}
-                        {c.movedTo && <span className="block text-xs font-semibold mt-0.5" style={{ color: TEAL_INK }}>Moved → {c.movedTo}</span>}
+                        {c.qty > 1 && <span className="block text-xs" style={{ color: SUBTLE }}>{c.qty} × ₦{c.unit.toLocaleString()}</span>}
+                        {c.movedTo && <span className="block text-xs font-medium mt-0.5" style={{ color: TEAL_INK }}>Moved to {c.movedTo}</span>}
                       </td>
-                      <td className="px-3 py-3 text-xs text-center" style={{ color: CK_MUT }}>{c.qty}</td>
-                      <td className="px-3 py-3 text-xs" style={{ color: CK_MUT, fontFamily: mono }}>₦{c.unit.toLocaleString()}</td>
-                      <td className="px-3 py-3 text-sm font-bold" style={{ color: c.reversed ? CK_MUT : TEXT, fontFamily: mono }}>₦{c.amount.toLocaleString()}</td>
-                      <td className="px-3 py-3 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>₦{c.tax.toLocaleString()}</td>
-                      <td className="px-3 py-3 text-xs" style={{ color: SUBTLE }}>{c.by}</td>
+                      <td className="px-3 py-3 text-sm font-medium text-right whitespace-nowrap" style={{ color: c.reversed ? CK_MUT : TEXT }}>₦{c.amount.toLocaleString()}</td>
+                      <td className="px-3 py-3 text-sm text-right whitespace-nowrap" style={{ color: SUBTLE }}>₦{c.tax.toLocaleString()}</td>
+                      <td className="px-3 py-3 text-sm whitespace-nowrap" style={{ color: SUBTLE }}>{c.by}</td>
                       <td className="px-3 py-3">
                         {!c.reversed && !c.movedTo
                           ? <button onClick={() => { setVoidLine(i); setVoidReason(""); }} className="text-xs px-2 py-1 rounded-lg border font-semibold" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Void</button>
@@ -1800,7 +1189,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                   <div className="flex justify-between"><span style={{ color: CK_MUT }}>VAT (7.5%)</span><span style={{ fontFamily: mono }}>₦{taxTotal.toLocaleString()}</span></div>
                   <div className="flex justify-between"><span style={{ color: CK_MUT }}>Deposit paid</span><span style={{ color: TEXT, fontFamily: mono }}>−₦{g.deposit.toLocaleString()}</span></div>
                   {gDiscount > 0 && <div className="flex justify-between"><span style={{ color: CK_MUT }}>Discount</span><span style={{ color: TEXT, fontFamily: mono }}>−₦{gDiscount.toLocaleString()}</span></div>}
-                  <div className="flex justify-between font-black text-base border-t pt-2" style={{ borderColor: CK_BD, color: balance > 0 ? ERROR : SUCCESS }}>
+                  <div className="flex justify-between font-semibold text-base border-t pt-2" style={{ borderColor: CK_BD, color: balance > 0 ? ERROR : SUCCESS }}>
                     <span>Balance due</span><span style={{ fontFamily: mono }}>₦{balance.toLocaleString()}</span>
                   </div>
                 </div>
@@ -1809,12 +1198,9 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           </div>
 
           {/* Checkout checklist card */}
-          <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Checkout checklist</p>
-            </div>
-            <Notch />
-            <div className="p-5 space-y-4">
+          <div className="overflow-hidden bg-white" style={{ border: `1px solid ${CK_BD}`, borderRadius: UI.radius.card }}>
+            <div className="px-5 pt-5"><h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Before the guest leaves</h2></div>
+                        <div className="p-5 space-y-4">
               {/* Access revocation */}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
@@ -1871,14 +1257,11 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
         </div>
 
         {/* ── SETTLEMENT SIDEBAR ── */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Settlement</p>
-            </div>
-            <Notch />
-            <div className="p-5">
-              <div className="text-3xl font-black mb-0.5" style={{ color: balance > 0 ? ERROR : SUCCESS, fontFamily: mono }}>₦{balance.toLocaleString()}</div>
+        <div className="space-y-4 2xl:sticky 2xl:top-4">
+          <div className="overflow-hidden bg-white" style={{ border: `1px solid ${CK_BD}`, borderRadius: UI.radius.card }}>
+            <div className="px-5 pt-5"><h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Settle the bill</h2></div>
+                        <div className="p-5">
+              <div className="font-bold mb-0.5" style={{ fontSize: 28, color: balance > 0 ? ERROR : SUCCESS }}>₦{balance.toLocaleString()}</div>
               <div className="text-xs mb-4" style={{ color: CK_MUT }}>Balance due after deposit{gDiscount > 0 ? " & discount" : ""}</div>
 
               {balance === 0 && (
@@ -1889,24 +1272,24 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
 
               {balance > 0 && (
                 <>
-                  <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: CK_MUT }}>Payment method</p>
-                  <div className="space-y-2 mb-4">
-                    {["Cash", "POS / Card", "Cash + POS", "Bank Transfer", "Corporate Account"].map(m => (
+                  <p className="text-sm font-medium mb-2" style={{ color: TEXT }}>Payment method</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 2xl:grid-cols-1 gap-2 mb-4">
+                    {["Cash", "POS / Card", "Cash + POS", "Bank transfer", "Corporate account"].map(m => (
                       <button key={m} onClick={() => setPayMethod(m)}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all"
-                        style={{ border: payMethod === m ? `2px solid ${PRIMARY}` : `1.5px dashed ${CK_DSH}`, backgroundColor: payMethod === m ? `${PRIMARY}08` : "white" }}>
+                        style={{ border: payMethod === m ? `2px solid ${PRIMARY}` : `1px solid ${CK_BD}`, backgroundColor: payMethod === m ? `${PRIMARY}08` : "white" }}>
                         <div className="w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center"
                           style={{ borderColor: payMethod === m ? PRIMARY : CK_DSH, backgroundColor: payMethod === m ? PRIMARY : "transparent" }}>
                           {payMethod === m && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                         </div>
-                        <span className="text-xs font-semibold" style={{ color: TEXT }}>{m}</span>
+                        <span className="text-sm" style={{ color: TEXT }}>{m}</span>
                       </button>
                     ))}
                   </div>
 
                   {(payMethod === "Cash" || payMethod === "Cash + POS") && (
                     <div className="mb-3">
-                      <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Cash received (₦)</label>
+                      <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Cash received (₦)</label>
                       <input aria-label="Cash received (₦)" type="number" value={cashAmt} onChange={e => setCashAmt(e.target.value)} placeholder={balance.toLocaleString()}
                         className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                         style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT, fontFamily: mono }} />
@@ -1915,13 +1298,13 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                   {(payMethod === "POS / Card" || payMethod === "Cash + POS") && (
                     <div className="mb-3 space-y-3">
                       <div>
-                        <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Card amount (₦)</label>
+                        <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Card amount (₦)</label>
                         <input aria-label="Card amount (₦)" type="number" value={cardAmt} onChange={e => setCardAmt(e.target.value)} placeholder={balance.toLocaleString()}
                           className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                           style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT, fontFamily: mono }} />
                       </div>
                       <div>
-                        <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>POS Transaction Reference *</label>
+                        <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>POS reference *</label>
                         <input value={cardRef} onChange={e => setCardRef(e.target.value)} placeholder="POS-2025-XXXXXX" aria-label="POS-2025-XXXXXX"
                           className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                           style={{ border: `1.5px solid ${cardRef ? CK_DSH : ERROR}`, backgroundColor: "white", color: TEXT, fontFamily: mono }} />
@@ -1930,7 +1313,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                   )}
                   {payMethod === "Bank Transfer" && (
                     <div className="mb-3">
-                      <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Transfer Reference *</label>
+                      <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Transfer reference *</label>
                       <input value={bankRef} onChange={e => setBankRef(e.target.value)} placeholder="TRN-2025-XXXXXX" aria-label="TRN-2025-XXXXXX"
                         className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                         style={{ border: `1.5px solid ${bankRef ? CK_DSH : ERROR}`, backgroundColor: "white", color: TEXT, fontFamily: mono }} />
@@ -1939,7 +1322,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                   {payMethod === "Corporate Account" && (
                     <div className="mb-4 space-y-3">
                       <div>
-                        <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Corporate account</label>
+                        <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Corporate account</label>
                         <select aria-label="Corporate account" value={corporateAccount} onChange={e => setCorporateAccount(e.target.value)}
                           className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none"
                           style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
@@ -1947,7 +1330,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                         </select>
                       </div>
                       <div>
-                        <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Purchase Order / Authorization *</label>
+                        <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Purchase order number *</label>
                         <input value={corporateRef} onChange={e => setCorporateRef(e.target.value)} placeholder="PO-2025-XXXX" aria-label="PO-2025-XXXX"
                           className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                           style={{ border: `1.5px solid ${corporateRef ? CK_DSH : ERROR}`, backgroundColor: "white", color: TEXT, fontFamily: mono }} />
@@ -1968,7 +1351,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
 
               {/* Pre-checkout checklist summary */}
               <div className="space-y-2 mb-4 p-3 rounded-xl" style={{ backgroundColor: "white", border: `1.5px solid ${CK_DSH}` }}>
-                <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: CK_MUT }}>Before checkout</p>
+                <p className="text-sm font-medium mb-2" style={{ color: TEXT }}>Before check-out</p>
                 {([
                   [balanceCovered, "Balance settled"],
                   [gAccess, "Access revoked"],
@@ -2000,43 +1383,21 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
           </div>
 
           {/* Guest summary card */}
-          <div className="rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: CK_BG, border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-5 py-4" style={{ backgroundColor: PRIMARY }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-white" style={{ opacity: 0.55 }}>Guest</p>
-            </div>
-            <Notch />
-            <div className="p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: g.vip ? ORANGE : PRIMARY }}>
-                  <User size={19} color="white" weight="bold" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-sm font-bold" style={{ color: TEXT }}>{g.guest}</span>
-                    {g.vip && <span className="text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>VIP</span>}
-                  </div>
-                  <div className="text-xs" style={{ color: CK_MUT }}>Room {g.room} · {g.id}</div>
-                </div>
-              </div>
-              <div className="space-y-2 text-xs">
+          <div className="overflow-hidden bg-white" style={{ border: `1px solid ${CK_BD}`, borderRadius: UI.radius.card }}>
+            <div className="px-5 pt-5"><h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Stay details</h2></div>
+            <div className="p-5 pt-2">
+              <div>
                 {([
                   ["Check-in",  `${g.checkin} 14:00`],
                   ["Check-out", `${g.checkout} ${PROPERTY_PROFILE.checkOutTime}`],
                   ["Nights",    `${g.nights} night${g.nights !== 1 ? "s" : ""}`],
                   ["Phone",     g.phone],
-                  ["Visits",    `${g.visits}${g.visits === 1 ? "st" : g.visits === 2 ? "nd" : g.visits === 3 ? "rd" : "th"} visit`],
-                ] as [string, string][]).map(([k, v]) => (
-                  <div key={k} className="flex justify-between">
-                    <span style={{ color: CK_MUT }}>{k}</span>
-                    <span className="font-semibold" style={{ color: TEXT }}>{v}</span>
-                  </div>
-                ))}
+                ] as [string, string][]).map(([k, v]) => <Row key={k} label={k} value={v} />)}
               </div>
               <button disabled={gAccess} onClick={() => { setExtensionNights("1"); setExtensionReason(""); setShowExtendStay(true); }}
-                className="w-full mt-4 py-2.5 rounded-xl text-xs font-bold border transition-all hover:shadow-sm disabled:opacity-40"
-                style={{ borderColor: CK_DSH, color: CK_MUT }}>
-                {gAccess ? "Access Revoked — Cannot Extend" : "Extend Stay"}
+                className="w-full mt-4 text-sm font-medium bg-white disabled:opacity-40"
+                style={{ height: 40, borderRadius: 10, border: "1px solid #CBD5E1", color: TEXT }}>
+                {gAccess ? "Key access ended, the stay can't be extended" : "Extend the stay"}
               </button>
             </div>
           </div>
@@ -2078,13 +1439,13 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Destination</label>
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Destination</label>
                   <select aria-label="Destination" value={splitTarget} onChange={e => setSplitTarget(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
                     {["Guest Folio B", "Company Master Folio", "Shared Guest Folio"].map(option => <option key={option}>{option}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Reference / Bill To *</label>
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Reference / Bill To *</label>
                   <input value={splitReference} onChange={e => setSplitReference(e.target.value)} placeholder="Guest, company, or folio reference" aria-label="Guest, company, or folio reference"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${splitReference.trim() ? CK_DSH : ERROR}` }} />
                 </div>
@@ -2117,7 +1478,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Charge *</label>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Charge *</label>
                 <select aria-label="Charge" value={transferLine ?? ""} onChange={e => setTransferLine(e.target.value === "" ? null : Number(e.target.value))}
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
                   <option value="">Select a charge</option>
@@ -2126,19 +1487,19 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Transfer to</label>
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Transfer to</label>
                   <select aria-label="Transfer to" value={transferTarget} onChange={e => setTransferTarget(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
                     {["Guest Folio", "Company Folio", "Group Master Folio"].map(option => <option key={option}>{option}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Folio / Company Reference *</label>
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Folio / Company Reference *</label>
                   <input value={transferReference} onChange={e => setTransferReference(e.target.value)} placeholder="FO-XXXX or company" aria-label="FO-XXXX or company"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${transferReference.trim() ? CK_DSH : ERROR}`, fontFamily: mono }} />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Transfer Reason *</label>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Transfer Reason *</label>
                 <textarea value={transferReason} onChange={e => setTransferReason(e.target.value)} rows={2} placeholder="Why is this charge being transferred?" aria-label="Why is this charge being transferred?"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${CK_DSH}` }} />
               </div>
@@ -2182,14 +1543,14 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                   <p className="text-sm font-bold mt-1" style={{ color: TEXT }}>{g.checkout} · {PROPERTY_PROFILE.checkOutTime}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Additional nights</label>
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Additional nights</label>
                   <select aria-label="Additional nights" value={extensionNights} onChange={e => setExtensionNights(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white", color: TEXT }}>
                     {["1", "2", "3", "4", "5", "7"].map(count => <option key={count} value={count}>{count} night{count === "1" ? "" : "s"}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Extension Reason *</label>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Extension Reason *</label>
                 <textarea value={extensionReason} onChange={e => setExtensionReason(e.target.value)} rows={2} placeholder="Guest request, flight change, business extension…" aria-label="Guest request, flight change, business extension"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${CK_DSH}` }} />
               </div>
@@ -2277,7 +1638,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
               </div>
               {!g.dueToday && (
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Early Departure Reason *</label>
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Early Departure Reason *</label>
                   <textarea value={earlyDepartureReason} onChange={e => setEarlyDepartureReason(e.target.value)} rows={3}
                     placeholder="Record the guest's reason and confirm unused-night charges were reviewed…" aria-label="Record the guest's reason and confirm unused-night charges were reviewed"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
@@ -2355,20 +1716,20 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
             </div>
             <div className="px-6 py-4 space-y-3">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Discount Amount (₦) *</label>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Discount Amount (₦) *</label>
                 <input type="number" value={discountAmt} onChange={e => setDiscountAmt(e.target.value)} placeholder="0" aria-label="0"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${CK_DSH}`, fontFamily: mono }} />
                 {discountNum > balance && <p className="text-xs font-semibold mt-1.5" style={{ color: ERROR }}>Discount cannot exceed the ₦{balance.toLocaleString()} outstanding balance.</p>}
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Reason *</label>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Reason *</label>
                 <textarea value={discountReason} onChange={e => setDiscountReason(e.target.value)} rows={2}
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
                   style={{ border: `1.5px solid ${CK_DSH}` }} placeholder="Guest complaint, loyalty benefit, etc." aria-label="Guest complaint, loyalty benefit, etc" />
               </div>
               {discountNum > 5000 && (
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Manager PIN * (required for amounts above ₦5,000)</label>
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Manager PIN * (required for amounts above ₦5,000)</label>
                   <input type="password" value={managerPin} onChange={e => setManagerPin(e.target.value)} placeholder="••••••" aria-label="••••••"
                     className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                     style={{ border: `1.5px solid ${managerPin ? CK_DSH : ERROR}`, fontFamily: mono }} />
@@ -2404,7 +1765,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
             </div>
             <div className="px-6 py-4 space-y-3">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Category</label>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Category</label>
                 <select aria-label="Category" value={lateChargeCat} onChange={e => setLateChargeCat(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none"
                   style={{ border: `1.5px solid ${CK_DSH}`, color: TEXT, backgroundColor: "white" }}>
@@ -2412,12 +1773,12 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                 </select>
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Description *</label>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Description *</label>
                 <input value={lateChargeDesc} onChange={e => setLateChargeDesc(e.target.value)} placeholder="e.g. Minibar — 2× Beer" aria-label="e.g. Minibar — 2× Beer"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${CK_DSH}` }} />
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: CK_MUT }}>Amount (₦) *</label>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Amount (₦) *</label>
                 <input type="number" value={lateChargeAmt} onChange={e => setLateChargeAmt(e.target.value)} placeholder="0" aria-label="0"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                   style={{ border: `1.5px solid ${CK_DSH}`, fontFamily: mono }} />

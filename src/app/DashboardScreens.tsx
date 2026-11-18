@@ -25,7 +25,7 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, RES_GRID, IN_HOUSE, WORK_ORDERS,
+  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, IN_HOUSE, WORK_ORDERS,
   STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
@@ -35,21 +35,18 @@ import {
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, LiveClock, SyncPill, Av } from "./UIKit";
 import { hkRooms } from "./mock/housekeeping";
+import { STAYS, ARRIVALS, departures } from "./mock/frontOffice";
 
 export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
   const [auditRunning, setAuditRunning] = useState(false);
   const go = (s: string, l: string) => nav && nav(s, l);
 
-  const KPIS = [
-    { label: "Occupancy", value: "88%", sub: "62 / 100 rooms", delta: "+4%", up: true, icon: Building2, accent: PRIMARY },
-    { label: "ADR", value: "₦55,000", sub: "per occupied room", delta: "+₦2,100", up: true, icon: TrendingUp, accent: TEAL },
-    { label: "RevPAR", value: "₦48,400", sub: "revenue per avail. room", delta: "+₦1,700", up: true, icon: BarChart3, accent: TEAL },
-    { label: "Revenue Today", value: "₦1.25M", sub: "target: ₦1.1M · +13.5%", delta: "+13.5%", up: true, icon: DollarSign, accent: SUCCESS },
-    { label: "Arrivals", value: "12", sub: "4 still pending room", delta: "—", up: true, icon: ArrowDownToLine, accent: PRIMARY },
-    { label: "Departures", value: "8", sub: "3 still in-house", delta: "—", up: true, icon: ArrowUpFromLine, accent: MUTED },
-    { label: "In House", value: "94", sub: "guests on property", delta: "+6 vs yesterday", up: true, icon: Users, accent: ORANGE },
-    { label: "Complaints", value: "2", sub: "1 SLA at risk", delta: "+1 since 08:00", up: false, icon: AlertTriangle, accent: ERROR },
-  ];
+  // Tonight's figures come from the same rooms and stays the Front Office screens use.
+  const occupied = STAYS.length;
+  const NIGHTLY: Record<string, number> = { Standard: 35000, Deluxe: 55000, Suite: 85000 };
+  const roomRevenue = STAYS.reduce((t, st) => t + (NIGHTLY[st.type] ?? 0), 0);
+  const unassigned = ARRIVALS.filter(a => !a.room).length;
+  const leaving = departures().length;
 
   const ALERTS = [
     { icon: Wrench, label: "2 work orders overdue", sub: "WO-0090 · WO-0088 — SLA breached", color: ERROR, screen: "work-orders", sl: "Work Orders" },
@@ -61,48 +58,18 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
 
   return (
     <div>
-      {/* ── Page header ──────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="text-lg font-bold" style={{ color: TEXT }}>Management Dashboard</h1>
-          <div className="text-xs mt-0.5" style={{ color: MUTED }}>Grand Palms, Abuja &nbsp;·&nbsp; Business date: {fmtDate(BUSINESS_DATE)}</div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => go("new-reservation", "New Reservation")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
-            style={{ backgroundColor: PRIMARY }}><Plus size={13} />New Reservation</button>
-          <button onClick={() => go("check-in", "Check-In")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border transition-all hover:opacity-80"
-            style={{ color: TEXT, borderColor: BORDER }}><ArrowDownToLine size={13} />Check-In</button>
-          <button onClick={() => go("check-out", "Check-Out")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border transition-all hover:opacity-80"
-            style={{ color: TEXT, borderColor: BORDER }}><ArrowUpFromLine size={13} />Check-Out</button>
-        </div>
-      </div>
+      <PageHeader title="Management Overview" sub={`Grand Palms, Abuja · Business date ${fmtDate(BUSINESS_DATE)}`}
+        actions={<div className="flex flex-wrap gap-2">
+          <BtnO label="Check in a guest" onClick={() => go("check-in", "Check-In")} />
+          <BtnO label="Check out a guest" onClick={() => go("check-out", "Check-Out")} />
+          <BtnP label="New reservation" icon={Plus} onClick={() => go("new-reservation", "New Reservation")} />
+        </div>} />
 
-      {/* ── KPI Strip — 8 cards ───────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-5">
-        {KPIS.map(k => {
-          const Icon = k.icon;
-          return (
-            <div key={k.label} className="bg-white rounded-xl p-3.5 border" style={{ borderColor: BORDER }}>
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${k.accent}14` }}>
-                  <Icon size={14} style={{ color: k.accent }} />
-                </div>
-                {k.delta !== "—" && (
-                  <span className="text-xs font-semibold flex items-center gap-0.5"
-                    style={{ color: k.up ? SUCCESS : ERROR }}>
-                    {k.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}{k.delta}
-                  </span>
-                )}
-              </div>
-              <div className="text-xl font-bold tracking-tight mb-0.5" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>{k.value}</div>
-              <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: k.accent }}>{k.label}</div>
-              <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{k.sub}</div>
-            </div>
-          );
-        })}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+        <StatCard label="Occupancy tonight" value={`${Math.round(occupied / ROOMS.length * 100)}%`} sub={`${occupied} of ${ROOMS.length} rooms`} icon={Building2} accent={PRIMARY} />
+        <StatCard label="Room revenue tonight" value={`₦${roomRevenue.toLocaleString()}`} sub={`Average ₦${Math.round(roomRevenue / Math.max(1, occupied)).toLocaleString()} a room`} icon={DollarSign} accent={SUCCESS} />
+        <StatCard label="Arrivals today" value={String(ARRIVALS.length)} sub={unassigned ? `${unassigned} still need a room` : "All have rooms"} icon={ArrowDownToLine} accent={PRIMARY} />
+        <StatCard label="Departures today" value={String(leaving)} sub={`${STAYS.length - leaving} guests staying on`} icon={ArrowUpFromLine} accent={MUTED} />
       </div>
 
       {/* ── Main grid: chart + room status + revenue donut ───────────────── */}
@@ -113,23 +80,19 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-sm font-semibold" style={{ color: TEXT }}>Occupancy trend</div>
-              <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>June 2026 — 30 days</div>
+              <div className="text-sm mt-0.5" style={{ color: MUTED }}>Share of rooms sold each night in June</div>
             </div>
-            <div className="flex gap-4 text-xs" style={{ color: MUTED }}>
-              <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 rounded inline-block" style={{ backgroundColor: PRIMARY }} />Occupancy %</span>
-              <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 rounded inline-block" style={{ backgroundColor: TEAL }} />RevPAR (₦K)</span>
-            </div>
+
           </div>
           <ResponsiveContainer width="100%" height={170}>
-            <AreaChart data={occ30Data} margin={{ top: 4, right: 0, left: -24, bottom: 0 }}>
+            <AreaChart data={occ30Data} margin={{ top: 4, right: 0, left: -8, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={BORDER} />
               <XAxis dataKey="day" tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false}
                 ticks={[1, 6, 11, 16, 21, 26]} />
-              <YAxis tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12, fontFamily: "'Inter', system-ui, sans-serif" }}
-                formatter={(v: any, n: any) => [n === "rev" ? `₦${v}K` : `${v}%`, n === "rev" ? "RevPAR" : "Occupancy"]} />
+              <YAxis domain={[0, 100]} unit="%" tick={{ fontSize: 12, fill: SUBTLE }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12 }}
+                formatter={(v: any) => [`${v}%`, "Occupancy"]} />
               <Area type="monotone" dataKey="occ" name="Occupancy" stroke={PRIMARY} strokeWidth={2} fill={PRIMARY + "18"} dot={false} />
-              <Area type="monotone" dataKey="rev" name="Revenue" stroke={TEAL} strokeWidth={2} fill={TEAL + "18"} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -137,7 +100,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         {/* Revenue by category — donut */}
         <div className="lg:col-span-3 bg-white rounded-xl p-5 border" style={{ borderColor: BORDER }}>
           <div className="text-sm font-semibold mb-1" style={{ color: TEXT }}>Revenue by category</div>
-          <div className="text-xs mb-3" style={{ color: SUBTLE }}>Today · total ₦1.25M</div>
+          <div className="text-sm mb-3" style={{ color: MUTED }}>Share of today's takings</div>
           <div className="flex items-center justify-center">
             <PieChart width={130} height={130}>
               <Pie data={revCat} dataKey="value" cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={2} strokeWidth={0}>
@@ -169,12 +132,12 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                   <span className="text-xs font-bold" style={{ color: r.color, fontFamily: "'Inter', system-ui, sans-serif" }}>{r.count}</span>
                 </div>
                 <div className="h-1.5 rounded-full" style={{ backgroundColor: BORDER }}>
-                  <div className="h-full rounded-full transition-all" style={{ width: `${(r.count / 100) * 100}%`, backgroundColor: r.color }} />
+                  <div className="h-full rounded-full transition-all" style={{ width: `${(r.count / ROOMS.length) * 100}%`, backgroundColor: r.color }} />
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-4 pt-3 border-t text-xs" style={{ borderColor: BORDER, color: MUTED }}>100 rooms total</div>
+          <div className="mt-4 pt-3 border-t text-xs" style={{ borderColor: BORDER, color: MUTED }}>{ROOMS.length} rooms in total</div>
         </div>
       </div>
 
@@ -184,7 +147,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
         {/* Department KPI grid */}
         <div className="lg:col-span-5 bg-white rounded-xl border" style={{ borderColor: BORDER }}>
           <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: BORDER }}>
-            <div className="text-sm font-semibold" style={{ color: TEXT }}>Department KPIs</div>
+            <div className="text-sm font-semibold" style={{ color: TEXT }}>Departments today</div>
           </div>
           <div className="divide-y" style={{ borderColor: BORDER }}>
             {deptKPIs.map(d => {
