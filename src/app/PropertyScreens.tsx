@@ -31,7 +31,7 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK, propertyLabel } from "./constants";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -39,6 +39,8 @@ import {
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { Av } from "./AdminScreens";
 import { DateInput, TextOrDate } from "./DateInput";
+import { roomPrice, roomTypeNames } from "./mock/property";
+import { hkRooms } from "./mock/housekeeping";
 export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [step, setStep] = useState(1);
   const [selRoom, setSelRoom] = useState<{ id: string; type: string; rate: number } | null>(null);
@@ -55,13 +57,9 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
   };
   const [form, setForm] = useState(initialForm);
   const updateForm = (key: keyof typeof initialForm, value: string) => setForm(previous => ({ ...previous, [key]: value }));
-  const AVAIL_ROOMS = [
-    { id: "102", type: "Standard", floor: 1, rate: 35000, hkSt: "Inspected" },
-    { id: "104", type: "Standard", floor: 1, rate: 35000, hkSt: "Clean" },
-    { id: "201", type: "Deluxe", floor: 2, rate: 55000, hkSt: "Inspected" },
-    { id: "301", type: "Suite", floor: 3, rate: 91125, hkSt: "Inspected" },
-    { id: "501", type: "Suite", floor: 5, rate: 91125, hkSt: "Inspected" },
-  ];
+  // Free rooms that Housekeeping has cleaned or inspected, priced from the property's room types.
+  const AVAIL_ROOMS = hkRooms().filter(r => r.guestState === "Vacant" && (r.hkSt === "Clean" || r.hkSt === "Inspected") && !r.note.startsWith("Out of order"))
+    .map(r => ({ id: r.id, type: r.type, floor: r.floor, rate: roomPrice(r.type), hkSt: r.hkSt }));
   const requestedRate = parseInt(rateOverride.replace(/,/g, ""), 10) || 0;
   const effectiveRate = showOverride && overrideApproved && requestedRate > 0 ? requestedRate : selRoom?.rate;
   const nights = form.checkin && form.checkout ? Math.max(0, Math.round((new Date(form.checkout).getTime() - new Date(form.checkin).getTime()) / 86400000)) : 0;
@@ -927,7 +925,7 @@ export function PayrollSummary({ add }: { add: (t: Omit<Toast, "id">) => void })
   const total = PAYROLL_DATA.reduce((s, p) => s + p.net, 0);
   return (
     <div>
-      <PageHeader title="Payroll Summary" sub="June 2025 · Grand Palms Abuja Branch" actions={<><BtnO label="Export for payroll" icon={Download} /><BtnP label="Process payroll" icon={DollarSign} onClick={() => add({ type: "success", title: "Payroll submitted for processing" })} /></>} />
+      <PageHeader title="Payroll Summary" sub={`June 2026 · ${propertyLabel()}`} actions={<><BtnO label="Export for payroll" icon={Download} /><BtnP label="Process payroll" icon={DollarSign} onClick={() => add({ type: "success", title: "Payroll submitted for processing" })} /></>} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5"><StatCard label="Total gross pay" value={`₦${PAYROLL_DATA.reduce((s,p)=>s+p.baseSalary+p.overtime,0).toLocaleString()}`} sub="This pay period" icon={DollarSign} accent={PRIMARY} /><StatCard label="Total deductions" value={`₦${PAYROLL_DATA.reduce((s,p)=>s+p.deductions,0).toLocaleString()}`} sub="Tax + pension + misc" icon={TrendingDown} accent={ERROR} /><StatCard label="Net payroll" value={fmtN(total)} sub="To be disbursed" icon={CheckCircle2} accent={SUCCESS} /></div>
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
         <table className="w-full"><thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Staff member", "Department", "Base salary", "Overtime", "Deductions", "Net pay", ""].map((h, i) => <th key={i} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
@@ -973,9 +971,13 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   const [form, setForm] = useState({
     name: "", type: "Corporate", organizer: "", phone: "", email: "",
     checkin: "2026-09-10", checkout: "2026-09-12",
-    standardRooms: 4, deluxeRooms: 4, suiteRooms: 2,
+    rooms: Object.fromEntries(roomTypeNames().map((t, i) => [t, i === 0 ? 4 : i === 1 ? 4 : 0])) as Record<string, number>,
     ratePlan: "Group Rate", cutoffDate: "2026-09-05", notes: "",
   });
+  // Room blocks are counted per room type of the property, priced from its setup.
+  const blockTotal = (r: Record<string, number>) => Object.values(r).reduce((a, b) => a + b, 0);
+  const blockValue = (r: Record<string, number>, nights: number) => Object.entries(r).reduce((t, [k, v]) => t + v * roomPrice(k), 0) * nights;
+  const blockSlots = (r: Record<string, number>) => roomTypeNames().flatMap(t => Array(r[t] ?? 0).fill(t) as string[]);
   const upd = (k: string, v: string | number) => setForm(p => ({ ...p, [k]: v }));
 
   // ── Types & Mock Data ──────────────────────────────────────────────────────
@@ -984,7 +986,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   type Group = {
     id: string; name: string; type: string; organizer: string; phone: string; email: string;
     checkin: string; checkout: string; nights: number;
-    rooms: { Standard: number; Deluxe: number; Suite: number };
+    rooms: Record<string, number>;
     ratePlan: string; cutoffDate: string; notes: string; cancelPolicy?: string;
     depositPct: number; depositPaid: number; estValue: number;
     status: string; contractSent: boolean; contractSigned: boolean;
@@ -1055,7 +1057,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
     </div>
   );
 
-  const totalBlocked = (g: Group) => g.rooms.Standard + g.rooms.Deluxe + g.rooms.Suite;
+  const totalBlocked = (g: Group) => blockTotal(g.rooms);
   const pickupPct    = (g: Group) => totalBlocked(g) === 0 ? 0 : Math.round((g.rooming.length / totalBlocked(g)) * 100);
   const cutoffDays   = (g: Group) => Math.round((new Date(g.cutoffDate).getTime() - BUSINESS_DATE.getTime()) / 86400000);
   const statusStage  = (g: Group) => {
@@ -1099,15 +1101,15 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
     if (!form.name.trim() || !form.organizer.trim()) {
       add({ type: "warning", title: "Group name and organizer are required" }); return;
     }
-    const totalRms  = form.standardRooms + form.deluxeRooms + form.suiteRooms;
+    const totalRms  = blockTotal(form.rooms);
     const estNights = Math.max(1, Math.round((new Date(form.checkout).getTime() - new Date(form.checkin).getTime()) / 86400000));
-    const estVal    = (form.standardRooms * 35000 + form.deluxeRooms * 55000 + form.suiteRooms * 95000) * estNights;
+    const estVal    = blockValue(form.rooms, estNights);
     const newId     = `GRP-${String(groups.length + 1).padStart(3, "0")}`;
     setGroups(prev => [...prev, {
       id: newId, name: form.name.trim(), type: form.type,
       organizer: form.organizer.trim(), phone: form.phone, email: form.email,
       checkin: form.checkin, checkout: form.checkout, nights: estNights,
-      rooms: { Standard: form.standardRooms, Deluxe: form.deluxeRooms, Suite: form.suiteRooms },
+      rooms: { ...form.rooms },
       ratePlan: form.ratePlan, cutoffDate: form.cutoffDate, notes: form.notes,
       depositPct: 30, depositPaid: 0, estValue: estVal,
       status: "Tentative", contractSent: false, contractSigned: false,
@@ -1116,15 +1118,14 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
     }]);
     add({ type: "success", title: "Group created", body: `${form.name} · ${totalRms} rooms · Tentative` });
     setShowCreate(false);
-    setForm({ name: "", type: "Corporate", organizer: "", phone: "", email: "", checkin: "2026-09-10", checkout: "2026-09-12", standardRooms: 4, deluxeRooms: 4, suiteRooms: 2, ratePlan: "Group Rate", cutoffDate: "2026-09-05", notes: "" });
+    setForm({ name: "", type: "Corporate", organizer: "", phone: "", email: "", checkin: "2026-09-10", checkout: "2026-09-12", rooms: Object.fromEntries(roomTypeNames().map((t, i) => [t, i === 0 ? 4 : i === 1 ? 4 : 0])) as Record<string, number>, ratePlan: "Group Rate", cutoffDate: "2026-09-05", notes: "" });
   };
 
   const doAssign = (groupId: string, slotIdx: number) => {
     if (!assignName.trim()) return;
     setGroups(prev => prev.map(g => {
       if (g.id !== groupId) return g;
-      const roomTypes = [...Array(g.rooms.Standard).fill("Standard"), ...Array(g.rooms.Deluxe).fill("Deluxe"), ...Array(g.rooms.Suite).fill("Suite")];
-      const type = roomTypes[slotIdx] || "Standard";
+      const type = blockSlots(g.rooms)[slotIdx] || roomTypeNames()[0];
       const newGuest: RoomingGuest = { id: slotIdx + 1, name: assignName.trim(), room: `${type} TBA`, type, status: "Assigned" };
       const newRooming = [...g.rooming]; newRooming[slotIdx] = newGuest;
       return { ...g, rooming: newRooming };
@@ -1160,11 +1161,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
         checkin:      cin,
         checkout:     cout,
         nights,
-        rooms: {
-          Standard: editForm.standardRooms ?? g.rooms.Standard,
-          Deluxe:   editForm.deluxeRooms   ?? g.rooms.Deluxe,
-          Suite:    editForm.suiteRooms    ?? g.rooms.Suite,
-        },
+        rooms:        editForm.rooms        ?? g.rooms,
         ratePlan:     editForm.ratePlan     ?? g.ratePlan,
         cutoffDate:   editForm.cutoffDate   ?? g.cutoffDate,
         notes:        editForm.notes        ?? g.notes,
@@ -1187,9 +1184,9 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   };
 
   // ── Inline create form values ──────────────────────────────────────────────
-  const createTotalRms  = form.standardRooms + form.deluxeRooms + form.suiteRooms;
+  const createTotalRms  = blockTotal(form.rooms);
   const createNights    = Math.max(1, Math.round((new Date(form.checkout).getTime() - new Date(form.checkin).getTime()) / 86400000));
-  const createEstVal    = (form.standardRooms * 35000 + form.deluxeRooms * 55000 + form.suiteRooms * 95000) * createNights;
+  const createEstVal    = blockValue(form.rooms, createNights);
 
   // ────────────────────────────────────────────────────────────────────────────
   return (
@@ -1269,21 +1266,17 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
               {/* Room block */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: PASS_MUTED }}>Room block</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {([
-                    ["Standard", "standardRooms", "₦35,000/night"],
-                    ["Deluxe",   "deluxeRooms",   "₦55,000/night"],
-                    ["Suite",    "suiteRooms",     "₦95,000/night"],
-                  ] as [string, "standardRooms"|"deluxeRooms"|"suiteRooms", string][]).map(([label, key, rate]) => (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {roomTypeNames().map(label => [label, label, `₦${roomPrice(label).toLocaleString()}/night`] as const).map(([label, key, rate]) => (
                     <div key={key} className="rounded-xl p-4 text-center" style={{ border: `1.5px solid ${PASS_DASH}`, backgroundColor: "white" }}>
                       <p className="text-xs font-bold" style={{ color: PASS_MUTED }}>{label}</p>
                       <p className="text-xs mb-3" style={{ color: PASS_MUTED, opacity: 0.7 }}>{rate}</p>
                       <div className="flex items-center justify-center gap-3">
-                        <button onClick={() => upd(key, Math.max(0, (form[key] as number) - 1))}
+                        <button aria-label={`One fewer ${label} room`} onClick={() => setForm(p => ({ ...p, rooms: { ...p.rooms, [key]: Math.max(0, (p.rooms[key] ?? 0) - 1) } }))}
                           className="w-7 h-7 rounded-full flex items-center justify-center font-bold"
                           style={{ backgroundColor: PASS_BG, border: `1.5px solid ${PASS_DASH}`, color: PASS_MUTED, fontSize: 18, lineHeight: 1 }}>−</button>
-                        <span className="text-xl font-bold w-6 text-center" style={{ color: TEXT, fontFamily: mono }}>{form[key]}</span>
-                        <button onClick={() => upd(key, (form[key] as number) + 1)}
+                        <span className="text-xl font-bold w-6 text-center" style={{ color: TEXT, fontFamily: mono }}>{form.rooms[key] ?? 0}</span>
+                        <button aria-label={`One more ${label} room`} onClick={() => setForm(p => ({ ...p, rooms: { ...p.rooms, [key]: (p.rooms[key] ?? 0) + 1 } }))}
                           className="w-7 h-7 rounded-full flex items-center justify-center font-bold"
                           style={{ backgroundColor: TEAL_INK, color: "white", fontSize: 18, lineHeight: 1 }}>+</button>
                       </div>
@@ -1654,19 +1647,19 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                         {/* Room allocation steppers */}
                         <div>
                           <label className="block text-xs font-bold mb-2" style={{ color: PASS_MUTED }}>Room allocation</label>
-                          <div className="grid grid-cols-3 gap-2">
-                            {(["Standard","Deluxe","Suite"] as const).map(rt => {
-                              const key = `${rt.toLowerCase()}Rooms`;
-                              const val = editForm[key] ?? g.rooms[rt];
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {roomTypeNames().map(rt => {
+                              const cur: Record<string, number> = editForm.rooms ?? g.rooms;
+                              const val = cur[rt] ?? 0;
                               return (
                                 <div key={rt} className="flex flex-col items-center gap-1 p-3 rounded-xl" style={{ backgroundColor: "white", border: `1.5px solid ${PASS_BORDER}` }}>
                                   <p className="text-xs font-bold" style={{ color: PASS_MUTED }}>{rt}</p>
                                   <div className="flex items-center gap-2">
-                                    <button onClick={() => setEditForm(p => ({ ...p, [key]: Math.max(0, val - 1) }))}
+                                    <button aria-label={`One fewer ${rt} room`} onClick={() => setEditForm(p => ({ ...p, rooms: { ...cur, [rt]: Math.max(0, val - 1) } }))}
                                       className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
                                       style={{ backgroundColor: PASS_DASH, color: TEXT }}>−</button>
                                     <span className="text-lg font-bold w-6 text-center" style={{ color: TEXT, fontFamily: mono }}>{val}</span>
-                                    <button onClick={() => setEditForm(p => ({ ...p, [key]: val + 1 }))}
+                                    <button aria-label={`One more ${rt} room`} onClick={() => setEditForm(p => ({ ...p, rooms: { ...cur, [rt]: val + 1 } }))}
                                       className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
                                       style={{ backgroundColor: TEAL_INK, color: "white" }}>+</button>
                                   </div>
@@ -1759,12 +1752,8 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-2">
-                          {([
-                            ["Standard", g.rooms.Standard, "₦35K/nt"],
-                            ["Deluxe",   g.rooms.Deluxe,   "₦55K/nt"],
-                            ["Suite",    g.rooms.Suite,    "₦95K/nt"],
-                          ] as [string, number, string][]).map(([type, count, rate]) => (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {roomTypeNames().map(type => [type, g.rooms[type] ?? 0, `₦${roomPrice(type).toLocaleString()} a night`] as const).map(([type, count, rate]) => (
                             <div key={type} className="text-center p-3 rounded-xl" style={{ backgroundColor: "white", border: `1px solid ${PASS_BORDER}` }}>
                               <p className="text-xs font-bold" style={{ color: PASS_MUTED }}>{type}</p>
                               <p className="text-2xl font-bold my-1" style={{ color: count > 0 ? TEXT : PASS_DASH, fontFamily: mono }}>{count}</p>
@@ -1790,7 +1779,7 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                               organizer: g.organizer, phone: g.phone, email: g.email,
                               checkin: g.checkin, checkout: g.checkout, cutoffDate: g.cutoffDate,
                               ratePlan: g.ratePlan, notes: g.notes,
-                              standardRooms: g.rooms.Standard, deluxeRooms: g.rooms.Deluxe, suiteRooms: g.rooms.Suite,
+                              rooms: { ...g.rooms },
                               cancelPolicy: g.cancelPolicy ?? "48h notice / 1 night penalty",
                             });
                             setEditingGroup(g.id);
@@ -1829,9 +1818,9 @@ export function GroupBookings({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                       </thead>
                       <tbody>
                         {Array.from({ length: total }, (_, idx) => {
-                          const roomTypes = [...Array(g.rooms.Standard).fill("Standard"), ...Array(g.rooms.Deluxe).fill("Deluxe"), ...Array(g.rooms.Suite).fill("Suite")];
+                          const roomTypes = blockSlots(g.rooms);
                           const guest = g.rooming[idx];
-                          const rType = roomTypes[idx] || "Standard";
+                          const rType = roomTypes[idx] || roomTypeNames()[0];
                           const rsc   = guest ? roomingStatusColor(guest.status) : null;
                           return (
                             <tr key={idx} style={{ borderBottom: `1px solid ${PASS_DASH}`, backgroundColor: idx % 2 === 0 ? "white" : "#FAFAF8" }}>
@@ -2071,7 +2060,7 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const PASS_BORDER = "#E2E8F0";
   const PASS_MUTED  = "#475569";
   const PASS_DASH   = "#CBD5E1";
-  const ROOM_TYPES  = ["Suite", "Deluxe", "Standard"];
+  const ROOM_TYPES  = roomTypeNames();
   const SOURCES     = ["Walk-in", "Phone", "Online", "Referral"];
 
   type WLEntry = {
@@ -2512,16 +2501,21 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
 }
 
 export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const ROOM_CATEGORIES = ["Standard", "Deluxe", "Suite"];
-  const ROOM_TYPE_MULTIPLIERS = { Standard: 1, Deluxe: 1.57, Suite: 2.71 };
+  // A plan's base is the price of the cheapest room type; other types keep the same ratio as their own prices.
+  const ROOM_CATEGORIES = roomTypeNames();
+  const ROOM_TYPE_MULTIPLIERS: Record<string, number> = Object.fromEntries(ROOM_CATEGORIES.map(t => [t, roomPrice(t) / (roomPrice(ROOM_CATEGORIES[0]) || 1)]));
 
-  const [plans, setPlans] = useState(RATE_PLANS.map(r => ({ ...r })));
+  const [plans, setPlansState] = useState(RATE_PLANS.map(r => ({ ...r })));
+  // Saved back to the shared list so New Reservation offers the same plans and prices.
+  const setPlans = (fn: (prev: typeof plans) => typeof plans) => setPlansState(prev => {
+    const next = fn(prev); RATE_PLANS.splice(0, RATE_PLANS.length, ...next.map(r => ({ ...r }))); return next;
+  });
   const [selectedPlan, setSelectedPlan] = useState<(typeof RATE_PLANS)[0] | null>(null);
   const [editPlan, setEditPlan] = useState<(typeof RATE_PLANS)[0] | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editValues, setEditValues] = useState({ name: "", base: "", dates: "", rooms: [] as string[] });
-  const [createValues, setCreateValues] = useState({ name: "", base: "", dates: "Year-round", rooms: ["Standard", "Deluxe", "Suite"] as string[] });
+  const [createValues, setCreateValues] = useState({ name: "", base: "", dates: "Year-round", rooms: [...ROOM_CATEGORIES] as string[] });
   const updC = (k: string, v: string) => setCreateValues(p => ({ ...p, [k]: v }));
 
   const openEdit = (r: typeof RATE_PLANS[0]) => {
@@ -2542,11 +2536,11 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
       add({ type: "warning", title: "Plan name and base rate are required" }); return;
     }
     const newId = `RP-${String(plans.length + 1).padStart(3, "0")}`;
-    const rooms = createValues.rooms.length > 0 ? createValues.rooms : ["Standard"];
+    const rooms = createValues.rooms.length > 0 ? createValues.rooms : [ROOM_CATEGORIES[0]];
     setPlans(prev => [...prev, { id: newId, name: createValues.name.trim(), base: Number(createValues.base), dates: createValues.dates || "Year-round", active: true, rooms } as typeof RATE_PLANS[0]]);
     add({ type: "success", title: "Rate plan created", body: `${createValues.name} · ${rooms.join(", ")}` });
     setShowCreate(false);
-    setCreateValues({ name: "", base: "", dates: "Year-round", rooms: ["Standard", "Deluxe", "Suite"] });
+    setCreateValues({ name: "", base: "", dates: "Year-round", rooms: [...ROOM_CATEGORIES] });
   };
   const doDelete = (id: string) => {
     const plan = plans.find(r => r.id === id);
@@ -2618,7 +2612,7 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
             <div className="mb-4">
               <div className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Per room-Type rate table</div>
               <div className="space-y-2">
-                {(["Standard","Deluxe","Suite"] as (keyof typeof ROOM_TYPE_MULTIPLIERS)[]).map(rt=>{
+                {ROOM_CATEGORIES.map(rt=>{
                   const applies = selectedPlan.rooms.includes(rt);
                   const rtRate = Math.round(selectedPlan.base * ROOM_TYPE_MULTIPLIERS[rt]);
                   return (
@@ -2636,7 +2630,7 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
             </div>
             <div className="mb-4">
               <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: MUTED }}>With VAT (7.5%)</div>
-              {(["Standard","Deluxe","Suite"] as (keyof typeof ROOM_TYPE_MULTIPLIERS)[]).filter(rt=>selectedPlan.rooms.includes(rt)).map(rt=>{
+              {ROOM_CATEGORIES.filter(rt=>selectedPlan.rooms.includes(rt)).map(rt=>{
                 const rtRate = Math.round(selectedPlan.base * ROOM_TYPE_MULTIPLIERS[rt]);
                 return (
                   <div key={rt} className="flex justify-between text-xs mb-1">
@@ -2762,7 +2756,7 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
                   {ROOM_CATEGORIES.filter(rt => createValues.rooms.includes(rt)).map(rt => (
                     <div key={rt} className="flex justify-between text-xs">
                       <span style={{ color: MUTED }}>{rt}</span>
-                      <span style={{ color: TEXT, fontFamily: mono }}>₦{Math.round(Number(createValues.base) * ROOM_TYPE_MULTIPLIERS[rt as keyof typeof ROOM_TYPE_MULTIPLIERS]).toLocaleString()}/nt</span>
+                      <span style={{ color: TEXT, fontFamily: mono }}>₦{Math.round(Number(createValues.base) * ROOM_TYPE_MULTIPLIERS[rt]).toLocaleString()}/nt</span>
                     </div>
                   ))}
                 </div>

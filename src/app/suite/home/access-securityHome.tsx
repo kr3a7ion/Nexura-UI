@@ -5,8 +5,7 @@ import {
 } from "@phosphor-icons/react";
 import type { Screen } from "../../constants";
 import {
-  BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono,
-} from "../../constants";
+  BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
 import {
   ACCESS_EXCEPTIONS, ACCESS_GATEWAY, ACCESS_QUEUE, ACCESS_SECURITY_KPIS, type AccessQueueItem,
@@ -66,7 +65,7 @@ export default function AccessSecurityHome({ nav }: { nav: Nav }) {
           <div className="mt-3 flex flex-wrap gap-2"><Badge label="Manager" colors={{ bg: BG, text: PRIMARY }} /><Badge label="Front Desk" colors={{ bg: BG, text: PRIMARY }} /><Badge label="IT Administrator" colors={{ bg: BG, text: PRIMARY }} /></div>
         </div>
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-          <div className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: BORDER, color: MUTED }}><Door size={14} style={{ color: accent }} />Grand Palms · Abuja</div>
+          <div className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: BORDER, color: MUTED }}><Door size={14} style={{ color: accent }} />{propertyLabel()}</div>
           <div className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: "#A7F3D0", backgroundColor: "#ECFDF5", color: SUCCESS }}><span className="h-2 w-2 rounded-full" style={{ backgroundColor: SUCCESS }} />42 locks synced</div>
         </div>
       </section>

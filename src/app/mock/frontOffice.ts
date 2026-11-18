@@ -2,6 +2,7 @@
 // arrivals from here, so one guest shows the same booking, room, stay and balance
 // everywhere. When the hotel server is wired, this file is the one that changes.
 import { BUSINESS_DATE, DEMO_STATE } from "../constants";
+import { roomPrice } from "./property";
 
 // ?state=empty shows a quiet day: nobody in house, nobody arriving.
 const EMPTY = DEMO_STATE === "empty";
@@ -117,7 +118,6 @@ export type GridBooking = { id: string; room: string; guest: string; checkin: Da
 const year = BUSINESS_DATE.getFullYear();
 const dayMonth = (s: string) => new Date(`${s} ${year}`);
 const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
-const RATE: Record<string, number> = { Standard: 35000, Deluxe: 55000, Suite: 85000 };
 const FUTURE: [string, string, string, string, number, GridBooking["status"], string][] = [
   // id, room, guest, check-in (ISO), nights, status, source
   ["BK-2861", "101", "Blessing Eze", "2026-06-25", 3, "Confirmed", "Phone"],
@@ -138,11 +138,11 @@ const FUTURE: [string, string, string, string, number, GridBooking["status"], st
 ];
 const roomType = (room: string) => ({ "101": "Deluxe", "104": "Deluxe", "202": "Deluxe", "302": "Deluxe", "303": "Deluxe", "203": "Suite", "501": "Suite", "502": "Suite" } as Record<string, string>)[room] ?? "Standard";
 export const gridBookings = (): GridBooking[] => [
-  ...STAYS.map(s => ({ id: s.id, room: s.room, guest: s.guest, checkin: dayMonth(s.checkin), checkout: dayMonth(s.checkout), status: "Checked in" as const, rate: RATE[s.type], source: "Front desk", vip: s.vip })),
+  ...STAYS.map(s => ({ id: s.id, room: s.room, guest: s.guest, checkin: dayMonth(s.checkin), checkout: dayMonth(s.checkout), status: "Checked in" as const, rate: roomPrice(s.type), source: "Front desk", vip: s.vip })),
   ...ARRIVALS.filter(a => a.room).map(a => ({ id: a.id, room: a.room, guest: a.guest, checkin: BUSINESS_DATE, checkout: addDays(BUSINESS_DATE, a.nights), status: (a.status === "Pending" ? "Pending" : "Confirmed") as GridBooking["status"], rate: a.rate, source: "Phone", vip: a.vip })),
   ...(EMPTY ? [] : FUTURE.map(([id, room, guest, iso, n, status, source]) => {
     const checkin = new Date(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
-    return { id, room, guest, checkin, checkout: addDays(checkin, n), status, rate: RATE[roomType(room)], source, vip: false };
+    return { id, room, guest, checkin, checkout: addDays(checkin, n), status, rate: roomPrice(roomType(room)), source, vip: false };
   })),
 ];
 // Arrivals still waiting for a room; the grid shows them above the rooms.

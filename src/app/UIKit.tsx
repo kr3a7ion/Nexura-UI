@@ -37,6 +37,7 @@ import {
 import { TextOrDate } from "./DateInput";
 import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, balanceOf, gridBookings, unassignedArrivals, type GridBooking } from "./mock/frontOffice";
 import { UI, controlClass, controlStyle, Field, Card, SectionTitle, Stepper, Choice, Segmented, Row } from "./ui";
+import { ROOM_TYPES, roomPrice, roomTypeNames } from "./mock/property";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -275,7 +276,7 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
   const MIN_DW = 64, RH = 56, ROOMW = 184;
   const pct = (days: number) => `${(days / DAYS) * 100}%`;
   const [offset, setOffset] = useState(-2); // open two days back so in-house stays show where they began
-  const [type, setType] = useState<"All" | "Standard" | "Deluxe" | "Suite">("All");
+  const [type, setType] = useState<string>("All");
   const [floor, setFloor] = useState("All");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<GridBooking | null>(null);
@@ -336,7 +337,7 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
           </div>
           <span className="text-sm font-semibold" style={{ color: TEXT }}>{short(days[0])} – {fmtDate(days[DAYS - 1])}</span>
           <div className="flex-1" />
-          <Segmented label="Room type" options={["All", "Standard", "Deluxe", "Suite"] as const} value={type} onChange={setType} />
+          <Segmented label="Room type" options={["All", ...roomTypeNames()]} value={type} onChange={setType} />
           <select aria-label="Floor" value={floor} onChange={e => setFloor(e.target.value)} className="h-9 px-2.5 rounded-lg border text-sm bg-white" style={{ borderColor: "#CBD5E1", color: TEXT }}>
             {floors.map(f => <option key={f} value={f}>{f === "All" ? "All floors" : `Floor ${f}`}</option>)}
           </select>
@@ -405,7 +406,7 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
                 </div>
                 <div className="relative flex flex-1">
                   {days.map((d, i) => {
-                    const taken = bookings.some(b => b.room === r.id && b.checkin <= d && b.checkout > d);
+                    const taken = r.status === "Maintenance" || r.status === "Out of service" || bookings.some(b => b.room === r.id && b.checkin <= d && b.checkout > d);
                     return (
                       taken || d < BUSINESS_DATE
                         ? <div key={i} aria-hidden className="h-full" style={{ width: pct(1), borderRight: `1px solid #F1F5F9`, backgroundColor: i === todayIdx ? "rgba(240,253,250,0.6)" : weekend(d) ? UI.surface : undefined }} />
@@ -488,7 +489,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
     adults: "2", children: "0",
     roomType: gridRoom?.type ?? "Deluxe", roomNumber: gridRoom?.id ?? "",
     source: "Phone",
-    ratePlan: "Standard Rate", nightlyRate: ({ Standard: "35000", Deluxe: "55000", Suite: "85000" } as Record<string, string>)[gridRoom?.type ?? "Deluxe"],
+    ratePlan: "Standard Rate", nightlyRate: String(roomPrice(gridRoom?.type ?? "Deluxe")),
     manualRateVal: "",
     guestName: fromGrid ? "" : initialGuestName, phone: "", email: "",
     nationality: "Nigerian", company: "", vip: false,
@@ -508,13 +509,8 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   // Rooms of each type with no booking overlapping the chosen nights.
   const bookingsNow = gridBookings();
   const stayFrom = new Date(`${form.checkin}T00:00:00`), stayTo = new Date(`${form.checkout}T00:00:00`);
-  const freeRooms = (t: string) => ROOMS.filter(r => r.type === t && !bookingsNow.some(b => b.room === r.id && b.checkin < stayTo && b.checkout > stayFrom)).map(r => r.id);
-  const ROOM_PRICES: Record<string, number> = { Standard: 35000, Deluxe: 55000, Suite: 85000 };
-  const ROOM_DESC: Record<string, string> = {
-    Standard: "King bed · Courtyard view · 28 m²",
-    Deluxe:   "King bed · Pool view · 38 m²",
-    Suite:    "2 beds · Panoramic city & pool view · 68 m²",
-  };
+  const freeRooms = (t: string) => ROOMS.filter(r => r.type === t && r.status !== "Maintenance" && r.status !== "Out of service" && !bookingsNow.some(b => b.room === r.id && b.checkin < stayTo && b.checkout > stayFrom)).map(r => r.id);
+  const ROOM_DESC = (t: string) => { const rt = ROOM_TYPES.find(x => x.name === t); return rt ? `${rt.beds} · ${rt.size} · up to ${rt.maxOcc} guests` : ""; };
 
   const EXTRAS_CATALOG = [
     { name: "Champagne on arrival",  price: 8500,  icon: Wine      },
@@ -538,7 +534,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   ));
   const baseRate = manualRate && form.manualRateVal
     ? Number(form.manualRateVal)
-    : Number(form.nightlyRate) || ROOM_PRICES[form.roomType] || 55000;
+    : Number(form.nightlyRate) || roomPrice(form.roomType) || 55000;
   const extrasTotal = form.extras.reduce((s, ex) => {
     const cat = EXTRAS_CATALOG.find(e => e.name === ex);
     return s + (cat ? (cat.name === "Breakfast included" ? cat.price * nights : cat.price) : 0);
@@ -553,7 +549,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   const STEPS = ["Stay", "Rate", "Guest", "Extras", "Deposit", "Review"];
   const STEP_SUB = ["When they arrive, how many guests and which room.", "The price per night for this stay.", "Who is staying. Search first to reuse a returning guest.", "Anything to prepare before they arrive.", "What the guest pays now to hold the room.", "Check everything, then confirm the booking."];
   // Rate plans are priced against the Standard room; scale them to the chosen room type.
-  const planPrice = (base: number) => Math.round(ROOM_PRICES[form.roomType] * base / 35000 / 500) * 500;
+  const planPrice = (base: number) => Math.round(roomPrice(form.roomType) * base / roomPrice(roomTypeNames()[0]) / 500) * 500;
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
@@ -659,7 +655,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
     </div>
   );
 
-  const types = ["Standard", "Deluxe", "Suite"];
+  const types = roomTypeNames();
   return (
     <div>
       <PageHeader title="New reservation" sub="Book a room in six short steps. The summary on the right updates as you go." />
@@ -695,10 +691,10 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
                   {types.map(t => {
                     const free = freeRooms(t).length;
                     return (
-                      <Choice key={t} name="room-type" selected={form.roomType === t} title={t} sub={ROOM_DESC[t]}
+                      <Choice key={t} name="room-type" selected={form.roomType === t} title={t} sub={ROOM_DESC(t)}
                         badge={<span className="text-xs px-2 py-0.5 rounded-md" style={{ backgroundColor: free ? "#F0FDF4" : "#FEF2F2", color: free ? "#166534" : "#991B1B" }}>{free ? `${free} free` : "Full"}</span>}
-                        onSelect={() => { upd("roomType", t); upd("roomNumber", ""); upd("nightlyRate", String(ROOM_PRICES[t])); upd("ratePlan", "Standard Rate"); setManualRate(false); }}
-                        aside={<><span className="block text-base font-semibold" style={{ color: TEXT }}>{naira(ROOM_PRICES[t])}</span><span className="text-sm" style={{ color: MUTED }}>per night</span></>} />
+                        onSelect={() => { upd("roomType", t); upd("roomNumber", ""); upd("nightlyRate", String(roomPrice(t))); upd("ratePlan", "Standard Rate"); setManualRate(false); }}
+                        aside={<><span className="block text-base font-semibold" style={{ color: TEXT }}>{naira(roomPrice(t))}</span><span className="text-sm" style={{ color: MUTED }}>per night</span></>} />
                     );
                   })}
                 </div>
@@ -983,7 +979,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
     return charge && !charge.reversed && !charge.movedTo ? sum + charge.amount + charge.tax : sum;
   }, 0);
   const extensionCount = Math.max(1, parseInt(extensionNights) || 1);
-  const nightlyRate = g.type === "Suite" ? 85000 : g.type === "Deluxe" ? 55000 : 35000;
+  const nightlyRate = roomPrice(g.type);
   const extensionSubtotal = nightlyRate * extensionCount;
   const extensionTax = Math.round(extensionSubtotal * 0.075);
   const extensionCheckout = addDaysLabel(g.checkout, extensionCount);

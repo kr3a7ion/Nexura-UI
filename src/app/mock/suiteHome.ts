@@ -9,6 +9,7 @@ const stat = (label: string, value: string, sub: string, screen: Screen, screenL
 const alert = (text: string, from: string, since: string, tone: HomeAlert["tone"], screen: Screen, screenLabel: string): HomeAlert => ({ text, from, since, tone, screen, screenLabel });
 
 // Room and guest figures are counted from the Front Office and Housekeeping data, so Suite Home agrees with every screen.
+const OUT = (r: { status: string }) => r.status === "Maintenance" || r.status === "Out of service";
 const occ = () => `${Math.round(STAYS.length / ROOMS.length * 100)}%`;
 const frontDesk = (): HomeStat[] => {
   const rooms = hkRooms(), vacant = rooms.filter(r => r.guestState === "Vacant");
@@ -33,7 +34,7 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
     ],
     alerts: [
       LATE_ARRIVAL,
-      alert("Air conditioner fault in room 302 is overdue", "Maintenance", "Yesterday", "error", "work-orders", "Work Orders"),
+      alert("Air conditioner fault in room 316 is overdue", "Maintenance", "Yesterday", "error", "work-orders", "Work Orders"),
       alert("Diesel is below 25%", "Inventory", "09:10", "warning", "generator-diesel", "Generator & Diesel"),
     ],
   },
@@ -42,7 +43,7 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
     stats: [
       stat("New bookings today", "9", "4 by phone, 5 at the desk", "reservation-grid", "Reservation Grid"),
       stat("On the waitlist", "3", "2 for this weekend", "waitlist", "Waitlist"),
-      stat("Free rooms tonight", String(ROOMS.length - STAYS.length - ARRIVALS.filter(a => a.room).length), "After today's arrivals with rooms", "availability-board", "Availability Board"),
+      stat("Free rooms tonight", String(ROOMS.filter(r => !OUT(r)).length - STAYS.length - ARRIVALS.filter(a => a.room).length), "After today's arrivals with rooms", "availability-board", "Availability Board"),
       stat("Cancellations", "1", "Refund waiting", "cancellation", "Cancellation & Refund"),
     ],
     alerts: [alert("Suites are sold out on Saturday", "Front Office", "Today", "warning", "availability-board", "Availability Board")],
@@ -61,9 +62,9 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
       stat("Open work orders", "7", "2 urgent", "work-orders", "Work Orders"),
       stat("Due today", "3", "Preventive tasks", "preventive-schedule", "Preventive Schedule"),
       stat("Diesel level", "24%", "About 9 hours left", "generator-diesel", "Generator & Diesel"),
-      stat("Rooms out of order", "0", "All rooms in service", "work-orders", "Work Orders"),
+      stat("Rooms out of order", String(ROOMS.filter(OUT).length), ROOMS.filter(OUT).map(r => r.id).join(", ") || "All rooms in service", "work-orders", "Work Orders"),
     ],
-    alerts: [alert("Air conditioner fault in room 302 is overdue", "Maintenance", "Yesterday", "error", "work-orders", "Work Orders")],
+    alerts: [alert("Air conditioner fault in room 316 is overdue", "Maintenance", "Yesterday", "error", "work-orders", "Work Orders")],
   },
   RT: {
     stats: [

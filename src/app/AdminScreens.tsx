@@ -26,10 +26,12 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, REV_DATA,
   USERS_DATA, DEVICES, RATE_PLANS, PAYROLL_DATA, ALL_RES,
   ShiftProposalStore, type ShiftProposal,
-stampNow, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
+stampNow, ORANGE_INK, TEAL_INK, WARNING_INK, propertyLabel, ROOMS } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
 import { DateInput } from "./DateInput";
-import { ARRIVALS as FO_ARRIVALS } from "./mock/frontOffice";
+import { ARRIVALS as FO_ARRIVALS, STAYS } from "./mock/frontOffice";
+import { roomTypeNames } from "./mock/property";
+import { hkRooms } from "./mock/housekeeping";
 
 export function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
   const isFemale = gender === "F";
@@ -290,7 +292,7 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
 
   return (
     <div>
-      <PageHeader title="Attendance" sub="24 Jun 2026 · Grand Palms Abuja · clock-in/out, lateness, overtime" actions={
+      <PageHeader title="Attendance" sub={`24 Jun 2026 · ${propertyLabel()} · clock-in and out, lateness, overtime`} actions={
         <div className="flex gap-2">
           <BtnO label="Export" icon={Download} onClick={()=>add({type:"info",title:"Exporting attendance report"})} />
           <BtnO label="Manual entry" icon={Edit3} onClick={()=>setShowManual(true)} />
@@ -834,7 +836,7 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
               <div>
                 <label className="text-xs font-semibold block mb-1.5" style={{ color: MUTED }}>Room type</label>
                 <select aria-label="Room Type" value={typeF} onChange={e => setTypeF(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-xs outline-none" style={{ borderColor: typeF !== "All" ? TEAL : BORDER }}>
-                  {["All","Standard","Deluxe","Suite"].map(s => <option key={s}>{s}</option>)}
+                  {["All", ...roomTypeNames()].map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div className="flex items-end">
@@ -1725,20 +1727,14 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
 // FD-03 Room Assignment Board
 export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const UNASSIGNED_ARRIVALS = FO_ARRIVALS.filter(a => !a.room).map(({ id, guest, av, type, eta, vip, nights }) => ({ id, guest, av, type, eta, vip, nights }));
-  const ALL_ROOMS = [
-    { id: "101", type: "Standard", floor: 1, status: "Occupied", hkSt: "Occupied", guest: "Adaeze Okonkwo" },
-    { id: "102", type: "Standard", floor: 1, status: "Available", hkSt: "Inspected", guest: null },
-    { id: "103", type: "Deluxe", floor: 1, status: "Cleaning", hkSt: "In Progress", guest: null },
-    { id: "104", type: "Standard", floor: 1, status: "Available", hkSt: "Clean", guest: null },
-    { id: "201", type: "Deluxe", floor: 2, status: "Reserved", hkSt: "Inspected", guest: null },
-    { id: "202", type: "Deluxe", floor: 2, status: "Occupied", hkSt: "Occupied", guest: "Emmanuel Adeyemi" },
-    { id: "203", type: "Suite", floor: 2, status: "Occupied", hkSt: "Occupied", guest: "Halima Yusuf" },
-    { id: "204", type: "Standard", floor: 2, status: "Maintenance", hkSt: "Maintenance", guest: null },
-    { id: "301", type: "Suite", floor: 3, status: "Available", hkSt: "Inspected", guest: null },
-    { id: "302", type: "Deluxe", floor: 3, status: "Occupied", hkSt: "Occupied", guest: "Ibrahim Lawal" },
-    { id: "304", type: "Standard", floor: 3, status: "Occupied", hkSt: "Occupied", guest: "Chukwuemeka Obi" },
-    { id: "501", type: "Suite", floor: 5, status: "Occupied", hkSt: "Occupied", guest: "Dr. Chukwuemeka Bello" },
-  ];
+  // Every room of the property, with its housekeeping state and current guest.
+  const ALL_ROOMS = hkRooms().map(r => {
+    const st = ROOMS.find(x => x.id === r.id)?.status ?? "Available";
+    const guest = STAYS.find(x => x.room === r.id)?.guest ?? null;
+    const outOfOrder = st === "Maintenance" || st === "Out of service";
+    return { id: r.id, type: r.type, floor: r.floor, status: guest ? "Occupied" : outOfOrder ? "Maintenance" : st === "Reserved" ? "Reserved" : r.hkSt === "Dirty" || r.hkSt === "In Progress" ? "Cleaning" : "Available",
+      hkSt: guest ? "Occupied" : outOfOrder ? "Maintenance" : r.hkSt as string, guest };
+  });
   const [selGuest, setSelGuest] = useState<string | null>(null);
   const [assigned, setAssigned] = useState<Record<string, string>>({});
   const [floorFilter, setFloorFilter] = useState("All");
@@ -1746,7 +1742,7 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
   const [search, setSearch] = useState("");
   const [pendingAssignment, setPendingAssignment] = useState<{ guestId: string; roomId: string } | null>(null);
   const [detailRoom, setDetailRoom] = useState<string | null>(null);
-  const floors = ["All", "1", "2", "3", "5"];
+  const floors = ["All", ...[...new Set(ROOMS.map(r => String(r.floor)))]];
   const hkDot: Record<string, string> = { Inspected: SUCCESS, Clean: "#22C55E", "In Progress": WARNING, Dirty: ORANGE, Maintenance: ERROR, Occupied: MUTED, DND: "#6B7280" };
   const isReady = (room: typeof ALL_ROOMS[0]) => room.status === "Available" && ["Clean", "Inspected"].includes(room.hkSt);
   const roomForGuest = (guestId: string) => Object.keys(assigned).find(roomId => assigned[roomId] === guestId);

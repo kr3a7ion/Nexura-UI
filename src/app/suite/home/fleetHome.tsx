@@ -5,8 +5,7 @@ import {
 } from "@phosphor-icons/react";
 import type { Screen } from "../../constants";
 import {
-  BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono,
-} from "../../constants";
+  BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
 import { FLEET_EXCEPTIONS, FLEET_KPIS, FLEET_TRIPS, type FleetTrip } from "../../mock/fleetHome";
 import { DEPARTMENTS } from "../departments";
@@ -50,7 +49,7 @@ export default function FleetHome({ nav }: { nav: Nav }) {
       <section className="mb-5 flex flex-col gap-4 rounded-2xl border bg-white p-5 lg:flex-row lg:items-center" style={{ borderColor: BORDER }}>
         <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl" style={{ backgroundColor: `${accent}14`, color: accent }}><Car size={27} weight="duotone" /></div>
         <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h1 className="text-lg font-bold" style={{ color: TEXT, fontFamily: display }}>Fleet & Transport</h1><Badge label="Dispatch live" colors={{ bg: `${accent}12`, text: accent }} /></div><p className="mt-1 text-sm" style={{ color: MUTED }}>Move guests safely, keep drivers accountable and control every vehicle and fuel cost.</p><div className="mt-3 flex flex-wrap gap-2"><Badge label="Manager" colors={{ bg: BG, text: PRIMARY }} /><Badge label="Fleet Supervisor" colors={{ bg: BG, text: PRIMARY }} /><Badge label="Driver" colors={{ bg: BG, text: PRIMARY }} /></div></div>
-        <div className="flex flex-wrap items-center gap-2 lg:justify-end"><div className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: BORDER, color: MUTED }}><Buildings size={14} style={{ color: accent }} />Grand Palms · Abuja</div><div className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: "#A7F3D0", backgroundColor: "#ECFDF5", color: SUCCESS }}><span className="h-2 w-2 rounded-full" style={{ backgroundColor: SUCCESS }} />GPS synced 5 sec ago</div></div>
+        <div className="flex flex-wrap items-center gap-2 lg:justify-end"><div className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: BORDER, color: MUTED }}><Buildings size={14} style={{ color: accent }} />{propertyLabel()}</div><div className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold" style={{ borderColor: "#A7F3D0", backgroundColor: "#ECFDF5", color: SUCCESS }}><span className="h-2 w-2 rounded-full" style={{ backgroundColor: SUCCESS }} />GPS synced 5 sec ago</div></div>
       </section>
 
       <section className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">

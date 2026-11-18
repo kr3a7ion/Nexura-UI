@@ -31,11 +31,12 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK, propertyLabel } from "./constants";
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, LiveClock, SyncPill, Av } from "./UIKit";
 import { hkRooms } from "./mock/housekeeping";
 import { STAYS, ARRIVALS, departures, inHouseGuests } from "./mock/frontOffice";
+import { roomPrice } from "./mock/property";
 
 export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
   const [auditRunning, setAuditRunning] = useState(false);
@@ -43,8 +44,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
 
   // Tonight's figures come from the same rooms and stays the Front Office screens use.
   const occupied = STAYS.length;
-  const NIGHTLY: Record<string, number> = { Standard: 35000, Deluxe: 55000, Suite: 85000 };
-  const roomRevenue = STAYS.reduce((t, st) => t + (NIGHTLY[st.type] ?? 0), 0);
+  const roomRevenue = STAYS.reduce((t, st) => t + roomPrice(st.type), 0);
   const unassigned = ARRIVALS.filter(a => !a.room).length;
   const leaving = departures().length;
   const complaints = STAYS.reduce((t, st) => t + st.complaints, 0);
@@ -60,7 +60,7 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
 
   return (
     <div>
-      <PageHeader title="Management Overview" sub={`Grand Palms, Abuja · Business date ${fmtDate(BUSINESS_DATE)}`}
+      <PageHeader title="Management Overview" sub={`${propertyLabel()} · Business date ${fmtDate(BUSINESS_DATE)}`}
         actions={<div className="flex flex-wrap gap-2">
           <BtnO label="Check in a guest" onClick={() => go("check-in", "Check-In")} />
           <BtnO label="Check out a guest" onClick={() => go("check-out", "Check-Out")} />

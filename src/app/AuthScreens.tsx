@@ -1,6 +1,6 @@
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { Buildings, ChartBar, CreditCard, CurrencyDollar, ArrowsClockwise, Users } from "@phosphor-icons/react";
-import { PRIMARY, TEAL, WARNING, ERROR, SUCCESS, BORDER, TEXT, MUTED, SUBTLE, BG, sans, display, TEAL_INK, WARNING_INK } from "./constants";
+import { PRIMARY, TEAL, WARNING, ERROR, SUCCESS, BORDER, TEXT, MUTED, SUBTLE, BG, sans, display, TEAL_INK, WARNING_INK, propertyLabel } from "./constants";
 import { BRAND, BrandMark } from "./brand/Brand";
 import { DEPARTMENTS } from "./suite/departments";
 import { LOGIN_ACCOUNTS, type LoginAccount, type LoginKind } from "./mock/staffLogin";
@@ -8,7 +8,7 @@ import { LOGIN_ACCOUNTS, type LoginAccount, type LoginKind } from "./mock/staffL
 const MAX_ATTEMPTS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const REMEMBER_KEY = "nexura.username";
-const HOTEL_NAME = "Grand Palms Hotel, Abuja";
+const HOTEL_NAME = propertyLabel();
 
 // One short line per department for the sign-in panel. No hotel or user data is shown before sign-in.
 const DEPARTMENT_LINES: Record<string, string> = {
