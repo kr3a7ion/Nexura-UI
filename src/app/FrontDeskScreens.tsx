@@ -33,7 +33,7 @@ import {
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
-  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
+  DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK, stampNow } from "./constants";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -42,6 +42,7 @@ import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, B
 import { TextOrDate } from "./DateInput";
 import { ARRIVALS as FO_ARRIVALS, departures, STAYS } from "./mock/frontOffice";
 import { isManagerLogin } from "./mock/staffLogin";
+import { FOUND_ITEMS, logFoundItem } from "./mock/housekeeping";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
 function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
@@ -2047,7 +2048,7 @@ export function MenuManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
   );
 }
 
-export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
+export function LostFound({ add, staffName }: { add: (t: Omit<Toast, "id">) => void; staffName: string }) {
   const stC: Record<string, { bg: string; text: string }> = { Held: { bg: "#FEF3C7", text: "#92400E" }, Claimed: { bg: "#DCFCE7", text: "#166534" }, Shipped: { bg: "#EEF2FF", text: "#4338CA" }, Disposed: { bg: "#F3F4F6", text: "#374151" } };
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
@@ -2056,19 +2057,21 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const [showShip, setShowShip] = useState<string | null>(null);
   const [claimant, setClaimant] = useState({ name: "", id: "", phone: "" });
   const [shipAddr, setShipAddr] = useState("");
-  const LF = [
-    { id: "LF-0041", desc: "iPhone 14 Pro (Black)", cat: "Electronics", storage: "Front Desk Safe B-2", room: "204", guestRes: "R-1024", guest: "Mrs. Adeola Bello", date: "22 Jun 2026", loggedBy: "Fatima Musa", claimedBy: "", status: "Held" },
-    { id: "LF-0040", desc: "Gold Bracelet", cat: "Jewellery", storage: "Safe Box 1", room: "315", guestRes: "R-1018", guest: "Dr. Emeka Chukwu", date: "20 Jun 2026", loggedBy: "Ngozi Ike", claimedBy: "Dr. Emeka Chukwu", status: "Claimed" },
-    { id: "LF-0039", desc: "Blue Patagonia Jacket", cat: "Clothing", storage: "HK Store Room A", room: "108", guestRes: "R-1015", guest: "Ms. Sarah Okafor", date: "18 Jun 2026", loggedBy: "Amaka Osei", claimedBy: "", status: "Held" },
-    { id: "LF-0038", desc: "Laptop Charger (Dell)", cat: "Electronics", storage: "Front Desk Shelf", room: "221", guestRes: "R-1010", guest: "Mr. Tunde Adeyemi", date: "15 Jun 2026", loggedBy: "Fatima Musa", claimedBy: "Mr. Tunde Adeyemi", status: "Shipped" },
-    { id: "LF-0037", desc: "Prescription Glasses", cat: "Personal", storage: "Front Desk Safe B-1", room: "401", guestRes: "R-1002", guest: "Mrs. Ngozi Eze", date: "10 Jun 2026", loggedBy: "Ngozi Ike", claimedBy: "", status: "Held" },
-    { id: "LF-0036", desc: "Children's Stuffed Bear", cat: "Clothing", storage: "Disposed — 30-day expired", room: "103", guestRes: "R-0999", guest: "Mr. Femi Adesanya", date: "1 Jun 2026", loggedBy: "Amaka Osei", claimedBy: "", status: "Disposed" },
-  ];
-  const items = LF.map(i => ({ ...i, status: statuses[i.id] ?? i.status }));
+  const [, refresh] = useState(0);
+  const [showLog, setShowLog] = useState(false);
+  const [draft, setDraft] = useState({ desc: "", cat: "Personal", room: "", storage: "Front desk safe B-1" });
+  const [confirmDispose, setConfirmDispose] = useState<string | null>(null);
+  const items = FOUND_ITEMS.map(i => ({ ...i, status: statuses[i.id] ?? i.status }));
+  const saveItem = () => {
+    const stay = STAYS.find(x => x.room === draft.room.trim());
+    const item = logFoundItem({ ...draft, room: draft.room.trim(), guest: stay?.guest ?? "Unknown", guestRes: stay?.id ?? "", date: fmtDate(BUSINESS_DATE), loggedBy: staffName });
+    add({ type: "success", title: `${item.id} logged: ${item.desc}` });
+    setShowLog(false); setDraft({ desc: "", cat: "Personal", room: "", storage: "Front desk safe B-1" }); refresh(n => n + 1);
+  };
   const visible = items.filter(i => (filter === "All" || i.status === filter) && (!search || i.desc.toLowerCase().includes(search.toLowerCase()) || i.room.includes(search) || i.guest.toLowerCase().includes(search.toLowerCase())));
   return (
     <div>
-      <PageHeader title="Lost & Found" sub={`${items.length} items logged · ${items.filter(i=>i.status==="Held").length} currently held`} actions={<BtnP label="Log new item" icon={Plus} onClick={() => add({ type: "info", title: "Lost item logging" })} />} />
+      <PageHeader title="Lost & Found" sub={`${items.length} items logged · ${items.filter(i=>i.status==="Held").length} currently held`} actions={<BtnP label="Log found item" icon={Plus} onClick={() => setShowLog(true)} />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Items held" value={String(items.filter(i=>i.status==="Held").length)} sub="In safe keeping" icon={Package} accent={WARNING} />
         <StatCard label="Claimed" value={String(items.filter(i=>i.status==="Claimed").length)} sub="Collected in person" icon={CheckCircle2} accent={SUCCESS} />
@@ -2097,7 +2100,7 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
                   <div className="flex gap-1">
                     <button onClick={() => { setShowClaim(item.id); setClaimant({ name: "", id: "", phone: "" }); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Claim</button>
                     <button onClick={() => { setShowShip(item.id); setShipAddr(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Ship</button>
-                    <button onClick={() => { setStatuses(p=>({...p,[item.id]:"Disposed"})); add({ type: "info", title: `${item.id} disposed` }); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Dispose</button>
+                    <button onClick={() => setConfirmDispose(item.id)} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Dispose</button>
                   </div>
                 )}
               </td>
@@ -2105,17 +2108,45 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
           ))}</tbody>
         </table>
       </div>
+      {showLog && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowLog(false)} />
+          <div role="dialog" aria-label="Log found item" className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
+            <div className="flex items-center justify-between mb-4"><h3 className="text-base font-semibold" style={{ color: TEXT }}>Log found item</h3><button aria-label="Close" onClick={() => setShowLog(false)} style={{ color: MUTED }}><X size={18} /></button></div>
+            <div className="space-y-3">
+              <div><label htmlFor="lf-desc" className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>What was found</label><input id="lf-desc" value={draft.desc} onChange={e => setDraft(d => ({ ...d, desc: e.target.value }))} placeholder="For example: black leather wallet" className="w-full h-11 px-3 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label htmlFor="lf-room" className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Room or area</label><input id="lf-room" value={draft.room} onChange={e => setDraft(d => ({ ...d, room: e.target.value }))} placeholder="202 or Lobby" className="w-full h-11 px-3 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <div><label htmlFor="lf-cat" className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Type</label><select id="lf-cat" value={draft.cat} onChange={e => setDraft(d => ({ ...d, cat: e.target.value }))} className="w-full h-11 px-3 rounded-xl border text-sm outline-none bg-white" style={{ borderColor: BORDER }}>{["Personal", "Electronics", "Valuables", "Jewellery", "Clothing", "Luggage", "Documents"].map(c => <option key={c}>{c}</option>)}</select></div>
+              </div>
+              <div><label htmlFor="lf-store" className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Stored in</label><select id="lf-store" value={draft.storage} onChange={e => setDraft(d => ({ ...d, storage: e.target.value }))} className="w-full h-11 px-3 rounded-xl border text-sm outline-none bg-white" style={{ borderColor: BORDER }}>{["Front desk safe B-1", "Front desk safe B-2", "Manager safe", "Housekeeping store A", "Luggage store"].map(c => <option key={c}>{c}</option>)}</select></div>
+              {STAYS.some(x => x.room === draft.room.trim()) && <p className="text-sm" style={{ color: MUTED }}>Linked to {STAYS.find(x => x.room === draft.room.trim())!.guest}, the guest in room {draft.room.trim()}.</p>}
+            </div>
+            <div className="flex gap-3 mt-5"><BtnO label="Cancel" onClick={() => setShowLog(false)} /><button disabled={!draft.desc.trim() || !draft.room.trim()} onClick={saveItem} className="flex-1 h-11 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Log item</button></div>
+          </div>
+        </>
+      )}
+      {confirmDispose && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setConfirmDispose(null)} />
+          <div role="dialog" aria-label="Dispose of item" className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
+            <h3 className="text-base font-semibold" style={{ color: TEXT }}>Dispose of {items.find(i => i.id === confirmDispose)?.desc.toLowerCase()}?</h3>
+            <p className="text-sm mt-2" style={{ color: MUTED }}>The item is marked disposed and can no longer be claimed or shipped. Do this only after the 30-day hold.</p>
+            <div className="flex gap-3 mt-5"><BtnO label="Keep holding" onClick={() => setConfirmDispose(null)} /><button onClick={() => { setStatuses(p => ({ ...p, [confirmDispose]: "Disposed" })); add({ type: "info", title: `${confirmDispose} disposed` }); setConfirmDispose(null); }} className="flex-1 h-11 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Dispose</button></div>
+          </div>
+        </>
+      )}
       {/* Claim modal */}
       {showClaim && (
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowClaim(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
-            <div className="flex items-center justify-between mb-4"><h3 className="text-base font-bold" style={{ color: TEXT }}>Record Claim — {showClaim}</h3><button aria-label="Close" onClick={() => setShowClaim(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
+            <div className="flex items-center justify-between mb-4"><h3 className="text-base font-semibold" style={{ color: TEXT }}>Record claim for {showClaim}</h3><button aria-label="Close" onClick={() => setShowClaim(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
             <div className="space-y-3">
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Claimant name</label><input value={claimant.name} onChange={e => setClaimant(p=>({...p,name:e.target.value}))} placeholder="Full name" aria-label="Full name" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>ID / NIN</label><input value={claimant.id} onChange={e => setClaimant(p=>({...p,id:e.target.value}))} placeholder="Gov ID number" aria-label="Gov ID number" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Phone</label><input value={claimant.phone} onChange={e => setClaimant(p=>({...p,phone:e.target.value}))} placeholder="+234…" aria-label="+234" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Phone</label><input value={claimant.phone} onChange={e => setClaimant(p=>({...p,phone:e.target.value}))} placeholder="+234…" aria-label="Phone" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               </div>
             </div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowClaim(null)} /><button disabled={!claimant.name || !claimant.id} onClick={() => { setStatuses(p=>({...p,[showClaim!]:"Claimed"})); add({ type: "success", title: `${showClaim} claimed by ${claimant.name}` }); setShowClaim(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>Confirm claim</button></div>
@@ -2127,7 +2158,7 @@ export function LostFound({ add }: { add: (t: Omit<Toast, "id">) => void }) {
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowShip(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
-            <div className="flex items-center justify-between mb-4"><h3 className="text-base font-bold" style={{ color: TEXT }}>Ship to Guest — {showShip}</h3><button aria-label="Close" onClick={() => setShowShip(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
+            <div className="flex items-center justify-between mb-4"><h3 className="text-base font-semibold" style={{ color: TEXT }}>Ship {showShip} to the guest</h3><button aria-label="Close" onClick={() => setShowShip(null)} style={{ color: SUBTLE }}><X size={18} /></button></div>
             <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Delivery address</label><textarea value={shipAddr} onChange={e => setShipAddr(e.target.value)} placeholder="Street, City, State, Postal Code" aria-label="Street, City, State, Postal Code" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
             <div className="mt-3 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>Shipping cost will be charged to guest folio. Ensure item is properly packaged and labelled with {showShip} before handover to courier.</div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowShip(null)} /><button disabled={!shipAddr.trim()} onClick={() => { setStatuses(p=>({...p,[showShip!]:"Shipped"})); add({ type: "success", title: `${showShip} marked for shipping` }); setShowShip(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: TEAL_INK }}>Confirm shipment</button></div>
@@ -2154,10 +2185,12 @@ export function DNDLog({ add, staffName }: { add: (t: Omit<Toast, "id">) => void
   const [mgrUser, setMgrUser] = useState("");
   const [mgrPass, setMgrPass] = useState("");
 
-  const logCheck = (room: string) => {
-    const now = new Date();
-    const ts = `${BUSINESS_DATE.getDate()} Jun ${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}`;
-    setRows(p => p.map(r => r.room === room ? { ...r, wellness: [...r.wellness, { time: ts, by: staffName, outcome: "Wellness check logged, awaiting response" }] } : r));
+  const [checkRoom, setCheckRoom] = useState<string | null>(null);
+  const OUTCOMES = ["Guest answered, all well", "Guest asked to be left alone", "No answer"];
+  const logCheck = (room: string, outcome: string) => {
+    const ts = stampNow();
+    setRows(p => p.map(r => r.room === room ? { ...r, wellness: [...r.wellness, { time: ts, by: staffName, outcome }] } : r));
+    setCheckRoom(null);
     add({ type: "info", title: `Room ${room}: wellness check recorded`, body: `${ts}. This record cannot be edited.` });
   };
 
@@ -2224,7 +2257,7 @@ export function DNDLog({ add, staffName }: { add: (t: Omit<Toast, "id">) => void
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1.5 flex-col">
-                    <button onClick={() => logCheck(r.room)} className="text-sm h-9 px-3 rounded-lg border font-medium whitespace-nowrap" style={{ color: TEXT, borderColor: BORDER }}>Log check</button>
+                    <button onClick={() => setCheckRoom(r.room)} className="text-sm h-9 px-3 rounded-lg border font-medium whitespace-nowrap" style={{ color: TEXT, borderColor: BORDER }}>Log check</button>
                     {!r.overridden && <button onClick={() => { setShowOverride(r.room); setOverrideReason(""); setMgrUser(""); setMgrPass(""); }} className="text-sm h-9 px-3 rounded-lg border whitespace-nowrap" style={{ color: ERROR, borderColor: "#FECACA" }}>Enter room</button>}
                   </div>
                 </td>
@@ -2238,6 +2271,17 @@ export function DNDLog({ add, staffName }: { add: (t: Omit<Toast, "id">) => void
         </div>
       </div>
       {/* Override modal */}
+      {checkRoom && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setCheckRoom(null)} />
+          <div role="dialog" aria-label={`Wellness check for room ${checkRoom}`} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
+            <h3 className="text-base font-semibold" style={{ color: TEXT }}>Wellness check, room {checkRoom}</h3>
+            <p className="text-sm mt-1 mb-4" style={{ color: MUTED }}>Knock and call through the door. What happened?</p>
+            <div className="space-y-2">{OUTCOMES.map(o => <button key={o} onClick={() => logCheck(checkRoom, o)} className="w-full h-11 px-4 rounded-xl border text-sm text-left" style={{ color: TEXT, borderColor: BORDER }}>{o}</button>)}</div>
+            <button onClick={() => setCheckRoom(null)} className="mt-3 w-full h-10 text-sm" style={{ color: MUTED }}>Cancel</button>
+          </div>
+        </>
+      )}
       {showOverride && (
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowOverride(null)} />
