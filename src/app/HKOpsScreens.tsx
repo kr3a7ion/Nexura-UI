@@ -34,87 +34,145 @@ import {
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA,
 stampNow, ORANGE_INK, TEAL_INK, WARNING_INK, fmtDate, BUSINESS_DATE } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
-import { roomsFor, hkRooms, ATTENDANTS as HK_ATTENDANTS } from "./mock/housekeeping";
+import { roomsFor, hkRooms, updateRoom, logFoundItem, INSPECTIONS, CHECKLIST, PASS_MARK, passed, addInspection, ATTENDANTS as HK_ATTENDANTS } from "./mock/housekeeping";
+import { STAYS } from "./mock/frontOffice";
 // HK-04 Inspection Log
-export function InspectionLog({ add }: { add: (t: Omit<Toast, "id">) => void }) {
+export function InspectionLog({ add, staffName, navParam }: { add: (t: Omit<Toast, "id">) => void; staffName: string; navParam?: string }) {
+  const [logs, setLogs] = useState(() => [...INSPECTIONS]);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const CHECKLIST = ["Bed made correctly", "Linen clean & pressed", "Bathroom scrubbed", "Toilet disinfected", "Minibar restocked", "Amenities replenished", "Floors vacuumed/mopped", "Surfaces dusted", "Mirrors polished", "TV/AC functioning", "Curtains aligned", "No items left behind"];
-  const LOGS = [
-    { id: "INS-041", room: "103", attendant: "Amaka Osei", inspector: "Grace Mensah", ts: "Today 09:40", score: 18, total: 20, reclean: false, notes: "Minor dust on top shelf. Otherwise excellent.", status: "Passed", checks: CHECKLIST.map((item,i) => ({ item, pass: i !== 7 })) },
-    { id: "INS-040", room: "102", attendant: "Fatima Musa", inspector: "Grace Mensah", ts: "Today 09:30", score: 12, total: 20, reclean: true, notes: "Bathroom not cleaned. Bed linen stained. Re-assigned to Amaka.", status: "Re-clean", checks: CHECKLIST.map((item,i) => ({ item, pass: i < 2 || i > 6 })) },
-    { id: "INS-039", room: "301", attendant: "Amaka Osei", inspector: "David Okafor", ts: "Yesterday 16:00", score: 20, total: 20, reclean: false, notes: "Spotless. Perfect score.", status: "Passed", checks: CHECKLIST.map(item => ({ item, pass: true })) },
-    { id: "INS-038", room: "203", attendant: "Ngozi Ike", inspector: "Grace Mensah", ts: "Yesterday 14:30", score: 17, total: 20, reclean: false, notes: "Minibar not restocked. Items 5 and 11 failed.", status: "Passed", checks: CHECKLIST.map((item,i) => ({ item, pass: i !== 4 && i !== 10 })) },
-    { id: "INS-037", room: "501", attendant: "Fatima Musa", inspector: "David Okafor", ts: "Yesterday 11:00", score: 20, total: 20, reclean: false, notes: "Suite inspection passed fully.", status: "Passed", checks: CHECKLIST.map(item => ({ item, pass: true })) },
-  ];
-  const iC: Record<string, { bg: string; text: string }> = { Passed: { bg: "#DCFCE7", text: "#166534" }, "Re-clean": { bg: "#FEE2E2", text: "#991B1B" } };
-  const ATTENDANTS = HK_ATTENDANTS;
-  const attScores = ATTENDANTS.map(a => {
-    const al = LOGS.filter(l => l.attendant === a);
-    const avg = al.length ? Math.round(al.reduce((s,l) => s + (l.score/l.total*100), 0) / al.length) : 0;
-    return { name: a, avg, count: al.length, fails: al.filter(l => l.reclean).length };
+  const waiting = hkRooms().filter(r => r.hkSt === "Clean");
+  // Opened from the board's Inspect button with a room number.
+  const [room, setRoom] = useState<string | null>(navParam && /^\d+$/.test(navParam) ? navParam : null);
+  const [failed, setFailed] = useState<number[]>([]);
+  const [notes, setNotes] = useState("");
+  const open = (r: string) => { setRoom(r); setFailed([]); setNotes(""); };
+  const score = CHECKLIST.length - failed.length;
+  const submit = () => {
+    if (!room) return;
+    const attendant = hkRooms().find(r => r.id === room)?.attendant ?? "Unassigned";
+    const rec = addInspection({ room, attendant, inspector: staffName, ts: `Today ${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`, failed, notes: notes.trim() });
+    setLogs([...INSPECTIONS]);
+    add(passed(rec) ? { type: "success", title: `Room ${room} passed and is ready for the next guest` } : { type: "warning", title: `Room ${room} failed: sent back to ${attendant} to clean again` });
+    setRoom(null);
+  };
+  const resultColors = (ok: boolean) => ok ? { bg: "#DCFCE7", text: "#166534" } : { bg: "#FEE2E2", text: "#991B1B" };
+  const attScores = HK_ATTENDANTS.map(name => {
+    const mine = logs.filter(l => l.attendant === name);
+    const avg = mine.length ? Math.round(mine.reduce((s, l) => s + (CHECKLIST.length - l.failed.length) / CHECKLIST.length * 100, 0) / mine.length) : 0;
+    return { name, avg, count: mine.length, fails: mine.filter(l => !passed(l)).length };
   });
+  const today = logs.filter(l => l.ts.startsWith("Today"));
   return (
     <div>
-      <PageHeader title="Inspection Log" sub="Supervisor checks of cleaned rooms, item by item" actions={<BtnP label="New inspection" icon={Plus} />} />
+      <PageHeader title="Inspection Log" sub={`A room passes with ${PASS_MARK} of ${CHECKLIST.length} checks; anything less goes back to the attendant.`}
+        actions={<BtnP label="Inspect a room" icon={Plus} onClick={() => open(waiting[0]?.id ?? hkRooms()[0].id)} />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Inspected today" value={String(LOGS.filter(l=>l.ts.startsWith("Today")).length)} sub="Rooms checked" icon={CheckCircle2} accent={SUCCESS} />
-        <StatCard label="Re-clean required" value={String(LOGS.filter(l=>l.reclean).length)} sub="Failed inspection" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Pass rate" value={`${Math.round(LOGS.filter(l=>l.status==="Passed").length/LOGS.length*100)}%`} sub="All inspections" icon={Activity} accent={PRIMARY} />
-        <StatCard label="Avg score" value={`${Math.round(LOGS.reduce((s,l)=>s+(l.score/l.total*100),0)/LOGS.length)}%`} sub="All attendants" icon={Star} accent={TEAL} />
+        <StatCard label="Waiting for inspection" value={String(waiting.length)} sub="Clean, not yet checked" icon={ClipboardList} accent={PRIMARY} />
+        <StatCard label="Inspected today" value={String(today.length)} sub={`${today.filter(passed).length} passed`} icon={CheckCircle2} accent={SUCCESS} />
+        <StatCard label="Sent back today" value={String(today.filter(l => !passed(l)).length)} sub="To be cleaned again" icon={AlertTriangle} accent={ERROR} />
+        <StatCard label="Pass rate" value={`${logs.length ? Math.round(logs.filter(passed).length / logs.length * 100) : 0}%`} sub="All inspections" icon={Activity} accent={PRIMARY} />
       </div>
-      <div className="grid grid-cols-3 gap-4 mb-5">
+
+      <section className="bg-white rounded-xl border mb-5" style={{ borderColor: BORDER }}>
+        <div className="px-5 py-4 border-b" style={{ borderColor: BORDER }}><h2 className="text-base font-semibold" style={{ color: TEXT }}>Waiting for inspection</h2></div>
+        {waiting.length === 0 ? <p className="px-5 py-4 text-sm" style={{ color: MUTED }}>No clean rooms are waiting. Rooms appear here when an attendant marks them clean.</p> : (
+          <div className="divide-y" style={{ borderColor: BORDER }}>
+            {waiting.map(r => (
+              <div key={r.id} className="px-5 py-3 flex items-center gap-4">
+                <span className="text-base font-semibold w-12" style={{ color: TEXT }}>{r.id}</span>
+                <div className="flex-1 min-w-0"><div className="text-sm" style={{ color: TEXT }}>{r.type} · cleaned by {r.attendant ?? "unassigned"} at {r.since}</div>{r.note && <div className="text-sm" style={{ color: MUTED }}>{r.note}</div>}</div>
+                {r.guestState === "Arrival" && <span className="text-xs px-1.5 py-0.5 rounded-md" style={{ backgroundColor: "#F0FDFA", color: TEAL_INK }}>Guest arriving</span>}
+                <button onClick={() => open(r.id)} className="text-sm h-9 px-4 rounded-lg font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Inspect</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
         {attScores.map(a => (
           <div key={a.name} className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}>{a.name.split(" ").map(n=>n[0]).join("")}</div>
-              <div className="flex-1 min-w-0"><div className="text-sm font-semibold truncate" style={{ color: TEXT }}>{a.name}</div><div className="text-xs" style={{ color: MUTED }}>{a.count} inspections</div></div>
-              <div className="text-xl font-black" style={{ color: a.avg >= 85 ? SUCCESS : a.avg >= 70 ? ORANGE : ERROR, fontFamily: mono }}>{a.avg}%</div>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0" style={{ backgroundColor: PRIMARY }}>{a.name.split(" ").map(n => n[0]).join("")}</div>
+              <div className="flex-1 min-w-0"><div className="text-sm font-semibold truncate" style={{ color: TEXT }}>{a.name}</div><div className="text-xs" style={{ color: MUTED }}>{a.count} inspection{a.count === 1 ? "" : "s"}</div></div>
+              <div className="text-xl font-semibold" style={{ color: TEXT }}>{a.avg}%</div>
             </div>
-            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#E2E8F0" }}>
-              <div className="h-2 rounded-full" style={{ width: `${a.avg}%`, backgroundColor: a.avg >= 85 ? SUCCESS : a.avg >= 70 ? ORANGE : ERROR }} />
-            </div>
-            {a.fails > 0 && <div className="text-xs mt-1.5 font-semibold" style={{ color: ERROR }}>{a.fails} re-clean this week</div>}
+            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#E2E8F0" }}><div className="h-2 rounded-full" style={{ width: `${a.avg}%`, backgroundColor: a.avg >= 85 ? SUCCESS : a.avg >= 70 ? WARNING : ERROR }} /></div>
+            {a.fails > 0 && <div className="text-sm mt-1.5" style={{ color: ERROR }}>{a.fails} sent back</div>}
           </div>
         ))}
       </div>
-      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
+
+      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
         <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["", "ID", "Room", "Attendant", "Inspector", "Time", "Score", "Re-clean", "Result", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["", "Room", "Attendant", "Inspector", "Time", "Checks passed", "Result", ""].map((h, i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
-            {LOGS.map(l => (
-              <React.Fragment key={l.id}>
-                <tr className="border-t hover:bg-[#F8FAFC] transition-colors cursor-pointer" style={{ borderColor: BORDER, backgroundColor: l.reclean ? "#FFF5F5" : "transparent" }} onClick={() => setExpanded(expanded === l.id ? null : l.id)}>
-                  <td className="px-4 py-3 text-xs" style={{ color: SUBTLE }}>{expanded === l.id ? "▾" : "▸"}</td>
-                  <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{l.id}</td>
-                  <td className="px-4 py-3 text-base font-bold" style={{ color: PRIMARY }}>{l.room}</td>
-                  <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>{l.attendant}</td>
-                  <td className="px-4 py-3 text-sm" style={{ color: MUTED }}>{l.inspector}</td>
-                  <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: MUTED, fontFamily: mono }}>{l.ts}</td>
-                  <td className="px-4 py-3 text-sm font-bold" style={{ color: l.score/l.total >= 0.85 ? SUCCESS : l.score/l.total >= 0.7 ? ORANGE : ERROR }}>{l.score}/{l.total}</td>
-                  <td className="px-4 py-3">{l.reclean && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Required</span>}</td>
-                  <td className="px-4 py-3"><Badge label={l.status} colors={iC[l.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
-                  <td className="px-4 py-3"><button onClick={e => { e.stopPropagation(); add({ type: "info", title: `Re-inspect Room ${l.room}` }); }} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Re-inspect</button></td>
-                </tr>
-                {expanded === l.id && (
-                  <tr key={l.id + "-d"} style={{ backgroundColor: "#F8FAFC" }}>
-                    <td colSpan={10} className="px-6 py-4 border-t" style={{ borderColor: BORDER }}>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-                        {l.checks.map((c, i) => (
-                          <div key={i} className="flex items-center gap-2 text-xs">
-                            <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.pass ? "#DCFCE7" : "#FEE2E2" }}><span style={{ color: c.pass ? SUCCESS : ERROR, fontSize: 12 }}>{c.pass ? "✓" : "✕"}</span></div>
-                            <span style={{ color: c.pass ? MUTED : ERROR, fontWeight: c.pass ? 400 : 600 }}>{c.item}</span>
-                          </div>
-                        ))}
-                      </div>
-                      {l.notes && <div className="text-xs p-2.5 rounded-lg" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}>Notes: {l.notes}</div>}
-                    </td>
+            {logs.map(l => {
+              const ok = passed(l);
+              return (
+                <React.Fragment key={l.id}>
+                  <tr className="border-t" style={{ borderColor: BORDER }}>
+                    <td className="pl-3"><button onClick={() => setExpanded(expanded === l.id ? null : l.id)} aria-expanded={expanded === l.id} aria-label={`Show checks for ${l.id}`} className="h-9 w-9 flex items-center justify-center rounded-lg" style={{ color: MUTED }}>{expanded === l.id ? "▾" : "▸"}</button></td>
+                    <td className="px-4 py-3"><div className="text-sm font-semibold" style={{ color: TEXT }}>{l.room}</div><div className="text-xs" style={{ color: MUTED }}>{l.id}</div></td>
+                    <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>{l.attendant}</td>
+                    <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>{l.inspector}</td>
+                    <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: MUTED }}>{l.ts}</td>
+                    <td className="px-4 py-3 text-sm" style={{ color: ok ? TEXT : ERROR }}>{CHECKLIST.length - l.failed.length} of {CHECKLIST.length}</td>
+                    <td className="px-4 py-3"><Badge label={ok ? "Passed" : "Sent back"} colors={resultColors(ok)} /></td>
+                    <td className="px-4 py-3">{!ok && hkRooms().find(r => r.id === l.room)?.hkSt === "Clean" && <button onClick={() => open(l.room)} className="text-sm h-9 px-3 rounded-lg border whitespace-nowrap" style={{ color: TEXT, borderColor: BORDER }}>Inspect again</button>}</td>
                   </tr>
-                )}
-              </React.Fragment>
-            ))}
+                  {expanded === l.id && (
+                    <tr style={{ backgroundColor: "#F8FAFC" }}>
+                      <td colSpan={8} className="px-6 py-4 border-t" style={{ borderColor: BORDER }}>
+                        <ul className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+                          {CHECKLIST.map((item, i) => { const bad = l.failed.includes(i); return (
+                            <li key={item} className="flex items-center gap-2 text-sm" style={{ color: bad ? ERROR : TEXT }}><span aria-hidden>{bad ? "✕" : "✓"}</span>{item}{bad && <span className="sr-only"> (failed)</span>}</li>
+                          ); })}
+                        </ul>
+                        {l.notes && <p className="text-sm" style={{ color: TEXT }}>Notes: {l.notes}</p>}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      {room && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setRoom(null)} />
+          <div role="dialog" aria-label={`Inspect room ${room}`} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto" style={{ border: `1px solid ${BORDER}` }}>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-base font-semibold" style={{ color: TEXT }}>Inspect room</h3>
+              <button aria-label="Close" onClick={() => setRoom(null)} style={{ color: MUTED }}><X size={18} /></button>
+            </div>
+            <label className="flex items-center gap-2 text-sm mb-4" style={{ color: MUTED }}>Room
+              <select value={room} onChange={e => open(e.target.value)} className="h-9 px-2 rounded-lg border bg-white text-sm" style={{ borderColor: BORDER, color: TEXT }}>
+                {hkRooms().map(r => <option key={r.id} value={r.id}>{r.id}{r.hkSt === "Clean" ? " (waiting)" : ""}</option>)}
+              </select>
+            </label>
+            <p className="text-sm mb-2" style={{ color: MUTED }}>Untick anything that is not right.</p>
+            <ul className="space-y-1">
+              {CHECKLIST.map((item, i) => (
+                <li key={item}>
+                  <label className="flex items-center gap-3 h-10 px-2 rounded-lg hover:bg-slate-50 text-sm" style={{ color: failed.includes(i) ? ERROR : TEXT }}>
+                    <input type="checkbox" className="w-4 h-4" checked={!failed.includes(i)} onChange={() => setFailed(f => f.includes(i) ? f.filter(x => x !== i) : [...f, i])} />
+                    {item}
+                  </label>
+                </li>
+              ))}
+            </ul>
+            <label htmlFor="ins-notes" className="text-sm font-medium block mt-4 mb-1.5" style={{ color: TEXT }}>Notes for the attendant</label>
+            <textarea id="ins-notes" value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <span className="text-sm" style={{ color: score >= PASS_MARK ? TEXT : ERROR }}>{score} of {CHECKLIST.length} · {score >= PASS_MARK ? "passes" : "goes back to the attendant"}</span>
+              <div className="flex gap-2"><BtnO label="Cancel" onClick={() => setRoom(null)} /><button onClick={submit} className="h-10 px-4 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>{score >= PASS_MARK ? "Pass room" : "Send back"}</button></div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -140,9 +198,16 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   const statusOf = (item: typeof ITEMS[0]) => item.current < item.reorder ? "Critical" : item.current < item.par * 0.6 ? "Low" : "Ok";
   const sc = (s: string) => s === "Critical" ? { bg: "#FEE2E2", text: "#991B1B", bar: ERROR } : s === "Low" ? { bg: "#FEF3C7", text: "#92400E", bar: WARNING } : { bg: "#DCFCE7", text: "#166534", bar: SUCCESS };
   const filtered = floorFilter === "All" ? ITEMS : ITEMS.filter(i => i.floor === floorFilter || i.floor === "All");
+  const exportCsv = () => {
+    const rows = [["Item", "Category", "Current", "Par", "Reorder point", "Unit", "Soiled", "Lost", "Status"], ...ITEMS.map(i => [i.name, i.cat, i.current, i.par, i.reorder, i.unit, i.soiled, i.lost, statusOf(i)])];
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([rows.map(r => r.join(",")).join("\n")], { type: "text/csv" }));
+    a.download = `linen-and-supplies-${BUSINESS_DATE.toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(a.href);
+  };
   return (
     <div>
-      <PageHeader title="Linen & Supplies" sub="Par levels, soiled counts, and issue tracking by floor" actions={<><BtnO label="Export" icon={Download} /><BtnP label="Issue to attendant" icon={Plus} onClick={() => setShowIssue(true)} /></>} />
+      <PageHeader title="Linen & Supplies" sub="Stock against par, soiled counts and what has been issued to attendants" actions={<><BtnO label="Export" icon={Download} onClick={exportCsv} /><BtnP label="Issue to attendant" icon={Plus} onClick={() => setShowIssue(true)} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Critical items" value={String(ITEMS.filter(i=>statusOf(i)==="Critical").length)} sub="Below reorder point" icon={AlertTriangle} accent={ERROR} />
         <StatCard label="Low stock" value={String(ITEMS.filter(i=>statusOf(i)==="Low").length)} sub="Below 60% of par" icon={TrendingDown} accent={WARNING} />
@@ -167,11 +232,11 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.cat}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold w-10" style={{ color: c.text, fontFamily: mono }}>{item.current}</span>
+                      <span className="text-sm font-semibold w-10" style={{ color: TEXT }}>{item.current}</span>
                       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#E2E8F0", minWidth: 80 }}>
                         <div className="h-2 rounded-full" style={{ width: `${pct}%`, backgroundColor: c.bar }} />
                       </div>
-                      <span className="text-xs" style={{ color: SUBTLE }}>/{item.par} {item.unit}</span>
+                      <span className="text-sm whitespace-nowrap" style={{ color: MUTED }}>of {item.par} {item.unit}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm" style={{ color: item.soiled > 0 ? ORANGE : MUTED, fontFamily: mono }}>{item.soiled}</td>
@@ -180,8 +245,8 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <td className="px-4 py-3"><Badge label={st} colors={{ bg: c.bg, text: c.text }} /></td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      <button onClick={() => { setIssueItem(item.name); setShowIssue(true); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Issue</button>
-                      <button onClick={() => add({ type: "info", title: `Restock requested: ${item.name}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Restock</button>
+                      <button onClick={() => { setIssueItem(item.name); setShowIssue(true); }} className="text-sm h-9 px-3 rounded-lg border whitespace-nowrap" style={{ color: TEXT, borderColor: BORDER }}>Issue</button>
+                      <button onClick={() => add({ type: "success", title: `Restock request for ${item.name.toLowerCase()} sent to Inventory` })} className="text-sm h-9 px-3 rounded-lg border whitespace-nowrap" style={{ color: TEXT, borderColor: BORDER }}>Restock</button>
                     </div>
                   </td>
                 </tr>
@@ -199,7 +264,7 @@ export function LinenSupplies({ add }: { add: (t: Omit<Toast, "id">) => void }) 
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Item</label><select aria-label="Item" value={issueItem} onChange={e => setIssueItem(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option value="">Select item…</option>{ITEMS.map(i => <option key={i.name}>{i.name}</option>)}</select></div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Quantity</label><input aria-label="Quantity" type="number" min="1" value={issueQty} onChange={e => setIssueQty(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Attendant</label><select aria-label="Attendant" value={issueAtt} onChange={e => setIssueAtt(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>{"Grace Achebe,Amaka Osei,Ngozi Ike".split(",").map(a=><option key={a}>{a}</option>)}</select></div>
+                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Attendant</label><select aria-label="Attendant" value={issueAtt} onChange={e => setIssueAtt(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>{HK_ATTENDANTS.map(a=><option key={a}>{a}</option>)}</select></div>
               </div>
             </div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowIssue(false)} /><button disabled={!issueItem} onClick={() => { add({ type: "success", title: `${issueQty}× ${issueItem} issued to ${issueAtt}` }); setShowIssue(false); setIssueItem(""); setIssueQty("1"); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Issue</button></div>
@@ -236,7 +301,7 @@ export function HousekeepingSchedule({ add }: { add: (t: Omit<Toast, "id">) => v
   const MAX_LOAD = 6;
   return (
     <div>
-      <PageHeader title="Housekeeping Schedule" sub="Who cleans which room this shift. Select a circle to assign a room." actions={<><BtnO label="Balance workload" icon={RefreshCw} onClick={autoBalance} /><BtnP label={published ? "Published" : "Publish schedule"} icon={published ? CheckCircle2 : Send} onClick={() => { setPublished(true); add({ type: "success", title: "Schedule published", body: "Field devices notified" }); }} /></>} />
+      <PageHeader title="Housekeeping Schedule" sub="Who cleans which room this shift. Changes reach the board and My Tasks when you publish." actions={<><BtnO label="Balance workload" icon={RefreshCw} onClick={autoBalance} /><BtnP label={published ? "Published" : "Publish schedule"} icon={published ? CheckCircle2 : Send} onClick={() => { setPublished(true); Object.entries(assignments).forEach(([id, who]) => updateRoom(id, { attendant: who || null })); add({ type: "success", title: "Schedule published", body: "Field devices notified" }); }} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Rooms scheduled" value={String(ROOMS.filter(r=>assignments[r]).length)} sub={`of ${ROOMS.length} total`} icon={CalendarDays} accent={PRIMARY} />
         <StatCard label="Unassigned" value={String(ROOMS.filter(r=>!assignments[r]).length)} sub="Need assignment" icon={AlertTriangle} accent={WARNING} />
@@ -270,21 +335,21 @@ export function HousekeepingSchedule({ add }: { add: (t: Omit<Toast, "id">) => v
       {/* Assignment grid */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
         <div className="flex border-b" style={{ borderColor: BORDER, backgroundColor: "#F9FAFB" }}>
-          <div className="w-20 flex-shrink-0 px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Room</div>
-          {ATTENDANTS.map(a => <div key={a} className="flex-1 text-center py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{a.split(" ")[0]}</div>)}
-          <div className="w-24 px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Status</div>
+          <div className="w-48 flex-shrink-0 px-4 py-3 text-xs font-semibold" style={{ color: MUTED }}>Room</div>
+          {ATTENDANTS.map(a => <div key={a} className="flex-1 text-center py-3 text-xs font-semibold" style={{ color: MUTED }}>{a}</div>)}
+          <div className="w-32 flex-shrink-0 px-4 py-3 text-xs font-semibold" style={{ color: MUTED }}>Status</div>
         </div>
-        {ROOMS.map(room => (
+        {board.map(({ id: room, type, guestState, priority }) => (
           <div key={room} className="flex items-center border-t hover:bg-[#F8FAFC]" style={{ borderColor: BORDER, minHeight: 48 }}>
-            <div className="w-20 flex-shrink-0 px-4 py-2 font-bold" style={{ color: PRIMARY }}>{room}</div>
+            <div className="w-48 flex-shrink-0 px-4 py-2"><div className="text-sm font-semibold" style={{ color: TEXT }}>{room}{priority && <span className="ml-2 text-xs font-normal" style={{ color: ERROR }}>Priority</span>}</div><div className="text-xs" style={{ color: MUTED }}>{type} · {guestState}</div></div>
             {ATTENDANTS.map(a => (
               <div key={a} className="flex-1 flex justify-center py-2">
-                <div onClick={() => toggleAssign(room, a)} className="w-7 h-7 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" style={{ borderColor: assignments[room] === a ? PRIMARY : "#CBD5E1", backgroundColor: assignments[room] === a ? PRIMARY : "transparent" }}>
-                  {assignments[room] === a && <CheckCircle2 size={13} color="white" />}
-                </div>
+                <button type="button" onClick={() => toggleAssign(room, a)} aria-pressed={assignments[room] === a} aria-label={`Assign room ${room} to ${a}`} className="rounded-lg border-2 flex items-center justify-center" style={{ width: 36, height: 36, borderColor: assignments[room] === a ? PRIMARY : "#CBD5E1", backgroundColor: assignments[room] === a ? PRIMARY : "transparent" }}>
+                  {assignments[room] === a && <CheckCircle2 size={14} color="white" />}
+                </button>
               </div>
             ))}
-            <div className="w-24 px-4 py-2">
+            <div className="w-32 flex-shrink-0 px-4 py-2">
               {assignments[room] ? <span className="text-xs px-2 py-0.5 rounded font-semibold" style={{ backgroundColor: "#DCFCE7", color: "#166534" }}>Assigned</span> : <span className="text-xs px-2 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>Unassigned</span>}
             </div>
           </div>
@@ -497,10 +562,13 @@ export function HKMyTasks({ add, staffName }: { add: (t: Omit<Toast, "id">) => v
   const [showIssue, setShowIssue] = useState<string | null>(null);
   const [issueDesc, setIssueDesc] = useState("");
   const mine = roomsFor(staffName);
+  const [showFound, setShowFound] = useState<string | null>(null);
+  const [foundDesc, setFoundDesc] = useState("");
   const [dndRooms, setDndRooms] = useState<Set<string>>(new Set(mine.filter(r => r.dnd).map(r => r.id)));
 
   const setStatus = (id: string, s: string) => {
     setStatuses(p => ({ ...p, [id]: s }));
+    updateRoom(id, { hkSt: s as "Dirty" });
     add({ type: "success", title: s === "In Progress" ? `Room ${id}: cleaning started` : `Room ${id} marked ${s.toLowerCase()}` });
   };
 
@@ -578,7 +646,7 @@ export function HKMyTasks({ add, staffName }: { add: (t: Omit<Toast, "id">) => v
               <div className="flex gap-2 flex-wrap">
                 <button onClick={() => { setShowIssue(r.id); setIssueDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>Report a fault</button>
                 <button onClick={() => { setDndRooms(p => { const n = new Set(p); isDND ? n.delete(r.id) : n.add(r.id); return n; }); add({ type: "info", title: isDND ? `Room ${r.id}: do not disturb cleared` : `Room ${r.id}: do not disturb noted` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>{isDND ? "Clear do not disturb" : "Do not disturb"}</button>
-                <button onClick={() => add({ type: "info", title: `Room ${r.id}: found item logged` })} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>Log found item</button>
+                <button onClick={() => { setShowFound(r.id); setFoundDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>Log found item</button>
               </div>
             </div>
           );
@@ -591,7 +659,22 @@ export function HKMyTasks({ add, staffName }: { add: (t: Omit<Toast, "id">) => v
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-semibold mb-2" style={{ color: TEXT }}>Request inspection for room {showInspect}</h3>
             <p className="text-sm mb-4" style={{ color: MUTED }}>The supervisor is told room {showInspect} is clean and ready to check.</p>
-            <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setShowInspect(null)} /><button onClick={() => { add({ type: "success", title: `Room ${showInspect}: inspection requested` }); setRequested(p => new Set(p).add(showInspect)); setShowInspect(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Request</button></div>
+            <div className="flex gap-3"><BtnO label="Cancel" onClick={() => setShowInspect(null)} /><button onClick={() => { add({ type: "success", title: `Room ${showInspect}: inspection requested` }); updateRoom(showInspect, { awaitingInspection: true }); setRequested(p => new Set(p).add(showInspect)); setShowInspect(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Request</button></div>
+          </div>
+        </>
+      )}
+      {showFound && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowFound(null)} />
+          <div role="dialog" aria-label="Log found item" className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
+            <h3 className="text-base font-semibold mb-1" style={{ color: TEXT }}>Item found in room {showFound}</h3>
+            <p className="text-sm mb-3" style={{ color: MUTED }}>Take it to the housekeeping store; the front desk sees it in Lost & Found.</p>
+            <input value={foundDesc} onChange={e => setFoundDesc(e.target.value)} placeholder="For example: black leather wallet" aria-label="What was found" className="w-full h-11 px-3 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} />
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowFound(null)} /><button disabled={!foundDesc.trim()} onClick={() => {
+              const stay = STAYS.find(x => x.room === showFound);
+              const item = logFoundItem({ desc: foundDesc.trim(), cat: "Personal", storage: "Housekeeping store A", room: showFound, guest: stay?.guest ?? "Unknown", guestRes: stay?.id ?? "", date: fmtDate(BUSINESS_DATE), loggedBy: staffName });
+              add({ type: "success", title: `${item.id} logged: ${item.desc}` }); setShowFound(null);
+            }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Log item</button></div>
           </div>
         </>
       )}

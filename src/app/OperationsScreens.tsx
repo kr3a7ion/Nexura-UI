@@ -35,10 +35,10 @@ import {
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, Av } from "./UIKit";
 import { DateInput } from "./DateInput";
-import { hkRooms, ATTENDANTS } from "./mock/housekeeping";
+import { hkRooms, updateRoom, ATTENDANTS } from "./mock/housekeeping";
 
 
-export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
+export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [rooms, setRooms] = useState(hkRooms);
   const [search, setSearch] = useState("");
   const [floorFilter, setFloorFilter] = useState("All");
@@ -49,7 +49,7 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
   const COLS = [
     { id: "Dirty", label: "Dirty", color: "#D97706", next: "Start cleaning", done: "cleaning started" },
     { id: "In Progress", label: "In progress", color: "#2563EB", next: "Mark clean", done: "marked clean" },
-    { id: "Clean", label: "Clean", color: "#059669", next: "Pass inspection", done: "passed inspection" },
+    { id: "Clean", label: "Clean", color: "#059669", next: "Inspect", done: "" },
     { id: "Inspected", label: "Ready", color: "#7C3AED", next: "", done: "" },
   ] as const;
   const FLOORS = ["All", ...Array.from(new Set(rooms.map(r => String(r.floor))))];
@@ -59,12 +59,16 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
     (attFilter === "All" || r.attendant === attFilter)
   );
   const moveTo = (roomId: string, ci: number) => {
-    setRooms(prev => prev.map(r => r.id === roomId ? { ...r, hkSt: COLS[ci + 1].id } : r));
+    // Clean rooms are passed through the inspection checklist, not with one click.
+    if (COLS[ci].id === "Clean") { nav?.("hk-inspection", "Inspection Log", roomId); return; }
+    updateRoom(roomId, { hkSt: COLS[ci + 1].id, ...(COLS[ci + 1].id === "Clean" ? { awaitingInspection: true } : {}) });
+    setRooms(hkRooms());
     add({ type: "success", title: `Room ${roomId} ${COLS[ci].done}` });
   };
   const bulkMove = () => {
     if (!bulkTarget || selected.length === 0) return;
-    setRooms(prev => prev.map(r => selected.includes(r.id) ? { ...r, hkSt: bulkTarget as typeof r.hkSt } : r));
+    selected.forEach(id => updateRoom(id, { hkSt: bulkTarget as "Dirty" }));
+    setRooms(hkRooms());
     add({ type: "success", title: `${selected.length} rooms moved to ${COLS.find(c => c.id === bulkTarget)?.label.toLowerCase()}` });
     setSelected([]); setBulkTarget("");
   };
@@ -99,7 +103,7 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
             <span className="text-sm" style={{ color: MUTED }}>{selected.length} selected</span>
             <select aria-label="Move selected rooms to" value={bulkTarget} onChange={e => setBulkTarget(e.target.value)} className="text-sm h-9 px-2 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER }}>
               <option value="">Move to…</option>
-              {COLS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+              {COLS.filter(c => c.id !== "Inspected").map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
             <button onClick={bulkMove} disabled={!bulkTarget} className="text-sm h-9 px-3 rounded-lg font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Move</button>
             <button onClick={() => setSelected([])} className="text-sm h-9 px-3 rounded-lg border" style={{ color: TEXT, borderColor: BORDER }}>Clear</button>
