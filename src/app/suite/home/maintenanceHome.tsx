@@ -7,10 +7,9 @@ import type { Screen } from "../../constants";
 import {
   BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
-import {
-  MAINTENANCE_EXCEPTIONS, MAINTENANCE_KPIS, MAINTENANCE_QUEUE,
-  MAINTENANCE_POWER, type MaintenanceQueueItem,
-} from "../../mock/maintenanceHome";
+import { MAINTENANCE_EXCEPTIONS, MAINTENANCE_POWER } from "../../mock/maintenanceHome";
+import { workOrders, isOpen, isOverdue, ageOf, type WorkOrder } from "../../mock/maintenance";
+import { ROOMS } from "../../mock/property";
 import { DEPARTMENTS } from "../departments";
 
 const department = DEPARTMENTS.find(item => item.id === "maintenance")!;
@@ -18,19 +17,18 @@ const accent = department.accent;
 const flow = department.flow;
 
 type Nav = (screen: Screen, label: string, param?: string) => void;
-type ViewState = "Ready" | "Loading" | "Empty" | "Error";
 
-const statusColors: Record<MaintenanceQueueItem["status"], { bg: string; text: string }> = {
+const statusColors: Record<string, { bg: string; text: string }> = {
   Reported: { bg: "#F1F5F9", text: "#475569" },
   Assigned: { bg: "#EFF6FF", text: "#1D4ED8" },
-  "In progress": { bg: `${accent}12`, text: accent },
-  "Awaiting parts": { bg: "#FFFBEB", text: "#B45309" },
+  "In progress": { bg: "#FFF7ED", text: "#C2410C" },
+  Overdue: { bg: "#FEF2F2", text: ERROR },
 };
 
-const priorityColors = {
-  Critical: { bg: "#FEF2F2", text: ERROR },
-  High: { bg: "#FFFBEB", text: "#B45309" },
-  Medium: { bg: BG, text: MUTED },
+const priorityColors: Record<WorkOrder["priority"], { bg: string; text: string }> = {
+  High: { bg: "#FEF2F2", text: ERROR },
+  Medium: { bg: "#FFFBEB", text: "#B45309" },
+  Low: { bg: BG, text: MUTED },
 };
 
 const severityColors = {
@@ -40,7 +38,10 @@ const severityColors = {
 };
 
 export default function MaintenanceHome({ nav }: { nav: Nav }) {
-  const [viewState, setViewState] = useState<ViewState>("Ready");
+  // Counted from the work orders and the property's rooms.
+  const open = workOrders().filter(isOpen);
+  const overdue = open.filter(isOverdue);
+  const outOfOrder = ROOMS.filter(r => r.status === "Maintenance" || r.status === "Out of service");
 
   const quickActions: Array<{ label: string; icon: ElementType; screen: Screen }> = [
     { label: "New work order", icon: Plus, screen: "work-orders" },
@@ -48,18 +49,6 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
     { label: "Preventive schedule", icon: CalendarDots, screen: "preventive-schedule" },
     { label: "Vendor contacts", icon: Buildings, screen: "vendor-contacts" },
   ];
-
-  if (viewState === "Loading") {
-    return <div><PageHeader title="Maintenance" sub="Loading engineering operations…" /><div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 4 }, (_, index) => <div key={index} className="h-40 animate-pulse rounded-2xl border bg-white" style={{ borderColor: BORDER }} />)}</div><div className="mt-5 h-80 animate-pulse rounded-2xl border bg-white" style={{ borderColor: BORDER }} /></div>;
-  }
-
-  if (viewState === "Error") {
-    return <div><PageHeader title="Maintenance" sub="Engineering and asset operations" /><div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}><EmptyState icon={WarningCircle} message="Maintenance data could not be loaded from the local server." cta="Try again" onCta={() => setViewState("Ready")} /></div></div>;
-  }
-
-  if (viewState === "Empty") {
-    return <div><PageHeader title="Maintenance" sub="Engineering and asset operations" /><div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}><EmptyState icon={CheckCircle} message="There are no open work orders or preventive tasks requiring action." cta="Open asset register" onCta={() => nav("asset-register", "Asset Register")} /></div></div>;
-  }
 
   return (
     <div>
@@ -79,14 +68,14 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
       </section>
 
       <section className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard {...MAINTENANCE_KPIS[0]} icon={Wrench} accent={accent} />
-        <StatCard {...MAINTENANCE_KPIS[1]} icon={Clock} accent={accent} />
-        <StatCard {...MAINTENANCE_KPIS[2]} icon={Buildings} accent={accent} />
-        <StatCard {...MAINTENANCE_KPIS[3]} icon={Drop} accent={accent} />
+        <StatCard label="Open work orders" value={String(open.length)} sub={`${open.filter(w => w.room).length} in rooms · ${open.filter(w => !w.room).length} elsewhere`} icon={Wrench} accent={accent} />
+        <StatCard label="Overdue" value={String(overdue.length)} sub={overdue.length ? `${overdue.filter(w => w.priority === "High").length} high priority` : "All on time"} icon={Clock} accent={accent} />
+        <StatCard label="Rooms out of order" value={String(outOfOrder.length)} sub={outOfOrder.length ? `Rooms ${outOfOrder.map(r => r.id).join(", ")}` : "All rooms in service"} icon={Buildings} accent={accent} />
+        <StatCard label="Main generator diesel" value="30%" sub={`${MAINTENANCE_POWER.dieselRemaining.replace(" (30%)", "")} · ${MAINTENANCE_POWER.reserveDays.toLowerCase()} left`} icon={Drop} accent={accent} />
       </section>
 
       <section className="mb-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
-        <div className="mb-4 flex items-center justify-between"><div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Power & generator</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Current backup-power position for the Abuja property.</p></div><Badge label="Generator B running" colors={{ bg: `${accent}12`, text: accent }} /></div>
+        <div className="mb-4 flex items-center justify-between"><div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Power & generator</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Backup power at this property right now.</p></div><Badge label="Pool generator running" colors={{ bg: `${accent}12`, text: accent }} /></div>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[["Runtime today", MAINTENANCE_POWER.runtimeToday], ["Diesel remaining", MAINTENANCE_POWER.dieselRemaining], ["Reserve", MAINTENANCE_POWER.reserveDays], ["Last grid outage", MAINTENANCE_POWER.lastGridOutage]].map(([label, value]) => <div key={label} className="rounded-xl p-3" style={{ backgroundColor: BG }}><div className="text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{label}</div><div className="mt-1.5 text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>{value}</div></div>)}
         </div>
@@ -99,19 +88,17 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.75fr)]">
         <section className="overflow-hidden rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
-          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Today’s work queue</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>18 open · 6 due today · updated 10:48</p></div><BtnO label="View work orders" icon={Wrench} onClick={() => nav("work-orders", "Work Orders")} /></div>
+          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><div><h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Open work orders</h2><p className="mt-0.5 text-sm" style={{ color: MUTED }}>{open.length} open · {overdue.length} overdue</p></div><BtnO label="All work orders" icon={Wrench} onClick={() => nav("work-orders", "Work Orders")} /></div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left">
-              <thead><tr style={{ backgroundColor: BG }}>{["Work order / room", "Asset", "Issue", "Assignee", "Age", "Priority", "Status", ""].map(label => <th key={label} className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{label}</th>)}</tr></thead>
-              <tbody>{MAINTENANCE_QUEUE.map(item => <tr key={item.id} className="border-t hover:bg-slate-50" style={{ borderColor: BORDER }}>
-                <td className="px-4 py-3"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.room}</div><div className="mt-0.5 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{item.id} · {item.branch}</div></td>
-                <td className="max-w-[180px] px-4 py-3 text-xs" style={{ color: MUTED }}>{item.asset}</td>
-                <td className="max-w-[200px] px-4 py-3"><div className="truncate text-xs" style={{ color: TEXT }}>{item.issue}</div></td>
-                <td className="px-4 py-3 text-xs" style={{ color: TEXT }}>{item.assignee}</td>
-                <td className="px-4 py-3 text-xs font-semibold" style={{ color: item.priority === "Critical" ? ERROR : TEXT, fontFamily: mono }}>{item.age}</td>
+            <table className="w-full text-left">
+              <thead><tr style={{ backgroundColor: BG }}>{["Work order", "Assigned to", "Open for", "Priority", "Status", ""].map(label => <th key={label} className="px-4 py-2.5 text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{label}</th>)}</tr></thead>
+              <tbody>{open.map(item => <tr key={item.id} className="border-t hover:bg-slate-50" style={{ borderColor: BORDER }}>
+                <td className="px-4 py-3 min-w-[220px]"><div className="text-sm font-medium" style={{ color: TEXT }}>{item.title}</div><div className="mt-0.5 text-sm" style={{ color: MUTED }}>{item.id} · {item.location}</div></td>
+                <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: item.tech ? TEXT : "#B45309" }}>{item.tech ?? "Nobody yet"}</td>
+                <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: isOverdue(item) ? ERROR : TEXT }}>{ageOf(item)}</td>
                 <td className="px-4 py-3"><Badge label={item.priority} colors={priorityColors[item.priority]} /></td>
-                <td className="px-4 py-3"><Badge label={item.status} colors={statusColors[item.status]} /></td>
-                <td className="px-4 py-3 text-right"><button onClick={() => nav("work-order-detail", "Work Order Detail", item.id)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold" style={{ backgroundColor: `${accent}12`, color: accent }}>Open<ArrowRight size={12} /></button></td>
+                <td className="px-4 py-3 whitespace-nowrap"><Badge label={isOverdue(item) ? "Overdue" : item.status} colors={statusColors[isOverdue(item) ? "Overdue" : item.status] ?? statusColors.Reported} /></td>
+                <td className="px-4 py-3 text-right"><button onClick={() => nav("work-order-detail", item.id, item.id)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium whitespace-nowrap" style={{ backgroundColor: `${accent}12`, color: "#C2410C" }}>Open<ArrowRight size={12} /></button></td>
               </tr>)}</tbody>
             </table>
           </div>
@@ -123,7 +110,7 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
         </section>
       </div>
 
-      <section className="mt-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}><h2 className="mb-3 text-sm font-bold" style={{ color: TEXT }}>Quick actions</h2><div className="flex flex-wrap gap-2">{quickActions.map((action, index) => index === 0 ? <BtnP key={action.label} label={action.label} icon={action.icon} color={accent} onClick={() => nav(action.screen, action.label)} /> : <BtnO key={action.label} label={action.label} icon={action.icon} onClick={() => nav(action.screen, action.label)} />)}</div></section>
+      <section className="mt-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}><h2 className="mb-3 text-sm font-bold" style={{ color: TEXT }}>Quick actions</h2><div className="flex flex-wrap gap-2">{quickActions.map((action, index) => index === 0 ? <BtnP key={action.label} label={action.label} icon={action.icon} color={accent} onClick={() => nav(action.screen, "Work Orders", "new:")} /> : <BtnO key={action.label} label={action.label} icon={action.icon} onClick={() => nav(action.screen, action.label)} />)}</div></section>
 
       <section className="mt-5">
         <div className="mb-3"><h2 className="text-sm font-bold" style={{ color: TEXT }}>All screens in this app</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Complete Maintenance toolkit.</p></div>

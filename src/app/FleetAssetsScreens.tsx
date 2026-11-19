@@ -17,6 +17,8 @@ import {
   BORDER, TEXT, MUTED, SUBTLE,
   stampNow, ORANGE_INK, WARNING_INK } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO } from "./UIKit";
+import { STAYS } from "./mock/frontOffice";
+import { downloadCsv } from "./ui";
 
 // ─── Shared data ──────────────────────────────────────────────────────────────
 
@@ -137,11 +139,12 @@ function VStatusPill({ status }: { status: VehicleStatus }) {
   return <span className="px-2 py-0.5 rounded-full text-xs font-semibold capitalize" style={{ backgroundColor:s.bg, color:s.text }}>{status}</span>;
 }
 
-function ExportBtn({ add, label }: { add: (t: Omit<Toast,"id">) => void; label: string }) {
-  const [st, setSt] = useState<"idle"|"gen"|"ready">("idle");
-  if (st==="gen") return <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs" style={{ backgroundColor:"#EFF6FF", color:PRIMARY }}><div className="w-3 h-3 border-2 rounded-full animate-spin" style={{ borderColor:`${PRIMARY}40`, borderTopColor:PRIMARY }} />Generating…</div>;
-  if (st==="ready") return <button onClick={()=>{add({type:"success",title:`${label} exported`});setSt("idle");}} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold" style={{ backgroundColor:"#DCFCE7", color:"#166534" }}><Download size={12}/>Download ready</button>;
-  return <button onClick={()=>{setSt("gen");setTimeout(()=>setSt("ready"),1600);}} className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs" style={{ borderColor:BORDER, color:MUTED }}><Download size={12}/>Export</button>;
+function ExportBtn({ add, label, rows }: { add: (t: Omit<Toast,"id">) => void; label: string; rows?: () => (string | number)[][] }) {
+  // shortcut: screens without rows still only confirm; give each one its rows when its department is walked through.
+  return <BtnO label="Export" icon={Download} onClick={() => {
+    if (!rows) { add({ type:"info", title:`${label} export is not set up yet` }); return; }
+    const file = `${label.toLowerCase().replace(/\s+/g, "-")}.csv`; downloadCsv(file, rows()); add({ type:"success", title:`${label} saved as ${file}` });
+  }} />;
 }
 
 function TH({ cols }: { cols: string[] }) {
@@ -816,11 +819,11 @@ const DIESEL_LOG: DieselEntry[] = [
 ];
 
 const GEN_TREND = [
-  { week:"W31", cost:428700, hrs:112, lph:3.8 },
-  { week:"W32", cost:518800, hrs:136, lph:3.9 },
-  { week:"W33", cost:566500, hrs:148, lph:3.8 },
-  { week:"W34", cost:436300, hrs:114, lph:3.8 },
-  { week:"W35", cost:672400, hrs:176, lph:3.9 },
+  { week:"W22", cost:428700, hrs:112, lph:3.8 },
+  { week:"W23", cost:518800, hrs:136, lph:3.9 },
+  { week:"W24", cost:566500, hrs:148, lph:3.8 },
+  { week:"W25", cost:436300, hrs:114, lph:3.8 },
+  { week:"W26", cost:672400, hrs:176, lph:3.9 },
 ];
 
 // ─── Diesel requisition types ─────────────────────────────────────────────────
@@ -850,7 +853,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
 
   const dieselCostDay  = 112420;
   const approxKwhCost  = 1.42;
-  const costPerOccRoom = 1406;
+  const costPerOccRoom = Math.round(dieselCostDay / Math.max(1, STAYS.length));
   const genHrsVsGrid   = 68;
 
   const pending = requisitions.filter(r => r.status === "pending");
@@ -1034,7 +1037,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
       <PageHeader title="Generator & Diesel Log" sub="Diesel procurement, delivery records, generator cost analysis and consumption monitoring"
         actions={
           <div className="flex gap-2">
-            <ExportBtn add={add} label="Generator diesel log" />
+            <ExportBtn add={add} label="Generator diesel log" rows={() => [["ID", "Date", "Generator", "Litres", "Price a litre", "Total", "Supplier", "Recorded by"], ...DIESEL_LOG.map(d => [d.id, d.date, d.generator, d.litres, d.unitPrice, d.total, d.supplier, d.recordedBy])]} />
             <BtnP label="Record delivery" icon={Plus} onClick={() => setShowForm(!showForm)} />
           </div>
         }
@@ -1094,7 +1097,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
           <div className="p-3 rounded-xl text-center" style={{ backgroundColor:"#FFF7ED" }}>
             <div className="text-xs font-semibold mb-1" style={{ color:"#9A3412" }}>Diesel Cost / Occupied Room / Day</div>
             <div className="text-2xl font-bold" style={{ color:"#9A3412", fontFamily:mono }}>₦{costPerOccRoom.toLocaleString()}</div>
-            <div className="text-xs" style={{ color:"#C2410C" }}>80 rooms occupied (avg)</div>
+            <div className="text-xs" style={{ color:"#C2410C" }}>{STAYS.length} rooms occupied tonight</div>
           </div>
           <div className="p-3 rounded-xl text-center" style={{ backgroundColor:"#F0F9FF" }}>
             <div className="text-xs font-semibold mb-1" style={{ color:"#0369A1" }}>Generator vs grid hours</div>
@@ -1106,7 +1109,7 @@ export function GeneratorDieselLog({ add, role }: { add: (t: Omit<Toast,"id">) =
         <div>
           <div className="text-xs font-semibold mb-2" style={{ color:MUTED }}>Weekly diesel cost & runtime trend</div>
           <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={GEN_TREND} margin={{ left:-20 }}>
+            <BarChart data={GEN_TREND} margin={{ left:8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" />
               <XAxis dataKey="week" tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill:MUTED }} axisLine={false} tickLine={false} tickFormatter={v=>`₦${(v/1000).toFixed(0)}K`} />

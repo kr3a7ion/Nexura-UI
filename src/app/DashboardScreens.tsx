@@ -25,8 +25,7 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
-  STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
@@ -37,6 +36,7 @@ import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, LiveCloc
 import { hkRooms } from "./mock/housekeeping";
 import { STAYS, ARRIVALS, departures, inHouseGuests } from "./mock/frontOffice";
 import { roomPrice } from "./mock/property";
+import { workOrders, isOpen, isOverdue, ageOf } from "./mock/maintenance";
 
 export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
   const [auditRunning, setAuditRunning] = useState(false);
@@ -326,8 +326,8 @@ function RoleCard({ title, children }: { title: string; children: React.ReactNod
   );
 }
 
-export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, label: string) => void }) {
-  const go = (s: string, l: string) => nav && nav(s, l);
+export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, label: string, param?: string) => void }) {
+  const go = (s: string, l: string, p?: string) => nav && nav(s, l, p);
 
   // ── FD Dashboard ─────────────────────────────────────────────────────────────
   if (role === "FD") {
@@ -634,21 +634,19 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RoleCard title="My Work Orders">
-          {WORK_ORDERS.slice(0, 5).map(wo => {
-            const sc = woC[wo.status] ?? { bg: "#F3F4F6", text: "#374151" };
+          {workOrders().filter(isOpen).slice(0, 5).map(wo => {
+            const sc = isOverdue(wo) ? woC.Overdue : woC[wo.status] ?? { bg: "#F3F4F6", text: "#374151" };
             const pc = priC[wo.priority] ?? MUTED;
             return (
-              <div key={wo.id} className="flex items-center gap-4 px-5 py-3.5 border-b cursor-pointer transition-colors"
-                style={{ borderColor: BORDER }} onClick={() => go("work-order-detail", "Work Order Detail")}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#F0F4F8")}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}>
+              <div key={wo.id} className="flex items-center gap-4 px-5 py-3.5 border-b cursor-pointer hover:bg-slate-50"
+                style={{ borderColor: BORDER }} onClick={() => go("work-order-detail", wo.id, wo.id)}>
                 <div className="w-1.5 h-8 rounded-full flex-shrink-0" style={{ backgroundColor: pc }} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold" style={{ color: TEXT, fontFamily: "'Inter', system-ui, sans-serif" }}>{wo.id}</div>
-                  <div className="text-xs" style={{ color: MUTED }}>{wo.location} · {wo.cat}</div>
+                  <div className="text-sm font-medium truncate" style={{ color: TEXT }}>{wo.title}</div>
+                  <div className="text-xs" style={{ color: MUTED }}>{wo.id} · {wo.location}</div>
                 </div>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: sc.bg, color: sc.text }}>{wo.status}</span>
-                <span className="text-xs" style={{ color: SUBTLE }}>{wo.age}</span>
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap" style={{ backgroundColor: sc.bg, color: sc.text }}>{isOverdue(wo) ? "Overdue" : wo.status}</span>
+                <span className="text-xs whitespace-nowrap" style={{ color: SUBTLE }}>{ageOf(wo)}</span>
               </div>
             );
           })}

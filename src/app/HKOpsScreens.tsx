@@ -25,8 +25,7 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
-  STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
@@ -36,6 +35,7 @@ stampNow, ORANGE_INK, TEAL_INK, WARNING_INK, fmtDate, BUSINESS_DATE } from "./co
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { roomsFor, hkRooms, updateRoom, logFoundItem, INSPECTIONS, CHECKLIST, PASS_MARK, passed, addInspection, ATTENDANTS as HK_ATTENDANTS } from "./mock/housekeeping";
 import { STAYS } from "./mock/frontOffice";
+import { addWorkOrder } from "./mock/maintenance";
 // HK-04 Inspection Log
 export function InspectionLog({ add, staffName, navParam }: { add: (t: Omit<Toast, "id">) => void; staffName: string; navParam?: string }) {
   const [logs, setLogs] = useState(() => [...INSPECTIONS]);
@@ -685,7 +685,7 @@ export function HKMyTasks({ add, staffName }: { add: (t: Omit<Toast, "id">) => v
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-semibold mb-3" style={{ color: TEXT }}>Report a fault in room {showIssue}</h3>
             <textarea value={issueDesc} onChange={e => setIssueDesc(e.target.value)} placeholder="What is wrong, and where in the room?" aria-label="Describe the fault" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
-            <div className="flex gap-3 mt-3"><BtnO label="Cancel" onClick={() => setShowIssue(null)} /><button disabled={!issueDesc.trim()} onClick={() => { add({ type: "success", title: `Room ${showIssue}: fault sent to Maintenance`, body: issueDesc }); setShowIssue(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Send to Maintenance</button></div>
+            <div className="flex gap-3 mt-3"><BtnO label="Cancel" onClick={() => setShowIssue(null)} /><button disabled={!issueDesc.trim()} onClick={() => { const w = addWorkOrder({ title: issueDesc.trim().split(/[.\n]/)[0].slice(0, 60), location: `Room ${showIssue}`, room: showIssue, cat: "General", priority: "Medium", reportedBy: staffName, desc: issueDesc.trim() }); add({ type: "success", title: `Work order ${w.id} raised for room ${showIssue}`, body: "Maintenance can see it in Work Orders." }); setShowIssue(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Send to Maintenance</button></div>
           </div>
         </>
       )}

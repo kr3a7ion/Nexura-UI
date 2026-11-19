@@ -64,7 +64,7 @@ function PinInput({ onConfirm }: { onConfirm: (pin: string) => void }) {
 // ─── 1. UserManagement ────────────────────────────────────────────────────────
 const USERS_DATA = [
   { id:"USR-001", name:"Adaeze Okonkwo",        email:"manager@grandpalms.ng",     role:"MGT", dept:"Management",   branch:"Grand Palms Abuja", status:"active",   mfa:true,  lastLogin:"Today 08:14",  failed:0, locked:false },
-  { id:"USR-002", name:"Emeka Nwosu",            email:"frontdesk@grandpalms.ng",   role:"FD",  dept:"Front Desk",   branch:"Grand Palms Abuja", status:"active",   mfa:false, lastLogin:"Today 07:58",  failed:0, locked:false },
+  { id:"USR-002", name:"Emeka Obi",            email:"frontdesk@grandpalms.ng",   role:"FD",  dept:"Front Desk",   branch:"Grand Palms Abuja", status:"active",   mfa:false, lastLogin:"Today 07:58",  failed:0, locked:false },
   { id:"USR-003", name:"Fatima Al-Hassan",       email:"housekeeper@grandpalms.ng", role:"HK",  dept:"Housekeeping", branch:"Grand Palms Abuja", status:"active",   mfa:false, lastLogin:"Today 07:31",  failed:0, locked:false },
   { id:"USR-004", name:"Chukwubuike Eze",        email:"maintenance@grandpalms.ng", role:"MX",  dept:"Maintenance",  branch:"Grand Palms Abuja", status:"active",   mfa:true,  lastLogin:"Yesterday",    failed:0, locked:false },
   { id:"USR-005", name:"Ngozi Iweala-Obi",       email:"finance@grandpalms.ng",     role:"FIN", dept:"Finance",      branch:"Grand Palms Abuja", status:"active",   mfa:true,  lastLogin:"Today 09:02",  failed:0, locked:false },
@@ -763,7 +763,7 @@ export function BackupRestore({ add }: { add: (t: Omit<Toast, "id">) => void }) 
 const AUDIT_ENTRIES = [
   { ts:"2026-06-24 10:09:41", actor:"Adaeze Okonkwo",    role:"MGT", action:"UNLOCK_ACCOUNT",      entity:"User",        entityId:"USR-008", ip:"192.168.1.12", device:"MGT-iPad-01",    detail:"Unlocked account for seun@grandpalms.ng after 5 failed attempts" },
   { ts:"2026-06-24 09:51:02", actor:"Adaeze Okonkwo",    role:"MGT", action:"APPROVE_REFUND",      entity:"Folio",       entityId:"FOL-2014", ip:"192.168.1.12", device:"MGT-iPad-01",   detail:"Approved refund ₦45,000 — Reason: duplicate charge" },
-  { ts:"2026-06-24 09:34:18", actor:"Emeka Nwosu",       role:"FD",  action:"CHECK_IN",            entity:"Reservation", entityId:"RES-1042", ip:"192.168.1.10", device:"FD-Terminal-01", detail:"Guest: Dr. Bello · Room 501 · Deposit: ₦50,000 cash" },
+  { ts:"2026-06-24 09:34:18", actor:"Emeka Obi",       role:"FD",  action:"CHECK_IN",            entity:"Reservation", entityId:"RES-1042", ip:"192.168.1.10", device:"FD-Terminal-01", detail:"Guest: Dr. Bello · Room 501 · Deposit: ₦50,000 cash" },
   { ts:"2026-06-24 09:12:55", actor:"Ngozi Iweala-Obi",  role:"FIN", action:"NIGHT_AUDIT_RUN",     entity:"Business Date",entityId:"2026-06-23", ip:"192.168.1.20", device:"FD-Terminal-01", detail:"Audit completed · Rooms: 62 · Revenue: ₦4,820,000" },
   { ts:"2026-06-24 08:50:31", actor:"System",            role:"SYS", action:"BACKUP_COMPLETED",    entity:"Backup",      entityId:"BK-2025-1014-01", ip:"localhost", device:"server", detail:"Scheduled backup 2.4 GB — offsite sync queued" },
   { ts:"2026-06-23 22:14:09", actor:"Musa Abdullahi",    role:"RT",  action:"VOID_CHARGE",         entity:"POS Order",   entityId:"ORD-4892", ip:"192.168.1.31", device:"FD-Terminal-01", detail:"Voided ₦12,400 — Reason: customer complaint" },
@@ -841,11 +841,11 @@ type ErrSeverity = "ERROR" | "WARN" | "INFO";
 
 const ERROR_LOG = [
   { id:"ERR-0041", ts:"2026-06-24 10:09:41", sev:"WARN"  as ErrSeverity, module:"sync",    msg:"Central sync response delayed 3.2s",                requestId:"req-8841a", user:"system",          resolved:false, count:3,  stack:"SyncClient.push (sync.ts:182)\nretryWithBackoff (utils.ts:44)" },
-  { id:"ERR-0040", ts:"2026-06-24 09:41:18", sev:"ERROR" as ErrSeverity, module:"printer", msg:"Folio printer (192.168.1.46) connection refused",   requestId:"req-8820c", user:"Emeka Nwosu",      resolved:false, count:12, stack:"PrintService.send (printer.ts:94)\nFolioScreen.print (FolioScreen.tsx:312)" },
+  { id:"ERR-0040", ts:"2026-06-24 09:41:18", sev:"ERROR" as ErrSeverity, module:"printer", msg:"Folio printer (192.168.1.46) connection refused",   requestId:"req-8820c", user:"Emeka Obi",      resolved:false, count:12, stack:"PrintService.send (printer.ts:94)\nFolioScreen.print (FolioScreen.tsx:312)" },
   { id:"ERR-0039", ts:"2026-06-24 09:32:05", sev:"WARN"  as ErrSeverity, module:"auth",    msg:"Account locked after 5 failed login attempts",      requestId:"req-8814b", user:"seun@grandpalms.ng",resolved:true, count:5,  stack:"AuthController.login (auth.ts:67)\nrateLimit (middleware.ts:22)" },
   { id:"ERR-0038", ts:"2026-06-24 08:50:31", sev:"INFO"  as ErrSeverity, module:"backup",  msg:"Offsite transfer delayed — network congestion",     requestId:"req-8800a", user:"system",           resolved:true, count:1,  stack:"BackupService.transfer (backup.ts:141)" },
   { id:"ERR-0037", ts:"2026-06-23 22:14:09", sev:"WARN"  as ErrSeverity, module:"pos",     msg:"POS shift not closed at night audit — auto-closed", requestId:"req-8780b", user:"system",           resolved:true, count:1,  stack:"NightAudit.precheck (audit.ts:58)" },
-  { id:"ERR-0036", ts:"2026-06-23 15:22:01", sev:"ERROR" as ErrSeverity, module:"db",      msg:"Deadlock detected on reservation_locks table",      requestId:"req-8742a", user:"Emeka Nwosu",      resolved:true, count:2,  stack:"ReservationService.lock (reservation.ts:210)\nDB.transaction (db.ts:88)" },
+  { id:"ERR-0036", ts:"2026-06-23 15:22:01", sev:"ERROR" as ErrSeverity, module:"db",      msg:"Deadlock detected on reservation_locks table",      requestId:"req-8742a", user:"Emeka Obi",      resolved:true, count:2,  stack:"ReservationService.lock (reservation.ts:210)\nDB.transaction (db.ts:88)" },
 ];
 
 const SEV_STYLE: Record<ErrSeverity, { bg: string; text: string }> = {

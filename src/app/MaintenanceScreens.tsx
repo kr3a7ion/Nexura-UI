@@ -25,8 +25,7 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
-  STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
@@ -34,189 +33,8 @@ import {
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { DateInput } from "./DateInput";
-// MX-02 Work Order Detail
-export function WorkOrderDetail({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [status, setStatus] = useState("In Progress");
-  const [guestImpact, setGuestImpact] = useState(true);
-  const [note, setNote] = useState("");
-  const [partNote, setPartNote] = useState("");
-  const [showClose, setShowClose] = useState(false);
-  const [resolution, setResolution] = useState("");
-  const [labourHours, setLabourHours] = useState("1.5");
-  const [showFollowUp, setShowFollowUp] = useState(false);
-
-  const TIMELINE = [
-    { ts: "24 Jun 08:58", event: "Work order created", by: "John Abubakar", note: "AC unit in Room 207 not cooling. Guest complaint — hot room.", color: PRIMARY },
-    { ts: "24 Jun 09:05", event: "Assigned to technician", by: "Grace Mensah", note: "Assigned to Emeka Nwosu (HVAC specialist)", color: TEAL_INK },
-    { ts: "24 Jun 09:15", event: "Status → In Progress", by: "Emeka Nwosu", note: "Checked unit — low refrigerant. Sourcing R-410A. Estimated 2h.", color: ORANGE_INK },
-  ];
-  const [timeline, setTimeline] = useState(TIMELINE);
-
-  const PARTS = [
-    { item: "R-410A Refrigerant (1kg)", qty: 1, unit: 8500, ref: "STK-0044" },
-    { item: "Condenser Filter", qty: 1, unit: 2200, ref: "STK-0041" },
-  ];
-
-  const STATUS_STEPS = ["Reported","Assigned","In Progress","Completed","Cancelled"];
-
-  const postNote = () => {
-    if (!note.trim()) return;
-    setTimeline(p => [...p, { ts: new Date().toLocaleTimeString("en-NG",{hour:"2-digit",minute:"2-digit"}), event: "Note added", by: "Current User", note, color: MUTED }]);
-    add({ type: "success", title: "Note posted" }); setNote("");
-  };
-
-  const closeWO = () => {
-    if (!resolution.trim()) { add({ type: "warning", title: "Resolution notes required to close" }); return; }
-    setStatus("Completed"); setShowClose(false);
-    setTimeline(p => [...p, { ts: new Date().toLocaleTimeString("en-NG",{hour:"2-digit",minute:"2-digit"}), event: "Work order closed", by: "Current User", note: resolution, color: SUCCESS }]);
-    add({ type: "success", title: "WO-0091 closed", body: "Guest room status updated" });
-  };
-
-  const partTotal = PARTS.reduce((s,p) => s+p.qty*p.unit, 0);
-  const labourCost = parseFloat(labourHours || "0") * 5000;
-
-  return (
-    <div>
-      <PageHeader title="Work Order WO-0091" sub="Room 207 · HVAC · Reported 24 Jun 08:58 by John Abubakar"
-        actions={<><BtnO label="Escalate" icon={AlertTriangle} onClick={() => add({ type: "warning", title: "WO-0091 escalated to GM" })} /><BtnP label="Close order" icon={CheckCircle2} onClick={() => setShowClose(true)} /></>} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Main column */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Header card */}
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <div className="text-lg font-bold" style={{ color: TEXT }}>AC not cooling — Room 207</div>
-                <div className="text-sm mt-0.5" style={{ color: MUTED }}>SLA Deadline: <span className="font-semibold" style={{ color: ERROR }}>24 Jun 14:58</span> · Age: <span style={{ fontFamily: mono }}>1h 20m</span></div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setGuestImpact(p=>!p)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold" style={{ borderColor: guestImpact ? `${ERROR}40` : BORDER, backgroundColor: guestImpact ? "#FEF2F2" : "white", color: guestImpact ? ERROR : MUTED }}>
-                  <AlertCircle size={12} />Guest Impact {guestImpact ? "ON" : "OFF"}
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              {[["Location","Room 207"],["Category","HVAC"],["Priority","High"],["Assigned To","Emeka Nwosu"],["Asset","AST-001 — Central AC"],["Status",status]].map(([k,v]) => (
-                <div key={k}><div className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: MUTED }}>{k}</div>
-                <div className="text-sm font-semibold" style={{ color: k==="Priority" ? ERROR : k==="Status" ? PRIMARY : TEXT }}>{v}</div></div>
-              ))}
-            </div>
-            <div><div className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: MUTED }}>Description</div>
-            <p className="text-sm leading-relaxed" style={{ color: TEXT }}>AC unit not cooling in Room 207. Guest reported warm room temperature (29°C vs 23°C set point). Technician to inspect compressor, refrigerant levels, filter, and thermostat calibration. Room has been offered a temporary fan.</p></div>
-          </div>
-
-          {/* Photo attachments — colored div placeholders */}
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Photo evidence</h3><button className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }} onClick={() => add({ type: "info", title: "Camera access requested" })}>+ Upload</button></div>
-            <div className="flex gap-3">
-              {[["#DBEAFE","AC Unit — External"],["#FEF3C7","Control Panel"],["#DCFCE7","Filter — clogged"]].map(([bg, label]) => (
-                <div key={label} className="flex-1 rounded-xl flex flex-col items-center justify-center gap-1.5 py-6 cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: bg, minHeight: 80 }}>
-                  <Camera size={20} style={{ color: MUTED }} />
-                  <span className="text-xs text-center px-2" style={{ color: MUTED }}>{label}</span>
-                </div>
-              ))}
-              <div className="flex-1 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 py-6 cursor-pointer" style={{ borderColor: BORDER }}>
-                <Plus size={18} style={{ color: SUBTLE }} /><span className="text-xs" style={{ color: SUBTLE }}>Add photo</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Parts consumed */}
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Parts consumed</h3><button onClick={() => add({ type: "info", title: "Log parts from stock" })} className="text-xs px-2.5 py-1.5 rounded-lg border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>+ Log Parts</button></div>
-            <table className="w-full mb-3">
-              <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Item","Qty","Unit cost","Total","Stock ref"].map(h=><th key={h} className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-              <tbody>{PARTS.map((p,i) => <tr key={i} className="border-t" style={{ borderColor: BORDER }}><td className="px-3 py-2.5 text-sm" style={{ color: TEXT }}>{p.item}</td><td className="px-3 py-2.5 text-sm" style={{ color: TEXT, fontFamily: mono }}>{p.qty}</td><td className="px-3 py-2.5 text-sm" style={{ color: TEXT, fontFamily: mono }}>₦{p.unit.toLocaleString()}</td><td className="px-3 py-2.5 text-sm font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{(p.qty*p.unit).toLocaleString()}</td><td className="px-3 py-2.5 text-xs" style={{ color: TEAL_INK, fontFamily: mono }}>{p.ref}</td></tr>)}</tbody>
-            </table>
-            <div className="flex items-center gap-4 pt-3 border-t" style={{ borderColor: BORDER }}>
-              <span className="text-xs" style={{ color: MUTED }}>Parts total: <span className="font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{partTotal.toLocaleString()}</span></span>
-              <div className="flex items-center gap-2"><span className="text-xs" style={{ color: MUTED }}>Labour hours:</span><input aria-label="Labour hours" type="number" step="0.5" min="0" value={labourHours} onChange={e=>setLabourHours(e.target.value)} className="w-16 px-2 py-1 text-xs border rounded outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>
-              <span className="text-xs" style={{ color: MUTED }}>Labour @ ₦5,000/h: <span className="font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{labourCost.toLocaleString()}</span></span>
-              <span className="ml-auto text-sm font-bold" style={{ color: PRIMARY, fontFamily: mono }}>Total: ₦{(partTotal+labourCost).toLocaleString()}</span>
-            </div>
-          </div>
-
-          {/* Activity timeline */}
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Activity log</h3>
-            <div className="space-y-0">
-              {timeline.map((t, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: t.color }} />
-                    {i < timeline.length - 1 && <div className="w-0.5 flex-1 mt-1 mb-1" style={{ backgroundColor: "#E2E8F0" }} />}
-                  </div>
-                  <div className="pb-4 flex-1">
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{t.ts}</span>
-                      <span className="text-xs font-semibold" style={{ color: t.color }}>{t.event}</span>
-                      <span className="text-xs" style={{ color: MUTED }}>by {t.by}</span>
-                    </div>
-                    <p className="text-sm mt-0.5" style={{ color: TEXT }}>{t.note}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="pt-4 border-t" style={{ borderColor: "#F4F4F5" }}>
-              <textarea value={note} onChange={e=>setNote(e.target.value)} className="w-full px-3 py-2.5 border rounded-xl text-sm outline-none resize-none mb-2" rows={2} placeholder="Add note or update…" aria-label="Add note or update" style={{ borderColor: BORDER }} />
-              <BtnP label="Post update" icon={Send} onClick={postNote} />
-            </div>
-          </div>
-        </div>
-
-        {/* Right sidebar */}
-        <div className="space-y-4">
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Status transition</h3>
-            <div className="space-y-2">
-              {STATUS_STEPS.map(s => (
-                <button key={s} onClick={() => { if (s === "Completed") { setShowClose(true); } else { setStatus(s); add({ type: "success", title: `Status → ${s}` }); setTimeline(p=>[...p,{ts:new Date().toLocaleTimeString("en-NG",{hour:"2-digit",minute:"2-digit"}),event:`Status → ${s}`,by:"Current User",note:"",color:woC[s]?.text??MUTED}]); } }} className="w-full flex items-center gap-2.5 p-2.5 rounded-xl border text-sm font-medium" style={{ borderColor: s===status ? PRIMARY : BORDER, backgroundColor: s===status ? "#EFF6FF" : "white", color: s===status ? PRIMARY : MUTED }}>
-                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: woC[s]?.text ?? SUBTLE }} />{s}
-                  {s==="Completed" && <span className="ml-auto text-xs" style={{ color: SUBTLE }}>requires notes</span>}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: TEXT }}>Linked asset</h3>
-            <div className="space-y-1.5 text-xs">
-              {[["Asset Tag","AST-001"],["Asset","Central AC Unit"],["Location","Roof"],["Last Service","12 Mar 2026"],["Next Service","12 Jun 2026"]].map(([k,v]) => (
-                <div key={k} className="flex gap-2"><span className="w-24 flex-shrink-0" style={{ color: MUTED }}>{k}</span><span className="font-medium" style={{ color: TEXT }}>{v}</span></div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: BORDER }}>
-            <div className="flex items-center justify-between mb-3"><h3 className="text-sm font-semibold" style={{ color: TEXT }}>Follow-up PM</h3><button onClick={() => setShowFollowUp(true)} className="text-xs px-2 py-1 rounded border" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>Create</button></div>
-            {showFollowUp ? (
-              <div className="space-y-2">
-                <select className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }}><option>Monthly PM — AC Unit</option><option>Quarterly — AC full service</option></select>
-                <DateInput type="date" className="w-full px-2.5 py-2 text-xs rounded-xl border outline-none" style={{ borderColor: BORDER }} defaultValue="2026-07-24" />
-                <button onClick={() => { setShowFollowUp(false); add({ type: "success", title: "PM task created — AST-001" }); }} className="w-full py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Create PM task</button>
-              </div>
-            ) : <p className="text-xs" style={{ color: SUBTLE }}>Create a preventive maintenance task from this work order to prevent recurrence.</p>}
-          </div>
-        </div>
-      </div>
-
-      {/* Close modal */}
-      {showClose && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowClose(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-md" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Close work order</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>Document the resolution before closing. This is required and will appear on the audit trail.</p>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Resolution notes</label>
-            <textarea value={resolution} onChange={e=>setResolution(e.target.value)} placeholder="Describe what was found and what was done to resolve the issue…" aria-label="Describe what was found and what was done to resolve the issue" rows={4} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowClose(false)} /><button disabled={!resolution.trim()} onClick={closeWO} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: SUCCESS }}>Close order</button></div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
+import { addWorkOrder, updateWorkOrder } from "./mock/maintenance";
+import { downloadCsv } from "./ui";
 // MX-04 Asset Register
 export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   const [catFilter, setCatFilter] = useState("All");
@@ -227,7 +45,7 @@ export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) 
     { id: "AST-001", name: "Central Air Conditioning Unit", cat: "HVAC", location: "Roof", criticality: "Critical", purchased: "Jan 2021", cost: 2850000, warranty: "Jan 2025", supplier: "Airecon Nigeria", lastService: "12 Mar 2026", nextService: "12 Jun 2026", serviceStatus: "Overdue", downtimeYTD: "4h 20m", runtime: "8,742 h", status: "Operational" },
     { id: "AST-002", name: "Commercial Refrigerator (Restaurant)", cat: "Kitchen", location: "Restaurant Kitchen", criticality: "High", purchased: "Mar 2022", cost: 980000, warranty: "Mar 2026", supplier: "CoolTech Ltd", lastService: "10 May 2026", nextService: "10 Aug 2026", serviceStatus: "Ok", downtimeYTD: "0h", runtime: "—", status: "Operational" },
     { id: "AST-003", name: "Elevator #1 (10-person)", cat: "Infrastructure", location: "Main Building", criticality: "Critical", purchased: "Sep 2019", cost: 12500000, warranty: "Sep 2025", supplier: "Otis Nigeria", lastService: "1 Jun 2026", nextService: "1 Sep 2026", serviceStatus: "Ok", downtimeYTD: "1h", runtime: "—", status: "Operational" },
-    { id: "AST-004", name: "Diesel Generator 50kVA", cat: "Generator", location: "Generator Room", criticality: "Critical", purchased: "Jun 2020", cost: 4200000, warranty: "Jun 2026", supplier: "Mikano Int'l", lastService: "15 May 2026", nextService: "15 Jun 2026", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "3,412 h", status: "Operational" },
+    { id: "AST-004", name: "Main generator 500 kVA", cat: "Generator", location: "Generator House", criticality: "Critical", purchased: "Jun 2020", cost: 4200000, warranty: "Jun 2026", supplier: "Mikano Int'l", lastService: "15 May 2026", nextService: "15 Jun 2026", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "3,412 h", status: "Operational" },
     { id: "AST-005", name: "Toyota HiAce Bus (Hotel Shuttle)", cat: "Vehicle", location: "Parking", criticality: "Medium", purchased: "Feb 2023", cost: 9800000, warranty: "Feb 2027", supplier: "Toyota Nigeria", lastService: "1 Apr 2026", nextService: "1 Jul 2026", serviceStatus: "Due Soon", downtimeYTD: "0h", runtime: "14,200 km", status: "Operational" },
     { id: "AST-006", name: "Commercial Washing Machine", cat: "Laundry", location: "Laundry Room", criticality: "High", purchased: "Aug 2021", cost: 1450000, warranty: "Aug 2025", supplier: "CleanPro", lastService: "20 Feb 2026", nextService: "20 May 2026", serviceStatus: "Overdue", downtimeYTD: "8h", runtime: "—", status: "Degraded" },
     { id: "AST-007", name: "Pool Circulation Pump", cat: "Pool", location: "Pool Area", criticality: "Medium", purchased: "Nov 2022", cost: 620000, warranty: "Nov 2026", supplier: "AquaTech", lastService: "5 Jun 2026", nextService: "5 Sep 2026", serviceStatus: "Ok", downtimeYTD: "2h", runtime: "—", status: "Operational" },
@@ -246,7 +64,7 @@ export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) 
   return (
     <div className="flex gap-5">
       <div className="flex-1 min-w-0">
-        <PageHeader title="Asset Register" sub="All property assets including vehicles and generators" actions={<><BtnO label="Export" icon={Download} /><BtnP label="Add asset" icon={Plus} onClick={() => add({ type: "info", title: "Add new asset" })} /></>} />
+        <PageHeader title="Asset Register" sub="All property assets including vehicles and generators" actions={<><BtnO label="Export" icon={Download} onClick={() => { downloadCsv("asset-register.csv", [["ID", "Name", "Category", "Location", "Criticality", "Next service", "Status"], ...visible.map(a => [a.id, a.name, a.cat, a.location, a.criticality, a.nextService, a.status])]); add({ type: "success", title: `${visible.length} assets saved as asset-register.csv` }); }} /><BtnP label="Add asset" icon={Plus} onClick={() => add({ type: "info", title: "Add new asset" })} /></>} />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <StatCard label="Total assets" value={String(REGISTER.length)} sub="Registered items" icon={Package} accent={PRIMARY} />
           <StatCard label="Overdue service" value={String(REGISTER.filter(a=>a.serviceStatus==="Overdue").length)} sub="Past schedule" icon={AlertTriangle} accent={ERROR} />
@@ -259,11 +77,11 @@ export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) 
         </div>
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Asset ID","Name / category","Location","Criticality","Purchase cost","Warranty","Supplier","Next service","Runtime","Status",""].map(h=><th key={h} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Asset ID","Name / category","Location","Criticality","Purchase cost","Warranty","Supplier","Next service","Runtime","Status",""].map(h=><th key={h} className="px-3 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {visible.map(a => (
                 <tr key={a.id} onClick={() => setSelected(selected===a.id?null:a.id)} className="border-t cursor-pointer transition-colors" style={{ borderColor: BORDER, backgroundColor: selected===a.id ? "#EFF6FF" : "white" }}>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{a.id}</td>
+                  <td className="px-3 py-3 text-xs" style={{ color: MUTED, whiteSpace: "nowrap" }}>{a.id}</td>
                   <td className="px-3 py-3"><div className="text-sm font-medium" style={{ color: TEXT }}>{a.name}</div><div className="text-xs" style={{ color: SUBTLE }}>{a.cat}</div></td>
                   <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{a.location}</td>
                   <td className="px-3 py-3"><span className="text-xs font-semibold" style={{ color: a.criticality==="Critical" ? ERROR : a.criticality==="High" ? ORANGE : a.criticality==="Medium" ? WARNING : MUTED }}>{a.criticality}</span></td>
@@ -272,13 +90,13 @@ export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{a.supplier}</td>
                   <td className="px-3 py-3">
                     <div className="text-xs font-semibold" style={{ color: a.serviceStatus==="Overdue" ? ERROR : a.serviceStatus==="Due Soon" ? ORANGE : MUTED }}>{a.nextService}</div>
-                    <Badge label={a.serviceStatus} colors={stC[a.serviceStatus] ?? { bg: "#F4F4F5", text: "#374151" }} />
+                    <Badge label={a.serviceStatus === "Ok" ? "On schedule" : a.serviceStatus} colors={stC[a.serviceStatus] ?? { bg: "#F4F4F5", text: "#374151" }} />
                   </td>
                   <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{a.runtime}</td>
                   <td className="px-3 py-3"><Badge label={a.status} colors={statusC[a.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
                   <td className="px-3 py-3">
                     <div className="flex gap-1">
-                      <button onClick={e=>{e.stopPropagation();add({type:"info",title:`Work order → ${a.name}` });}} className="text-xs px-2 py-1 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>WO</button>
+                      <button onClick={e=>{e.stopPropagation(); const w = addWorkOrder({ title: `Service ${a.name}`, location: a.location, cat: a.cat, priority: "Medium", reportedBy: "Adaeze Okonkwo", desc: `Raised from the asset register for ${a.id}.`, asset: a.id }); add({type:"success",title:`Work order ${w.id} raised`, body: a.name });}} className="text-sm px-2.5 rounded-lg border whitespace-nowrap bg-white" style={{ height: 32, color: TEXT, borderColor: "#CBD5E1" }}>Raise work order</button>
                     </div>
                   </td>
                 </tr>
@@ -322,8 +140,8 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
   const [newDate, setNewDate] = useState("");
 
   const TASKS = [
-    { id: "PS-001", asset: "Central AC Unit", assetId: "AST-001", task: "Full service — filter, coil, refrigerant check", freqType: "time", freq: "Monthly", lastDone: "12 Mar 2026", nextDue: "12 Jun 2026", status: "Overdue", tech: "Emeka Nwosu", estMins: 120, meterLabel: "Runtime hours" },
-    { id: "PS-002", asset: "Diesel Generator 50kVA", assetId: "AST-004", task: "Oil change, filter, battery, coolant level", freqType: "usage", freq: "Every 250 runtime hours", lastDone: "15 May 2026", nextDue: "15 Jun 2026", status: "Due Soon", tech: "Emeka Nwosu", estMins: 90, meterLabel: "Runtime hours at completion" },
+    { id: "PS-001", asset: "Central AC Unit", assetId: "AST-001", task: "Full service — filter, coil, refrigerant check", freqType: "time", freq: "Monthly", lastDone: "12 Mar 2026", nextDue: "12 Jun 2026", status: "Overdue", tech: "Emeka Obi", estMins: 120, meterLabel: "Runtime hours" },
+    { id: "PS-002", asset: "Main generator 500 kVA", assetId: "AST-004", task: "Oil change, filter, battery, coolant level", freqType: "usage", freq: "Every 250 runtime hours", lastDone: "15 May 2026", nextDue: "15 Jun 2026", status: "Due Soon", tech: "Emeka Obi", estMins: 90, meterLabel: "Runtime hours at completion" },
     { id: "PS-003", asset: "Elevator #1", assetId: "AST-003", task: "Brake inspection, cable, safety systems", freqType: "time", freq: "Quarterly", lastDone: "1 Jun 2026", nextDue: "1 Sep 2026", status: "Ok", tech: "External Vendor", estMins: 240, meterLabel: "" },
     { id: "PS-004", asset: "Pool Filtration System", assetId: "AST-007", task: "Backwash filter, clean pump basket, balance chemicals", freqType: "time", freq: "Monthly", lastDone: "20 Apr 2026", nextDue: "20 Jul 2026", status: "Ok", tech: "Chidi Ike", estMins: 60, meterLabel: "" },
     { id: "PS-005", asset: "Fire Extinguishers (all 24)", assetId: "AST-005", task: "Pressure check, tag renewal, mounting inspect", freqType: "time", freq: "Annual", lastDone: "10 Jan 2026", nextDue: "10 Jan 2027", status: "Ok", tech: "External Vendor", estMins: 180, meterLabel: "" },
@@ -368,13 +186,13 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
       {view === "list" ? (
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["ID","Asset / task","Frequency","Est. duration","Last done","Next due","Technician","Status",""].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["ID","Asset / task","Frequency","Est. duration","Last done","Next due","Technician","Status",""].map(h=><th key={h} className="px-4 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {TASKS.map(t => {
                 const st = statusOf(t);
                 return (
                   <tr key={t.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER, backgroundColor: st==="Overdue" ? "#FFF8F8" : "white" }}>
-                    <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{t.id}</td>
+                    <td className="px-4 py-3 text-xs" style={{ color: MUTED, whiteSpace: "nowrap" }}>{t.id}</td>
                     <td className="px-4 py-3">
                       <div className="text-sm font-medium" style={{ color: TEXT }}>{t.asset}</div>
                       <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{t.task}</div>
@@ -387,12 +205,12 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
                     <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{t.lastDone}</td>
                     <td className="px-4 py-3 text-xs font-semibold" style={{ color: st==="Overdue" ? ERROR : st==="Due Soon" ? ORANGE : TEXT }}>{t.nextDue}</td>
                     <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{t.tech}</td>
-                    <td className="px-4 py-3"><Badge label={st} colors={stC[st] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
+                    <td className="px-4 py-3"><Badge label={st === "Ok" ? "On schedule" : st} colors={stC[st] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
                         {st !== "Completed" && st !== "Skipped" && <>
                           <button onClick={() => { setShowDone(t.id); setMeter(""); }} className="text-xs px-2 py-1.5 rounded border font-medium whitespace-nowrap" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Mark done</button>
-                          <button onClick={() => add({ type: "info", title: `Work order → ${t.asset}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>WO</button>
+                          <button onClick={() => { const w = addWorkOrder({ title: `${t.task ?? "Service"}`.slice(0, 60), location: t.asset, cat: "Mechanical", priority: "Medium", reportedBy: "Preventive schedule", desc: `Preventive task ${t.id} for ${t.asset}.` }); add({ type: "success", title: `Work order ${w.id} raised`, body: t.asset }); }} className="text-sm px-2.5 rounded-lg border whitespace-nowrap bg-white" style={{ height: 32, color: TEXT, borderColor: "#CBD5E1" }}>Raise work order</button>
                           <button onClick={() => { setShowReschedule(t.id); setNewDate(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Reschedule</button>
                           <button onClick={() => { setShowSkip(t.id); setSkipReason(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Skip</button>
                         </>}
@@ -446,9 +264,9 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
             <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>Mark Complete — {t.id}</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>{t.asset} · {t.task}</p>
             <div className="space-y-3">
-              {t.meterLabel && <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>{t.meterLabel}</label><input value={meter} onChange={e=>setMeter(e.target.value)} placeholder={t.meterLabel} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>}
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Completion notes (optional)</label><textarea rows={2} placeholder="Any observations or issues found…" aria-label="Any observations or issues found" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Completed by</label><select aria-label="Completed by" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Emeka Nwosu</option><option>Chidi Ike</option><option>External vendor</option></select></div>
+              {t.meterLabel && <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>{t.meterLabel}</label><input value={meter} onChange={e=>setMeter(e.target.value)} placeholder={t.meterLabel} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, fontFamily: mono }} /></div>}
+              <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Completion notes (optional)</label><textarea rows={2} placeholder="Any observations or issues found…" aria-label="Any observations or issues found" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Completed by</label><select aria-label="Completed by" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Emeka Obi</option><option>Chidi Ike</option><option>External vendor</option></select></div>
             </div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowDone(null)} /><button onClick={markDone} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Confirm completion</button></div>
           </div>
@@ -461,7 +279,7 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowSkip(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Skip PM Task — {showSkip}</h3>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason (required)</label><textarea value={skipReason} onChange={e=>setSkipReason(e.target.value)} placeholder="e.g. External vendor unavailable — rescheduled to next week" aria-label="e.g. External vendor unavailable — rescheduled to next week" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+            <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Reason (required)</label><textarea value={skipReason} onChange={e=>setSkipReason(e.target.value)} placeholder="e.g. External vendor unavailable — rescheduled to next week" aria-label="e.g. External vendor unavailable — rescheduled to next week" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowSkip(null)} /><button disabled={!skipReason.trim()} onClick={skipTask} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Skip task</button></div>
           </div>
         </>
@@ -473,7 +291,7 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowReschedule(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Reschedule — {showReschedule}</h3>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New due date</label><DateInput aria-label="New due date" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+            <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>New due date</label><DateInput aria-label="New due date" type="date" value={newDate} onChange={e=>setNewDate(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowReschedule(null)} /><button disabled={!newDate} onClick={() => { add({ type: "info", title: `${showReschedule} rescheduled to ${newDate}` }); setShowReschedule(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Reschedule</button></div>
           </div>
         </>
@@ -508,7 +326,7 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
   return (
     <div className="flex gap-5">
       <div className="flex-1 min-w-0">
-        <PageHeader title="Vendor Contacts" sub="Suppliers and service contractors linked to maintenance" actions={<><BtnO label="Export" icon={Download} /><BtnP label="Add vendor" icon={Plus} onClick={() => add({ type: "info", title: "Add new vendor" })} /></>} />
+        <PageHeader title="Vendor Contacts" sub="Suppliers and service contractors linked to maintenance" actions={<><BtnO label="Export" icon={Download} onClick={() => { downloadCsv("vendors.csv", [["ID", "Company", "Category", "Contact", "Phone", "Email"], ...VENDORS.map(v => [v.id, v.company, v.cat, v.contact, v.phone, v.email])]); add({ type: "success", title: `${VENDORS.length} vendors saved as vendors.csv` }); }} /><BtnP label="Add vendor" icon={Plus} onClick={() => add({ type: "info", title: "Add new vendor" })} /></>} />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <StatCard label="Total vendors" value={String(VENDORS.length)} sub="Registered" icon={Truck} accent={PRIMARY} />
           <StatCard label="Active contracts" value={String(VENDORS.filter(v=>v.contractExpiry>"Jun 2026").length)} sub="In force" icon={CheckCircle2} accent={SUCCESS} />
@@ -517,11 +335,11 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
         </div>
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
           <table className="w-full">
-            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["ID","Company / category","Contact","Services","Rate card","SLA","Contract expiry","Rating","Jobs","Avg response",""].map(h=><th key={h} className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+            <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["ID","Company / category","Contact","Services","Rate card","SLA","Contract expiry","Rating","Jobs","Avg response",""].map(h=><th key={h} className="px-3 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
             <tbody>
               {VENDORS.map(v => (
                 <tr key={v.id} onClick={() => setSelected(selected===v.id?null:v.id)} className="border-t cursor-pointer transition-colors hover:bg-[#F8FAFC]" style={{ borderColor: BORDER, backgroundColor: selected===v.id ? "#EFF6FF" : "white" }}>
-                  <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{v.id}</td>
+                  <td className="px-3 py-3 text-xs" style={{ color: MUTED, whiteSpace: "nowrap" }}>{v.id}</td>
                   <td className="px-3 py-3">
                     <div className="text-sm font-semibold" style={{ color: TEXT }}>{v.company}</div>
                     <div className="text-xs mt-0.5" style={{ color: SUBTLE }}>{v.cat}</div>
@@ -542,7 +360,7 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
                   <td className="px-3 py-3">
                     <div className="flex gap-1" onClick={e=>e.stopPropagation()}>
                       <button onClick={() => { setShowCall(v.id); setCallNotes(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Log call</button>
-                      <button onClick={() => add({ type: "info", title: `Work order → ${v.company}` })} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: TEAL_INK, borderColor: `${TEAL}30` }}>WO</button>
+                      <button onClick={() => { const w = addWorkOrder({ title: `Job for ${v.company}`, location: "To be confirmed", cat: "General", priority: "Medium", reportedBy: "Adaeze Okonkwo", desc: `Work handed to ${v.company}.` }); updateWorkOrder(w.id, { status: "Assigned", tech: "External vendor" }, { event: "Assigned", by: "Adaeze Okonkwo", note: `Given to ${v.company}.` }); add({ type: "success", title: `Work order ${w.id} raised for ${v.company}` }); }} className="text-sm px-2.5 rounded-lg border whitespace-nowrap bg-white" style={{ height: 32, color: TEXT, borderColor: "#CBD5E1" }}>Raise work order</button>
                     </div>
                   </td>
                 </tr>
@@ -565,12 +383,12 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
               ))}
             </div>
             <div className="mb-4">
-              <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Services</div>
+              <div className="text-sm font-medium mb-2" style={{ color: MUTED }}>Services</div>
               <div className="text-xs" style={{ color: TEXT }}>{sel.services}</div>
             </div>
             {JOB_HISTORY[sel.id] && (
               <div className="mb-4">
-                <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: MUTED }}>Recent jobs</div>
+                <div className="text-sm font-medium mb-2" style={{ color: MUTED }}>Recent jobs</div>
                 <div className="space-y-2">
                   {JOB_HISTORY[sel.id].map((j,i) => (
                     <div key={i} className="rounded-lg p-2.5 border" style={{ borderColor: BORDER }}>
@@ -598,10 +416,10 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
             <p className="text-xs mb-4" style={{ color: MUTED }}>{v.contact} · {v.phone}</p>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call date</label><DateInput aria-label="Call date" type="date" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Outcome</label><select aria-label="Outcome" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Resolved</option><option>Follow-up required</option><option>WO scheduled</option><option>Quote requested</option></select></div>
+                <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Call date</label><DateInput aria-label="Call date" type="date" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+                <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Outcome</label><select aria-label="Outcome" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>Resolved</option><option>Follow-up required</option><option>WO scheduled</option><option>Quote requested</option></select></div>
               </div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Call notes</label><textarea value={callNotes} onChange={e=>setCallNotes(e.target.value)} rows={3} placeholder="Summary of what was discussed…" aria-label="Summary of what was discussed" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Call notes</label><textarea value={callNotes} onChange={e=>setCallNotes(e.target.value)} rows={3} placeholder="Summary of what was discussed…" aria-label="Summary of what was discussed" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} /></div>
             </div>
             <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowCall(null)} /><button onClick={() => { add({ type: "success", title: `Call logged — ${v.company}` }); setShowCall(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Save log</button></div>
           </div>

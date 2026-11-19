@@ -134,3 +134,39 @@ export function Row({ label, value, strong }: { label: string; value: React.Reac
     </div>
   );
 }
+
+// One dialog look: white header with a plain title, body, and a footer for the buttons.
+export function Dialog({ title, sub, onClose, children, footer, danger, wide }: {
+  title: string; sub?: string; onClose: () => void; children: React.ReactNode; footer?: React.ReactNode; danger?: boolean; wide?: boolean;
+}) {
+  React.useEffect(() => {
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", esc); return () => window.removeEventListener("keydown", esc);
+  }, [onClose]);
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(15,23,42,0.45)" }} onClick={onClose} />
+      <div role="dialog" aria-modal="true" aria-label={title}
+        className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white w-[calc(100%-32px)] ${wide ? "max-w-xl" : "max-w-md"} max-h-[90vh] overflow-y-auto`}
+        style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.card }}>
+        <div className="px-6 pt-5 pb-4 flex items-start justify-between gap-3" style={{ borderBottom: `1px solid ${BORDER}` }}>
+          <div>
+            <h2 className="text-base font-semibold" style={{ color: danger ? ERROR : TEXT, fontFamily: display }}>{title}</h2>
+            {sub && <p className="text-sm mt-0.5" style={{ color: MUTED }}>{sub}</p>}
+          </div>
+          <button aria-label="Close" onClick={onClose} className="w-8 h-8 -mr-2 rounded-lg flex items-center justify-center hover:bg-slate-100" style={{ color: SUBTLE }}>✕</button>
+        </div>
+        <div className="px-6 py-5 space-y-4">{children}</div>
+        {footer && <div className="px-6 py-4 flex justify-end gap-3" style={{ borderTop: `1px solid ${BORDER}`, backgroundColor: UI.surface }}>{footer}</div>}
+      </div>
+    </>
+  );
+}
+
+// Saves rows as a CSV file the user can open in Excel.
+export const downloadCsv = (name: string, rows: (string | number)[][]) => {
+  const cell = (v: string | number) => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([rows.map(r => r.map(cell).join(",")).join("\n")], { type: "text/csv" }));
+  a.download = name; a.click(); URL.revokeObjectURL(a.href);
+};
