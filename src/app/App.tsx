@@ -151,8 +151,8 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "lost-found") return <LostFound add={add} staffName={staffName} />;
   if (screen === "dnd-log") return <DNDLog add={add} staffName={staffName} />;
   // Maintenance
-  if (screen === "work-orders") return <WorkOrders add={add} nav={nav} />;
-  if (screen === "work-order-detail") return <WorkOrderDetail add={add} />;
+  if (screen === "work-orders") return <WorkOrders key={navParam} add={add} nav={nav} openNew={navParam?.startsWith("new") ? navParam.slice(4) : undefined} />;
+  if (screen === "work-order-detail") return <WorkOrderDetail key={navParam} add={add} nav={nav} id={navParam} />;
   if (screen === "asset-register") return <AssetRegister add={add} />;
   if (screen === "preventive-schedule") return <PreventiveSchedule add={add} />;
   if (screen === "vendor-contacts") return <VendorContacts add={add} />;

@@ -203,7 +203,7 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
           <div className="mb-3">
             <label className="text-xs block mb-1.5" style={{ color: MUTED }}>Preview for user</label>
             <select aria-label="Preview for user" value={previewUser} onChange={e=>setPreviewUser(e.target.value)} className="w-full px-2 py-1.5 rounded-xl border text-xs outline-none bg-white" style={{ borderColor: BORDER }}>
-              {["Ada Okonkwo","John Abubakar","Emeka Nwosu","Bello Musa"].map(u=><option key={u}>{u}</option>)}
+              {["Ada Okonkwo","John Abubakar","Emeka Obi","Bello Musa"].map(u=><option key={u}>{u}</option>)}
             </select>
           </div>
           <div className="text-xs font-semibold mb-2" style={{ color: TEXT }}>{ROLES.find(r=>r.code===selectedRole)?.name}</div>
@@ -232,7 +232,7 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
   const ATTENDANCE = [
     { id:"EMP-001", name:"John Abubakar",    dept:"Front Desk",  shift:"07:00–15:00", clockIn:"07:03", clockOut:"15:07", hours:8.1, lateMins:3,  overtime:0,  status:"Present" as AttStatus },
     { id:"EMP-002", name:"Amaka Osei",       dept:"Housekeeping",shift:"06:00–14:00", clockIn:"06:22", clockOut:"14:05", hours:7.7, lateMins:22, overtime:0,  status:"Late" as AttStatus    },
-    { id:"EMP-003", name:"Emeka Nwosu",      dept:"Restaurant",  shift:"06:00–14:00", clockIn:"05:58", clockOut:"16:30", hours:10.5,lateMins:0,  overtime:2.5,status:"Present" as AttStatus },
+    { id:"EMP-003", name:"Emeka Obi",      dept:"Restaurant",  shift:"06:00–14:00", clockIn:"05:58", clockOut:"16:30", hours:10.5,lateMins:0,  overtime:2.5,status:"Present" as AttStatus },
     { id:"EMP-004", name:"Fatima Ibrahim",   dept:"Front Desk",  shift:"08:00–16:00", clockIn:"08:01", clockOut:"16:02", hours:8.0, lateMins:1,  overtime:0,  status:"Present" as AttStatus },
     { id:"EMP-005", name:"Chidi Eze",        dept:"Maintenance", shift:"08:00–16:00", clockIn:"",      clockOut:"",      hours:0,   lateMins:0,  overtime:0,  status:"Absent" as AttStatus  },
     { id:"EMP-006", name:"Ngozi Okonkwo",    dept:"Housekeeping",shift:"06:00–14:00", clockIn:"",      clockOut:"",      hours:0,   lateMins:0,  overtime:0,  status:"Leave" as AttStatus   },
@@ -397,7 +397,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
   const ROSTER = [
     { id:"EMP-001", name:"John Abubakar",  dept:"Front Desk",  req:5 },
     { id:"EMP-002", name:"Amaka Osei",     dept:"Housekeeping",req:5 },
-    { id:"EMP-003", name:"Emeka Nwosu",    dept:"Restaurant",  req:6 },
+    { id:"EMP-003", name:"Emeka Obi",    dept:"Restaurant",  req:6 },
     { id:"EMP-004", name:"Fatima Ibrahim", dept:"Front Desk",  req:5 },
     { id:"EMP-005", name:"Chidi Eze",      dept:"Maintenance", req:4 },
     { id:"EMP-006", name:"Ngozi Okonkwo",  dept:"Housekeeping",req:3 },
@@ -667,7 +667,7 @@ export function ShiftScheduler({ add }: { add: (t: Omit<Toast, "id">) => void })
           <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: MUTED }}>Swap requests</h3>
           <div className="space-y-2">
             {[
-              { from:"Emeka Nwosu",   day:"Tue 14", shift:"Night",   to:"Grace Ojo", status:"Pending"  },
+              { from:"Emeka Obi",   day:"Tue 14", shift:"Night",   to:"Grace Ojo", status:"Pending"  },
               { from:"Ngozi Okonkwo", day:"Mon 13", shift:"Morning", to:"Ada Okonkwo",status:"Approved" },
             ].map((req,i)=>(
               <div key={i} className="px-3 py-2.5 rounded-xl border" style={{ borderColor: BORDER }}>
@@ -2787,7 +2787,7 @@ export function RefundProcessing({ add }: { add: (t: Omit<Toast, "id">) => void 
 
   const REFUNDS_INIT = [
     { id: "RF-0041", orig: "RES-2031", guest: "Ngozi Dike", room: "303", amount: 85000, penalty: 21250, unpaid: 0, refundable: 63750, method: "Bank Transfer", reason: "Early departure (guest emergency)", status: "Completed" as RefundStatus, approver: "Grace Mensah", gwRef: "GT-PAY-8821X", raisedAt: "22 Jun 14:20", completedAt: "23 Jun 09:00" },
-    { id: "RF-0042", orig: "RES-2044", guest: "Emeka Nwosu", room: "507", amount: 120000, penalty: 0, unpaid: 15000, refundable: 105000, method: "Credit Card", reason: "Hotel error — overcharge", status: "Approved" as RefundStatus, approver: "Tunde A.", gwRef: "", raisedAt: "24 Jun 10:15", completedAt: "" },
+    { id: "RF-0042", orig: "RES-2044", guest: "Emeka Obi", room: "507", amount: 120000, penalty: 0, unpaid: 15000, refundable: 105000, method: "Credit Card", reason: "Hotel error — overcharge", status: "Approved" as RefundStatus, approver: "Tunde A.", gwRef: "", raisedAt: "24 Jun 10:15", completedAt: "" },
     { id: "RF-0043", orig: "RES-2048", guest: "Fatima Ibrahim", room: "418", amount: 55000, penalty: 27500, unpaid: 0, refundable: 27500, method: "Bank Transfer", reason: "Cancellation within 24h", status: "Processing" as RefundStatus, approver: "Grace Mensah", gwRef: "GT-PAY-9932A", raisedAt: "24 Jun 11:00", completedAt: "" },
     { id: "RF-0044", orig: "RES-2029", guest: "Bello Abubakar", room: "201", amount: 60000, penalty: 0, unpaid: 8500, refundable: 51500, method: "POS Terminal", reason: "Room quality complaint", status: "Requested" as RefundStatus, approver: "", gwRef: "", raisedAt: "24 Jun 13:40", completedAt: "" },
     { id: "RF-0045", orig: "POS-8821", guest: "Walk-in", room: "—", amount: 12500, penalty: 0, unpaid: 0, refundable: 12500, method: "Cash", reason: "Voided restaurant order", status: "Rejected" as RefundStatus, approver: "Grace Mensah", gwRef: "", raisedAt: "24 Jun 09:30", completedAt: "24 Jun 09:45" },

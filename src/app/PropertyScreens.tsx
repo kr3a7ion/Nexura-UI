@@ -25,8 +25,7 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
-  STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
@@ -217,8 +216,8 @@ export { InspectionLog, LinenSupplies, HousekeepingSchedule, KeyCardMgmt, HKMyTa
 
 
 
-// WorkOrderDetail, AssetRegister, PreventiveSchedule, VendorContacts → MaintenanceScreens.tsx
-export { WorkOrderDetail, AssetRegister, PreventiveSchedule, VendorContacts } from "./MaintenanceScreens";
+// AssetRegister, PreventiveSchedule, VendorContacts → MaintenanceScreens.tsx
+export { AssetRegister, PreventiveSchedule, VendorContacts } from "./MaintenanceScreens";
 
 
 // RT-05 Dining Reservations
@@ -238,7 +237,7 @@ export function DiningReservations({ add }: { add: (t: Omit<Toast, "id">) => voi
     { id: "DR004", date: "2026-06-24", time: "20:00", party: 2, guest: "Suleiman & partner", phone: "0804 567 8901", table: "T05", status: "Booked", requests: "Vegetarian options, anniversary dinner", vip: true, resId: "" },
     { id: "DR005", date: "2026-06-24", time: "12:30", party: 3, guest: "Ngozi Dike", phone: "0805 678 9012", table: "T03", status: "Completed", requests: "", vip: false, resId: "" },
     { id: "DR006", date: "2026-06-24", time: "14:00", party: 1, guest: "Walk-in", phone: "", table: "T01", status: "Completed", requests: "", vip: false, resId: "" },
-    { id: "DR007", date: "2026-06-24", time: "21:00", party: 8, guest: "Emeka Nwosu Group", phone: "0806 789 0123", table: "T14", status: "Booked", requests: "Corporate dinner, projector setup", vip: true, resId: "RES-2055" },
+    { id: "DR007", date: "2026-06-24", time: "21:00", party: 8, guest: "Emeka Obi Group", phone: "0806 789 0123", table: "T14", status: "Booked", requests: "Corporate dinner, projector setup", vip: true, resId: "RES-2055" },
     { id: "DR008", date: "2026-06-24", time: "19:00", party: 2, guest: "Fatima Ibrahim", phone: "0807 890 1234", table: "T07", status: "No-show", requests: "", vip: false, resId: "" },
   ];
 
@@ -393,7 +392,7 @@ export function RoomServiceOrders({ add }: { add: (t: Omit<Toast, "id">) => void
     { id: "RS-0041", room: "204", guest: "Adaeze Okafor", items: [{ name: "Jollof Rice + Chicken", qty: 1, price: 4500 }, { name: "Chapman", qty: 2, price: 2000 }], ordered: "13:42", promised: "14:05", status: "Preparing" as RSStatus, assigned: "Kelechi O.", folioRef: "FO-2041", inHouse: true, note: "" },
     { id: "RS-0042", room: "311", guest: "Bello Abubakar", items: [{ name: "Grilled Fish (Tilapia)", qty: 1, price: 6800 }, { name: "Bottled Water", qty: 2, price: 500 }], ordered: "13:55", promised: "14:20", status: "Received" as RSStatus, assigned: "", folioRef: "FO-2033", inHouse: true, note: "No pepper please" },
     { id: "RS-0043", room: "507", guest: "Ngozi Dike", items: [{ name: "Chocolate Cake", qty: 2, price: 3500 }, { name: "Zobo", qty: 2, price: 1000 }], ordered: "13:10", promised: "13:30", status: "En Route" as RSStatus, assigned: "Amaka S.", folioRef: "FO-2055", inHouse: true, note: "" },
-    { id: "RS-0040", room: "102", guest: "Emeka Nwosu", items: [{ name: "Egusi Soup + Pounded Yam", qty: 1, price: 5200 }], ordered: "11:30", promised: "12:00", status: "Delivered" as RSStatus, assigned: "Kelechi O.", folioRef: "FO-2022", inHouse: true, note: "" },
+    { id: "RS-0040", room: "102", guest: "Emeka Obi", items: [{ name: "Egusi Soup + Pounded Yam", qty: 1, price: 5200 }], ordered: "11:30", promised: "12:00", status: "Delivered" as RSStatus, assigned: "Kelechi O.", folioRef: "FO-2022", inHouse: true, note: "" },
     { id: "RS-0039", room: "418", guest: "Fatima Ibrahim", items: [{ name: "Garden Salad", qty: 1, price: 2200 }, { name: "Suya", qty: 1, price: 3000 }], ordered: "10:55", promised: "11:20", status: "Delivered" as RSStatus, assigned: "Amaka S.", folioRef: "FO-2031", inHouse: true, note: "" },
   ];
 
@@ -2075,7 +2074,7 @@ export function Waitlist({ add }: { add: (t: Omit<Toast, "id">) => void }) {
     { id:"WL-018", guest:"Amara Nwosu",   phone:"+234 802 111 2233", email:"amara@nwosu.ng",   type:"Suite",    dates:"6–9 May", waitDays:2, priority:1, source:"Phone",    notes:"VIP — CEO of Nwosu Group. Prefers high floor.",              contacted:false, contactedAt:null,          availMatch:true  },
     { id:"WL-017", guest:"Kunle Badmus",  phone:"+234 803 445 6677", email:"kunle@badmus.com",  type:"Deluxe",   dates:"5–7 May", waitDays:3, priority:2, source:"Walk-in",  notes:"Travelling with spouse. Needs connecting rooms if possible.", contacted:true,  contactedAt:"Today 09:14", availMatch:false },
     { id:"WL-016", guest:"Sade Oladipo",  phone:"+234 809 900 1122", email:"sade@gmail.com",    type:"Standard", dates:"5 May",    waitDays:1, priority:3, source:"Online",   notes:"",                                                           contacted:false, contactedAt:null,          availMatch:false },
-    { id:"WL-015", guest:"Emeka Nwosu",   phone:"+234 706 334 5566", email:"emeka@nwosu.ng",    type:"Deluxe",   dates:"14–16 May",   waitDays:5, priority:4, source:"Referral", notes:"Referred by GRP-001.",                                       contacted:true,  contactedAt:"Yesterday",   availMatch:false },
+    { id:"WL-015", guest:"Emeka Obi",   phone:"+234 706 334 5566", email:"emeka@nwosu.ng",    type:"Deluxe",   dates:"14–16 May",   waitDays:5, priority:4, source:"Referral", notes:"Referred by GRP-001.",                                       contacted:true,  contactedAt:"Yesterday",   availMatch:false },
     { id:"WL-014", guest:"Funke Abosede", phone:"+234 812 667 8899", email:"funke@abosede.ng",  type:"Standard", dates:"13–15 May",   waitDays:6, priority:5, source:"Phone",    notes:"Requested ground-floor room.",                               contacted:false, contactedAt:null,          availMatch:false },
   ]);
 

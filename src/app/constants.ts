@@ -154,7 +154,7 @@ export const NOTIFS = [
   { id: 1, category: "Emergency", title: "Fire alarm — Zone B test scheduled", body: "Scheduled drill 10:30–10:45.", time: "2m", color: "#EF4444", icon: AlertTriangle, unread: true },
   { id: 2, category: "Reservation", title: "VIP arrival — Dr. Chukwuemeka Bello", body: "Suite 501 · Arriving 14:00 · Champagne requested", time: "8m", color: "#6366F1", icon: Star, unread: true },
   { id: 3, category: "Housekeeping", title: "Room 212 ready for inspection", body: "Attendant Fatima Musa completed cleaning", time: "15m", color: "#22C55E", icon: BedDouble, unread: true },
-  { id: 4, category: "Maintenance", title: "Work order WO-0089 overdue", body: "AC unit — Room 316. Assigned: Emeka Nwosu", time: "32m", color: "#F97316", icon: Wrench, unread: false },
+  { id: 4, category: "Maintenance", title: "Work order WO-0089 overdue", body: "AC unit — Room 316. Assigned: Emeka Obi", time: "32m", color: "#F97316", icon: Wrench, unread: false },
   { id: 5, category: "Finance", title: "End-of-day summary ready", body: "Total revenue: ₦1,247,800.", time: "1h", color: "#14B8A6", icon: DollarSign, unread: false },
   { id: 6, category: "Door Lock", title: "Card activation queued — Room 204", body: "Pending internet. Retry every 2 min.", time: "1h", color: "#8B5CF6", icon: Lock, unread: false },
   { id: 7, category: "Chat", title: "Message from Housekeeping", body: "@reception Room 407 minibar restocked.", time: "2h", color: "#3B82F6", icon: MessageSquare, unread: false },
@@ -166,18 +166,11 @@ import { ROOMS } from "./mock/property";
 // Counted from ROOMS so every screen shows the same hotel.
 export const roomSt = ([["Occupied", ORANGE], ["Available", SUCCESS], ["Cleaning", WARNING], ["Reserved", TEAL], ["Maintenance", ERROR], ["Out of service", "#6B7280"]] as const)
   .map(([status, color]) => ({ status, color, count: ROOMS.filter(r => r.status.toLowerCase() === status.toLowerCase()).length }));
-export const WORK_ORDERS = [
-  { id: "WO-0091", location: "Room 207", cat: "Electrical", priority: "High", status: "In Progress", tech: "Emeka Nwosu", age: "1h 20m" },
-  { id: "WO-0090", location: "Room 316", cat: "HVAC", priority: "High", status: "Overdue", tech: "Emeka Nwosu", age: "19h" },
-  { id: "WO-0089", location: "Lobby", cat: "Plumbing", priority: "Medium", status: "Reported", tech: "Unassigned", age: "3h" },
-  { id: "WO-0088", location: "Restaurant", cat: "Equipment", priority: "Low", status: "Assigned", tech: "Chidi Ike", age: "1d" },
-  { id: "WO-0087", location: "Room 102", cat: "Furniture", priority: "Low", status: "Completed", tech: "Chidi Ike", age: "2d" },
-];
 export const STAFF = [
   { id: "EMP-001", name: "Grace Mensah", role: "Hotel Manager", dept: "Management", phone: "+234 801 234 5678", status: "Active", lastLogin: "Today 07:04", av: "GM" },
   { id: "EMP-002", name: "John Abubakar", role: "Front Desk", dept: "Front Desk", phone: "+234 802 345 6789", status: "Active", lastLogin: "Today 07:15", av: "JA" },
   { id: "EMP-003", name: "Amaka Osei", role: "Housekeeping", dept: "Housekeeping", phone: "+234 803 456 7890", status: "Active", lastLogin: "Today 06:58", av: "AO" },
-  { id: "EMP-004", name: "Emeka Nwosu", role: "Maintenance Tech", dept: "Maintenance", phone: "+234 804 567 8901", status: "Active", lastLogin: "Today 07:30", av: "EN" },
+  { id: "EMP-004", name: "Emeka Obi", role: "Maintenance Tech", dept: "Maintenance", phone: "+234 804 567 8901", status: "Active", lastLogin: "Today 07:30", av: "EO" },
   { id: "EMP-005", name: "Fatima Al-Hassan", role: "Reservations", dept: "Reservations", phone: "+234 805 678 9012", status: "Active", lastLogin: "Today 08:00", av: "FA" },
   { id: "EMP-006", name: "Chidi Ike", role: "Maintenance Tech", dept: "Maintenance", phone: "+234 806 789 0123", status: "On Leave", lastLogin: "Yesterday 16:30", av: "CI" },
   { id: "EMP-007", name: "Ngozi Ike", role: "Housekeeping", dept: "Housekeeping", phone: "+234 807 890 1234", status: "Active", lastLogin: "Today 06:45", av: "NI" },
@@ -250,9 +243,9 @@ export const CHAT_MSGS: Record<string, Array<{ from: string; av: string; msg: st
     { from: "Ngozi Ike", av: "NI", msg: "Room 202 guest has DND — skipping for now.", time: "09:00", mine: false },
   ],
   "Maintenance": [
-    { from: "Emeka Nwosu", av: "EN", msg: "AC in Room 316 not cooling. Checking now.", time: "08:30", mine: false },
+    { from: "Emeka Obi", av: "EO", msg: "AC in Room 316 not cooling. Checking now.", time: "08:30", mine: false },
     { from: "Grace Mensah", av: "GM", msg: "How long? Guest checks out at 12.", time: "08:32", mine: true },
-    { from: "Emeka Nwosu", av: "EN", msg: "Compressor issue. 2–3 hours minimum.", time: "08:35", mine: false },
+    { from: "Emeka Obi", av: "EO", msg: "Compressor issue. 2–3 hours minimum.", time: "08:35", mine: false },
     { from: "Grace Mensah", av: "GM", msg: "Offer guest a room move. Front desk will handle.", time: "08:37", mine: true },
   ],
 };
@@ -316,7 +309,7 @@ export const DEPT_PERMS: Record<string, string[]> = {
 export const ATTEND_DATA = [
   { name: "John Abubakar", dept: "Front Desk", days: ["P", "P", "P", "P", "P"] },
   { name: "Amaka Osei", dept: "Housekeeping", days: ["P", "P", "P", "A", "P"] },
-  { name: "Emeka Nwosu", dept: "Maintenance", days: ["P", "P", "L", "L", "P"] },
+  { name: "Emeka Obi", dept: "Maintenance", days: ["P", "P", "L", "L", "P"] },
   { name: "Fatima Al-Hassan", dept: "Reservations", days: ["P", "P", "P", "P", "P"] },
   { name: "Chidi Ike", dept: "Maintenance", days: ["L", "L", "L", "L", "L"] },
   { name: "Ngozi Ike", dept: "Housekeeping", days: ["P", "P", "P", "P", "A"] },
@@ -342,7 +335,7 @@ export const USERS_DATA = [
   { name: "Grace Mensah", email: "g.mensah@grandpalms.ng", role: "MGT", dept: "Management", status: "Active", lastLogin: "Today 07:04" },
   { name: "John Abubakar", email: "j.abubakar@grandpalms.ng", role: "FD", dept: "Front Desk", status: "Active", lastLogin: "Today 07:15" },
   { name: "Amaka Osei", email: "a.osei@grandpalms.ng", role: "HK", dept: "Housekeeping", status: "Active", lastLogin: "Today 06:58" },
-  { name: "Emeka Nwosu", email: "e.nwosu@grandpalms.ng", role: "MX", dept: "Maintenance", status: "Active", lastLogin: "Today 07:30" },
+  { name: "Emeka Obi", email: "e.nwosu@grandpalms.ng", role: "MX", dept: "Maintenance", status: "Active", lastLogin: "Today 07:30" },
   { name: "Fatima Al-Hassan", email: "f.hassan@grandpalms.ng", role: "RSV", dept: "Reservations", status: "Active", lastLogin: "Today 08:00" },
   { name: "Bola Adewale", email: "b.adewale@grandpalms.ng", role: "FIN", dept: "Finance", status: "Active", lastLogin: "Today 08:30" },
 ];
@@ -350,7 +343,7 @@ export const ASSETS = [
   { id: "AST-001", name: "Central Air Conditioning Unit", cat: "HVAC", location: "Roof", purchased: "Jan 2021", warranty: "Jan 2025", lastService: "12 Mar 2026", nextService: "12 Jun 2026", status: "Overdue" },
   { id: "AST-002", name: "Commercial Refrigerator (Restaurant)", cat: "Kitchen", location: "Restaurant Kitchen", purchased: "Mar 2022", warranty: "Mar 2026", lastService: "10 May 2026", nextService: "10 Aug 2026", status: "Ok" },
   { id: "AST-003", name: "Elevator #1", cat: "Infrastructure", location: "Main Lobby", purchased: "Sep 2019", warranty: "Sep 2025", lastService: "1 Jun 2026", nextService: "1 Sep 2026", status: "Ok" },
-  { id: "AST-004", name: "Diesel Generator (50kVA)", cat: "Power", location: "Generator Room", purchased: "Jun 2020", warranty: "Jun 2026", lastService: "15 May 2026", nextService: "15 Jun 2026", status: "Due Soon" },
+  { id: "AST-004", name: "Main generator 500 kVA", cat: "Power", location: "Generator House", purchased: "Jun 2020", warranty: "Jun 2026", lastService: "15 May 2026", nextService: "15 Jun 2026", status: "Due Soon" },
 ];
 export const SUPPLIERS_DATA = [
   { id: "SUP-001", company: "FoodstuffPro Ltd", contact: "Mr. Dayo Ola", phone: "+234 801 100 2000", cat: "Food & Beverage", terms: "Net 30", lastOrder: "20 Jun 2026" },
@@ -426,7 +419,7 @@ export const PAYROLL_DATA = [
   { name: "Grace Mensah", role: "Hotel Manager", dept: "Management", baseSalary: 350000, overtime: 0, deductions: 35000, net: 315000 },
   { name: "John Abubakar", role: "Front Desk", dept: "Front Desk", baseSalary: 120000, overtime: 18000, deductions: 12000, net: 126000 },
   { name: "Amaka Osei", role: "Housekeeping", dept: "Housekeeping", baseSalary: 90000, overtime: 9000, deductions: 9000, net: 90000 },
-  { name: "Emeka Nwosu", role: "Maintenance Tech", dept: "Maintenance", baseSalary: 110000, overtime: 22000, deductions: 11000, net: 121000 },
+  { name: "Emeka Obi", role: "Maintenance Tech", dept: "Maintenance", baseSalary: 110000, overtime: 22000, deductions: 11000, net: 121000 },
   { name: "Fatima Al-Hassan", role: "Reservations", dept: "Reservations", baseSalary: 115000, overtime: 0, deductions: 11500, net: 103500 },
   { name: "Bola Adewale", role: "Accountant", dept: "Finance", baseSalary: 180000, overtime: 0, deductions: 18000, net: 162000 },
 ];

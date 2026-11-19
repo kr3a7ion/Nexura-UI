@@ -25,8 +25,7 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, WORK_ORDERS,
-  STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
@@ -159,7 +158,7 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
                           {col.next}
                         </button>
                       )}
-                      {nav && <button onClick={() => nav("work-orders", "Work Orders")} aria-label={`Report a fault in room ${r.id}`} title="Report a fault" className="h-9 w-9 flex items-center justify-center rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}><Wrench size={15} /></button>}
+                      {nav && <button onClick={() => nav("work-orders", "Work Orders", `new:${r.id}`)} aria-label={`Report a fault in room ${r.id}`} title="Report a fault" className="h-9 w-9 flex items-center justify-center rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}><Wrench size={15} /></button>}
                     </div>
                   </article>
                 ))}
@@ -168,172 +167,6 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
           );
         })}
       </div>
-    </div>
-  );
-}
-
-export function WorkOrders({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
-  const [filter, setFilter] = useState("All");
-  const [search, setSearch] = useState("");
-  const [showNew, setShowNew] = useState(false);
-  const [showBulkAssign, setShowBulkAssign] = useState(false);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [bulkTech, setBulkTech] = useState("Emeka Nwosu");
-  const [newWO, setNewWO] = useState({ title: "", location: "", category: "Electrical", priority: "Medium", reportedBy: "John Abubakar", desc: "" });
-
-  const EXTENDED_WO = [
-    { id: "WO-0091", title: "AC not cooling", location: "Room 207", cat: "HVAC", priority: "High", status: "In Progress", tech: "Emeka Nwosu", reportedBy: "John Abubakar", reportedAt: "24 Jun 08:58", slaDue: "24 Jun 14:58", age: "1h 20m", guestImpact: true },
-    { id: "WO-0090", title: "Bathroom pipe leak", location: "Room 316", cat: "Plumbing", priority: "High", status: "Overdue", tech: "Emeka Nwosu", reportedBy: "Grace Mensah", reportedAt: "23 Jun 13:00", slaDue: "23 Jun 21:00", age: "19h", guestImpact: true },
-    { id: "WO-0089", title: "Lobby light flickering", location: "Lobby", cat: "Electrical", priority: "Medium", status: "Reported", tech: "Unassigned", reportedBy: "Fatima Al-Hassan", reportedAt: "24 Jun 06:30", slaDue: "24 Jun 14:30", age: "3h", guestImpact: false },
-    { id: "WO-0088", title: "Commercial fridge noisy", location: "Restaurant Kitchen", cat: "Equipment", priority: "Low", status: "Assigned", tech: "Chidi Ike", reportedBy: "Kitchen Staff", reportedAt: "23 Jun 09:00", slaDue: "25 Jun 09:00", age: "1d", guestImpact: false },
-    { id: "WO-0087", title: "Wardrobe door hinge broken", location: "Room 102", cat: "Furniture", priority: "Low", status: "Completed", tech: "Chidi Ike", reportedBy: "Grace Achebe", reportedAt: "22 Jun 10:00", slaDue: "24 Jun 10:00", age: "2d", guestImpact: false },
-    { id: "WO-0086", title: "Generator #2 oil change due", location: "Generator Room", cat: "Mechanical", priority: "Medium", status: "Assigned", tech: "Emeka Nwosu", reportedBy: "System PM", reportedAt: "24 Jun 07:00", slaDue: "26 Jun 07:00", age: "2h", guestImpact: false },
-    { id: "WO-0085", title: "Pool pump making noise", location: "Pool Area", cat: "Equipment", priority: "Medium", status: "Reported", tech: "Unassigned", reportedBy: "Bola Adewale", reportedAt: "24 Jun 10:15", slaDue: "25 Jun 10:15", age: "45m", guestImpact: false },
-  ];
-
-  const overdueCnt = EXTENDED_WO.filter(w => w.status === "Overdue").length;
-  const visible = EXTENDED_WO.filter(w => {
-    if (filter !== "All" && w.status !== filter) return false;
-    if (search && !`${w.id} ${w.title} ${w.location} ${w.tech}`.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
-
-  const toggleRow = (id: string) => setSelected(p => p.includes(id) ? p.filter(x=>x!==id) : [...p, id]);
-  const toggleAll = () => setSelected(selected.length === visible.length ? [] : visible.map(w=>w.id));
-
-  const submitWO = () => {
-    if (!newWO.location || !newWO.title) { add({ type: "warning", title: "Fill in title and location" }); return; }
-    setShowNew(false);
-    add({ type: "success", title: "Work order created", body: `${newWO.location} — ${newWO.category} · ${newWO.priority} priority` });
-    setNewWO({ title: "", location: "", category: "Electrical", priority: "Medium", reportedBy: "John Abubakar", desc: "" });
-  };
-
-  return (
-    <div>
-      <PageHeader title="Work Orders" sub="All maintenance requests across the property"
-        actions={<><BtnO label="Export" icon={Download} /><BtnP label="New Work Order" icon={Plus} onClick={() => setShowNew(true)} /></>} />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Open" value={String(EXTENDED_WO.filter(w=>w.status==="Reported"||w.status==="Assigned").length)} sub="Awaiting action" icon={AlertCircle} accent={ERROR} />
-        <StatCard label="In Progress" value={String(EXTENDED_WO.filter(w=>w.status==="In Progress").length)} sub="Being worked on" icon={Activity} accent={ORANGE} />
-        <StatCard label="Overdue" value={String(overdueCnt)} sub="Past SLA deadline" icon={AlertTriangle} accent={WARNING} />
-        <StatCard label="Completed" value={String(EXTENDED_WO.filter(w=>w.status==="Completed").length)} sub="Resolved today" icon={CheckCircle2} accent={SUCCESS} />
-      </div>
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search ID, location, technician…" aria-label="Search ID, location, technician" className="pl-7 pr-3 py-2 text-xs rounded-xl border bg-white outline-none w-56" style={{ borderColor: BORDER }} /></div>
-        <div className="flex gap-2 flex-wrap">
-          {["All","Reported","Assigned","In Progress","Overdue","Completed"].map(s => (
-            <button key={s} onClick={() => setFilter(s)} className="px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-all"
-              style={{ borderColor: filter===s ? PRIMARY : BORDER, backgroundColor: filter===s ? "#EFF6FF" : "white", color: filter===s ? PRIMARY : MUTED }}>
-              {s}{s==="Overdue" && overdueCnt > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>{overdueCnt}</span>}
-            </button>
-          ))}
-        </div>
-        {selected.length > 0 && <button onClick={() => setShowBulkAssign(true)} className="ml-auto px-3.5 py-2 rounded-xl text-xs font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Assign {selected.length} selected</button>}
-      </div>
-      <div className="rounded-2xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 2px 8px rgba(13,27,46,0.06)" }}>
-        <table className="w-full">
-          <thead>
-            <tr style={{ backgroundColor: "#F9FAFB", borderBottom: `2px solid ${BORDER}` }}>
-              <th className="px-4 py-3 w-8"><input aria-label="Select all" type="checkbox" checked={selected.length === visible.length && visible.length > 0} onChange={toggleAll} className="rounded" /></th>
-              {["ID","Title / Location","Category","Priority","Status","Reported By","Reported At","SLA Due","Assigned To","Age",""].map(h => (
-                <th key={h} className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map(w => (
-              <tr key={w.id} className="border-t hover:bg-[#F9FAFB] transition-colors cursor-pointer" style={{ borderColor: "#F4F4F5", backgroundColor: w.status === "Overdue" ? "#FFF5F5" : "white" }}
-                onClick={() => nav && nav("work-order-detail", w.id)}>
-                <td className="px-4 py-3" onClick={e => { e.stopPropagation(); toggleRow(w.id); }}><input aria-label={`Select ${w.id}`} type="checkbox" checked={selected.includes(w.id)} onChange={() => toggleRow(w.id)} className="rounded" /></td>
-                <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{w.id}</td>
-                <td className="px-3 py-3">
-                  <div className="flex items-center gap-1.5">
-                    {w.guestImpact && <span title="Guest impact" style={{ color: ERROR }}>⚑</span>}
-                    <div><div className="text-sm font-semibold" style={{ color: TEXT }}>{w.title}</div><div className="text-xs" style={{ color: SUBTLE }}>{w.location}</div></div>
-                  </div>
-                </td>
-                <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{w.cat}</td>
-                <td className="px-3 py-3"><span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ color: priC[w.priority], backgroundColor: `${priC[w.priority]}15` }}>{w.priority}</span></td>
-                <td className="px-3 py-3"><Badge label={w.status} colors={woC[w.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
-                <td className="px-3 py-3 text-xs" style={{ color: MUTED }}>{w.reportedBy}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{w.reportedAt}</td>
-                <td className="px-3 py-3 text-xs font-semibold" style={{ color: w.status === "Overdue" ? ERROR : MUTED, fontFamily: mono }}>{w.slaDue}</td>
-                <td className="px-3 py-3 text-xs" style={{ color: w.tech === "Unassigned" ? WARNING : MUTED }}>{w.tech}</td>
-                <td className="px-3 py-3 text-xs font-semibold" style={{ color: w.status === "Overdue" ? ERROR : ORANGE, fontFamily: mono }}>{w.age}</td>
-                <td className="px-3 py-3"><button aria-label="More actions" className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#F4F4F5]" style={{ color: SUBTLE }} onClick={e => e.stopPropagation()}><MoreHorizontal size={14} /></button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {visible.length === 0 && <EmptyState icon={Wrench} message="No work orders match this filter." cta="New Work Order" onCta={() => setShowNew(true)} />}
-      </div>
-
-      {/* Bulk Assign Modal */}
-      {showBulkAssign && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowBulkAssign(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-3" style={{ color: TEXT }}>Bulk Assign — {selected.length} work orders</h3>
-            <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Assign to technician</label>
-            <select aria-label="Assign to technician" value={bulkTech} onChange={e => setBulkTech(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}>
-              {["Emeka Nwosu","Chidi Ike","External Vendor"].map(t => <option key={t}>{t}</option>)}
-            </select></div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowBulkAssign(false)} /><button onClick={() => { add({ type: "success", title: `${selected.length} WOs assigned to ${bulkTech}` }); setSelected([]); setShowBulkAssign(false); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Assign</button></div>
-          </div>
-        </>
-      )}
-
-      {/* New Work Order Modal */}
-      {showNew && (
-        <>
-          <div className="fixed inset-0 z-40 backdrop-blur-sm" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowNew(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border: `1px solid ${BORDER}` }}>
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h3 className="text-base font-bold" style={{ color: TEXT }}>New work order</h3>
-                <p className="text-xs mt-0.5" style={{ color: MUTED }}>Report a maintenance issue across the property</p>
-              </div>
-              <button aria-label="Close" onClick={() => setShowNew(false)} style={{ color: SUBTLE }}><X size={18} /></button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Title</label>
-                <input value={newWO.title} onChange={e => setNewWO(p => ({ ...p, title: e.target.value }))} placeholder="Brief description of the issue" aria-label="Brief description of the issue"
-                  className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }} />
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Location</label>
-                <input value={newWO.location} onChange={e => setNewWO(p => ({ ...p, location: e.target.value }))} placeholder="e.g. Room 207, Restaurant Kitchen, Pool Area" aria-label="e.g. Room 207, Restaurant Kitchen, Pool Area"
-                  className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }}
-                  onFocus={e => e.target.style.borderColor = PRIMARY} onBlur={e => e.target.style.borderColor = BORDER} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Category</label>
-                  <select aria-label="Category" value={newWO.category} onChange={e => setNewWO(p => ({ ...p, category: e.target.value }))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }}>
-                    {["Electrical", "HVAC", "Plumbing", "Furniture", "Equipment", "General"].map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Priority</label>
-                  <select aria-label="Priority" value={newWO.priority} onChange={e => setNewWO(p => ({ ...p, priority: e.target.value }))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER, color: TEXT }}>
-                    {["Low", "Medium", "High"].map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Description</label>
-                <textarea value={newWO.desc} onChange={e => setNewWO(p => ({ ...p, desc: e.target.value }))} placeholder="Describe the issue clearly. Include what's broken, how long it's been a problem, and any safety concerns." aria-label="Describe the issue clearly. Include what's broken, how long it's been a problem, and any safety concerns" rows={3} className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER, color: TEXT }}
-                  onFocus={e => e.target.style.borderColor = PRIMARY} onBlur={e => e.target.style.borderColor = BORDER} />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-5">
-              <BtnO label="Cancel" onClick={() => setShowNew(false)} />
-              <BtnP label="Create work order" icon={CheckCircle2} onClick={submitWO} />
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 }
@@ -908,7 +741,7 @@ export function StaffDirectory({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
   const STAFF_FULL = [
     { id:"EMP-001", name:"John Abubakar",    role:"Front Desk Officer",  dept:"Front Desk",  phone:"0803-001-1001", email:"j.abubakar@grandpalms.ng",   empType:"Full-time",  hireDate:"3 Jan 2022", status:"Active",   shift:"Morning 07:00–15:00", gender:"M" as const },
     { id:"EMP-002", name:"Amaka Osei",       role:"Housekeeping Attendant",dept:"Housekeeping",phone:"0802-002-2002",email:"a.osei@grandpalms.ng",       empType:"Full-time",  hireDate:"15 Mar 2021", status:"Active",   shift:"Morning 06:00–14:00", gender:"F" as const },
-    { id:"EMP-003", name:"Emeka Nwosu",      role:"Executive Chef",       dept:"Restaurant",  phone:"0801-003-3003", email:"e.nwosu@grandpalms.ng",       empType:"Full-time",  hireDate:"1 Jun 2020", status:"Active",   shift:"Morning 06:00–14:00", gender:"M" as const },
+    { id:"EMP-003", name:"Emeka Obi",      role:"Executive Chef",       dept:"Restaurant",  phone:"0801-003-3003", email:"e.nwosu@grandpalms.ng",       empType:"Full-time",  hireDate:"1 Jun 2020", status:"Active",   shift:"Morning 06:00–14:00", gender:"M" as const },
     { id:"EMP-004", name:"Fatima Ibrahim",   role:"Reservations Manager", dept:"Front Desk",  phone:"0805-004-4004", email:"f.ibrahim@grandpalms.ng",     empType:"Full-time",  hireDate:"20 Sep 2023", status:"Active",   shift:"Morning 08:00–16:00", gender:"F" as const },
     { id:"EMP-005", name:"Chidi Eze",        role:"Maintenance Engineer", dept:"Maintenance", phone:"0806-005-5005", email:"c.eze@grandpalms.ng",         empType:"Full-time",  hireDate:"10 Apr 2019", status:"Active",   shift:"Rotating",            gender:"M" as const },
     { id:"EMP-006", name:"Ngozi Okonkwo",    role:"HK Supervisor",       dept:"Housekeeping",phone:"0807-006-6006", email:"n.okonkwo@grandpalms.ng",     empType:"Full-time",  hireDate:"1 Feb 2022", status:"On Leave", shift:"Morning 06:00–14:00", gender:"F" as const },

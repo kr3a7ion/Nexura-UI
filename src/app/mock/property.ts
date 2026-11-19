@@ -33,6 +33,7 @@ export const replaceRoomTypes = (list: RoomType[]) => {
 export type Room = { id: string; type: string; floor: number; status: string };
 
 // Demo property: floors 1–3 with 18 rooms each, suites on floor 5 (floor 4 is the restaurant and gym).
+// The out-of-order rooms each have an open work order in mock/maintenance.ts, which keeps them in step after that.
 const KNOWN: Record<string, [string, string]> = {
   "101": ["Deluxe", "Occupied"], "102": ["Standard", "Cleaning"], "103": ["Standard", "Available"], "104": ["Deluxe", "Available"],
   "118": ["Standard", "Occupied"], "201": ["Standard", "Cleaning"], "202": ["Deluxe", "Occupied"], "203": ["Suite", "Occupied"],
