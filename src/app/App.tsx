@@ -1,6 +1,6 @@
 // Lean shell: sidebar, header, notification panel, Router, App root.
 // All screen components live in Screens.tsx. All data/constants in constants.ts.
-import { Component, type ReactNode, useState, useCallback, useEffect, useMemo } from "react";
+import { Component, type ReactNode, useState, useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { lazy, Suspense } from "react";
 import {
   SquaresFour, CalendarDots, Key, Bed, Wrench,
@@ -19,7 +19,7 @@ import {
   type Role, type Screen, type Toast, type ToastType,
   uid, fmtN,
   mono, sans, display, NAV_BG, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE, BG,
-  NOTIFS, BRANCHES, DEMO_STATE,
+  BRANCHES, DEMO_STATE, TEAL_INK,
 } from "./constants";
 import { LoginScreen, ForceChangePasswordScreen, LockScreen, ChooseHotelScreen } from "./AuthScreens";
 import type { LoginAccount } from "./mock/staffLogin";
@@ -40,6 +40,7 @@ import HrHome from "./suite/home/hrHome";
 const CommunicationsHome = lazy(() => import("./suite/home/communicationsHome"));
 const FleetHome = lazy(() => import("./suite/home/fleetHome"));
 import { SuiteHome, DepartmentHome } from "./suite/SuiteHome";
+import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
 import {
   DEPARTMENTS, departmentForScreen, departmentsForRole,
   type Department, type DepartmentId,
@@ -371,6 +372,16 @@ function PermissionsChangedDialog({ onReLogin }: { onReLogin: () => void }) {
 type SuiteScreen = Screen | "suite-home" | Department["home"];
 type SuitePortal = "field-app" | "guest-access" | "org-portal" | "admin-console";
 
+const LEVEL_STYLE: Record<Level, { edge: string; bg: string; ink: string }> = {
+  Urgent: { edge: "#DC2626", bg: "#FEE2E2", ink: "#991B1B" },
+  High:   { edge: "#EA580C", bg: "#FFEDD5", ink: "#9A3412" },
+  Normal: { edge: "#0D9488", bg: "#CCFBF1", ink: "#115E59" },
+  Low:    { edge: "#CBD5E1", bg: "#F1F5F9", ink: "#475569" },
+};
+const ago = (at: number) => { const m = Math.round((Date.now() - at) / 60000); return m < 1 ? "Just now" : m < 60 ? `${m} min ago` : `${Math.round(m / 60)} h ago`; };
+// A short two-tone sound for urgent notices; browsers allow it once the user has clicked in the page.
+const beep = () => { try { const c = new AudioContext(); [880, 660].forEach((f, i) => { const o = c.createOscillator(); o.frequency.value = f; o.connect(c.destination); o.start(c.currentTime + i * 0.18); o.stop(c.currentTime + i * 0.18 + 0.15); }); } catch { /* no sound available */ } };
+
 function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   initialRole: Role;
   staffName: string;
@@ -459,12 +470,25 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   };
 
   const initials = staffName.split(" ").map(word => word[0]).join("").slice(0, 2).toUpperCase();
-  const unread = NOTIFS.filter(notification => notification.unread).length;
-  const filteredNotifications = notifFilter === "All" ? NOTIFS
-    : notifFilter === "Urgent" ? NOTIFS.filter(notification => notification.category === "Emergency")
-    : notifFilter === "Door Lock" ? NOTIFS.filter(notification => notification.category === "Door Lock")
-    : notifFilter === "System" ? NOTIFS.filter(notification => ["System", "Chat"].includes(notification.category))
-    : NOTIFS.filter(notification => ["Reservation", "Housekeeping", "Maintenance", "Finance", "Restaurant"].includes(notification.category));
+  // The bell: re-renders whenever any department calls notify(), newest and loudest first.
+  useSyncExternalStore(subscribe, getVersion);
+  useEffect(() => setCurrentUser(staffName, role), [staffName, role]);
+  const notices = noticesFor(staffName, role);
+  const unread = unreadCount(staffName, role);
+  const urgentOpen = notices.filter(n => n.level === "Urgent" && !isRead(n, staffName));
+  const filteredNotifications = notifFilter === "Unread" ? notices.filter(n => !isRead(n, staffName))
+    : notifFilter === "Urgent and high" ? notices.filter(n => n.level === "Urgent" || n.level === "High")
+    : notices;
+  // A notice arriving while you work: High pops up, Urgent also sounds. Normal and Low wait on the bell.
+  const lastSeen = useRef(Math.max(0, ...notices.map(n => n.id)));
+  useEffect(() => {
+    const fresh = notices.filter(n => n.id > lastSeen.current);
+    if (!fresh.length) return;
+    lastSeen.current = Math.max(...fresh.map(n => n.id));
+    fresh.filter(n => n.level === "High").forEach(n => add({ type: "info", title: n.title, body: n.body }));
+    if (fresh.some(n => n.level === "Urgent")) beep();
+  });
+  const openNotice = (n: Notice) => { markRead(n.id, staffName); setNotifOpen(false); if (n.link) nav(n.link.screen as SuiteScreen, n.link.label, n.link.param ?? ""); };
   const roleLabels: Record<Role, string> = { MGT: "Manager", FLT: "Fleet Supervisor", FD: "Front Desk", HK: "Housekeeping", MX: "Maintenance", FIN: "Finance", RT: "Restaurant", RSV: "Reservations", IT: "IT Admin", DRV: "Driver" };
   const currentFlow = currentDepartment?.flow ?? [];
   const activeFlowIndex = currentFlow.findIndex(step => step.screen === screen);
@@ -550,7 +574,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
 
             <div className="flex flex-shrink-0 items-center gap-2">
               <button onClick={() => { setOffline(previous => !previous); add({ type: offline ? "success" : "warning", title: offline ? "Back online — syncing…" : "Simulating offline mode" }); }} className="hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold sm:flex" style={{ backgroundColor: loadState === "error" ? "#FEF2F2" : offline ? "#FEF3C7" : "#ECFDF5", borderColor: loadState === "error" ? "#FECACA" : offline ? "#FDE68A" : "#A7F3D0", color: loadState === "error" ? "#B91C1C" : offline ? "#92400E" : "#047857" }}><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: loadState === "error" ? ERROR : offline ? WARNING : SUCCESS }} />{loadState === "error" ? "Server not reachable" : offline ? "Working offline" : "All changes synced"}</button>
-              <button onClick={() => { setNotifOpen(previous => !previous); setUserMenuOpen(false); }} className="relative flex h-9 w-9 items-center justify-center rounded-xl border" style={{ borderColor: BORDER }}><Bell size={16} style={{ color: MUTED }} weight="bold" />{unread > 0 && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: ERROR }}>{unread}</span>}</button>
+              <button aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} onClick={() => { setNotifOpen(previous => !previous); setUserMenuOpen(false); }} className="relative flex h-9 w-9 items-center justify-center rounded-xl border" style={{ borderColor: BORDER }}><Bell size={16} style={{ color: MUTED }} weight="bold" />{unread > 0 && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: ERROR }}>{unread}</span>}</button>
               <div className="relative"><button onClick={() => { setUserMenuOpen(previous => !previous); setNotifOpen(false); setAppSwitcherOpen(false); }} className="flex items-center gap-2 rounded-xl border px-2 py-1" style={{ borderColor: BORDER }}><div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: PRIMARY }}>{initials}</div><CaretDown size={11} style={{ color: SUBTLE }} /></button>{userMenuOpen && <div className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-xl border bg-white shadow-xl" style={{ borderColor: BORDER }}><div className="border-b px-4 py-3" style={{ borderColor: BORDER }}><div className="text-xs font-semibold" style={{ color: TEXT }}>{staffName}</div><div className="mt-0.5 text-xs" style={{ color: MUTED }}>{roleLabels[role]}</div></div><button onClick={() => nav("my-preferences", "My Preferences")} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><User size={13} />My profile</button><button onClick={() => setShowSessionExpired(true)} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><Lock size={13} />Auth demo</button><button onClick={onLogout} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: ERROR }}><SignOut size={13} />Sign out</button></div>}</div>
             </div>
           </div>
@@ -581,7 +605,22 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
         <CommandList><CommandEmpty>No matching screen.</CommandEmpty><CommandGroup heading="Departments">{allowedDepartments.map(department => { const Icon = department.icon; return <CommandItem key={department.id} value={`${department.name} department`} onSelect={() => openDepartment(department)}><Icon style={{ color: department.accent }} />{department.name}</CommandItem>; })}</CommandGroup><CommandGroup heading="Screens">{searchableScreens.map(item => <CommandItem key={item.screen} value={`${item.label} ${item.department.name}`} onSelect={() => nav(item.screen, item.label)}><item.department.icon style={{ color: item.department.accent }} /><span>{item.label}</span><span className="ml-auto text-xs" style={{ color: SUBTLE }}>{item.department.name}</span></CommandItem>)}</CommandGroup></CommandList>
       </CommandDialog>
 
-      {notifOpen && <><div className="fixed inset-0 z-30 bg-black/40" onClick={() => setNotifOpen(false)} /><div className="fixed right-0 top-0 z-40 flex h-full w-full max-w-[400px] flex-col bg-white shadow-2xl" style={{ borderLeft: `1px solid ${BORDER}` }}><div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><h2 className="text-sm font-semibold" style={{ color: TEXT, fontFamily: display }}>Notifications</h2><button aria-label="Close" onClick={() => setNotifOpen(false)} className="flex h-8 w-8 items-center justify-center" style={{ color: SUBTLE }}><XCircle size={16} /></button></div><div className="flex border-b" style={{ borderColor: BORDER }}>{["All", "Urgent", "Operational", "System", "Door Lock"].map(tab => <button key={tab} onClick={() => setNotifFilter(tab)} className="flex-1 py-2.5 text-xs font-medium" style={{ color: notifFilter === tab ? PRIMARY : MUTED, borderBottom: notifFilter === tab ? `2px solid ${PRIMARY}` : "2px solid transparent" }}>{tab}</button>)}</div><div className="flex-1 overflow-y-auto">{filteredNotifications.length === 0 && <EmptyState icon={Bell} message="No notifications in this category." />}{filteredNotifications.map(notification => { const Icon = notification.icon; return <div key={notification.id} className="flex gap-3 border-b px-5 py-4" style={{ borderBottomColor: BORDER, borderLeft: `3px solid ${notification.color}` }}><div className="flex h-10 w-10 flex-none items-center justify-center rounded-full" style={{ backgroundColor: `${notification.color}18` }}><Icon size={16} style={{ color: notification.color }} /></div><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><span className="text-xs font-semibold" style={{ color: TEXT }}>{notification.title}</span>{notification.unread && <span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />}</div><p className="mt-0.5 line-clamp-2 text-xs" style={{ color: MUTED }}>{notification.body}</p><span className="mt-1 inline-block text-xs" style={{ color: SUBTLE }}>{notification.time} ago</span></div></div>; })}</div></div></>}
+      {notifOpen && <><div className="fixed inset-0 z-30 bg-black/40" onClick={() => setNotifOpen(false)} /><div role="dialog" aria-label="Notifications" className="fixed right-0 top-0 z-40 flex h-full w-full max-w-[400px] flex-col bg-white shadow-2xl" style={{ borderLeft: `1px solid ${BORDER}` }}>
+        <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><h2 className="text-sm font-semibold" style={{ color: TEXT, fontFamily: display }}>Notifications</h2><div className="flex items-center gap-1">{unread > 0 && <button onClick={() => markAllRead(staffName, role)} className="rounded-lg px-2 py-1 text-xs font-medium" style={{ color: TEAL_INK }}>Mark all read</button>}<button aria-label="Close" onClick={() => setNotifOpen(false)} className="flex h-8 w-8 items-center justify-center" style={{ color: SUBTLE }}><XCircle size={16} /></button></div></div>
+        <div className="flex border-b" style={{ borderColor: BORDER }}>{["All", "Unread", "Urgent and high"].map(tab => <button key={tab} onClick={() => setNotifFilter(tab)} className="flex-1 py-2.5 text-xs font-medium" style={{ color: notifFilter === tab ? PRIMARY : MUTED, borderBottom: notifFilter === tab ? `2px solid ${PRIMARY}` : "2px solid transparent" }}>{tab}</button>)}</div>
+        <div className="flex-1 overflow-y-auto">{filteredNotifications.length === 0 && <EmptyState icon={Bell} message="Nothing here. Notices from other departments appear as they happen." />}{filteredNotifications.map(n => { const read = isRead(n, staffName); return (
+          <button key={n.id} onClick={() => openNotice(n)} className="flex w-full gap-3 border-b px-5 py-4 text-left hover:bg-slate-50" style={{ borderBottomColor: BORDER, borderLeft: `3px solid ${LEVEL_STYLE[n.level].edge}`, opacity: read ? 0.7 : 1 }}>
+            <div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><span className="text-sm font-semibold" style={{ color: TEXT }}>{n.title}</span>{!read && <span className="mt-1.5 h-2 w-2 flex-none rounded-full" style={{ backgroundColor: LEVEL_STYLE[n.level].edge }} aria-label="Unread" />}</div>
+              {n.body && <p className="mt-0.5 line-clamp-2 text-sm" style={{ color: MUTED }}>{n.body}</p>}
+              <div className="mt-1.5 flex items-center gap-2 text-xs" style={{ color: SUBTLE }}><span className="rounded px-1.5 py-0.5 font-semibold" style={{ backgroundColor: LEVEL_STYLE[n.level].bg, color: LEVEL_STYLE[n.level].ink }}>{n.level}</span>{ago(n.at)}{n.by ? ` · ${n.by}` : ""}</div></div>
+          </button>); })}</div></div></>}
+      {urgentOpen.length > 0 && <div role="alert" className="fixed left-1/2 top-3 z-50 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 space-y-2">{urgentOpen.slice(0, 2).map(n => (
+        <div key={n.id} className="flex items-center gap-3 rounded-xl border px-4 py-3 shadow-lg" style={{ backgroundColor: "#FEF2F2", borderColor: "#FCA5A5" }}>
+          <Warning size={18} style={{ color: ERROR }} className="flex-none" />
+          <div className="min-w-0 flex-1"><p className="text-sm font-semibold" style={{ color: "#991B1B" }}>{n.title}</p>{n.body && <p className="text-sm" style={{ color: "#7F1D1D" }}>{n.body}</p>}</div>
+          {n.link && <button onClick={() => openNotice(n)} className="rounded-lg border bg-white px-3 py-1.5 text-xs font-semibold" style={{ borderColor: "#FCA5A5", color: "#991B1B" }}>Open</button>}
+          <button onClick={() => markRead(n.id, staffName)} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-white" style={{ backgroundColor: ERROR }}>I'm on it</button>
+        </div>))}</div>}
 
       <ToastC toasts={toasts} dismiss={dismiss} />
       {showSessionExpired && <SessionExpiredModal offline={offline} onStay={() => { setShowSessionExpired(false); add({ type: "success", title: "Session extended", body: "Token refreshed — 12 hours remaining" }); }} onSignOut={() => { setShowSessionExpired(false); onLogout(); }} />}

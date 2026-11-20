@@ -3,7 +3,8 @@
 // PR C adds the bell: each action will also tell the people who need to know.
 import { BUSINESS_DATE } from "../constants";
 import { ARRIVALS, STAYS, gridBookings, nextBookingId, initials, addFutureBooking, addArrival, arrivalToStay, endStay, setArrivalRoom, arrivalToNoShow } from "./frontOffice";
-import { updateRoom, hkStatus } from "./housekeeping";
+import { updateRoom, hkStatus, hkRooms } from "./housekeeping";
+import { notify } from "./notify";
 import { ROOMS } from "./property";
 import { workOrder, updateWorkOrder, isOutOfOrder, type WorkOrder } from "./maintenance";
 
@@ -26,6 +27,7 @@ export const addBooking = (b: NewBooking) => {
   if (day(b.checkin).getTime() === day(BUSINESS_DATE).getTime())
     addArrival({ id, guest: b.guest, av: initials(b.guest), room: b.room, type: b.type, eta: "", nights: b.nights, rate: b.rate, vip: !!b.vip, requests: "", balance: b.balance ?? b.rate * b.nights, status, risk: false });
   else addFutureBooking({ id, room: b.room, guest: b.guest, checkin: day(b.checkin), checkout: addDays(day(b.checkin), b.nights), status, rate: b.rate, source: b.source, vip: !!b.vip, type: b.type });
+  notify("booking.made", { title: `New booking: ${b.guest}`, body: `${b.room ? `Room ${b.room}` : `${b.type}, room at check-in`}, ${b.nights} night${b.nights === 1 ? "" : "s"} from ${day(b.checkin).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}.`, link: { screen: "reservation-grid", label: "Reservation Grid" } });
   return id;
 };
 
@@ -33,7 +35,9 @@ export const addBooking = (b: NewBooking) => {
 export const checkIn = (arrivalId: string, room: string, rate: number, paid: number) => {
   const a = ARRIVALS.find(x => x.id === arrivalId);
   if (!a || STAYS.some(s => s.room === room)) return null;
-  return arrivalToStay(arrivalId, room, rate, paid);
+  const stay = arrivalToStay(arrivalId, room, rate, paid);
+  if (stay) notify("guest.checkedIn", { title: `${stay.guest} checked in to room ${room}`, body: "Now a stayover on the Housekeeping board." });
+  return stay;
 };
 
 // A walk-in is a booking for tonight checked in straight away.
@@ -45,7 +49,10 @@ export const walkIn = (b: Omit<NewBooking, "checkin" | "status">, paid: number) 
 // Ends the stay and puts the room on the Housekeeping board to be cleaned.
 export const checkOut = (stayId: string) => {
   const s = endStay(stayId);
-  if (s) updateRoom(s.room, { hkSt: "Dirty", awaitingInspection: false, note: "" });
+  if (s) {
+    updateRoom(s.room, { hkSt: "Dirty", awaitingInspection: false, note: "" });
+    notify("guest.checkedOut", { title: `Room ${s.room} is free to clean`, body: `${s.guest} checked out.`, people: [attendantOf(s.room)], link: { screen: "hk-board", label: "Housekeeping Board" } });
+  }
   return s;
 };
 
@@ -54,7 +61,11 @@ export const finishWorkOrder = (id: string, status: "Closed" | "Cancelled", patc
   const w = workOrder(id); if (!w) return null;
   updateWorkOrder(id, { ...patch, status }, log);
   const backToHousekeeping = !!w.room && w.outOfOrder && !isOutOfOrder(w.room) && !STAYS.some(s => s.room === w.room);
-  if (backToHousekeeping) updateRoom(w.room!, { hkSt: "Dirty", awaitingInspection: false, note: "Back from maintenance: clean before it is sold" });
+  if (backToHousekeeping) {
+    updateRoom(w.room!, { hkSt: "Dirty", awaitingInspection: false, note: "Back from maintenance: clean before it is sold" });
+    notify("room.backFromMaintenance", { title: `Room ${w.room} is back from maintenance`, body: "Clean and inspect it before it is sold.", people: [attendantOf(w.room!)], link: { screen: "hk-board", label: "Housekeeping Board" } });
+  }
+  if (status === "Closed") notify("workOrder.closed", { title: `${w.id} is done: ${w.title}`, body: patch.resolution ?? "", people: [w.reportedBy], link: { screen: "work-order-detail", label: "Work Order", param: w.id } });
   return { order: w, backToHousekeeping };
 };
 
@@ -72,6 +83,14 @@ export const assignRoom = (arrivalId: string, room: string) => {
   return true;
 };
 // The room is released, so the grid and New Reservation can sell it again.
-export const markNoShow = (arrivalId: string, reason: string) => arrivalToNoShow(arrivalId, reason);
+export const markNoShow = (arrivalId: string, reason: string) => {
+  const a = arrivalToNoShow(arrivalId, reason);
+  if (a) notify("arrival.noShow", { title: `No-show: ${a.guest}`, body: `${a.id}${a.room ? `, room ${a.room} released` : ""}. ${reason}` });
+  return a;
+};
 // Asks Housekeeping to do this room next because its guest is on the way.
-export const rushRoom = (room: string) => updateRoom(room, { priority: true });
+export const rushRoom = (room: string, guest: string) => {
+  updateRoom(room, { priority: true });
+  notify("arrival.rushRoom", { title: `Clean room ${room} next`, body: `${guest} is on the way.`, people: [attendantOf(room)], link: { screen: "hk-board", label: "Housekeeping Board" } });
+};
+const attendantOf = (room: string) => hkRooms().find(r => r.id === room)?.attendant ?? "";
