@@ -11,6 +11,8 @@ import {
   workOrders, workOrder, addWorkOrder, updateWorkOrder, isOpen, isOverdue, ageOf, fmtWhen,
   TECHNICIANS, WO_CATEGORIES, LABOUR_RATE, type WorkOrder, type WOPriority, type WOStatus,
 } from "./mock/maintenance";
+import { finishWorkOrder } from "./mock/hotel";
+import { roomState } from "./mock/rooms";
 
 type Add = (t: Omit<Toast, "id">) => void;
 type Nav = (s: string, label: string, param?: string) => void;
@@ -333,7 +335,7 @@ export function WorkOrderDetail({ add, nav, id }: { add: Add; nav?: Nav; id?: st
             <Row label="Assigned to" value={w.tech ?? "Nobody yet"} />
             <Row label="Fix by" value={<span style={{ color: isOverdue(w) ? ERROR : TEXT }}>{fmtWhen(w.slaDue)}</span>} />
             <Row label="Open for" value={isOpen(w) ? ageOf(w) : "No longer open"} />
-            {w.room && <Row label="Room" value={w.outOfOrder && !closedOrCancelled ? <span style={{ color: ERROR }}>Out of order</span> : "In service"} />}
+            {w.room && <Row label="Room now" value={roomState(w.room) === "Out of order" ? <span style={{ color: ERROR }}>Out of order</span> : roomState(w.room)} />}
             <label className="flex items-center gap-2.5 text-sm pt-3" style={{ color: TEXT }}>
               <input type="checkbox" className="w-4 h-4" disabled={closedOrCancelled} checked={w.guestImpact}
                 onChange={e => { updateWorkOrder(w.id, { guestImpact: e.target.checked }, { event: e.target.checked ? "Marked as affecting a guest" : "No longer affecting a guest", by: me, note: "" }); refresh(n => n + 1); }} />
@@ -361,11 +363,11 @@ export function WorkOrderDetail({ add, nav, id }: { add: Add; nav?: Nav; id?: st
       )}
       {(dialog === "fixed" || dialog === "close") && (
         <Dialog title={dialog === "fixed" ? "Mark as fixed" : "Check and close"} onClose={() => setDialog(null)}
-          sub={dialog === "fixed" ? "Say what was done. Someone else checks it before the order closes." : w.room && w.outOfOrder ? `Closing puts room ${w.room} back in service.` : "Close the order once you have checked the fix."}
+          sub={dialog === "fixed" ? "Say what was done. Someone else checks it before the order closes." : w.room && w.outOfOrder ? `Closing sends room ${w.room} to Housekeeping to be cleaned before it is sold.` : "Close the order once you have checked the fix."}
           footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label={dialog === "fixed" ? "Mark as fixed" : "Close work order"} onClick={() => {
             if (!resolution.trim()) return;
             if (dialog === "fixed") { move("Fixed", "Fixed", resolution.trim(), { resolution: resolution.trim() }); add({ type: "success", title: `${w.id} fixed, waiting to be checked` }); }
-            else { updateWorkOrder(w.id, { status: "Closed", resolution: resolution.trim() }, { event: "Checked and closed", by: me, note: resolution.trim() }); add({ type: "success", title: `${w.id} closed`, body: w.room && w.outOfOrder ? `Room ${w.room} is back in service.` : undefined }); }
+            else { const r = finishWorkOrder(w.id, "Closed", { resolution: resolution.trim() }, { event: "Checked and closed", by: me, note: resolution.trim() }); add({ type: "success", title: `${w.id} closed`, body: r?.backToHousekeeping ? `Room ${w.room} is on the Housekeeping board to be cleaned.` : undefined }); }
             done();
           }} /></>}>
           <Field label="What was done" htmlFor="wo-res" required error={!resolution.trim() ? "Needed before the order moves on." : undefined}>
@@ -376,12 +378,12 @@ export function WorkOrderDetail({ add, nav, id }: { add: Add; nav?: Nav; id?: st
       )}
       {(dialog === "reopen" || dialog === "cancel") && (
         <Dialog title={dialog === "reopen" ? "Reopen work order" : "Cancel work order"} danger={dialog === "cancel"} onClose={() => setDialog(null)}
-          sub={dialog === "cancel" && w.room && w.outOfOrder ? `Room ${w.room} goes back in service.` : undefined}
+          sub={dialog === "cancel" && w.room && w.outOfOrder ? `Room ${w.room} goes to Housekeeping to be cleaned before it is sold.` : undefined}
           footer={<><BtnO label="Back" onClick={() => setDialog(null)} /><BtnP label={dialog === "reopen" ? "Reopen" : "Cancel work order"} onClick={() => {
             if (!reason.trim()) return;
             if (dialog === "reopen") move("In progress", "Reopened", reason.trim(), { resolution: undefined });
-            else move("Cancelled", "Cancelled", reason.trim());
-            add({ type: dialog === "reopen" ? "warning" : "info", title: `${w.id} ${dialog === "reopen" ? "reopened" : "cancelled"}` }); setReason(""); done();
+            const r = dialog === "cancel" ? finishWorkOrder(w.id, "Cancelled", {}, { event: "Cancelled", by: me, note: reason.trim() }) : null;
+            add({ type: dialog === "reopen" ? "warning" : "info", title: `${w.id} ${dialog === "reopen" ? "reopened" : "cancelled"}`, body: r?.backToHousekeeping ? `Room ${w.room} is on the Housekeeping board to be cleaned.` : undefined }); setReason(""); done();
           }} /></>}>
           <Field label={dialog === "reopen" ? "What is still wrong" : "Why cancel it"} htmlFor="wo-why" required>
             <input id="wo-why" value={reason} onChange={e => setReason(e.target.value)} className={controlClass} style={controlStyle()} />
