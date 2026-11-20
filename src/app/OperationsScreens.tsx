@@ -25,8 +25,8 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  occData, occ30Data, revCat, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
@@ -35,8 +35,9 @@ import {
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, Av } from "./UIKit";
 import { DateInput } from "./DateInput";
 import { hkRooms, updateRoom, ATTENDANTS } from "./mock/housekeeping";
-import { inHouseGuests, gridBookings } from "./mock/frontOffice";
+import { inHouseGuests, gridBookings, reservations } from "./mock/frontOffice";
 import { ROOM_TYPES, replaceRoomTypes } from "./mock/property";
+import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
 
 
 export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
@@ -1201,7 +1202,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
 
   // Room types and their rooms come from the property setup; changes here are saved back to it.
   const withCounts = (list: Omit<RT, "count" | "available">[]): RT[] => list.map(t => ({ ...t,
-    count: ROOMS.filter(r => r.type === t.name).length, available: ROOMS.filter(r => r.type === t.name && r.status === "Available").length }));
+    count: ROOMS.filter(r => r.type === t.name).length, available: ROOMS.filter(r => r.type === t.name && roomState(r.id) === "Ready").length }));
   const INIT: RT[] = withCounts(ROOM_TYPES);
 
   const [roomTypes, setRoomTypesState] = useState<RT[]>(INIT);
@@ -1607,7 +1608,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
             </div>
             <div className="flex flex-wrap gap-2">
               {assignedRooms(selected).map(r=>(
-                <div key={r.id} className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: r.status==="Available" ? SUCCESS : r.status==="Occupied" ? ORANGE : MUTED }}>{r.id}</div>
+                <div key={r.id} className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: ROOM_STATE_COLOR[roomState(r.id)] }} title={roomState(r.id)}>{r.id}</div>
               ))}
               {assignedRooms(selected).length===0 && <p className="text-xs" style={{ color: SUBTLE }}>No rooms assigned.</p>}
             </div>
@@ -1654,8 +1655,8 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
                           <p className="text-xs mt-0.5 font-semibold" style={{ color: isAssigned ? tC(selected.code) : otherType ? tC(otherType.code) : SUBTLE }}>
                             {isAssigned ? selected.code : otherType ? otherType.code : "—"}
                           </p>
-                          <div className="mt-1.5 h-1.5 rounded-full" style={{ backgroundColor: r.status==="Available" ? SUCCESS : r.status==="Occupied" ? ORANGE : r.status==="Reserved" ? TEAL : MUTED }} />
-                          <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{r.status}</p>
+                          <div className="mt-1.5 h-1.5 rounded-full" style={{ backgroundColor: ROOM_STATE_COLOR[roomState(r.id)] }} />
+                          <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>{roomState(r.id)}</p>
                         </button>
                       );
                     })}
@@ -2817,7 +2818,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                   Reservations ({drillCell.sold})
                 </div>
                 <div className="space-y-2">
-                  {ALL_RES.filter(r=>{
+                  {reservations().filter(r=>{
                     if(r.type!==drillCell.type) return false;
                     // parse "24 Jun" strings against the drill cell year
                     const yr = drillCell.dateObj.getFullYear();
@@ -2825,7 +2826,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
                     const ci = parseD(r.checkin); const co = parseD(r.checkout);
                     return drillCell.dateObj >= ci && drillCell.dateObj < co;
                   }).concat(
-                    ALL_RES.filter(r=>r.type===drillCell.type)
+                    reservations().filter(r=>r.type===drillCell.type)
                   ).filter((r,i,a)=>a.findIndex(x=>x.id===r.id)===i)
                    .slice(0, Math.min(Math.max(drillCell.sold,1), 4)).map(r=>(
                     <div key={r.id} className="flex items-center justify-between p-2.5 rounded-lg" style={{ backgroundColor:"#F9FAFB" }}>

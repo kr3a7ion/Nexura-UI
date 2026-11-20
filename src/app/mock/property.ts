@@ -30,20 +30,17 @@ export const replaceRoomTypes = (list: RoomType[]) => {
   ROOM_TYPES.splice(0, ROOM_TYPES.length, ...list);
 };
 
-export type Room = { id: string; type: string; floor: number; status: string };
+export type Room = { id: string; type: string; floor: number };
 
 // Demo property: floors 1–3 with 18 rooms each, suites on floor 5 (floor 4 is the restaurant and gym).
-// The out-of-order rooms each have an open work order in mock/maintenance.ts, which keeps them in step after that.
-const KNOWN: Record<string, [string, string]> = {
-  "101": ["Deluxe", "Occupied"], "102": ["Standard", "Cleaning"], "103": ["Standard", "Available"], "104": ["Deluxe", "Available"],
-  "118": ["Standard", "Occupied"], "201": ["Standard", "Cleaning"], "202": ["Deluxe", "Occupied"], "203": ["Suite", "Occupied"],
-  "302": ["Deluxe", "Occupied"], "303": ["Deluxe", "Reserved"], "304": ["Standard", "Occupied"], "501": ["Suite", "Occupied"],
-  "502": ["Suite", "Reserved"], "112": ["Deluxe", "Maintenance"], "215": ["Executive", "Maintenance"], "309": ["Deluxe", "Out of service"],
+// A room keeps no state of its own: mock/rooms.ts works it out from the guests, work orders and cleaning.
+const KNOWN: Record<string, string> = {
+  "101": "Deluxe", "104": "Deluxe", "118": "Standard", "202": "Deluxe", "203": "Suite", "302": "Deluxe", "303": "Deluxe",
 };
 const typeFor = (n: number) => (n <= 8 ? "Standard" : n <= 14 ? "Deluxe" : "Executive");
 export const ROOMS: Room[] = [
-  ...[1, 2, 3].flatMap(floor => Array.from({ length: 18 }, (_, i) => ({ id: `${floor}${String(i + 1).padStart(2, "0")}`, type: typeFor(i + 1), floor, status: "Available" }))),
-  ...Array.from({ length: 6 }, (_, i) => ({ id: `50${i + 1}`, type: "Suite", floor: 5, status: "Available" })),
-].map(r => KNOWN[r.id] ? { ...r, type: KNOWN[r.id][0], status: KNOWN[r.id][1] } : r);
+  ...[1, 2, 3].flatMap(floor => Array.from({ length: 18 }, (_, i) => ({ id: `${floor}${String(i + 1).padStart(2, "0")}`, type: typeFor(i + 1), floor }))),
+  ...Array.from({ length: 6 }, (_, i) => ({ id: `50${i + 1}`, type: "Suite", floor: 5 })),
+].map(r => KNOWN[r.id] ? { ...r, type: KNOWN[r.id] } : r);
 
 console.assert(ROOMS.length === 60 && ROOMS.every(r => roomPrice(r.type) > 0), "every demo room has a priced type");

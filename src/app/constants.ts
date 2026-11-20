@@ -90,9 +90,9 @@ export const stC = (s: string) =>
   s === "Low" ? { bg: "#FEF3C7", text: "#92400E", bar: WARNING } :
   { bg: "#DCFCE7", text: "#166534", bar: SUCCESS };
 export const roomStC: Record<string, { bg: string; text: string }> = {
-  Available: { bg: "#DCFCE7", text: "#166534" }, Occupied: { bg: "#FEF3C7", text: "#92400E" },
-  Cleaning: { bg: "#FEF9C3", text: "#713F12" }, Reserved: { bg: "#CCFBF1", text: "#0F766E" },
-  Maintenance: { bg: "#FEE2E2", text: "#991B1B" }, "Out of Service": { bg: "#F3F4F6", text: "#374151" },
+  Ready: { bg: "#DCFCE7", text: "#166534" }, Occupied: { bg: "#FEF3C7", text: "#92400E" },
+  "Being cleaned": { bg: "#FEF9C3", text: "#713F12" }, "Arriving today": { bg: "#CCFBF1", text: "#0F766E" },
+  "Out of order": { bg: "#FEE2E2", text: "#991B1B" },
 };
 export const actC = (t: string) => ({ checkin: SUCCESS, checkout: "#6B7280", reservation: TEAL, maintenance: "#F97316", noshow: "#EF4444" }[t] ?? SUBTLE);
 export const actBg = (t: string) => ({ checkin: "#F0FDF4", checkout: "#F8FAFC", reservation: "#ECFDF5", maintenance: "#FFF7ED", noshow: "#FEF2F2" }[t] ?? "#F8FAFC");
@@ -159,13 +159,8 @@ export const NOTIFS = [
   { id: 6, category: "Door Lock", title: "Card activation queued — Room 204", body: "Pending internet. Retry every 2 min.", time: "1h", color: "#8B5CF6", icon: Lock, unread: false },
   { id: 7, category: "Chat", title: "Message from Housekeeping", body: "@reception Room 407 minibar restocked.", time: "2h", color: "#3B82F6", icon: MessageSquare, unread: false },
 ];
-// The hotel's rooms. Status is where each room stands on the business date; Front Office,
-// Housekeeping and the grid all use this list.
+// The hotel's rooms. Where each room stands is worked out in mock/rooms.ts.
 export { ROOMS } from "./mock/property";
-import { ROOMS } from "./mock/property";
-// Counted from ROOMS so every screen shows the same hotel.
-export const roomSt = ([["Occupied", ORANGE], ["Available", SUCCESS], ["Cleaning", WARNING], ["Reserved", TEAL], ["Maintenance", ERROR], ["Out of service", "#6B7280"]] as const)
-  .map(([status, color]) => ({ status, color, count: ROOMS.filter(r => r.status.toLowerCase() === status.toLowerCase()).length }));
 export const STAFF = [
   { id: "EMP-001", name: "Grace Mensah", role: "Hotel Manager", dept: "Management", phone: "+234 801 234 5678", status: "Active", lastLogin: "Today 07:04", av: "GM" },
   { id: "EMP-002", name: "John Abubakar", role: "Front Desk", dept: "Front Desk", phone: "+234 802 345 6789", status: "Active", lastLogin: "Today 07:15", av: "JA" },
@@ -249,15 +244,6 @@ export const CHAT_MSGS: Record<string, Array<{ from: string; av: string; msg: st
     { from: "Grace Mensah", av: "GM", msg: "Offer guest a room move. Front desk will handle.", time: "08:37", mine: true },
   ],
 };
-export const ALL_RES = [
-  { id: "BK-2849", guest: "Dr. Chukwuemeka Bello", room: "501", type: "Suite", checkin: "24 Jun", checkout: "27 Jun", status: "Confirmed", source: "Walk-in", nights: 3, rate: 85000 },
-  { id: "BK-2850", guest: "Aisha Mohammed", room: "203", type: "Deluxe", checkin: "24 Jun", checkout: "26 Jun", status: "Checked In", source: "Online", nights: 2, rate: 55000 },
-  { id: "BK-2848", guest: "Emmanuel Adeyemi", room: "202", type: "Deluxe", checkin: "23 Jun", checkout: "26 Jun", status: "Checked In", source: "Phone", nights: 3, rate: 55000 },
-  { id: "BK-2847", guest: "Adaeze Okonkwo", room: "101", type: "Standard", checkin: "22 Jun", checkout: "25 Jun", status: "Checked In", source: "Online", nights: 3, rate: 35000 },
-  { id: "BK-2845", guest: "Ngozi Eze", room: "212", type: "Standard", checkin: "20 Jun", checkout: "22 Jun", status: "Checked Out", source: "Walk-in", nights: 2, rate: 35000 },
-  { id: "BK-2843", guest: "Fatima Al-Hassan", room: "309", type: "Deluxe", checkin: "23 Jun", checkout: "24 Jun", status: "No Show", source: "Online", nights: 1, rate: 55000 },
-  { id: "BK-2840", guest: "Tunde Bakare", room: "118", type: "Standard", checkin: "28 Jun", checkout: "30 Jun", status: "Confirmed", source: "Phone", nights: 2, rate: 35000 },
-];
 export const ACCESS_CREDS = [
   { room: "101", guest: "Adaeze Okonkwo", cards: [{ serial: "XXXX-1A2B", issued: "22 Jun 14:03", by: "John A." }], pin: { hint: "74**12", issued: "22 Jun 14:05", by: "John A." }, validTo: "25 Jun 11:00", status: "Active" },
   { room: "202", guest: "Emmanuel Adeyemi", cards: [{ serial: "XXXX-3C4D", issued: "23 Jun 14:10", by: "John A." }, { serial: "XXXX-5E6F", issued: "23 Jun 14:12", by: "John A." }], pin: null, validTo: "26 Jun 11:00", status: "Active" },

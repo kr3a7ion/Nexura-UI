@@ -5,6 +5,7 @@
 // so a room never says "stayover" on one screen and "departure" on another.
 import { STAYS, ARRIVALS, leavesToday } from "./frontOffice";
 import { ROOMS as PROPERTY_ROOMS } from "./property";
+import { isOutOfOrder } from "./maintenance";
 
 export type HKStatus = "Dirty" | "In Progress" | "Clean" | "Inspected";
 export type HKRoom = {
@@ -38,7 +39,6 @@ const ROOMS: Omit<HKRoom, "guestState" | "dnd">[] = PROPERTY_ROOMS.map(r => ({
   ...(FACTS[r.id] ?? { hkSt: "Inspected", attendant: null, priority: false, since: "07:00", awaitingInspection: false,
     note: "" }),
 }));
-const outOfOrder = (id: string) => ["Maintenance", "Out of service"].includes(PROPERTY_ROOMS.find(p => p.id === id)?.status ?? "");
 
 const guestState = (room: string): HKRoom["guestState"] => {
   const stay = STAYS.find(s => s.room === room);
@@ -47,7 +47,8 @@ const guestState = (room: string): HKRoom["guestState"] => {
 };
 
 // Do not disturb is the guest's request, so it comes from the stay too.
-export const hkRooms = (): HKRoom[] => ROOMS.map(r => ({ ...r, note: outOfOrder(r.id) ? "Out of order, with Maintenance" : r.note, type: PROPERTY_ROOMS.find(p => p.id === r.id)?.type ?? r.type, guestState: guestState(r.id), dnd: !!STAYS.find(s => s.room === r.id)?.dnd }));
+export const hkRooms = (): HKRoom[] => ROOMS.map(r => ({ ...r, note: isOutOfOrder(r.id) ? "Out of order, with Maintenance" : r.note, type: PROPERTY_ROOMS.find(p => p.id === r.id)?.type ?? r.type, guestState: guestState(r.id), dnd: !!STAYS.find(s => s.room === r.id)?.dnd }));
+export const hkStatus = (id: string) => ROOMS.find(r => r.id === id)?.hkSt;
 export const roomsFor = (attendant: string) => hkRooms().filter(r => r.attendant === attendant);
 
 // Status changes made on the board, My Tasks or an inspection.

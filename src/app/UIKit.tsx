@@ -27,16 +27,17 @@ import {
   mono, display, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   PROPERTY_PROFILE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  occData, occ30Data, revCat, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK } from "./constants";
 import { TextOrDate } from "./DateInput";
-import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, balanceOf, gridBookings, unassignedArrivals, type GridBooking } from "./mock/frontOffice";
+import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, balanceOf, gridBookings, unassignedArrivals, type GridBooking, reservations } from "./mock/frontOffice";
 import { UI, controlClass, controlStyle, Field, Card, SectionTitle, Stepper, Choice, Segmented, Row } from "./ui";
 import { ROOM_TYPES, roomPrice, roomTypeNames } from "./mock/property";
+import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -267,7 +268,6 @@ const BAR_STYLE: Record<string, { bg: string; edge: string; text: string }> = {
   Confirmed:    { bg: "#E0F2FE", edge: "#0369A1", text: "#0C4A6E" },
   Pending:      { bg: "#FEF3C7", edge: "#B45309", text: "#78350F" },
 };
-const ROOM_STATUS_DOT: Record<string, string> = { Occupied: "#0F766E", Available: "#16A34A", Cleaning: "#B45309", Reserved: "#0369A1", Maintenance: "#DC2626" };
 
 export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   // A week on narrow screens so names stay readable; two weeks when there is room.
@@ -397,15 +397,15 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
                 <div className="sticky left-0 z-10 bg-white flex flex-col justify-center px-4 flex-shrink-0" style={{ width: ROOMW, borderRight: `1px solid ${BORDER}` }}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-semibold" style={{ color: TEXT }}>{r.id}</span>
-                    <span className="flex items-center gap-1.5 text-xs" style={{ color: MUTED }} title={`Room is ${r.status.toLowerCase()} now`}>
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ROOM_STATUS_DOT[r.status] ?? SUBTLE }} />{r.status}
+                    <span className="flex items-center gap-1.5 text-xs" style={{ color: MUTED }} title={`Room is ${roomState(r.id).toLowerCase()} now`}>
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ROOM_STATE_COLOR[roomState(r.id)] }} />{roomState(r.id)}
                     </span>
                   </div>
                   <div className="text-xs" style={{ color: MUTED }}>{r.type} · Floor {r.floor}</div>
                 </div>
                 <div className="relative flex flex-1">
                   {days.map((d, i) => {
-                    const taken = r.status === "Maintenance" || r.status === "Out of service" || bookings.some(b => b.room === r.id && b.checkin <= d && b.checkout > d);
+                    const taken = roomState(r.id) === "Out of order" || bookings.some(b => b.room === r.id && b.checkin <= d && b.checkout > d);
                     return (
                       taken || d < BUSINESS_DATE
                         ? <div key={i} aria-hidden className="h-full" style={{ width: pct(1), borderRight: `1px solid #F1F5F9`, backgroundColor: i === todayIdx ? "rgba(240,253,250,0.6)" : weekend(d) ? UI.surface : undefined }} />
@@ -508,7 +508,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   // Rooms of each type with no booking overlapping the chosen nights.
   const bookingsNow = gridBookings();
   const stayFrom = new Date(`${form.checkin}T00:00:00`), stayTo = new Date(`${form.checkout}T00:00:00`);
-  const freeRooms = (t: string) => ROOMS.filter(r => r.type === t && r.status !== "Maintenance" && r.status !== "Out of service" && !bookingsNow.some(b => b.room === r.id && b.checkin < stayTo && b.checkout > stayFrom)).map(r => r.id);
+  const freeRooms = (t: string) => ROOMS.filter(r => r.type === t && roomState(r.id) !== "Out of order" && !bookingsNow.some(b => b.room === r.id && b.checkin < stayTo && b.checkout > stayFrom)).map(r => r.id);
   const ROOM_DESC = (t: string) => { const rt = ROOM_TYPES.find(x => x.name === t); return rt ? `${rt.beds} · ${rt.size} · up to ${rt.maxOcc} guests` : ""; };
 
   const EXTRAS_CATALOG = [
@@ -522,7 +522,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
     { name: "Laundry package",       price: 6000,  icon: Package   },
   ];
 
-  const GUEST_SUGGESTIONS = ALL_RES.filter(r =>
+  const GUEST_SUGGESTIONS = reservations().filter(r =>
     guestSearchQ.length >= 2 &&
     (r.guest.toLowerCase().includes(guestSearchQ.toLowerCase()) ||
      r.id.toLowerCase().includes(guestSearchQ.toLowerCase()))
