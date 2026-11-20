@@ -2,8 +2,9 @@
 // so a screen never has to keep two departments in step by itself.
 // PR C adds the bell: each action will also tell the people who need to know.
 import { BUSINESS_DATE } from "../constants";
-import { ARRIVALS, STAYS, gridBookings, nextBookingId, initials, addFutureBooking, addArrival, arrivalToStay, endStay } from "./frontOffice";
-import { updateRoom } from "./housekeeping";
+import { ARRIVALS, STAYS, gridBookings, nextBookingId, initials, addFutureBooking, addArrival, arrivalToStay, endStay, setArrivalRoom, arrivalToNoShow } from "./frontOffice";
+import { updateRoom, hkStatus } from "./housekeeping";
+import { ROOMS } from "./property";
 import { workOrder, updateWorkOrder, isOutOfOrder, type WorkOrder } from "./maintenance";
 
 const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -56,3 +57,21 @@ export const finishWorkOrder = (id: string, status: "Closed" | "Cancelled", patc
   if (backToHousekeeping) updateRoom(w.room!, { hkSt: "Dirty", awaitingInspection: false, note: "Back from maintenance: clean before it is sold" });
   return { order: w, backToHousekeeping };
 };
+
+// Rooms an arrival can be given: its booked type, free for every night of the stay and not out of order,
+// ready rooms first so the guest is not kept waiting.
+export const roomsForArrival = (arrivalId: string) => {
+  const a = ARRIVALS.find(x => x.id === arrivalId); if (!a) return [];
+  const ready = (id: string) => ["Clean", "Inspected"].includes(hkStatus(id) ?? "") ? 0 : 1;
+  return ROOMS.filter(r => r.type === a.type && !isOutOfOrder(r.id) && (r.id === a.room || roomFree(r.id, BUSINESS_DATE, a.nights)))
+    .map(r => r.id).sort((x, y) => ready(x) - ready(y) || x.localeCompare(y));
+};
+export const assignRoom = (arrivalId: string, room: string) => {
+  if (!roomsForArrival(arrivalId).includes(room)) return false;
+  setArrivalRoom(arrivalId, room);
+  return true;
+};
+// The room is released, so the grid and New Reservation can sell it again.
+export const markNoShow = (arrivalId: string, reason: string) => arrivalToNoShow(arrivalId, reason);
+// Asks Housekeeping to do this room next because its guest is on the way.
+export const rushRoom = (room: string) => updateRoom(room, { priority: true });
