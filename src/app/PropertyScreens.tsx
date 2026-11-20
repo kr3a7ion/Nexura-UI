@@ -42,14 +42,14 @@ import { roomPrice, roomTypeNames } from "./mock/property";
 import { hkRooms } from "./mock/housekeeping";
 import { reservations } from "./mock/frontOffice";
 import { walkIn } from "./mock/hotel";
-export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
+import { requestApproval } from "./mock/approvals";
+import { setRoomRate } from "./mock/frontOffice";
+export function WalkInReg({ add, nav, staffName }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; staffName: string }) {
   const [step, setStep] = useState(1);
   const [selRoom, setSelRoom] = useState<{ id: string; type: string; rate: number } | null>(null);
   const [rateOverride, setRateOverride] = useState("");
   const [showOverride, setShowOverride] = useState(false);
   const [overrideReason, setOverrideReason] = useState("");
-  const [managerPin, setManagerPin] = useState("");
-  const [overrideApproved, setOverrideApproved] = useState(false);
   const [bookingId, setBookingId] = useState("");
   const initialForm = {
     firstName: "", lastName: "", phone: "", email: "", nationality: "Nigerian", address: "",
@@ -62,19 +62,15 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
   const AVAIL_ROOMS = hkRooms().filter(r => r.guestState === "Vacant" && (r.hkSt === "Clean" || r.hkSt === "Inspected") && !r.note.startsWith("Out of order"))
     .map(r => ({ id: r.id, type: r.type, floor: r.floor, rate: roomPrice(r.type), hkSt: r.hkSt }));
   const requestedRate = parseInt(rateOverride.replace(/,/g, ""), 10) || 0;
-  const effectiveRate = showOverride && overrideApproved && requestedRate > 0 ? requestedRate : selRoom?.rate;
+  // The guest checks in at the standard rate; an override changes the bill only once it is approved.
+  const effectiveRate = selRoom?.rate;
+  const asksOverride = showOverride && requestedRate > 0 && requestedRate !== selRoom?.rate;
   const nights = form.checkin && form.checkout ? Math.max(0, Math.round((new Date(form.checkout).getTime() - new Date(form.checkin).getTime()) / 86400000)) : 0;
   const subtotal = (effectiveRate ?? 0) * nights;
   const vat = Math.round(subtotal * 0.075);
   const total = subtotal + vat;
   const deposit = form.deposit ? parseInt(form.deposit.replace(/,/g, ""), 10) || 0 : subtotal;
   const guestName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
-  const approveOverride = () => {
-    if (!requestedRate || !overrideReason.trim()) { add({ type: "error", title: "Override details required", body: "Enter a valid nightly rate and a reason." }); return; }
-    if (managerPin !== "1234") { add({ type: "error", title: "Invalid manager PIN" }); return; }
-    setOverrideApproved(true);
-    add({ type: "success", title: "Rate override approved", body: `₦${requestedRate.toLocaleString()} per night` });
-  };
   const registerWalkIn = () => {
     if (!selRoom) { add({ type: "error", title: "Select a room first" }); return; }
     if (!form.firstName.trim() || !form.lastName.trim() || (!form.phone.trim() && !form.email.trim())) { add({ type: "error", title: "Guest details incomplete", body: "Enter first and last name plus a phone number or email." }); return; }
@@ -83,13 +79,16 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
     if ((parseInt(form.adults, 10) || 0) < 1 || (parseInt(form.children, 10) || 0) < 0) { add({ type: "error", title: "Invalid guest count", body: "At least one adult is required." }); return; }
     if (deposit < 0 || deposit > total) { add({ type: "error", title: "Invalid deposit", body: "Deposit cannot exceed the stay total." }); return; }
     if (form.paymentMethod !== "Cash" && deposit > 0 && !form.paymentRef.trim()) { add({ type: "error", title: "Payment reference required", body: `Enter the ${form.paymentMethod} transaction reference.` }); return; }
-    if (showOverride && requestedRate > 0 && !overrideApproved) { add({ type: "error", title: "Rate override not approved", body: "Approve the override with a manager PIN or hide the override." }); return; }
+    if (asksOverride && !overrideReason.trim()) { add({ type: "error", title: "Say why the rate should change", body: "The approver sees this reason." }); return; }
     const stay = walkIn({ guest: guestName, room: selRoom.id, type: selRoom.type, nights, rate: effectiveRate ?? selRoom.rate, source: "Walk-in", balance: total - deposit }, deposit);
     if (!stay) { add({ type: "error", title: `Room ${selRoom.id} is not free tonight`, body: "Choose another room." }); return; }
     const id = stay.id;
+    if (asksOverride) requestApproval({ kind: "Rate override", dept: "Front Office", ref: id, title: `${guestName}, room ${selRoom.id}`,
+      detail: `₦${selRoom.rate.toLocaleString()} → ₦${requestedRate.toLocaleString()} a night for ${nights} night${nights === 1 ? "" : "s"}`,
+      reason: overrideReason.trim(), requestedBy: staffName, apply: () => setRoomRate(id, requestedRate) });
     setBookingId(id);
     setStep(2);
-    add({ type: "success", title: "Walk-in registered and checked in", body: `${id} · ${guestName} · Room ${selRoom.id}` });
+    add({ type: "success", title: "Walk-in registered and checked in", body: `${id} · ${guestName} · Room ${selRoom.id}${asksOverride ? ". The new rate is waiting for approval." : ""}` });
   };
   return (
     <div>
@@ -101,7 +100,7 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
               <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT }}>Available rooms</h3>
               <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 mb-3">
                 {AVAIL_ROOMS.map(r => (
-                  <button key={r.id} onClick={() => { setSelRoom({ id: r.id, type: r.type, rate: r.rate }); setOverrideApproved(false); }}
+                  <button key={r.id} onClick={() => setSelRoom({ id: r.id, type: r.type, rate: r.rate })}
                     className="text-left rounded-xl border overflow-hidden transition-all hover:shadow-md"
                     style={{ borderColor: selRoom?.id === r.id ? PRIMARY : BORDER, borderWidth: selRoom?.id === r.id ? 2 : 1 }}>
                     <div className="px-3 py-2" style={{ backgroundColor: selRoom?.id === r.id ? "#EFF6FF" : "#F9FAFB" }}>
@@ -148,17 +147,13 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
               </div>
               <div className="border-t pt-3" style={{ borderColor: BORDER }}>
                 <button onClick={() => setShowOverride(!showOverride)} className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: showOverride ? ORANGE : MUTED }}>
-                  <AlertTriangle size={11} />Rate Override (Manager approval required){showOverride ? " — hide" : ""}
+                  <AlertTriangle size={11} />{showOverride ? "Keep the standard rate" : "Ask for a different rate"}
                 </button>
                 {showOverride && (
                   <div className="mt-3 p-3 rounded-lg border" style={{ borderColor: ORANGE, backgroundColor: "#FFF7ED" }}>
-                    <div className="text-xs font-semibold mb-2" style={{ color: ORANGE_INK }}>Override requires manager PIN authorisation</div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1"><Inp label="Override Rate (₦/night)" value={rateOverride} onChange={event => { setRateOverride(event.target.value); setOverrideApproved(false); }} placeholder={String(selRoom?.rate ?? 35000)} /></div>
-                      <div className="flex-1"><Inp label="Manager PIN" type="password" value={managerPin} onChange={event => { setManagerPin(event.target.value); setOverrideApproved(false); }} placeholder="••••" /></div>
-                    </div>
-                    <div className="mt-3"><Inp label="Override Reason *" value={overrideReason} onChange={event => { setOverrideReason(event.target.value); setOverrideApproved(false); }} placeholder="Corporate agreement, service recovery, approved discount…" /></div>
-                    <button onClick={approveOverride} className="mt-3 px-3 py-2 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: overrideApproved ? SUCCESS : ORANGE }}>{overrideApproved ? "Override Approved" : "Approve Override"}</button>
+                    <div className="text-xs mb-2" style={{ color: ORANGE_INK }}>The guest checks in at the standard rate now. The new rate goes on the bill once a manager approves it from their dashboard.</div>
+                    <Inp label="New rate (₦ a night)" value={rateOverride} onChange={event => setRateOverride(event.target.value)} placeholder={String(selRoom?.rate ?? "")} />
+                    <div className="mt-3"><Inp label="Why the rate should change *" value={overrideReason} onChange={event => setOverrideReason(event.target.value)} placeholder="Corporate agreement, service recovery, approved discount…" /></div>
                   </div>
                 )}
               </div>
@@ -205,7 +200,7 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
           <div className="flex justify-center gap-3 flex-wrap">
             <BtnO label="Print receipt" icon={FileText} onClick={() => add({ type: "success", title: "Deposit receipt sent to printer", body: `${bookingId} · ${guestName}` })} />
             <BtnO label="Activate room access" icon={Lock} onClick={() => nav?.("room-access", "Room Access Management", selRoom?.id)} />
-            <BtnP label="New walk-In" icon={Plus} onClick={() => { setStep(1); setSelRoom(null); setRateOverride(""); setShowOverride(false); setOverrideReason(""); setManagerPin(""); setOverrideApproved(false); setBookingId(""); setForm(initialForm); }} />
+            <BtnP label="New walk-In" icon={Plus} onClick={() => { setStep(1); setSelRoom(null); setRateOverride(""); setShowOverride(false); setOverrideReason(""); setBookingId(""); setForm(initialForm); }} />
           </div>
         </div>
       )}

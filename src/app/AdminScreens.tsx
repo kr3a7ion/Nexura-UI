@@ -33,6 +33,7 @@ import { ARRIVALS as FO_ARRIVALS, STAYS, reservations } from "./mock/frontOffice
 import { roomTypeNames } from "./mock/property";
 import { hkRooms } from "./mock/housekeeping";
 import { roomState } from "./mock/rooms";
+import { approverRoles, setApproverRoles } from "./mock/approvals";
 
 export function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
   const isFemale = gender === "F";
@@ -89,6 +90,7 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
     { key:"audit-log",    label:"Audit Log",                group:"IT Admin"  },
     { key:"fleet",        label:"Fleet Operations",         group:"Fleet"     },
     { key:"settings",     label:"System Settings",          group:"IT Admin"  },
+    { key:"approve-fo",   label:"Approve Front Office requests", group:"Approvals" },
   ];
 
   // permission matrix: role code → set of module keys
@@ -108,6 +110,8 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
     DRV: new Set(["dashboard","fleet"]),
   };
 
+  // Who approves Front Office requests lives with the approvals, so the dashboards and this matrix agree.
+  for (const r of Object.keys(MATRIX_INIT)) { if (approverRoles("Front Office").includes(r as Role)) MATRIX_INIT[r].add("approve-fo"); else MATRIX_INIT[r].delete("approve-fo"); }
   const [matrix, setMatrix] = useState(MATRIX_INIT);
   const [selectedRole, setSelectedRole] = useState("FD");
   const [previewUser, setPreviewUser]   = useState("Ada Okonkwo");
@@ -125,6 +129,7 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
   };
 
   const save = () => {
+    setApproverRoles("Front Office", Object.keys(matrix).filter(r => matrix[r].has("approve-fo")) as Role[]);
     add({ type:"success", title:`Permissions saved — ${ROLES.find(r=>r.code===selectedRole)?.name}` });
     setUnsavedRole(null);
   };

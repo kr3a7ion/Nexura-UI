@@ -3,7 +3,8 @@ import {
   ArrowRight, Bed, Buildings, CalendarCheck, CheckCircle, Clock, CurrencyNgn,
   DoorOpen, MagnifyingGlass, MapPin, Plus, SignIn, SignOut, UserPlus, WarningCircle,
 } from "@phosphor-icons/react";
-import type { Screen } from "../../constants";
+import type { Role, Screen } from "../../constants";
+import { ApprovalsCard } from "../ApprovalsCard";
 import {
   BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, WARNING, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
@@ -39,7 +40,7 @@ const severityColors = {
   Info: { bg: "#EFF6FF", text: "#1D4ED8" },
 };
 
-export default function FrontOfficeHome({ nav }: { nav: Nav }) {
+export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; role: Role; staffName: string }) {
   const [viewState, setViewState] = useState<ViewState>("Ready");
 
   const quickActions: Array<{ label: string; icon: typeof Plus; screen: Screen }> = [
@@ -86,8 +87,8 @@ export default function FrontOfficeHome({ nav }: { nav: Nav }) {
       <PageHeader
         title="Front Office command centre"
         sub="Today’s reservation, arrival and guest-stay operations."
-       
       />
+      <div className="-mt-4 mb-5"><ApprovalsCard role={role} staffName={staffName} dept="Front Office" /></div>
 
       <section className="mb-5 flex flex-col gap-4 rounded-2xl border bg-white p-5 lg:flex-row lg:items-center" style={{ borderColor: BORDER }}>
         <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl" style={{ backgroundColor: `${accent}14`, color: accent }}><Buildings size={27} weight="duotone" /></div>
