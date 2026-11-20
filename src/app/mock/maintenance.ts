@@ -2,7 +2,6 @@
 // Suite Home and the manager dashboard. Housekeeping's "Report a fault" adds to it.
 // shortcut: held in memory until the hotel server exists; changes last until the page reloads.
 import { BUSINESS_DATE } from "../constants";
-import { ROOMS } from "./property";
 
 export type WOStatus = "Reported" | "Assigned" | "In progress" | "Fixed" | "Closed" | "Cancelled";
 export type WOPriority = "Low" | "Medium" | "High";
@@ -86,27 +85,20 @@ export const ageOf = (w: WorkOrder) => {
 };
 export const fmtWhen = (d: Date) => `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}, ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
 
-// A room is out of order while any open order on it says so; closing the last one puts it back in service.
-const syncRoom = (room?: string) => {
-  if (!room) return;
-  const r = ROOMS.find(x => x.id === room); if (!r) return;
-  const out = LIST.some(w => w.room === room && w.outOfOrder && w.status !== "Closed" && w.status !== "Cancelled");
-  if (out && r.status !== "Occupied" && r.status !== "Out of service") r.status = "Maintenance";
-  else if (!out && (r.status === "Maintenance" || r.status === "Out of service")) r.status = "Available";
-};
+// A room is out of order while any order on it says so and is not closed or cancelled;
+// a fixed job keeps the room out until someone has checked it.
+export const isOutOfOrder = (room: string) => LIST.some(w => w.room === room && w.outOfOrder && w.status !== "Closed" && w.status !== "Cancelled");
 
 let next = 95;
 export const addWorkOrder = (w: Pick<WorkOrder, "title" | "location" | "cat" | "priority" | "reportedBy" | "desc"> & { room?: string; outOfOrder?: boolean; guestImpact?: boolean; asset?: string }) => {
   const created = wo({ id: `WO-${String(next++).padStart(4, "0")}`, status: "Reported", tech: null, reportedAt: NOW,
     guestImpact: false, outOfOrder: false, ...w });
-  LIST.unshift(created); syncRoom(created.room);
+  LIST.unshift(created);
   return created;
 };
 export const updateWorkOrder = (id: string, patch: Partial<WorkOrder>, log?: { event: string; by: string; note: string }) => {
   const w = workOrder(id); if (!w) return;
   Object.assign(w, patch);
   if (log) w.timeline.push({ at: new Date(NOW.getTime() + w.timeline.length * 60000), ...log });
-  syncRoom(w.room);
 };
 
-console.assert(ROOMS.filter(r => r.status === "Maintenance" || r.status === "Out of service").every(r => LIST.some(w => w.room === r.id && w.outOfOrder && isOpen(w))), "every out-of-order room has an open work order");

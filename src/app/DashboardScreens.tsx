@@ -25,8 +25,8 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, occ30Data, revCat, roomSt, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  occData, occ30Data, revCat, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
@@ -34,9 +34,10 @@ import {
 
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, LiveClock, SyncPill, Av } from "./UIKit";
 import { hkRooms } from "./mock/housekeeping";
-import { STAYS, ARRIVALS, departures, inHouseGuests } from "./mock/frontOffice";
+import { STAYS, ARRIVALS, departures, inHouseGuests, reservations } from "./mock/frontOffice";
 import { roomPrice } from "./mock/property";
 import { workOrders, isOpen, isOverdue, ageOf } from "./mock/maintenance";
+import { roomCounts } from "./mock/rooms";
 
 export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
   const [auditRunning, setAuditRunning] = useState(false);
@@ -129,10 +130,10 @@ export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
             <button onClick={() => go("hk-board", "Housekeeping Board")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Board →</button>
           </div>
           <div className="space-y-2">
-            {roomSt.map(r => (
-              <div key={r.status}>
+            {roomCounts().map(r => (
+              <div key={r.state}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium" style={{ color: TEXT }}>{r.status}</span>
+                  <span className="text-xs font-medium" style={{ color: TEXT }}>{r.state}</span>
                   <span className="text-xs font-bold" style={{ color: r.color, fontFamily: "'Inter', system-ui, sans-serif" }}>{r.count}</span>
                 </div>
                 <div className="h-1.5 rounded-full" style={{ backgroundColor: BORDER }}>
@@ -984,7 +985,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <RoleCard title="Upcoming Reservations">
-            {ALL_RES.slice(0, 5).map((r, i) => (
+            {reservations().filter(r => r.status !== "Checked In").slice(0, 5).map((r, i) => (
               <div key={r.id} className="flex items-center gap-3 px-5 py-3 border-b cursor-pointer transition-colors"
                 style={{ borderColor: BORDER }} onClick={() => go("reservation-search", "Reservation Search")}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#F0F4F8")}

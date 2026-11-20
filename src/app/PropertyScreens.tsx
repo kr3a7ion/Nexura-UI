@@ -25,8 +25,8 @@ import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
   hkC, woC, priC, tblC, stC, roomStC, resStC,
-  occData, revCat, roomSt, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
-  ALL_RES, ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
+  occData, revCat, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
+  ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
   USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
@@ -40,6 +40,7 @@ import { Av } from "./AdminScreens";
 import { DateInput, TextOrDate } from "./DateInput";
 import { roomPrice, roomTypeNames } from "./mock/property";
 import { hkRooms } from "./mock/housekeeping";
+import { reservations } from "./mock/frontOffice";
 export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [step, setStep] = useState(1);
   const [selRoom, setSelRoom] = useState<{ id: string; type: string; rate: number } | null>(null);
@@ -2776,8 +2777,11 @@ export function RateManagement({ add }: { add: (t: Omit<Toast, "id">) => void })
 
 // R-08 Cancellation & Refund
 export function CancellationRefund({ add }: { add: (t: Omit<Toast, "id">) => void }) {
-  const [lookupQ,      setLookupQ]      = useState("BK-2840");
-  const [selectedRes,  setSelectedRes]  = useState(ALL_RES[6]);
+  const ALL_RES = reservations();
+  // Opens on the first booking still to arrive, so there is something to cancel.
+  const firstFuture = ALL_RES.find(r => r.status !== "Checked In" && new Date(`${r.checkin} ${BUSINESS_DATE.getFullYear()}`) > BUSINESS_DATE) ?? ALL_RES[0];
+  const [lookupQ,      setLookupQ]      = useState(firstFuture?.id ?? "");
+  const [selectedRes,  setSelectedRes]  = useState(firstFuture);
   const [waived,       setWaived]       = useState(false);
   const [waiverReason, setWaiverReason] = useState("");
   const [cancelReason, setCancelReason] = useState("");

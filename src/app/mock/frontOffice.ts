@@ -2,7 +2,7 @@
 // arrivals from here, so one guest shows the same booking, room, stay and balance
 // everywhere. When the hotel server is wired, this file is the one that changes.
 import { BUSINESS_DATE, DEMO_STATE } from "../constants";
-import { roomPrice } from "./property";
+import { roomPrice, ROOMS } from "./property";
 
 // ?state=empty shows a quiet day: nobody in house, nobody arriving.
 const EMPTY = DEMO_STATE === "empty";
@@ -136,7 +136,7 @@ const FUTURE: [string, string, string, string, number, GridBooking["status"], st
   ["BK-2880", "304", "Ade Adeleke", "2026-06-29", 3, "Pending", "Direct"],
   ["BK-2881", "501", "Ifeoma Nnaji", "2026-06-30", 4, "Confirmed", "Corporate"],
 ];
-const roomType = (room: string) => ({ "101": "Deluxe", "104": "Deluxe", "202": "Deluxe", "302": "Deluxe", "303": "Deluxe", "203": "Suite", "501": "Suite", "502": "Suite" } as Record<string, string>)[room] ?? "Standard";
+const roomType = (room: string) => ROOMS.find(r => r.id === room)?.type ?? "";
 export const gridBookings = (): GridBooking[] => [
   ...STAYS.map(s => ({ id: s.id, room: s.room, guest: s.guest, checkin: dayMonth(s.checkin), checkout: dayMonth(s.checkout), status: "Checked in" as const, rate: roomPrice(s.type), source: "Front desk", vip: s.vip })),
   ...ARRIVALS.filter(a => a.room).map(a => ({ id: a.id, room: a.room, guest: a.guest, checkin: BUSINESS_DATE, checkout: addDays(BUSINESS_DATE, a.nights), status: (a.status === "Pending" ? "Pending" : "Confirmed") as GridBooking["status"], rate: a.rate, source: "Phone", vip: a.vip })),
@@ -147,3 +147,14 @@ export const gridBookings = (): GridBooking[] => [
 ];
 // Arrivals still waiting for a room; the grid shows them above the rooms.
 export const unassignedArrivals = () => ARRIVALS.filter(a => !a.room);
+
+// Every booking in one list for Reservation Search, Cancellations and the dashboards.
+// Built from the lists above, so it can never disagree with Front Office.
+const short = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+export type Reservation = { id: string; guest: string; room: string; type: string; checkin: string; checkout: string; status: string; source: string; nights: number; rate: number };
+export const reservations = (): Reservation[] => [
+  ...gridBookings().map(b => ({ id: b.id, guest: b.guest, room: b.room, type: roomType(b.room), checkin: short(b.checkin), checkout: short(b.checkout),
+    status: b.status === "Checked in" ? "Checked In" : b.status, source: b.source, nights: Math.round((b.checkout.getTime() - b.checkin.getTime()) / 86400000), rate: b.rate })),
+  ...unassignedArrivals().map(a => ({ id: a.id, guest: a.guest, room: "", type: a.type, checkin: TODAY, checkout: short(addDays(BUSINESS_DATE, a.nights)),
+    status: a.status, source: "Phone", nights: a.nights, rate: a.rate })),
+];

@@ -10,6 +10,7 @@ import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../
 import { MAINTENANCE_EXCEPTIONS, MAINTENANCE_POWER } from "../../mock/maintenanceHome";
 import { workOrders, isOpen, isOverdue, ageOf, type WorkOrder } from "../../mock/maintenance";
 import { ROOMS } from "../../mock/property";
+import { roomState } from "../../mock/rooms";
 import { DEPARTMENTS } from "../departments";
 
 const department = DEPARTMENTS.find(item => item.id === "maintenance")!;
@@ -41,7 +42,7 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
   // Counted from the work orders and the property's rooms.
   const open = workOrders().filter(isOpen);
   const overdue = open.filter(isOverdue);
-  const outOfOrder = ROOMS.filter(r => r.status === "Maintenance" || r.status === "Out of service");
+  const outOfOrder = ROOMS.filter(r => roomState(r.id) === "Out of order");
 
   const quickActions: Array<{ label: string; icon: ElementType; screen: Screen }> = [
     { label: "New work order", icon: Plus, screen: "work-orders" },

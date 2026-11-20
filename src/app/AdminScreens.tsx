@@ -24,14 +24,15 @@ import {
   stC, roomStC, resStC,
   STAFF, BRANCHES, FOLIO_CHARGES,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, REV_DATA,
-  USERS_DATA, DEVICES, RATE_PLANS, PAYROLL_DATA, ALL_RES,
+  USERS_DATA, DEVICES, RATE_PLANS, PAYROLL_DATA,
   ShiftProposalStore, type ShiftProposal,
 stampNow, ORANGE_INK, TEAL_INK, WARNING_INK, propertyLabel, ROOMS } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
 import { DateInput } from "./DateInput";
-import { ARRIVALS as FO_ARRIVALS, STAYS } from "./mock/frontOffice";
+import { ARRIVALS as FO_ARRIVALS, STAYS, reservations } from "./mock/frontOffice";
 import { roomTypeNames } from "./mock/property";
 import { hkRooms } from "./mock/housekeeping";
+import { roomState } from "./mock/rooms";
 
 export function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
   const isFemale = gender === "F";
@@ -719,6 +720,7 @@ export function ReservationSearch({ add, nav }: { add: (t: Omit<Toast, "id">) =>
     { label: "Cancelled", status: "Cancelled" },
   ];
 
+  const ALL_RES = reservations();
   const filtered = ALL_RES.filter(r => {
     const ql = q.toLowerCase();
     const matchQ = !q || r.guest.toLowerCase().includes(ql) || r.id.toLowerCase().includes(ql) || r.room.toLowerCase().includes(ql);
@@ -1007,7 +1009,7 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
   ]);
 
   // Look up reservation by resId; fall back to first
-  const baseRes = (resId ? ALL_RES.find(r => r.id === resId) : null) ?? ALL_RES[0];
+  const baseRes = (resId ? reservations().find(r => r.id === resId) : null) ?? reservations()[0];
   // Overlay mutable status on top of the looked-up record
   const res = { ...baseRes, status: resStatus || baseRes.status };
 
@@ -1729,11 +1731,10 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
   const UNASSIGNED_ARRIVALS = FO_ARRIVALS.filter(a => !a.room).map(({ id, guest, av, type, eta, vip, nights }) => ({ id, guest, av, type, eta, vip, nights }));
   // Every room of the property, with its housekeeping state and current guest.
   const ALL_ROOMS = hkRooms().map(r => {
-    const st = ROOMS.find(x => x.id === r.id)?.status ?? "Available";
+    const status = roomState(r.id);
     const guest = STAYS.find(x => x.room === r.id)?.guest ?? null;
-    const outOfOrder = st === "Maintenance" || st === "Out of service";
-    return { id: r.id, type: r.type, floor: r.floor, status: guest ? "Occupied" : outOfOrder ? "Maintenance" : st === "Reserved" ? "Reserved" : r.hkSt === "Dirty" || r.hkSt === "In Progress" ? "Cleaning" : "Available",
-      hkSt: guest ? "Occupied" : outOfOrder ? "Maintenance" : r.hkSt as string, guest };
+    return { id: r.id, type: r.type, floor: r.floor, status,
+      hkSt: status === "Occupied" ? "Occupied" : status === "Out of order" ? "Maintenance" : r.hkSt as string, guest };
   });
   const [selGuest, setSelGuest] = useState<string | null>(null);
   const [assigned, setAssigned] = useState<Record<string, string>>({});
@@ -1744,7 +1745,7 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
   const [detailRoom, setDetailRoom] = useState<string | null>(null);
   const floors = ["All", ...[...new Set(ROOMS.map(r => String(r.floor)))]];
   const hkDot: Record<string, string> = { Inspected: SUCCESS, Clean: "#22C55E", "In Progress": WARNING, Dirty: ORANGE, Maintenance: ERROR, Occupied: MUTED, DND: "#6B7280" };
-  const isReady = (room: typeof ALL_ROOMS[0]) => room.status === "Available" && ["Clean", "Inspected"].includes(room.hkSt);
+  const isReady = (room: typeof ALL_ROOMS[0]) => room.status === "Ready";
   const roomForGuest = (guestId: string) => Object.keys(assigned).find(roomId => assigned[roomId] === guestId);
   const doAssign = (guestId: string, roomId: string) => {
     const g = UNASSIGNED_ARRIVALS.find(a => a.id === guestId);
@@ -1770,7 +1771,7 @@ export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) 
     const currentRoom = roomForGuest(selGuest);
     const isSwap = Boolean(assigned[r.id] && currentRoom);
     if (!isReady(r) && !isSwap) {
-      const reason = r.status === "Reserved" ? "reserved for another booking" : r.status === "Occupied" ? "occupied" : r.status === "Maintenance" ? "under maintenance" : `not ready (${r.hkSt})`;
+      const reason = r.status === "Arriving today" ? "kept for another arrival" : r.status === "Occupied" ? "occupied" : r.status === "Out of order" ? "out of order" : `not ready (${r.hkSt})`;
       add({ type: "error", title: "Room unavailable", body: `Room ${r.id} is ${reason}. Only available Clean or Inspected rooms can be assigned.` });
       return;
     }
