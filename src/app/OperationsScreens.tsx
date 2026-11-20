@@ -35,7 +35,7 @@ import {
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel, Av } from "./UIKit";
 import { DateInput } from "./DateInput";
 import { hkRooms, updateRoom, ATTENDANTS } from "./mock/housekeeping";
-import { inHouseGuests, gridBookings, reservations } from "./mock/frontOffice";
+import { inHouseGuests, gridBookings, reservations, bookedOn } from "./mock/frontOffice";
 import { ROOM_TYPES, replaceRoomTypes } from "./mock/property";
 import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
 
@@ -1975,7 +1975,7 @@ export function RateCalendar({ add }: { add: (t: Omit<Toast, "id">) => void }) {
     const total = TYPES.find(t=>t.code===code)!.total;
     const name = TYPES.find(t=>t.code===code)!.name;
     const night = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + absDay, 12);
-    const booked = gridBookings().filter(b => ROOMS.find(r => r.id === b.room)?.type === name && b.checkin <= night && b.checkout > night).length;
+    const booked = bookedOn(name, night);
     return Math.max(0, total - booked);
   };
   const getAvail = (code: string, di: number) => getAvailAbs(code, offset + di);
@@ -2503,7 +2503,7 @@ export function AvailabilityBoard({ add, nav }: { add: (t: Omit<Toast, "id">) =>
     const d   = days[di];
     // Sold rooms are the same bookings the Reservation Grid shows, plus any group blocks held here.
     const night = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12);
-    const booked = gridBookings().filter(b => ROOMS.find(r => r.id === b.room)?.type === rt.name && b.checkin <= night && b.checkout > night).length;
+    const booked = bookedOn(rt.name, night);
     const grp  = groupBlocks.filter(g=>g.type===code&&di>=g.start&&di<g.end).reduce((s,g)=>s+g.rooms,0);
     return Math.min(rt.total, booked + grp);
   };

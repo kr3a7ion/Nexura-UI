@@ -33,6 +33,29 @@ const ALL_STAYS: Stay[] = [
   { id: "BK-2851", folio: "FO-2845", guest: "Dr. Chukwuemeka Bello", av: "CB", room: "501", type: "Suite", checkin: "24 Jun", checkout: "27 Jun", nights: 3, vip: true, phone: "+234 803 999 1111", visits: 12, paid: 301000, method: "Card", checkoutTime: "11:00", lateCheckout: false, dnd: false, requests: 1, complaints: 0, lastActivity: "Today 14:10", creditLimit: false, unposted: false },
 ];
 
+// More guests so the demo hotel runs about 60% full: room, guest, check-in day in June, nights, share paid, VIP.
+// These rooms have no future bookings, so nobody is double-booked.
+const MORE: [string, string, number, number, number, boolean][] = [
+  ["204", "Ngozi Chukwu", 22, 2, 1, false], ["205", "Babatunde Ojo", 23, 3, 0.5, false], ["206", "Aisha Bello", 21, 5, 1, false],
+  ["207", "Peter Nwachukwu", 24, 2, 0.5, false], ["208", "Funmi Adebayo", 22, 4, 1, true], ["209", "Garba Usman", 23, 1, 1, false],
+  ["210", "Kelechi Eze", 20, 6, 0.5, false], ["211", "Zainab Abdullahi", 24, 3, 1, false], ["212", "Olumide Bakare", 22, 2, 1, false],
+  ["213", "Chinwe Okeke", 23, 4, 0.3, false], ["214", "Ahmed Musa", 21, 7, 1, true], ["216", "Tolu Ajayi", 24, 1, 1, false],
+  ["217", "Uche Okonkwo", 23, 3, 0.5, false], ["301", "Hauwa Sani", 22, 4, 1, false], ["305", "Segun Oyelaran", 24, 2, 1, false],
+  ["306", "Rukayat Lawal", 23, 2, 0, false], ["307", "Obinna Agu", 21, 6, 1, false], ["308", "Esther Danjuma", 24, 4, 0.5, false],
+  ["310", "Yakubu Bala", 22, 2, 1, false], ["311", "Folake Ade", 23, 5, 1, true], ["312", "Ifeanyi Obi", 24, 3, 0.5, false],
+  ["313", "Mariam Idris", 20, 7, 1, false], ["314", "Sunday Etim", 23, 1, 1, false], ["316", "Victoria Akpan", 22, 4, 1, false],
+  ["317", "Danladi Yusuf", 24, 2, 0, false], ["503", "Chief Ayo Fashola", 22, 5, 1, true], ["504", "Dr. Amara Nnadi", 23, 3, 0.5, true],
+  ["505", "Engr. Bello Kano", 24, 4, 1, false],
+];
+const moreStays: Stay[] = MORE.map(([room, guest, inDay, nights, share, vip], i) => {
+  const type = ROOMS.find(r => r.id === room)?.type ?? "Standard", id = `BK-${2801 + i}`;
+  return { id, folio: `FO-${2801 + i}`, guest, av: guest.split(" ").filter(w => !w.endsWith(".")).map(w => w[0]).join("").slice(0, 2), room, type,
+    checkin: `${inDay} Jun`, checkout: `${inDay + nights} Jun`, nights, vip, phone: `+234 80${i % 10} ${String(100 + i * 7).slice(-3)} ${String(4000 + i * 13).slice(-4)}`,
+    visits: 1 + (i % 4), paid: Math.round(roomPrice(type) * nights * 1.075 * share), method: (["Cash", "Card", "Transfer"] as const)[i % 3], checkoutTime: "11:00",
+    lateCheckout: false, dnd: i % 9 === 4, requests: i % 5 === 0 ? 1 : 0, complaints: room === "316" ? 1 : 0, lastActivity: "Today 08:00", creditLimit: false, unposted: false };
+});
+ALL_STAYS.push(...moreStays);
+
 export const STAYS: Stay[] = EMPTY ? [] : ALL_STAYS;
 
 export const CHARGES: Record<string, ChargeRow[]> = {
@@ -69,6 +92,10 @@ export const CHARGES: Record<string, ChargeRow[]> = {
   ],
 };
 
+for (const st of moreStays) {
+  const unit = roomPrice(st.type), amount = unit * st.nights;
+  CHARGES[st.id] = [{ date: st.checkin, cat: "Room", desc: `${st.type} Room ${st.room} × ${st.nights} night${st.nights === 1 ? "" : "s"}`, qty: st.nights, unit, amount, by: "System", tax: Math.round(amount * 0.075), reversed: false }];
+}
 export const chargesTotal = (id: string) => (CHARGES[id] ?? []).filter(c => !c.reversed).reduce((s, c) => s + c.amount + c.tax, 0);
 export const balanceOf = (s: Stay) => chargesTotal(s.id) - s.paid;
 export const leavesToday = (s: Stay) => s.checkout === TODAY;
@@ -154,6 +181,10 @@ export const gridBookings = (): GridBooking[] => [
 ];
 // Arrivals still waiting for a room; the grid shows them above the rooms.
 export const unassignedArrivals = () => ARRIVALS.filter(a => !a.room);
+// Rooms of a type taken on a night, counting bookings with no room yet, so "room at check-in" can't oversell a type.
+export const bookedOn = (type: string, night: Date) =>
+  gridBookings().filter(b => (b.type ?? roomType(b.room)) === type && b.checkin <= night && b.checkout > night).length
+  + unassignedArrivals().filter(a => a.type === type && night >= BUSINESS_DATE && night < addDays(BUSINESS_DATE, a.nights)).length;
 
 // Every booking in one list for Reservation Search, Cancellations and the dashboards.
 // Built from the lists above, so it can never disagree with Front Office.

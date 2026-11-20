@@ -38,7 +38,7 @@ import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, 
 import { UI, controlClass, controlStyle, Field, Card, SectionTitle, Stepper, Choice, Segmented, Row } from "./ui";
 import { ROOM_TYPES, roomPrice, roomTypeNames } from "./mock/property";
 import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
-import { addBooking, checkOut } from "./mock/hotel";
+import { addBooking, checkOut, typeAvailable } from "./mock/hotel";
 import { requestApproval } from "./mock/approvals";
 import { addDiscount, discountOf } from "./mock/frontOffice";
 
@@ -511,7 +511,9 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   // Rooms of each type with no booking overlapping the chosen nights.
   const bookingsNow = gridBookings();
   const stayFrom = new Date(`${form.checkin}T00:00:00`), stayTo = new Date(`${form.checkout}T00:00:00`);
-  const freeRooms = (t: string) => ROOMS.filter(r => r.type === t && roomState(r.id) !== "Out of order" && !bookingsNow.some(b => b.room === r.id && b.checkin < stayTo && b.checkout > stayFrom)).map(r => r.id);
+  // Bookings still waiting for a room use up rooms of their type too, so the list is cut to what is really left.
+  const freeRooms = (t: string) => ROOMS.filter(r => r.type === t && roomState(r.id) !== "Out of order" && !bookingsNow.some(b => b.room === r.id && b.checkin < stayTo && b.checkout > stayFrom)).map(r => r.id)
+    .slice(0, Math.max(0, typeAvailable(t, stayFrom, Math.max(1, Math.round((stayTo.getTime() - stayFrom.getTime()) / 86400000)))));
   const ROOM_DESC = (t: string) => { const rt = ROOM_TYPES.find(x => x.name === t); return rt ? `${rt.beds} · ${rt.size} · up to ${rt.maxOcc} guests` : ""; };
 
   const EXTRAS_CATALOG = [

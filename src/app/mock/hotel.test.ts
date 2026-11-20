@@ -71,3 +71,17 @@ describe("today's arrivals", () => {
     expect(roomFree("303", BUSINESS_DATE, 1)).toBe(true);
   });
 });
+
+import { typeAvailable } from "./hotel";
+describe("room at check-in", () => {
+  test("bookings without a room use up their type, so the type cannot be oversold", () => {
+    const night = plus(40);
+    const left = typeAvailable("Suite", night, 1);
+    expect(left).toBeGreaterThan(0);
+    for (let i = 0; i < left; i++) expect(addBooking({ guest: `Suite ${i}`, room: "", type: "Suite", checkin: night, nights: 1, rate: 85000, source: "Phone" })).not.toBeNull();
+    expect(typeAvailable("Suite", night, 1)).toBe(0);
+    expect(addBooking({ guest: "One too many", room: "", type: "Suite", checkin: night, nights: 1, rate: 85000, source: "Phone" })).toBeNull();
+    expect(roomFree("505", night, 1)).toBe(true); // no room was taken, the type is just full
+    expect(addBooking({ guest: "Named room", room: "505", type: "Suite", checkin: night, nights: 1, rate: 85000, source: "Phone" })).toBeNull();
+  });
+});
