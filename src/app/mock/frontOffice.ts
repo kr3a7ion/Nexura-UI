@@ -103,18 +103,19 @@ export const folios = () => STAYS.map(s => {
 });
 
 // Today's arrivals: none of them are in house yet. Check-In and Arrivals list both read this.
-const ALL_ARRIVALS = [
+export type Arrival = { id: string; guest: string; av: string; room: string; type: string; eta: string; nights: number; rate: number; vip: boolean; requests: string; balance: number; status: string; risk: boolean };
+const ALL_ARRIVALS: Arrival[] = [
   { id: "BK-2855", guest: "Chief Emeka Okafor", av: "EO", room: "502", type: "Suite",    eta: "14:00", nights: 3, rate: 85000, vip: true,  requests: "Champagne + fruit basket",         balance: 0,     status: "Confirmed", risk: false },
   { id: "BK-2856", guest: "Aisha Mohammed",     av: "AM", room: "303", type: "Deluxe",   eta: "15:30", nights: 2, rate: 55000, vip: false, requests: "High floor preferred",             balance: 27500, status: "Confirmed", risk: false },
   { id: "BK-2857", guest: "Peter Okafor",       av: "PO", room: "",    type: "Standard", eta: "12:00", nights: 1, rate: 35000, vip: false, requests: "",                                 balance: 35000, status: "Confirmed", risk: true  },
   { id: "BK-2858", guest: "Ngozi Adeyemi",      av: "NA", room: "",    type: "Deluxe",   eta: "16:00", nights: 4, rate: 55000, vip: true,  requests: "Extra pillows, no smoking floor",  balance: 0,     status: "Pending",   risk: false },
 ];
 
-export const ARRIVALS = EMPTY ? [] : ALL_ARRIVALS;
+export const ARRIVALS: Arrival[] = EMPTY ? [] : ALL_ARRIVALS;
 
 // Every booking the Reservation Grid draws: guests in house, today's arrivals with a room,
 // and future bookings. Dates are real dates so the grid can place them on any day.
-export type GridBooking = { id: string; room: string; guest: string; checkin: Date; checkout: Date; status: "Checked in" | "Confirmed" | "Pending"; rate: number; source: string; vip: boolean };
+export type GridBooking = { id: string; room: string; guest: string; checkin: Date; checkout: Date; status: "Checked in" | "Confirmed" | "Pending"; rate: number; source: string; vip: boolean; type?: string };
 const year = BUSINESS_DATE.getFullYear();
 const dayMonth = (s: string) => new Date(`${s} ${year}`);
 const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
@@ -137,7 +138,11 @@ const FUTURE: [string, string, string, string, number, GridBooking["status"], st
   ["BK-2881", "501", "Ifeoma Nnaji", "2026-06-30", 4, "Confirmed", "Corporate"],
 ];
 const roomType = (room: string) => ROOMS.find(r => r.id === room)?.type ?? "";
+// Bookings made in this session, and stays that have ended. shortcut: kept in memory until reload; the hotel server stores them.
+const ADDED: GridBooking[] = [];
+const DEPARTED: Reservation[] = [];
 export const gridBookings = (): GridBooking[] => [
+  ...ADDED,
   ...STAYS.map(s => ({ id: s.id, room: s.room, guest: s.guest, checkin: dayMonth(s.checkin), checkout: dayMonth(s.checkout), status: "Checked in" as const, rate: roomPrice(s.type), source: "Front desk", vip: s.vip })),
   ...ARRIVALS.filter(a => a.room).map(a => ({ id: a.id, room: a.room, guest: a.guest, checkin: BUSINESS_DATE, checkout: addDays(BUSINESS_DATE, a.nights), status: (a.status === "Pending" ? "Pending" : "Confirmed") as GridBooking["status"], rate: a.rate, source: "Phone", vip: a.vip })),
   ...(EMPTY ? [] : FUTURE.map(([id, room, guest, iso, n, status, source]) => {
@@ -153,8 +158,33 @@ export const unassignedArrivals = () => ARRIVALS.filter(a => !a.room);
 const short = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 export type Reservation = { id: string; guest: string; room: string; type: string; checkin: string; checkout: string; status: string; source: string; nights: number; rate: number };
 export const reservations = (): Reservation[] => [
-  ...gridBookings().map(b => ({ id: b.id, guest: b.guest, room: b.room, type: roomType(b.room), checkin: short(b.checkin), checkout: short(b.checkout),
+  ...gridBookings().map(b => ({ id: b.id, guest: b.guest, room: b.room, type: b.type ?? roomType(b.room), checkin: short(b.checkin), checkout: short(b.checkout),
     status: b.status === "Checked in" ? "Checked In" : b.status, source: b.source, nights: Math.round((b.checkout.getTime() - b.checkin.getTime()) / 86400000), rate: b.rate })),
   ...unassignedArrivals().map(a => ({ id: a.id, guest: a.guest, room: "", type: a.type, checkin: TODAY, checkout: short(addDays(BUSINESS_DATE, a.nights)),
     status: a.status, source: "Phone", nights: a.nights, rate: a.rate })),
+  ...DEPARTED,
 ];
+
+// Plain record changes. mock/hotel.ts calls these and keeps the other departments in step.
+const bkNum = (id: string) => Number(id.slice(3));
+export const nextBookingId = () => `BK-${Math.max(...[...STAYS, ...ARRIVALS, ...ADDED, ...DEPARTED].map(b => bkNum(b.id)), ...FUTURE.map(f => bkNum(f[0]))) + 1}`;
+export const initials = (name: string) => name.split(/\s+/).filter(w => !w.endsWith(".")).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+export const addFutureBooking = (b: GridBooking) => { ADDED.push(b); };
+export const addArrival = (a: Arrival) => { ARRIVALS.push(a); };
+export const arrivalToStay = (arrivalId: string, room: string, rate: number, paid: number) => {
+  const i = ARRIVALS.findIndex(a => a.id === arrivalId); if (i < 0) return null;
+  const [a] = ARRIVALS.splice(i, 1);
+  const type = roomType(room), amount = rate * a.nights;
+  const stay: Stay = { id: a.id, folio: `FO-${bkNum(a.id)}`, guest: a.guest, av: a.av, room, type, checkin: TODAY, checkout: short(addDays(BUSINESS_DATE, a.nights)),
+    nights: a.nights, vip: a.vip, phone: "", visits: 1, paid, method: "Cash", checkoutTime: "11:00", lateCheckout: false, dnd: false,
+    requests: a.requests ? 1 : 0, complaints: 0, lastActivity: "Just now", creditLimit: false, unposted: false };
+  CHARGES[a.id] = [{ date: TODAY, cat: "Room", desc: `${type} Room ${room} × ${a.nights} night${a.nights === 1 ? "" : "s"}`, qty: a.nights, unit: rate, amount, by: "System", tax: Math.round(amount * 0.075), reversed: false }];
+  STAYS.push(stay);
+  return stay;
+};
+export const endStay = (stayId: string) => {
+  const i = STAYS.findIndex(s => s.id === stayId); if (i < 0) return null;
+  const [s] = STAYS.splice(i, 1);
+  DEPARTED.push({ id: s.id, guest: s.guest, room: s.room, type: s.type, checkin: s.checkin, checkout: TODAY, status: "Checked Out", source: "Front desk", nights: s.nights, rate: roomPrice(s.type) });
+  return s;
+};

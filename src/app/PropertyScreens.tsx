@@ -41,6 +41,7 @@ import { DateInput, TextOrDate } from "./DateInput";
 import { roomPrice, roomTypeNames } from "./mock/property";
 import { hkRooms } from "./mock/housekeeping";
 import { reservations } from "./mock/frontOffice";
+import { walkIn } from "./mock/hotel";
 export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [step, setStep] = useState(1);
   const [selRoom, setSelRoom] = useState<{ id: string; type: string; rate: number } | null>(null);
@@ -83,7 +84,9 @@ export function WalkInReg({ add, nav }: { add: (t: Omit<Toast, "id">) => void; n
     if (deposit < 0 || deposit > total) { add({ type: "error", title: "Invalid deposit", body: "Deposit cannot exceed the stay total." }); return; }
     if (form.paymentMethod !== "Cash" && deposit > 0 && !form.paymentRef.trim()) { add({ type: "error", title: "Payment reference required", body: `Enter the ${form.paymentMethod} transaction reference.` }); return; }
     if (showOverride && requestedRate > 0 && !overrideApproved) { add({ type: "error", title: "Rate override not approved", body: "Approve the override with a manager PIN or hide the override." }); return; }
-    const id = `BK-${2860 + Math.floor(Math.random() * 90)}`;
+    const stay = walkIn({ guest: guestName, room: selRoom.id, type: selRoom.type, nights, rate: effectiveRate ?? selRoom.rate, source: "Walk-in", balance: total - deposit }, deposit);
+    if (!stay) { add({ type: "error", title: `Room ${selRoom.id} is not free tonight`, body: "Choose another room." }); return; }
+    const id = stay.id;
     setBookingId(id);
     setStep(2);
     add({ type: "success", title: "Walk-in registered and checked in", body: `${id} · ${guestName} · Room ${selRoom.id}` });

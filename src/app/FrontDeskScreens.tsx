@@ -44,6 +44,7 @@ import { isManagerLogin } from "./mock/staffLogin";
 import { FOUND_ITEMS, logFoundItem, hkRooms } from "./mock/housekeeping";
 import { UI, controlClass, controlStyle, SectionTitle, Stepper, Row } from "./ui";
 import { roomPrice } from "./mock/property";
+import { checkIn, checkOut } from "./mock/hotel";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
 function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
@@ -591,7 +592,11 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                   {`Continue to ${STEP_SHORT[step].toLowerCase()}`}
                 </button>
               ) : (
-                <BtnP label="Finish" onClick={() => { add({ type: "success", title: "Check-in complete", body: `${selData?.guest ?? "Guest"} · Room ${selRoom ?? selData?.room}` }); doReset(); }} />
+                <BtnP label="Finish" onClick={() => {
+                  const room = selRoom ?? selData?.room;
+                  const stay = selData && room ? checkIn(selData.id, room, nightlyRate, selData.rate * selData.nights - selData.balance + (payMethod === "Corporate Account" ? 0 : selData.deposit)) : null;
+                  if (!stay) { add({ type: "error", title: `Room ${room} already has a guest`, body: "Go back and choose another room." }); return; }
+                  add({ type: "success", title: "Check-in complete", body: `${stay.guest} · Room ${stay.room}` }); doReset(); }} />
               )}
             </div>
           </div>
@@ -932,9 +937,9 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
             <div className="p-6 space-y-4">
               {selectedEligible.length === 0 ? <div className="text-center py-5"><Ph.CheckSquare size={28} className="mx-auto mb-2" style={{ color: SUBTLE }} /><p className="text-sm font-semibold" style={{ color: TEXT }}>Select one or more zero-balance rooms.</p><p className="text-xs mt-1" style={{ color: MUTED }}>{eligibleForExpress.length} departure{eligibleForExpress.length === 1 ? "" : "s"} currently eligible.</p></div> : <>
                 <div className="space-y-2">{selectedEligible.map(item => <div key={item.id} className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: `1px solid ${BORDER}` }}><div><p className="text-sm font-bold" style={{ color: TEXT }}>Room {item.room} · {item.guest}</p><p className="text-xs" style={{ color: MUTED }}>Zero balance · {item.method} on file</p></div><Ph.CheckCircle size={16} weight="fill" style={{ color: SUCCESS }} /></div>)}</div>
-                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E", border: "1px solid #FDE68A" }}><Ph.Warning size={14} className="flex-shrink-0" />Access credentials will be revoked, folios closed, and rooms released to housekeeping.</div>
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E", border: "1px solid #FDE68A" }}><Ph.Warning size={14} className="flex-shrink-0" />The stays end and the rooms go on the Housekeeping board to be cleaned.</div>
               </>}
-              <div className="flex gap-3"><button onClick={() => setShowBulkConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button disabled={selectedEligible.length === 0} onClick={() => { const rooms = selectedEligible.map(item => item.room); setDep(list => list.map(item => rooms.includes(item.room) ? { ...item, status: "Departed", hkSt: "Dirty", checkout: "Now" } : item)); setSelectedRooms([]); setShowBulkConfirm(false); add({ type: "success", title: `${rooms.length} express check-out${rooms.length === 1 ? "" : "s"} complete`, body: `Rooms ${rooms.join(", ")} → Cleaning · Access revoked` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: SUCCESS }}>Confirm express check-out</button></div>
+              <div className="flex gap-3"><button onClick={() => setShowBulkConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button disabled={selectedEligible.length === 0} onClick={() => { const rooms = selectedEligible.map(item => item.room); selectedEligible.forEach(item => checkOut(item.id)); setDep(list => list.map(item => rooms.includes(item.room) ? { ...item, status: "Departed", hkSt: "Dirty", checkout: "Now" } : item)); setSelectedRooms([]); setShowBulkConfirm(false); add({ type: "success", title: `${rooms.length} express check-out${rooms.length === 1 ? "" : "s"} complete`, body: `Rooms ${rooms.join(", ")} are on the Housekeeping board to be cleaned.` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: SUCCESS }}>Confirm express check-out</button></div>
             </div>
           </div>
         </>

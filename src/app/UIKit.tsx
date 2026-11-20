@@ -38,6 +38,7 @@ import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, 
 import { UI, controlClass, controlStyle, Field, Card, SectionTitle, Stepper, Choice, Segmented, Row } from "./ui";
 import { ROOM_TYPES, roomPrice, roomTypeNames } from "./mock/property";
 import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
+import { addBooking, checkOut } from "./mock/hotel";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -577,10 +578,12 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   const proceed = () => {
     if (!validate()) return;
     if (step === 6) {
-      const id = `BK-${Math.floor(2881 + Math.random() * 100)}`;
+      const id = addBooking({ guest: form.guestName.trim(), room: form.roomNumber, type: form.roomType, checkin: new Date(`${form.checkin}T00:00:00`), nights,
+        rate: baseRate, source: form.source, vip: form.vip, balance: total - depositAmt });
+      if (!id) { add({ type: "error", title: `Room ${form.roomNumber} is already booked on one of those nights`, body: "Choose another room or other dates." }); setStep(1); return; }
       setConfirmedId(id);
       setConfirmed(true);
-      add({ type: "success", title: "Reservation confirmed!", body: `${id} · ${form.guestName || "Guest"} · ${form.roomType}` });
+      add({ type: "success", title: "Reservation confirmed", body: `${id} · ${form.guestName || "Guest"} · ${form.roomType}` });
       return;
     }
     setStep(s => s + 1);
@@ -867,7 +870,8 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
 
 export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toast, "id">) => void; initialReservationId?: string }) {
 
-  const ALL_GUESTS = checkoutGuests();
+  // The list as the screen opened, so a guest just checked out stays on screen with their receipt.
+  const [ALL_GUESTS] = useState(checkoutGuests);
 
   const BASE_CHARGES = CHARGES;
 
@@ -1645,14 +1649,15 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
               )}
               <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#F0FDF4", color: "#065F46" }}>
                 <CheckCircle size={14} weight="fill" className="flex-shrink-0 mt-0.5" />
-                Folio will close, room status will change to Cleaning, and housekeeping will be notified.
+                The stay ends and the room goes on the Housekeeping board to be cleaned.
               </div>
               <div className="flex gap-3">
                 <button onClick={() => setShowReleaseConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
                 <button disabled={!releaseConfirmed} onClick={() => {
+                  checkOut(selectedId);
                   setCheckedOutIds(p => p.includes(selectedId) ? p : [...p, selectedId]);
                   setShowReleaseConfirm(false);
-                  add({ type: "success", title: "Check-out complete", body: `Room ${g.room} → Cleaning · Folio closed · Housekeeping notified` });
+                  add({ type: "success", title: "Check-out complete", body: `Room ${g.room} is on the Housekeeping board to be cleaned.` });
                 }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: SUCCESS }}>Confirm & release</button>
               </div>
             </div>
