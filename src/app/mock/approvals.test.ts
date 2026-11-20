@@ -6,7 +6,7 @@ import { CHARGES, setRoomRate } from "./frontOffice";
 describe("approvals", () => {
   test("a request waits on the manager's dashboard and the change happens only when approved", () => {
     let applied = 0;
-    const a = requestApproval({ kind: "Late check-out", dept: "Front Office", ref: "BK-T1", title: "T", detail: "", reason: "Flight", requestedBy: "Chioma Nwosu", apply: () => applied++ });
+    const a = requestApproval({ kind: "Rate override", dept: "Front Office", ref: "BK-T1", title: "T", detail: "", reason: "Corporate", requestedBy: "Chioma Nwosu", apply: () => applied++ });
     expect(waitingFor("MGT").some(x => x.id === a.id)).toBe(true);
     expect(waitingFor("FD").some(x => x.id === a.id)).toBe(false);
     expect(decide(a.id, true, "Chioma Nwosu", "MGT")).toMatch(/someone else/i);
@@ -15,7 +15,7 @@ describe("approvals", () => {
     expect(decide(a.id, true, "Adaeze Okonkwo", "MGT")).toBeNull();
     expect(applied).toBe(1);
     expect(decide(a.id, true, "Adaeze Okonkwo", "MGT")).toMatch(/already/);
-    expect(latestFor("Late check-out", "BK-T1")?.status).toBe("Approved");
+    expect(latestFor("Rate override", "BK-T1")?.status).toBe("Approved");
   });
 
   test("a declined request changes nothing, and asking twice keeps one waiting request", () => {
