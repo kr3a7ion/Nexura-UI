@@ -8,6 +8,10 @@ import { BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, WARNING, disp
 import { Badge, EmptyState, PageHeader, StatCard } from "../UIKit";
 import { DEPARTMENT_HOME } from "../mock/departmentHome";
 import { homeToday } from "../mock/suiteHome";
+import { ARRIVALS } from "../mock/frontOffice";
+import { ROOMS } from "../mock/property";
+import { roomState } from "../mock/rooms";
+import { workOrders, isOpen } from "../mock/maintenance";
 import type { Department, DepartmentId } from "./departments";
 import { ApprovalsCard } from "./ApprovalsCard";
 
@@ -25,6 +29,14 @@ const META: Record<DepartmentId, { description: string; live: string }> = {
   reports: { description: "Hotel performance and operating insights.", live: "6 live reports" },
   "it-system": { description: "Devices, users, backups and system health.", live: "All systems healthy" },
   "properties-settings": { description: "Branches, hotel setup and preferences.", live: "3 branches synced" },
+};
+
+// The wired departments count from their own data; the others keep their placeholder until their walk-through.
+const live = (id: DepartmentId) => {
+  if (id === "front-office") { const n = ARRIVALS.length; return `${n} arrival${n === 1 ? "" : "s"} to come`; }
+  if (id === "housekeeping") { const n = ROOMS.filter(r => roomState(r.id) === "Ready").length; return `${n} room${n === 1 ? "" : "s"} ready`; }
+  if (id === "maintenance") { const n = workOrders().filter(w => isOpen(w) && w.priority === "High").length; return n ? `${n} high priority` : "Nothing urgent"; }
+  return META[id].live;
 };
 
 const ROLE_LABELS: Record<Role, string> = {
@@ -132,7 +144,7 @@ export function SuiteHome({
               <div key={department.id} className="relative flex min-h-[72px] items-center rounded-2xl border bg-white transition hover:shadow-md" style={{ borderColor: BORDER }}>
                 <button onClick={() => onOpenDepartment(department)} title={META[department.id].description} className="flex min-w-0 flex-1 items-center gap-3 self-stretch rounded-2xl p-3.5 pr-12 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#1BA39C]">
                   <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl" style={{ backgroundColor: `${department.accent}14`, color: department.accent }}><Icon size={21} weight="duotone" /></span>
-                  <span className="min-w-0"><span className="block truncate text-sm font-bold" style={{ color: TEXT }}>{department.name}</span><span className="block truncate text-xs" style={{ color: MUTED }}>{META[department.id].live}</span></span>
+                  <span className="min-w-0"><span className="block truncate text-sm font-bold" style={{ color: TEXT }}>{department.name}</span><span className="block truncate text-xs" style={{ color: MUTED }}>{live(department.id)}</span></span>
                 </button>
                 <button onClick={() => togglePin(department)} aria-label={isPinned ? `Unpin ${department.name}` : `Pin ${department.name}`} aria-pressed={isPinned} className="absolute right-2 flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-slate-100" style={{ color: isPinned ? department.accent : SUBTLE }}><PushPin size={15} weight={isPinned ? "fill" : "regular"} /></button>
               </div>

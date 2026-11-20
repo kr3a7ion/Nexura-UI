@@ -2,6 +2,7 @@ import { ROOMS, type Role, type Screen } from "../constants";
 import { STAYS, ARRIVALS, departures } from "./frontOffice";
 import { hkRooms, FOUND_ITEMS } from "./housekeeping";
 import { roomState } from "./rooms";
+import { workOrders, isOpen } from "./maintenance";
 
 export type HomeStat = { label: string; value: string; sub: string; screen: Screen; screenLabel: string };
 export type HomeAlert = { text: string; from: string; since: string; tone: "error" | "warning"; screen: Screen; screenLabel: string };
@@ -59,7 +60,7 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
   },
   MX: {
     stats: [
-      stat("Open work orders", "7", "2 urgent", "work-orders", "Work Orders"),
+      stat("Open work orders", String(workOrders().filter(isOpen).length), `${workOrders().filter(w => isOpen(w) && w.priority === "High").length} high priority`, "work-orders", "Work Orders"),
       stat("Due today", "3", "Preventive tasks", "preventive-schedule", "Preventive Schedule"),
       stat("Diesel level", "24%", "About 9 hours left", "generator-diesel", "Generator & Diesel"),
       stat("Rooms out of order", String(ROOMS.filter(r => roomState(r.id) === "Out of order").length), ROOMS.filter(r => roomState(r.id) === "Out of order").map(r => r.id).join(", ") || "All rooms in service", "work-orders", "Work Orders"),

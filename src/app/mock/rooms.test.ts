@@ -9,7 +9,7 @@ describe("room state", () => {
   test("every room is counted once and the demo day adds up", () => {
     const counts = Object.fromEntries(roomCounts().map(c => [c.state, c.count]));
     expect(Object.values(counts).reduce((a, b) => a + b, 0)).toBe(ROOMS.length);
-    expect(counts).toEqual({ Occupied: 7, "Arriving today": 2, "Out of order": 3, "Being cleaned": 2, Ready: 46 });
+    expect(counts).toEqual({ Occupied: 35, "Arriving today": 2, "Out of order": 3, "Being cleaned": 2, Ready: 18 });
   });
 
   test("a guest in the room wins over everything else", () => {

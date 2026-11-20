@@ -2,7 +2,7 @@
 // so a screen never has to keep two departments in step by itself.
 // PR C adds the bell: each action will also tell the people who need to know.
 import { BUSINESS_DATE } from "../constants";
-import { ARRIVALS, STAYS, gridBookings, nextBookingId, initials, addFutureBooking, addArrival, arrivalToStay, endStay, setArrivalRoom, arrivalToNoShow } from "./frontOffice";
+import { ARRIVALS, STAYS, gridBookings, bookedOn, nextBookingId, initials, addFutureBooking, addArrival, arrivalToStay, endStay, setArrivalRoom, arrivalToNoShow } from "./frontOffice";
 import { updateRoom, hkStatus, hkRooms } from "./housekeeping";
 import { notify } from "./notify";
 import { ROOMS } from "./property";
@@ -17,12 +17,18 @@ export const roomFree = (room: string, checkin: Date, nights: number) => {
   return !gridBookings().some(b => b.room === room && day(b.checkin) < to && day(b.checkout) > from);
 };
 
+// How many rooms of a type are still free on every night of a stay, out-of-order rooms excluded.
+export const typeAvailable = (type: string, checkin: Date, nights: number) => {
+  const sellable = ROOMS.filter(r => r.type === type && !isOutOfOrder(r.id)).length;
+  return Math.min(...Array.from({ length: Math.max(1, nights) }, (_, i) => { const n = addDays(day(checkin), i); n.setHours(12); return sellable - bookedOn(type, n); }));
+};
+
 export type NewBooking = { guest: string; room: string; type: string; checkin: Date; nights: number; rate: number; source: string; vip?: boolean; status?: "Confirmed" | "Pending"; balance?: number };
 // Saves a booking, or returns null when the room is already taken on one of those nights.
 // A booking starting today joins today's arrivals, so Check-In offers it.
 export const addBooking = (b: NewBooking) => {
-  // An empty room means "room at check-in"; only a chosen room is checked for clashes.
-  if (b.nights < 1 || (b.room && !roomFree(b.room, b.checkin, b.nights))) return null;
+  // A chosen room must be free, and the type must have a room left once bookings with no room yet are counted.
+  if (b.nights < 1 || (b.room && !roomFree(b.room, b.checkin, b.nights)) || typeAvailable(b.type, b.checkin, b.nights) < 1) return null;
   const id = nextBookingId(), status = b.status ?? "Confirmed";
   if (day(b.checkin).getTime() === day(BUSINESS_DATE).getTime())
     addArrival({ id, guest: b.guest, av: initials(b.guest), room: b.room, type: b.type, eta: "", nights: b.nights, rate: b.rate, vip: !!b.vip, requests: "", balance: b.balance ?? b.rate * b.nights, status, risk: false });
