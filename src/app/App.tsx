@@ -99,7 +99,7 @@ type NavFn = (s: string, label: string, param?: string) => void;
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 function Router({ screen, add, role, nav, staffName, navParam }: { screen: Screen; add: (t: Omit<Toast, "id">) => void; role: Role; nav: NavFn; staffName: string; navParam: string }) {
-  if ((screen as string) === "dept-front-office") return <FrontOfficeHome nav={nav} />;
+  if ((screen as string) === "dept-front-office") return <FrontOfficeHome nav={nav} role={role} staffName={staffName} />;
   if ((screen as string) === "dept-access-security") return <AccessSecurityHome nav={nav} />;
   if ((screen as string) === "dept-housekeeping") return <HousekeepingHome nav={nav} />;
   if ((screen as string) === "dept-maintenance") return <MaintenanceHome nav={nav} />;
@@ -127,17 +127,17 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "rate-calendar") return <RateCalendar add={add} />;
   if (screen === "availability-board") return <AvailabilityBoard add={add} nav={nav} />;
   // Front Desk
-  if (screen === "check-in") return <CheckInWizard add={add} initialReservationId={navParam} />;
-  if (screen === "check-out") return <CheckOut add={add} initialReservationId={navParam} />;
+  if (screen === "check-in") return <CheckInWizard add={add} initialReservationId={navParam} staffName={staffName} />;
+  if (screen === "check-out") return <CheckOut add={add} initialReservationId={navParam} staffName={staffName} />;
   if (screen === "in-house-guests") return <InHouseGuests add={add} nav={nav} />;
   if (screen === "guest-profiles") return <GuestProfiles add={add} nav={nav} />;
   if (screen === "guest-profile-detail") return <GuestProfileDetail add={add} nav={nav} guestId={navParam} />;
   if (screen === "folio") return <FolioScreen add={add} nav={nav} />;
   if (screen === "finance-folio") return <FinanceFolioManagement add={add} nav={nav} />;
   if (screen === "arrivals") return <ArrivalsScreen add={add} nav={nav} />;
-  if (screen === "departures") return <DeparturesScreen add={add} nav={nav} />;
+  if (screen === "departures") return <DeparturesScreen add={add} nav={nav} staffName={staffName} />;
   if (screen === "room-assignment") return <RoomAssignmentBoard add={add} nav={nav} />;
-  if (screen === "walk-in") return <WalkInReg add={add} nav={nav} />;
+  if (screen === "walk-in") return <WalkInReg add={add} nav={nav} staffName={staffName} />;
   if (screen === "key-card") return <KeyCardMgmt add={add} />;
   if (screen === "room-access") return <RoomAccessMgmt add={add} nav={nav} />;
   if (screen === "key-card-log") return <KeyCardLog add={add} />;

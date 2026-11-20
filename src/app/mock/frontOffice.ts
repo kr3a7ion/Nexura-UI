@@ -182,6 +182,18 @@ export const arrivalToStay = (arrivalId: string, room: string, rate: number, pai
   STAYS.push(stay);
   return stay;
 };
+// Changes the nightly rate on a stay's room charge, for example after an approved rate override.
+export const setRoomRate = (stayId: string, rate: number) => {
+  const row = CHARGES[stayId]?.find(c => c.cat === "Room" && !c.reversed); if (!row) return;
+  Object.assign(row, { unit: rate, amount: rate * row.qty, tax: Math.round(rate * row.qty * 0.075) });
+};
+export const setLateCheckout = (stayId: string, time: string) => {
+  const stay = STAYS.find(x => x.id === stayId); if (stay) Object.assign(stay, { lateCheckout: true, checkoutTime: time });
+};
+// Discounts given off a stay's bill, small ones at the desk and larger ones once approved.
+const DISCOUNTS: Record<string, number> = {};
+export const addDiscount = (stayId: string, amount: number) => { DISCOUNTS[stayId] = (DISCOUNTS[stayId] ?? 0) + amount; };
+export const discountOf = (stayId: string) => DISCOUNTS[stayId] ?? 0;
 export const endStay = (stayId: string) => {
   const i = STAYS.findIndex(s => s.id === stayId); if (i < 0) return null;
   const [s] = STAYS.splice(i, 1);

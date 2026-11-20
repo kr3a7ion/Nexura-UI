@@ -39,12 +39,13 @@ import {
 
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { TextOrDate } from "./DateInput";
-import { ARRIVALS as FO_ARRIVALS, departures, STAYS } from "./mock/frontOffice";
+import { ARRIVALS as FO_ARRIVALS, departures, STAYS, setLateCheckout } from "./mock/frontOffice";
 import { isManagerLogin } from "./mock/staffLogin";
 import { FOUND_ITEMS, logFoundItem, hkRooms } from "./mock/housekeeping";
 import { UI, controlClass, controlStyle, SectionTitle, Stepper, Row } from "./ui";
 import { roomPrice } from "./mock/property";
 import { checkIn, checkOut } from "./mock/hotel";
+import { requestApproval, latestFor } from "./mock/approvals";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
 function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
@@ -83,7 +84,7 @@ const CkSl = ({ val, set, opts, label }: { val: string; set: (v: string) => void
   </select>
 );
 
-export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omit<Toast, "id">) => void; initialReservationId?: string }) {
+export function CheckInWizard({ add, initialReservationId = "", staffName }: { add: (t: Omit<Toast, "id">) => void; initialReservationId?: string; staffName: string }) {
   const [step, setStep] = useState(1);
   const [selRes, setSelRes] = useState<string | null>(null);
   const [searchQ, setSearchQ] = useState("");
@@ -111,9 +112,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
   const [pinRevealed, setPinRevealed] = useState(true);
   const [upgradeCandidate, setUpgradeCandidate] = useState<string | null>(null);
   const [upgradeReason, setUpgradeReason] = useState("");
-  const [mgrUser, setMgrUser] = useState("");
-  const [mgrPass, setMgrPass] = useState("");
-  const [approvedUpgradeRoom, setApprovedUpgradeRoom] = useState<string | null>(null);
+  const [, recheck] = useState(0);
 
   const STEPS = ["Choose the reservation", "Check identity", "Assign a room", "Registration card", "Take payment", "Room key", "Receipt and documents"];
   const STEP_SHORT = ["Reservation", "Identity", "Room", "Registration", "Payment", "Access", "Receipt"];
@@ -130,7 +129,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
     setPayMethod("Cash"); setCashReceived(""); setPayRef(""); setCorporateAccount("Bello & Associates Ltd."); setPurchaseOrder("");
     setCredType("both"); setCardCount(1); setEncoded(false);
     setPinGen(false); setPinCode(""); setPinRevealed(true);
-    setUpgradeCandidate(null); setUpgradeReason(""); (setMgrUser(""), setMgrPass("")); setApprovedUpgradeRoom(null);
+    setUpgradeCandidate(null); setUpgradeReason("");
   };
   const selectReservation = (id: string) => {
     setSelRes(id);
@@ -139,7 +138,7 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
     setTermsAccepted(false); setSignatureCaptured(false);
     setCashReceived(""); setPayRef(""); setPurchaseOrder("");
     setEncoded(false); setPinGen(false); setPinCode("");
-    setUpgradeCandidate(null); setUpgradeReason(""); (setMgrUser(""), setMgrPass("")); setApprovedUpgradeRoom(null);
+    setUpgradeCandidate(null); setUpgradeReason("");
   };
   useEffect(() => {
     if (initialReservationId && ALL_ARRIVALS.some(a => a.id === initialReservationId)) {
@@ -151,6 +150,9 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
   const AVAIL_ROOMS = hkRooms().filter(r => r.guestState === "Vacant" || (selData && r.id === selData.room));
   const ready = (r: { hkSt: string; note: string }) => (r.hkSt === "Clean" || r.hkSt === "Inspected") && !r.note.startsWith("Out of order");
   const selectedRoomData = AVAIL_ROOMS.find(r => r.id === selRoom);
+  // An upgrade waits on the manager's dashboard; the room is given only once it is approved there.
+  const upgradeOf = (roomId: string) => selData ? latestFor("Room upgrade", `${selData.id}:${roomId}`) : undefined;
+  const approvedUpgradeRoom = selRoom && upgradeOf(selRoom)?.status === "Approved" ? selRoom : null;
   const nightlyRate = selData && selectedRoomData && approvedUpgradeRoom === selRoom ? roomPrice(selectedRoomData.type) : selData?.rate ?? 0;
   const subtotal = selData ? nightlyRate * selData.nights : 0;
   const vat = Math.round(subtotal * 0.075);
@@ -162,23 +164,27 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
     const room = AVAIL_ROOMS.find(r => r.id === roomId);
     if (!room || !selData) return;
     const isUpgrade = roomPrice(room.type) > selData.rate;
-    if (isUpgrade && approvedUpgradeRoom !== roomId) {
+    if (isUpgrade && upgradeOf(roomId)?.status !== "Approved") {
       setUpgradeCandidate(roomId);
       setUpgradeReason("");
-      (setMgrUser(""), setMgrPass(""));
       return;
     }
     setSelRoom(roomId);
-    if (!isUpgrade) setApprovedUpgradeRoom(null);
     setUpgradeCandidate(null);
   };
-  const approveUpgrade = () => {
-    if (!upgradeCandidate || !upgradeReason) return;
-    if (!isManagerLogin(mgrUser, mgrPass)) { add({ type: "error", title: "That is not a manager's username and password" }); return; }
-    setApprovedUpgradeRoom(upgradeCandidate);
-    setSelRoom(upgradeCandidate);
-    setUpgradeCandidate(null);
-    add({ type: "success", title: "Upgrade approved", body: `Approved by ${mgrUser.trim()} · ${upgradeReason}` }); setMgrUser(""); setMgrPass("");
+  const sendUpgrade = () => {
+    const room = AVAIL_ROOMS.find(r => r.id === upgradeCandidate);
+    if (!room || !selData || !upgradeReason) return;
+    const diff = roomPrice(room.type) - selData.rate;
+    requestApproval({ kind: "Room upgrade", dept: "Front Office", ref: `${selData.id}:${room.id}`, title: `${selData.guest}: ${selData.type} to ${room.type}, room ${room.id}`,
+      detail: `+₦${diff.toLocaleString()} a night, +₦${(diff * selData.nights).toLocaleString()} for the stay`, reason: upgradeReason, requestedBy: staffName, apply: () => {} });
+    add({ type: "info", title: `Upgrade to room ${room.id} sent for approval`, body: "A manager approves it from their dashboard." });
+    recheck(n => n + 1);
+  };
+  // Asked again after the manager has decided: an approved room is given straight away.
+  const checkUpgrade = () => {
+    recheck(n => n + 1);
+    if (upgradeCandidate && upgradeOf(upgradeCandidate)?.status === "Approved") { setSelRoom(upgradeCandidate); setUpgradeCandidate(null); add({ type: "success", title: `Upgrade to room ${upgradeCandidate} approved` }); }
   };
   const credOk = (credType === "card" ? encoded : credType === "pin" ? pinGen : encoded && pinGen);
   const canNext =
@@ -351,22 +357,26 @@ export function CheckInWizard({ add, initialReservationId = "" }: { add: (t: Omi
                           <Ph.ShieldCheck size={18} />
                         </div>
                         <div>
-                          <p className="text-sm font-bold" style={{ color: TEXT }}>Approve upgrade to room {room.id}</p>
+                          <p className="text-sm font-bold" style={{ color: TEXT }}>Upgrade to room {room.id}</p>
                           <p className="text-xs mt-0.5" style={{ color: CK_MUT }}>
                             {room.type} · +₦{rateDiff.toLocaleString()} per night · +₦{(rateDiff * selData.nights).toLocaleString()} stay total
                           </p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="sm:col-span-2"><FL req>Upgrade reason</FL><CkSl label="Upgrade reason" val={upgradeReason} set={setUpgradeReason} opts={["","Guest requested upgrade","VIP service recovery","Operational room move","Complimentary management upgrade"]} /></div>
-                        <div><FL req>Manager username</FL><CkIn label="Manager username" val={mgrUser} set={setMgrUser} /></div>
-                        <div><FL req>Manager password</FL><CkIn label="Manager password" type="password" val={mgrPass} set={setMgrPass} /></div>
-                      </div>
+                      {upgradeOf(room.id)?.status === "Waiting" ? (
+                        <p className="text-sm" style={{ color: TEXT }}>Waiting for a manager to approve it from their dashboard. Carry on with the guest, then check again.</p>
+                      ) : upgradeOf(room.id)?.status === "Declined" ? (
+                        <p className="text-sm" style={{ color: ERROR }}>Declined by {upgradeOf(room.id)?.decidedBy}{upgradeOf(room.id)?.note ? `: ${upgradeOf(room.id)?.note}` : ""}. Choose another room.</p>
+                      ) : (
+                        <div><FL req>Upgrade reason</FL><CkSl label="Upgrade reason" val={upgradeReason} set={setUpgradeReason} opts={["","Guest requested upgrade","VIP service recovery","Operational room move","Complimentary management upgrade"]} /></div>
+                      )}
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => setUpgradeCandidate(null)} className="px-4 py-2 rounded-xl text-xs font-bold border" style={{ color: CK_MUT, borderColor: CK_DSH, backgroundColor: "white" }}>Cancel</button>
-                        <button onClick={approveUpgrade} disabled={!upgradeReason || !mgrUser || !mgrPass}
+                        <button onClick={() => setUpgradeCandidate(null)} className="px-4 py-2 rounded-xl text-xs font-bold border" style={{ color: CK_MUT, borderColor: CK_DSH, backgroundColor: "white" }}>Choose another room</button>
+                        {upgradeOf(room.id)?.status === "Waiting"
+                          ? <button onClick={checkUpgrade} className="px-4 py-2 rounded-xl text-xs font-bold text-white" style={{ backgroundColor: PRIMARY }}>Check again</button>
+                          : !upgradeOf(room.id) && <button onClick={sendUpgrade} disabled={!upgradeReason}
                           className="px-4 py-2 rounded-xl text-xs font-bold text-white disabled:opacity-35"
-                          style={{ backgroundColor: PRIMARY }}>Approve upgrade</button>
+                          style={{ backgroundColor: PRIMARY }}>Send for approval</button>}
                       </div>
                     </div>
                   ) : null;
@@ -835,7 +845,7 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
   );
 }
 
-export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
+export function DeparturesScreen({ add, nav, staffName }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; staffName: string }) {
   const [dep, setDep] = useState(departures);
   type Departure = typeof dep[number];
   const [depSearch, setDepSearch] = useState("");
@@ -844,7 +854,6 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
   const [depAction, setDepAction] = useState<{ type: "late" | "charge"; id: string } | null>(null);
   const [lateTime, setLateTime] = useState("14:00");
   const [lateReason, setLateReason] = useState("");
-  const [lateManagerPin, setLateManagerPin] = useState("");
   const [chargeDesc, setChargeDesc] = useState("");
   const [chargeAmount, setChargeAmount] = useState("");
   const [showBulkConfirm, setShowBulkConfirm] = useState(false);
@@ -859,7 +868,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
   const selectedEligible = eligibleForExpress.filter(item => selectedRooms.includes(item.room));
   const openDepartureAction = (type: "late" | "charge", item: Departure) => {
     setDepAction({ type, id: item.id });
-    setLateTime("14:00"); setLateReason(""); setLateManagerPin("");
+    setLateTime("14:00"); setLateReason("");
     setChargeDesc(""); setChargeAmount("");
   };
   return (
@@ -909,13 +918,13 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
                   </td>
                   <td className="px-4 py-3 text-sm" style={{ color: MUTED }}>{d.method}</td>
                   <td className="px-4 py-3"><Badge label={d.hkSt} colors={hkC[d.hkSt] ?? { bg: "#F3F4F6", text: "#374151" }} /></td>
-                  <td className="px-4 py-3">{d.lateFlag && <Badge label="Late CO" colors={{ bg: "#FEF3C7", text: "#92400E" }} />}</td>
+                  <td className="px-4 py-3">{(d.lateFlag || latestFor("Late check-out", d.id)?.status === "Approved") ? <Badge label={`Late, ${STAYS.find(x => x.id === d.id)?.checkoutTime ?? d.checkout}`} colors={{ bg: "#FEF3C7", text: "#92400E" }} /> : latestFor("Late check-out", d.id)?.status === "Waiting" ? <Badge label="Late check-out waiting for approval" colors={{ bg: "#F1F5F9", text: "#475569" }} /> : latestFor("Late check-out", d.id)?.status === "Declined" ? <Badge label={`Late check-out declined: ${latestFor("Late check-out", d.id)?.note}`} colors={{ bg: "#FEE2E2", text: "#991B1B" }} /> : null}</td>
                   <td className="px-4 py-3">
                     {!done && (
                       <div className="flex gap-1.5">
                         <button onClick={() => { add({ type: "info", title: "Check-out initiated", body: `Room ${d.room} · ${d.guest}` }); nav && nav("check-out", "Check-Out", d.id); }} className="text-xs px-3 py-1.5 rounded-xl font-bold text-white hover:opacity-90 transition-all whitespace-nowrap" style={{ backgroundColor: PRIMARY }}>Check out</button>
                         <button onClick={() => openDepartureAction("charge", d)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: BORDER }}>Post charge</button>
-                        {!d.lateFlag && !d.overstay && (
+                        {!d.lateFlag && !d.overstay && (!latestFor("Late check-out", d.id) || latestFor("Late check-out", d.id)?.status === "Declined") && (
                           <button onClick={() => openDepartureAction("late", d)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold hover:bg-[#F4F4F5] transition-all whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Late check-out</button>
                         )}
                       </div>
@@ -948,10 +957,10 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setDepAction(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${BORDER}` }}>
-            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}><p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>{depAction.type === "late" ? "Approve late check-out" : "Post a late charge"}</p><p className="text-sm mt-0.5" style={{ color: MUTED }}>{activeDeparture.guest} · Room {activeDeparture.room}</p></div>
+            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}><p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>{depAction.type === "late" ? "Ask for a late check-out" : "Post a late charge"}</p><p className="text-sm mt-0.5" style={{ color: MUTED }}>{activeDeparture.guest} · Room {activeDeparture.room}</p></div>
             <div className="p-6 space-y-4">
               {depAction.type === "late" ? <>
-                <div className="grid grid-cols-2 gap-3"><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New checkout</label><input aria-label="New checkout" type="time" value={lateTime} onChange={e => setLateTime(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}` }} /></div><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Manager PIN *</label><input type="password" value={lateManagerPin} onChange={e => setLateManagerPin(e.target.value)} placeholder="••••" aria-label="••••" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${lateManagerPin.length >= 4 ? BORDER : ERROR}` }} /></div></div>
+                <div className="grid grid-cols-2 gap-3"><div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New checkout</label><input aria-label="New checkout" type="time" value={lateTime} onChange={e => setLateTime(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}` }} /></div><p className="text-xs self-end" style={{ color: MUTED }}>A manager approves this from their dashboard. The guest keeps the room until then.</p></div>
                 <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reason *</label><textarea value={lateReason} onChange={e => setLateReason(e.target.value)} rows={3} placeholder="Flight delay, guest request, loyalty benefit…" aria-label="Flight delay, guest request, loyalty benefit" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
               </> : <>
                 <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Description *</label><input value={chargeDesc} onChange={e => setChargeDesc(e.target.value)} placeholder="Minibar, room service, damages…" aria-label="Minibar, room service, damages" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
@@ -959,7 +968,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
                 {(parseInt(chargeAmount) || 0) > 0 && <div className="flex justify-between p-3 rounded-xl text-sm" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}><span>Total incl. VAT</span><span className="font-black" style={{ fontFamily: mono }}>₦{Math.round((parseInt(chargeAmount) || 0) * 1.075).toLocaleString()}</span></div>}
               </>}
               <div className="flex gap-3"><button onClick={() => setDepAction(null)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button>
-                {depAction.type === "late" ? <button disabled={!lateReason.trim() || lateManagerPin.length < 4} onClick={() => { setDep(list => list.map(item => item.id === activeDeparture.id ? { ...item, lateFlag: true, checkout: lateTime, overstay: false } : item)); add({ type: "success", title: `Late check-out approved — Room ${activeDeparture.room}`, body: `${lateTime} · ${lateReason}` }); setDepAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ORANGE }}>Approve extension</button> : <button disabled={!chargeDesc.trim() || (parseInt(chargeAmount) || 0) <= 0} onClick={() => { const total = Math.round((parseInt(chargeAmount) || 0) * 1.075); setDep(list => list.map(item => item.id === activeDeparture.id ? { ...item, balance: item.balance + total } : item)); add({ type: "success", title: "Charge posted", body: `Room ${activeDeparture.room} · ₦${total.toLocaleString()} incl. VAT` }); setDepAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Post charge</button>}
+                {depAction.type === "late" ? <button disabled={!lateReason.trim()} onClick={() => { const d = activeDeparture; requestApproval({ kind: "Late check-out", dept: "Front Office", ref: d.id, title: `${d.guest}, room ${d.room}`, detail: `Check-out at ${lateTime} instead of ${d.checkout}`, reason: lateReason.trim(), requestedBy: staffName, apply: () => setLateCheckout(d.id, lateTime) }); add({ type: "info", title: `Late check-out sent for approval: room ${d.room}`, body: `${lateTime}. A manager approves it from their dashboard.` }); setDepAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ORANGE }}>Send for approval</button> : <button disabled={!chargeDesc.trim() || (parseInt(chargeAmount) || 0) <= 0} onClick={() => { const total = Math.round((parseInt(chargeAmount) || 0) * 1.075); setDep(list => list.map(item => item.id === activeDeparture.id ? { ...item, balance: item.balance + total } : item)); add({ type: "success", title: "Charge posted", body: `Room ${activeDeparture.room} · ₦${total.toLocaleString()} incl. VAT` }); setDepAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Post charge</button>}
               </div>
             </div>
           </div>

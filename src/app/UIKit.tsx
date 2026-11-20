@@ -39,6 +39,8 @@ import { UI, controlClass, controlStyle, Field, Card, SectionTitle, Stepper, Cho
 import { ROOM_TYPES, roomPrice, roomTypeNames } from "./mock/property";
 import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
 import { addBooking, checkOut } from "./mock/hotel";
+import { requestApproval } from "./mock/approvals";
+import { addDiscount, discountOf } from "./mock/frontOffice";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -868,7 +870,7 @@ export function NewReservation({ add, nav, initialGuestName = "" }: { add: (t: O
   );
 }
 
-export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toast, "id">) => void; initialReservationId?: string }) {
+export function CheckOut({ add, initialReservationId = "", staffName }: { add: (t: Omit<Toast, "id">) => void; initialReservationId?: string; staffName: string }) {
 
   // The list as the screen opened, so a guest just checked out stays on screen with their receipt.
   const [ALL_GUESTS] = useState(checkoutGuests);
@@ -890,8 +892,6 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
   const [showDiscount, setShowDiscount]     = useState(false);
   const [discountAmt, setDiscountAmt]       = useState("");
   const [discountReason, setDiscountReason] = useState("");
-  const [managerPin, setManagerPin]         = useState("");
-  const [discountMap, setDiscountMap]       = useState<Record<string, number>>({});
   const [showLateCharge, setShowLateCharge] = useState(false);
   const [lateChargeCat, setLateChargeCat]   = useState("Bar");
   const [lateChargeDesc, setLateChargeDesc] = useState("");
@@ -947,7 +947,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
     setChargesMap(m => ({ ...m, [selectedId]: fn(m[selectedId] ?? []) }));
 
   const isCheckedOut = checkedOutIds.includes(selectedId);
-  const gDiscount    = discountMap[selectedId] ?? 0;
+  const gDiscount    = discountOf(selectedId);
   const gAccess      = accessRevoked[selectedId] ?? false;
   const gKey         = keyReturned[selectedId]   ?? false;
   const gFeedback    = feedbackStatus[selectedId];
@@ -1147,7 +1147,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
                 <p className="text-sm mt-0.5" style={{ color: MUTED }}>{g.id} · {g.checkin} to {g.checkout} · {g.visits === 1 ? "First stay" : `${g.visits} stays with us`}</p>
               </div>
               <div className="flex gap-2 flex-wrap">
-                <button onClick={() => setShowDiscount(true)} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Apply discount</button>
+                <button onClick={() => setShowDiscount(true)} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>{discountNum > 5000 ? "Send for approval" : "Apply discount"}</button>
                 <button onClick={() => setShowLateCharge(true)} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Add late charge</button>
                 <button onClick={() => { setSplitLines([]); setSplitTarget("Guest Folio B"); setSplitReference(""); setShowSplitFolio(true); }} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Split folio</button>
                 <button onClick={() => { setTransferLine(null); setTransferTarget("Guest Folio"); setTransferReference(""); setTransferReason(""); setShowTransferCharge(true); }} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Transfer a charge</button>
@@ -1709,7 +1709,7 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
       {showDiscount && (
         <>
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }}
-            onClick={() => { setShowDiscount(false); setDiscountAmt(""); setDiscountReason(""); setManagerPin(""); }} />
+            onClick={() => { setShowDiscount(false); setDiscountAmt(""); setDiscountReason(""); }} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md" style={{ border: `1.5px solid ${CK_BD}` }}>
             <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
               <p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Apply discount</p>
@@ -1729,24 +1729,27 @@ export function CheckOut({ add, initialReservationId = "" }: { add: (t: Omit<Toa
               </div>
               {discountNum > 5000 && (
                 <div>
-                  <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Manager PIN * (required for amounts above ₦5,000)</label>
-                  <input type="password" value={managerPin} onChange={e => setManagerPin(e.target.value)} placeholder="••••••" aria-label="••••••"
-                    className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-                    style={{ border: `1.5px solid ${managerPin ? CK_DSH : ERROR}`, fontFamily: mono }} />
+                  <p className="text-sm" style={{ color: CK_MUT }}>Discounts above ₦5,000 go to a manager to approve from their dashboard. The bill changes once they approve.</p>
                 </div>
               )}
               <div className="flex gap-3 pt-1">
-                <button onClick={() => { setShowDiscount(false); setDiscountAmt(""); setDiscountReason(""); setManagerPin(""); }}
+                <button onClick={() => { setShowDiscount(false); setDiscountAmt(""); setDiscountReason(""); }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
                 <button
-                  disabled={!discountReason || discountNum <= 0 || discountNum > balance || (discountNum > 5000 && managerPin.length < 4)}
+                  disabled={!discountReason || discountNum <= 0 || discountNum > balance }
                   onClick={() => {
                     const amt = discountNum;
-                    setDiscountMap(m => ({ ...m, [selectedId]: (m[selectedId] ?? 0) + amt }));
-                    add({ type: "success", title: `Discount applied: ₦${amt.toLocaleString()}`, body: discountReason });
-                    setShowDiscount(false); setDiscountAmt(""); setDiscountReason(""); setManagerPin("");
+                    if (amt > 5000) {
+                      requestApproval({ kind: "Discount", dept: "Front Office", ref: selectedId, title: `${g.guest}, room ${g.room}`, detail: `₦${amt.toLocaleString()} off the bill`,
+                        reason: discountReason, requestedBy: staffName, apply: () => addDiscount(selectedId, amt) });
+                      add({ type: "info", title: `Discount of ₦${amt.toLocaleString()} sent for approval`, body: "A manager approves it from their dashboard." });
+                    } else {
+                      addDiscount(selectedId, amt);
+                      add({ type: "success", title: `Discount applied: ₦${amt.toLocaleString()}`, body: discountReason });
+                    }
+                    setShowDiscount(false); setDiscountAmt(""); setDiscountReason("");
                   }}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ORANGE }}>Apply discount</button>
+                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ORANGE }}>{discountNum > 5000 ? "Send for approval" : "Apply discount"}</button>
               </div>
             </div>
           </div>

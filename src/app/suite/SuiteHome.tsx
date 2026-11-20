@@ -9,6 +9,7 @@ import { Badge, EmptyState, PageHeader, StatCard } from "../UIKit";
 import { DEPARTMENT_HOME } from "../mock/departmentHome";
 import { homeToday } from "../mock/suiteHome";
 import type { Department, DepartmentId } from "./departments";
+import { ApprovalsCard } from "./ApprovalsCard";
 
 const META: Record<DepartmentId, { description: string; live: string }> = {
   "front-office": { description: "Reservations, arrivals and every guest stay.", live: "12 arrivals" },
@@ -97,6 +98,8 @@ export function SuiteHome({
           </button>
         ))}
       </section>
+
+      <ApprovalsCard role={role} staffName={staffName} />
 
       <section className="mt-6">
         <h2 className="mb-3 text-sm font-bold" style={{ color: TEXT, fontFamily: display }}>Needs attention</h2>
