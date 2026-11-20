@@ -3,7 +3,8 @@
 // shortcut: kept in memory with the change to make as a function; the hotel server stores the request and replays the change.
 import type { Role } from "../constants";
 
-export type ApprovalKind = "Room upgrade" | "Rate override" | "Late check-out" | "Discount";
+// Only decisions that give money away need a second person; check-in and check-out never wait.
+export type ApprovalKind = "Rate override" | "Discount";
 export type Approval = {
   id: string; kind: ApprovalKind; dept: string; ref: string; title: string; detail: string; reason: string;
   requestedBy: string; at: string; status: "Waiting" | "Approved" | "Declined"; decidedBy?: string; note?: string;
