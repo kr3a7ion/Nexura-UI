@@ -44,6 +44,7 @@ import { isManagerLogin } from "./mock/staffLogin";
 import { FOUND_ITEMS, logFoundItem, hkRooms } from "./mock/housekeeping";
 import { UI, controlClass, controlStyle, SectionTitle, Stepper, Row, Dialog, Field } from "./ui";
 import { roomPrice } from "./mock/property";
+import { notify } from "./mock/notify";
 import { checkIn, checkOut, assignRoom, roomsForArrival, markNoShow, rushRoom } from "./mock/hotel";
 import { isOutOfOrder } from "./mock/maintenance";
 
@@ -730,7 +731,7 @@ export function ArrivalsScreen({ add, nav, staffName }: { add: (t: Omit<Toast, "
                     {open && (
                       <div className="flex w-[200px] flex-wrap items-center gap-1.5">
                         <button onClick={() => openArrivalAction("assign", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: BORDER }}>{a.room ? "Change room" : "Assign room"}</button>
-                        {rd && !rd.ready && !rd.priority && rd.label !== "Out of order" && <button onClick={() => { rushRoom(a.room); add({ type: "success", title: `Room ${a.room} is next for Housekeeping`, body: `${a.guest} is on the way.` }); refresh(n => n + 1); }} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: WARNING_INK, borderColor: BORDER }}>Clean it next</button>}
+                        {rd && !rd.ready && !rd.priority && rd.label !== "Out of order" && <button onClick={() => { rushRoom(a.room, a.guest); add({ type: "success", title: `Room ${a.room} is next for Housekeeping`, body: `${a.guest} is on the way.` }); refresh(n => n + 1); }} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: WARNING_INK, borderColor: BORDER }}>Clean it next</button>}
                         <button onClick={() => openArrivalAction("note", a)} className="w-8 h-8 rounded-xl border flex items-center justify-center" style={{ color: MUTED, borderColor: BORDER }} title="Add note" aria-label="Add note"><Ph.NotePencil size={14} /></button>
                         <button onClick={() => openArrivalAction("noshow", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: ERROR, borderColor: `${ERROR}30` }}>No-show</button>
                         <button onClick={() => nav && nav("check-in", "Check-In", a.id)} className="text-xs px-3 py-1.5 rounded-xl font-bold text-white hover:opacity-90 transition-all whitespace-nowrap" style={{ backgroundColor: PRIMARY }}>Check in</button>
@@ -2037,6 +2038,7 @@ export function DNDLog({ add, staffName }: { add: (t: Omit<Toast, "id">) => void
     if (!isManagerLogin(mgrUser, mgrPass)) { add({ type: "error", title: "That is not a manager's username and password" }); return; }
     setRows(p => p.map(r => r.room === showOverride ? { ...r, overridden: true } : r));
     add({ type: "warning", title: `Room ${showOverride}: do not disturb overridden by ${mgrUser.trim()}`, body: overrideReason });
+    notify("dnd.overridden", { title: `Do not disturb overridden: room ${showOverride}`, body: `By ${mgrUser.trim()}. ${overrideReason}`, link: { screen: "dnd-log", label: "DND Log" } });
     setShowOverride(null); setOverrideReason(""); setMgrUser(""); setMgrPass("");
   };
 

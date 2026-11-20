@@ -150,15 +150,6 @@ export const recentAct = [
   { id: "WO-0091", guest: "Maintenance", room: "207", action: "Work Order Filed", time: "08:58", type: "maintenance", av: "MX" },
   { id: "BK-2844", guest: "Chukwuemeka Obi", room: "421", action: "Checked In", time: "08:44", type: "checkin", av: "CO" },
 ];
-export const NOTIFS = [
-  { id: 1, category: "Emergency", title: "Fire alarm — Zone B test scheduled", body: "Scheduled drill 10:30–10:45.", time: "2m", color: "#EF4444", icon: AlertTriangle, unread: true },
-  { id: 2, category: "Reservation", title: "VIP arrival — Dr. Chukwuemeka Bello", body: "Suite 501 · Arriving 14:00 · Champagne requested", time: "8m", color: "#6366F1", icon: Star, unread: true },
-  { id: 3, category: "Housekeeping", title: "Room 212 ready for inspection", body: "Attendant Fatima Musa completed cleaning", time: "15m", color: "#22C55E", icon: BedDouble, unread: true },
-  { id: 4, category: "Maintenance", title: "Work order WO-0089 overdue", body: "AC unit — Room 316. Assigned: Emeka Obi", time: "32m", color: "#F97316", icon: Wrench, unread: false },
-  { id: 5, category: "Finance", title: "End-of-day summary ready", body: "Total revenue: ₦1,247,800.", time: "1h", color: "#14B8A6", icon: DollarSign, unread: false },
-  { id: 6, category: "Door Lock", title: "Card activation queued — Room 204", body: "Pending internet. Retry every 2 min.", time: "1h", color: "#8B5CF6", icon: Lock, unread: false },
-  { id: 7, category: "Chat", title: "Message from Housekeeping", body: "@reception Room 407 minibar restocked.", time: "2h", color: "#3B82F6", icon: MessageSquare, unread: false },
-];
 // The hotel's rooms. Where each room stands is worked out in mock/rooms.ts.
 export { ROOMS } from "./mock/property";
 export const STAFF = [

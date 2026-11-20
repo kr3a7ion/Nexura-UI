@@ -2,6 +2,7 @@
 // Suite Home and the manager dashboard. Housekeeping's "Report a fault" adds to it.
 // shortcut: held in memory until the hotel server exists; changes last until the page reloads.
 import { BUSINESS_DATE } from "../constants";
+import { notify, type Level } from "./notify";
 
 export type WOStatus = "Reported" | "Assigned" | "In progress" | "Fixed" | "Closed" | "Cancelled";
 export type WOPriority = "Low" | "Medium" | "High";
@@ -94,10 +95,18 @@ export const addWorkOrder = (w: Pick<WorkOrder, "title" | "location" | "cat" | "
   const created = wo({ id: `WO-${String(next++).padStart(4, "0")}`, status: "Reported", tech: null, reportedAt: NOW,
     guestImpact: false, outOfOrder: false, ...w });
   LIST.unshift(created);
+  const link = { screen: "work-order-detail", label: "Work Order", param: created.id };
+  // A job's priority sets how loudly Maintenance is told: High interrupts, Low waits on the bell.
+  notify("workOrder.raised", { title: `New job ${created.id}: ${created.title}`, body: `${created.location}, reported by ${created.reportedBy}`, level: PRIORITY_LEVEL[created.priority], link });
+  if (created.room && created.outOfOrder) notify("room.outOfOrder", { title: `Room ${created.room} is out of order`, body: `${created.title}. Do not sell or give it out.`, link });
   return created;
 };
+const PRIORITY_LEVEL: Record<WOPriority, Level> = { High: "Urgent", Medium: "High", Low: "Normal" };
 export const updateWorkOrder = (id: string, patch: Partial<WorkOrder>, log?: { event: string; by: string; note: string }) => {
   const w = workOrder(id); if (!w) return;
+  const link = { screen: "work-order-detail", label: "Work Order", param: w.id };
+  if (patch.tech && patch.tech !== w.tech) notify("workOrder.assigned", { title: `${w.id} is yours: ${w.title}`, body: w.location, people: [patch.tech], level: PRIORITY_LEVEL[w.priority], link });
+  if (log?.event === "Reopened" && w.tech) notify("workOrder.reopened", { title: `${w.id} sent back: ${w.title}`, body: log.note, people: [w.tech], link });
   Object.assign(w, patch);
   if (log) w.timeline.push({ at: new Date(NOW.getTime() + w.timeline.length * 60000), ...log });
 };

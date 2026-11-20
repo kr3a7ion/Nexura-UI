@@ -6,6 +6,7 @@
 import { STAYS, ARRIVALS, leavesToday } from "./frontOffice";
 import { ROOMS as PROPERTY_ROOMS } from "./property";
 import { isOutOfOrder } from "./maintenance";
+import { notify } from "./notify";
 
 export type HKStatus = "Dirty" | "In Progress" | "Clean" | "Inspected";
 export type HKRoom = {
@@ -74,6 +75,8 @@ export const addInspection = (i: Omit<Inspection, "id">) => {
   const next = { ...i, id: `INS-${String(Number(INSPECTIONS[0].id.slice(4)) + 1).padStart(3, "0")}` };
   INSPECTIONS.unshift(next);
   updateRoom(i.room, passed(next) ? { hkSt: "Inspected", awaitingInspection: false } : { hkSt: "Dirty", awaitingInspection: false, note: "Re-clean after failed inspection" });
+  if (passed(next)) notify("inspection.passed", { title: `Room ${i.room} is ready to sell`, body: `Passed inspection by ${i.inspector}.`, link: { screen: "reservation-grid", label: "Reservation Grid" } });
+  else notify("inspection.failed", { title: `Room ${i.room} failed inspection`, body: `Clean it again: ${i.failed.join(", ")}.`, people: [i.attendant], link: { screen: "hk-board", label: "Housekeeping Board" } });
   return next;
 };
 
@@ -90,5 +93,6 @@ export const FOUND_ITEMS: FoundItem[] = [
 export const logFoundItem = (i: Omit<FoundItem, "id" | "status" | "claimedBy">) => {
   const item = { ...i, claimedBy: "", id: `LF-${String(Number(FOUND_ITEMS[0].id.slice(3)) + 1).padStart(4, "0")}`, status: "Held" };
   FOUND_ITEMS.unshift(item);
+  notify("foundItem.logged", { title: `Found item: ${item.desc}`, body: `Held in ${item.storage} as ${item.id}.`, link: { screen: "lost-found", label: "Lost & Found" } });
   return item;
 };

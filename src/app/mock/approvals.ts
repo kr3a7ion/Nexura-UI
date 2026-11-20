@@ -2,6 +2,7 @@
 // the request waits on the approver's dashboard, and the change happens only when it is approved.
 // shortcut: kept in memory with the change to make as a function; the hotel server stores the request and replays the change.
 import type { Role } from "../constants";
+import { notify } from "./notify";
 
 // Only decisions that give money away need a second person; check-in and check-out never wait.
 export type ApprovalKind = "Rate override" | "Discount";
@@ -27,6 +28,7 @@ export const requestApproval = (a: Omit<Approval, "id" | "at" | "status">) => {
   if (waiting) { Object.assign(waiting, a, { at: time() }); return waiting; }
   const created: Approval = { ...a, id: `APR-${String(next++).padStart(3, "0")}`, at: time(), status: "Waiting" };
   LIST.unshift(created);
+  notify("approval.requested", { title: `${a.kind} to approve: ${a.title}`, body: `${a.detail}. ${a.reason}.`, roles: approverRoles(a.dept), link: { screen: "suite-home", label: "Suite Home" } });
   return created;
 };
 
@@ -42,5 +44,6 @@ export const decide = (id: string, approve: boolean, by: string, role: Role, not
   if (a.requestedBy === by) return "Someone else must approve your own request.";
   Object.assign(a, { status: approve ? "Approved" : "Declined", decidedBy: by, note });
   if (approve) a.apply();
+  notify("approval.decided", { title: `${a.kind} ${approve ? "approved" : "declined"}: ${a.title}`, body: approve ? `${by} approved ${a.detail}.` : `${by}: ${note}`, people: [a.requestedBy] });
   return null;
 };
