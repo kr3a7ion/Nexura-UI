@@ -52,7 +52,7 @@ export const hkStatus = (id: string) => ROOMS.find(r => r.id === id)?.hkSt;
 export const roomsFor = (attendant: string) => hkRooms().filter(r => r.attendant === attendant);
 
 // Status changes made on the board, My Tasks or an inspection.
-export const updateRoom = (id: string, patch: Partial<Pick<HKRoom, "hkSt" | "attendant" | "awaitingInspection" | "note">>) => {
+export const updateRoom = (id: string, patch: Partial<Pick<HKRoom, "hkSt" | "attendant" | "awaitingInspection" | "note" | "priority">>) => {
   const r = ROOMS.find(x => x.id === id);
   if (r) Object.assign(r, patch);
 };

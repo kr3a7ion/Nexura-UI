@@ -39,13 +39,14 @@ import {
 
 import { Badge, EmptyState, ToastC, LiveClock, SyncPill, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { TextOrDate } from "./DateInput";
-import { ARRIVALS as FO_ARRIVALS, departures, STAYS, setLateCheckout } from "./mock/frontOffice";
+import { ARRIVALS as FO_ARRIVALS, departures, STAYS, setLateCheckout, checkedInToday, noShowsToday, addArrivalNote, balanceOf, type ArrivalNote } from "./mock/frontOffice";
 import { isManagerLogin } from "./mock/staffLogin";
 import { FOUND_ITEMS, logFoundItem, hkRooms } from "./mock/housekeeping";
-import { UI, controlClass, controlStyle, SectionTitle, Stepper, Row } from "./ui";
+import { UI, controlClass, controlStyle, SectionTitle, Stepper, Row, Dialog, Field } from "./ui";
 import { roomPrice } from "./mock/property";
-import { checkIn, checkOut } from "./mock/hotel";
+import { checkIn, checkOut, assignRoom, roomsForArrival, markNoShow, rushRoom } from "./mock/hotel";
 import { requestApproval, latestFor } from "./mock/approvals";
+import { isOutOfOrder } from "./mock/maintenance";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
 function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
@@ -628,6 +629,9 @@ export function CheckInWizard({ add, initialReservationId = "", staffName }: { a
                   <Row label="Check-out" value={fmtDate(new Date(BUSINESS_DATE.getFullYear(), BUSINESS_DATE.getMonth(), BUSINESS_DATE.getDate() + selData.nights))} />
                   <Row label="Nights" value={selData.nights} />
                 </div>
+                {(selData.notes ?? []).length > 0 && (
+                  <div className="text-xs space-y-1" style={{ color: TEAL_INK }}>{selData.notes!.map((n, i) => <p key={i}>{n.kind}: {n.text} ({n.by})</p>)}</div>
+                )}
                 {approvedUpgradeRoom && selectedRoomData && (
                   <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#F5F3FF", border: "1px solid #DDD6FE" }}>
                     <Ph.ShieldCheck size={14} weight="fill" style={{ color: "#7C3AED", flexShrink: 0 }} />
@@ -698,77 +702,90 @@ const MENU_ALL = [
 
 
 
-export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
+export function ArrivalsScreen({ add, nav, staffName }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; staffName: string }) {
   const [arSearch, setArSearch] = useState("");
   const [arTab, setArTab] = useState("All");
-  const [arrivals, setArrivals] = useState([
-    // On a normal day the list also shows a guest who already arrived and a group block.
-    ...(FO_ARRIVALS.length ? [{ id: "BK-2851", guest: "Dr. Chukwuemeka Bello", type: "Suite", room: "501", nights: 3, eta: "14:00", rate: 85000, balance: 0, vip: true, assigned: true, group: false, requests: "Welcome dinner", status: "Checked In", risk: false }, { id: "BK-2859", guest: "Lagos Corp Group (8 pax)", type: "Standard", room: "108–115", nights: 2, eta: "13:00", rate: 35000, balance: 0, vip: false, assigned: true, group: true, requests: "Meeting room required", status: "Confirmed", risk: false }] : []),
-    ...FO_ARRIVALS.map(({ av, risk, ...a }) => ({ ...a, risk, assigned: !!a.room, group: false, requests: a.requests || "—" })),
-  ]);
+  const [, refresh] = useState(0);
+  // Everything here comes from Front Office, so a change made here shows on the grid, Check-In and Reservation Search.
+  const hk = hkRooms();
+  const arrivals = [
+    ...FO_ARRIVALS.map(a => ({ ...a, status: a.status })),
+    ...checkedInToday().map(s => ({ id: s.id, guest: s.guest, type: s.type, room: s.room, nights: s.nights, eta: "Arrived", rate: roomPrice(s.type), balance: Math.max(0, balanceOf(s)), vip: s.vip, requests: "", status: "Checked In", risk: false, notes: [] as ArrivalNote[] })),
+    ...noShowsToday().map(n => ({ id: n.id, guest: n.guest, type: n.type, room: "", nights: n.nights, eta: "Did not arrive", rate: n.rate, balance: 0, vip: false, requests: n.reason, status: "No Show", risk: false, notes: [] as ArrivalNote[] })),
+  ];
   type Arrival = typeof arrivals[number];
   const [arrivalAction, setArrivalAction] = useState<{ type: "assign" | "note" | "noshow"; id: string } | null>(null);
   const [selectedRoom, setSelectedRoom] = useState("");
-  const [assignmentNote, setAssignmentNote] = useState("");
   const [noteType, setNoteType] = useState("Internal note");
   const [noteText, setNoteText] = useState("");
-  const [notes, setNotes] = useState<Record<string, number>>({});
   const [noShowReason, setNoShowReason] = useState("");
   const activeArrival = arrivals.find(arrival => arrival.id === arrivalAction?.id);
+  const expecting = (a: Arrival) => a.status !== "Checked In" && a.status !== "No Show";
+  // How the guest's room stands right now on the Housekeeping board.
+  const readiness = (room: string) => {
+    const r = hk.find(x => x.id === room);
+    if (!r) return { label: "", ready: false, color: MUTED, priority: false };
+    if (isOutOfOrder(room)) return { label: "Out of order", ready: false, color: ERROR, priority: r.priority };
+    if (r.hkSt === "Inspected") return { label: "Ready", ready: true, color: SUCCESS, priority: r.priority };
+    if (r.hkSt === "Clean") return { label: "Clean, waiting for inspection", ready: true, color: TEAL_INK, priority: r.priority };
+    if (r.hkSt === "In Progress") return { label: `Being cleaned${r.attendant ? ` by ${r.attendant}` : ""}`, ready: false, color: WARNING_INK, priority: r.priority };
+    return { label: `Not cleaned yet${r.attendant ? `, ${r.attendant}` : ", nobody assigned"}`, ready: false, color: ERROR, priority: r.priority };
+  };
   const filtered = arrivals.filter(a => {
     const ms = !arSearch || a.guest.toLowerCase().includes(arSearch.toLowerCase()) || a.id.includes(arSearch);
-    const mt = arTab === "All" ? true : arTab === "VIP" ? a.vip : arTab === "Unassigned" ? !a.assigned : arTab === "Groups" ? a.group : arTab === "No-show Risk" ? a.risk : arTab === "Checked In" ? a.status === "Checked In" : true;
+    const mt = arTab === "All" ? true : arTab === "VIP" ? a.vip : arTab === "Unassigned" ? expecting(a) && !a.room : arTab === "Room not ready" ? expecting(a) && !!a.room && !readiness(a.room).ready : arTab === "No-show risk" ? a.risk : arTab === "Checked in" ? a.status === "Checked In" : true;
     return ms && mt;
   });
   const arrived = arrivals.filter(a => a.status === "Checked In").length;
   const noShows = arrivals.filter(a => a.status === "No Show").length;
-  const pending = arrivals.filter(a => a.status !== "Checked In" && a.status !== "No Show").length;
-  const expected = arrivals.length;
-  const roomOptions: Record<string, string[]> = { Standard: ["102", "104", "108", "110"], Deluxe: ["201", "303", "402", "410"], Suite: ["301", "501", "502"] };
+  const pending = arrivals.filter(expecting);
+  const notReady = pending.filter(a => a.room && !readiness(a.room).ready).length;
   const openArrivalAction = (type: "assign" | "note" | "noshow", arrival: Arrival) => {
     setArrivalAction({ type, id: arrival.id });
-    setSelectedRoom(arrival.room && !arrival.group ? arrival.room : "");
-    setAssignmentNote(""); setNoteType("Internal note"); setNoteText(""); setNoShowReason("");
+    setSelectedRoom(arrival.room);
+    setNoteType("Internal note"); setNoteText(""); setNoShowReason("");
   };
+  const done = () => { setArrivalAction(null); refresh(n => n + 1); };
   return (
     <div>
-      <PageHeader title="Today's Arrivals" sub={`${fmtDate(BUSINESS_DATE)} · Check-in from ${PROPERTY_PROFILE.checkInTime}`} actions={<><BtnO label="Print manifest" icon={Ph.FileText} onClick={() => add({ type: "info", title: "Arrival manifest sent to printer" })} /><BtnP label="Quick check-in" icon={Ph.Key} onClick={() => nav && nav("check-in", "Check-In")} /></>} />
+      <PageHeader title="Today's Arrivals" sub={`${fmtDate(BUSINESS_DATE)} · Check-in from ${PROPERTY_PROFILE.checkInTime}`} actions={<><BtnO label="Print manifest" icon={Ph.FileText} onClick={() => window.print()} /><BtnP label="Quick check-in" icon={Ph.Key} onClick={() => nav && nav("check-in", "Check-In")} /></>} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Expected" value={String(expected)} sub="Total today's arrivals" icon={Ph.CalendarCheck} accent={PRIMARY} />
+        <StatCard label="Expected" value={String(arrivals.length)} sub="Booked to arrive today" icon={Ph.CalendarCheck} accent={PRIMARY} />
         <StatCard label="Arrived" value={String(arrived)} sub="Checked in" icon={Ph.CheckCircle} accent={SUCCESS} />
-        <StatCard label="Pending" value={String(pending)} sub={`${arrivals.filter(a => !a.assigned && a.status !== "Checked In").length} unassigned`} icon={Ph.Clock} accent={WARNING} />
-        <StatCard label="No-Show" value={String(noShows)} sub={`${arrivals.filter(a => a.risk && a.status !== "No Show").length} currently at risk`} icon={Ph.WarningCircle} accent={noShows > 0 ? ERROR : ORANGE} />
+        <StatCard label="Still to come" value={String(pending.length)} sub={`${pending.filter(a => !a.room).length} without a room, ${notReady} room${notReady === 1 ? "" : "s"} not ready`} icon={Ph.Clock} accent={WARNING} />
+        <StatCard label="No-show" value={String(noShows)} sub={`${pending.filter(a => a.risk).length} at risk`} icon={Ph.WarningCircle} accent={noShows > 0 ? ERROR : ORANGE} />
       </div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative w-full sm:w-64"><Ph.MagnifyingGlass size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={arSearch} onChange={e => setArSearch(e.target.value)} placeholder="Search guest or reservation…" aria-label="Search guest or reservation" className="w-full pl-7 pr-8 py-2 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER }} />{arSearch && <button onClick={() => setArSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }}><Ph.XCircle size={13} /></button>}</div>
-        {["All", "VIP", "Unassigned", "Groups", "No-show Risk", "Checked In"].map(f => <button key={f} onClick={() => setArTab(f)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold transition-all" style={{ backgroundColor: arTab === f ? PRIMARY : "white", color: arTab === f ? "white" : MUTED, borderColor: arTab === f ? PRIMARY : BORDER }}>{f}</button>)}
+        <div className="relative w-full sm:w-64"><Ph.MagnifyingGlass size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={arSearch} onChange={e => setArSearch(e.target.value)} placeholder="Search guest or reservation…" aria-label="Search guest or reservation" className="w-full pl-7 pr-8 py-2 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER }} /></div>
+        {["All", "VIP", "Unassigned", "Room not ready", "No-show risk", "Checked in"].map(f => <button key={f} onClick={() => setArTab(f)} className="text-xs px-3 py-1.5 rounded-xl border font-semibold transition-all" style={{ backgroundColor: arTab === f ? PRIMARY : "white", color: arTab === f ? "white" : MUTED, borderColor: arTab === f ? PRIMARY : BORDER }}>{f}</button>)}
         <span className="ml-auto text-xs font-medium" style={{ color: SUBTLE }}>{filtered.length} results</span>
       </div>
       <div className="bg-white rounded-xl border overflow-x-auto" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
         <table className="w-full min-w-[1040px]">
-          <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["ETA / res#", "Guest", "Room type / room", "Nights", "Rate / night", "Balance", "Status", "Actions"].map((h,i) => <th key={i} className={`px-4 py-3 text-left text-xs font-semibold whitespace-nowrap ${h === "Actions" ? "sticky right-0 bg-[#F8FAFC]" : ""}`} style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ backgroundColor: "#F8FAFC" }}>{["ETA / res#", "Guest", "Room", "Nights", "Rate / night", "Balance", "Status", "Actions"].map((h,i) => <th key={i} className={`px-4 py-3 text-left text-xs font-semibold whitespace-nowrap ${h === "Actions" ? "sticky right-0 bg-[#F8FAFC]" : ""}`} style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(a => {
-              const done = a.status === "Checked In";
+              const open = expecting(a);
+              const rd = a.room ? readiness(a.room) : null;
               return (
-                <tr key={a.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER, opacity: done ? 0.55 : 1 }}>
+                <tr key={a.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER, opacity: open ? 1 : 0.55 }}>
                   <td className="px-4 py-3">
-                    <div className="text-sm font-semibold" style={{ color: TEXT }}>{a.eta}</div>
+                    <div className="text-sm font-semibold" style={{ color: TEXT }}>{a.eta || "No time given"}</div>
                     <div className="text-xs" style={{ color: MUTED }}>{a.id}</div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: a.vip ? ORANGE : PRIMARY }}><Ph.User size={14} weight="bold" /></div>
                       <div>
-                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{a.guest}</span>{a.vip && <Ph.Star size={10} weight="fill" style={{ color: ORANGE_INK }} />}{a.group && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>Group</span>}{a.risk && a.status !== "No Show" && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FFF7ED", color: ORANGE_INK }}>At risk</span>}</div>
-                        {a.requests && a.requests !== "—" && <div className="text-xs mt-0.5 max-w-[260px] truncate" title={a.requests} style={{ color: MUTED }}>{a.requests}</div>}
-                        {(notes[a.id] ?? 0) > 0 && <div className="text-xs mt-0.5" style={{ color: TEAL_INK }}>{notes[a.id]} note{notes[a.id] === 1 ? "" : "s"} added</div>}
+                        <div className="flex items-center gap-1.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{a.guest}</span>{a.vip && <Ph.Star size={10} weight="fill" style={{ color: ORANGE_INK }} />}{a.risk && open && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>No-show risk</span>}</div>
+                        {a.requests && <div className="text-xs mt-0.5 max-w-[260px] truncate" title={a.requests} style={{ color: MUTED }}>{a.requests}</div>}
+                        {(a.notes ?? []).map((n, i) => <div key={i} className="text-xs mt-0.5 max-w-[260px] truncate" title={n.text} style={{ color: TEAL_INK }}>{n.kind}: {n.text}</div>)}
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="text-sm" style={{ color: TEXT }}>{a.type}</div>
-                    {a.assigned ? <div className="text-xs font-semibold" style={{ color: SUCCESS }}>Room {a.room}</div> : <div className="text-xs font-semibold" style={{ color: ERROR }}>Unassigned</div>}
+                    <div className="text-sm" style={{ color: TEXT }}>{a.type}{a.room ? `, room ${a.room}` : ""}</div>
+                    {open && (rd ? <div className="text-xs font-semibold" style={{ color: rd.color }}>{rd.label}{rd.priority && !rd.ready ? ", Housekeeping asked to do it next" : ""}</div> : <div className="text-xs font-semibold" style={{ color: ERROR }}>No room yet</div>)}
                   </td>
                   <td className="px-4 py-3 text-sm font-semibold" style={{ color: TEXT }}>{a.nights}n</td>
                   <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>₦{a.rate.toLocaleString()}</td>
@@ -777,22 +794,13 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
                   </td>
                   <td className="px-4 py-3"><Badge label={a.status} colors={resStC[a.status] ?? { bg: "#F3F4F6", text: "#374151" }} /></td>
                   <td className="sticky right-0 w-[220px] border-l bg-white px-4 py-3" style={{ borderColor: BORDER }}>
-                    {!done && (
+                    {open && (
                       <div className="flex w-[200px] flex-wrap items-center gap-1.5">
-                        {!a.group && a.status !== "No Show" && <button onClick={() => openArrivalAction("assign", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: BORDER }}>{a.assigned ? "Reassign" : "Assign Room"}</button>}
-                        <button onClick={() => openArrivalAction("note", a)} className="w-8 h-8 rounded-xl border flex items-center justify-center" style={{ color: MUTED, borderColor: BORDER }} title="Add note"><Ph.NotePencil size={14} /></button>
-                        {a.risk && a.status !== "No Show" && <button onClick={() => openArrivalAction("noshow", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: ERROR, borderColor: `${ERROR}30` }}>No show</button>}
-                        {a.status !== "No Show" && <button onClick={() => {
-                          if (a.group) {
-                            add({ type: "info", title: "Group booking opened", body: a.guest });
-                            nav && nav("group-bookings", "Group Bookings", a.id);
-                          } else {
-                            add({ type: "info", title: "Check-in wizard opened", body: a.guest });
-                            nav && nav("check-in", "Check-In", a.id);
-                          }
-                        }} className="text-xs px-3 py-1.5 rounded-xl font-bold text-white hover:opacity-90 transition-all whitespace-nowrap" style={{ backgroundColor: PRIMARY }}>
-                          {a.group ? "Open Group" : "Check In"}
-                        </button>}
+                        <button onClick={() => openArrivalAction("assign", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: BORDER }}>{a.room ? "Change room" : "Assign room"}</button>
+                        {rd && !rd.ready && !rd.priority && rd.label !== "Out of order" && <button onClick={() => { rushRoom(a.room); add({ type: "success", title: `Room ${a.room} is next for Housekeeping`, body: `${a.guest} is on the way.` }); refresh(n => n + 1); }} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: WARNING_INK, borderColor: BORDER }}>Clean it next</button>}
+                        <button onClick={() => openArrivalAction("note", a)} className="w-8 h-8 rounded-xl border flex items-center justify-center" style={{ color: MUTED, borderColor: BORDER }} title="Add note" aria-label="Add note"><Ph.NotePencil size={14} /></button>
+                        <button onClick={() => openArrivalAction("noshow", a)} className="text-xs px-2.5 py-1.5 rounded-xl border font-semibold whitespace-nowrap" style={{ color: ERROR, borderColor: `${ERROR}30` }}>No-show</button>
+                        <button onClick={() => nav && nav("check-in", "Check-In", a.id)} className="text-xs px-3 py-1.5 rounded-xl font-bold text-white hover:opacity-90 transition-all whitespace-nowrap" style={{ backgroundColor: PRIMARY }}>Check in</button>
                       </div>
                     )}
                   </td>
@@ -804,42 +812,47 @@ export function ArrivalsScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
         {filtered.length === 0 && <div className="py-16 text-center"><Ph.CalendarCheck size={28} className="mx-auto mb-3" style={{ color: SUBTLE }} /><p className="text-sm" style={{ color: MUTED }}>{arrivals.length === 0 ? "No arrivals today. New bookings for today appear here as soon as they are made." : "No arrivals match your filters"}</p></div>}
       </div>
       {arrivalAction && activeArrival && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setArrivalAction(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-lg overflow-hidden" style={{ border: `1.5px solid ${BORDER}` }}>
-            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
-              <p className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>{arrivalAction.type === "assign" ? "Assign a room" : arrivalAction.type === "note" ? "Add an arrival note" : "Mark as no-show"}</p>
-              <p className="text-sm mt-0.5" style={{ color: MUTED }}>{activeArrival.guest} · {activeArrival.id} · ETA {activeArrival.eta}</p>
-            </div>
-            <div className="p-6 space-y-4">
-              {arrivalAction.type === "assign" && (
-                <>
-                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold" style={{ backgroundColor: "#F0FDF4", color: "#065F46", border: "1px solid #BBF7D0" }}><Ph.CheckCircle size={14} weight="fill" />Only clean or inspected {activeArrival.type.toLowerCase()} rooms are shown.</div>
-                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Available Room *</label><select aria-label="Available room" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${selectedRoom ? BORDER : ERROR}`, backgroundColor: "white", color: TEXT }}><option value="">Select room</option>{(roomOptions[activeArrival.type] ?? []).map(room => <option key={room} value={room}>{room} · {activeArrival.type} · Inspected</option>)}</select></div>
-                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Assignment note</label><textarea value={assignmentNote} onChange={e => setAssignmentNote(e.target.value)} rows={2} placeholder="High floor, near lift, accessibility requirement…" aria-label="High floor, near lift, accessibility requirement" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
-                </>
-              )}
-              {arrivalAction.type === "note" && (
-                <>
-                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Note type</label><select aria-label="Note type" value={noteType} onChange={e => setNoteType(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${BORDER}`, backgroundColor: "white", color: TEXT }}>{["Internal note", "Guest request", "Handover note", "VIP instruction"].map(type => <option key={type}>{type}</option>)}</select></div>
-                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Note *</label><textarea value={noteText} onChange={e => setNoteText(e.target.value)} rows={4} placeholder="Add useful context for the arrival team…" aria-label="Add useful context for the arrival team" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${BORDER}` }} /></div>
-                </>
-              )}
-              {arrivalAction.type === "noshow" && (
-                <>
-                  <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: "#FEF2F2", color: ERROR }}><Ph.Warning size={18} weight="bold" className="flex-shrink-0" /><div><p className="text-sm font-bold">This releases the room assignment.</p><p className="text-xs mt-1">The reservation will be marked No Show and any configured penalty queued for review.</p></div></div>
-                  <div><label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Reason *</label><textarea value={noShowReason} onChange={e => setNoShowReason(e.target.value)} rows={3} placeholder="Contact attempts and reason for marking no-show…" aria-label="Contact attempts and reason for marking no-show" className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none" style={{ border: `1.5px solid ${noShowReason.trim() ? BORDER : ERROR}` }} /></div>
-                </>
-              )}
-              <div className="flex gap-3">
-                <button onClick={() => setArrivalAction(null)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button>
-                {arrivalAction.type === "assign" && <button disabled={!selectedRoom} onClick={() => { setArrivals(list => list.map(arrival => arrival.id === activeArrival.id ? { ...arrival, room: selectedRoom, assigned: true } : arrival)); add({ type: "success", title: `Room ${selectedRoom} pre-assigned`, body: `${activeArrival.guest}${assignmentNote ? ` · ${assignmentNote}` : ""}` }); setArrivalAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Confirm assignment</button>}
-                {arrivalAction.type === "note" && <button disabled={!noteText.trim()} onClick={() => { setNotes(current => ({ ...current, [activeArrival.id]: (current[activeArrival.id] ?? 0) + 1 })); add({ type: "success", title: `${noteType} added`, body: `${activeArrival.guest} · Visible to the arrival team` }); setArrivalAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Save note</button>}
-                {arrivalAction.type === "noshow" && <button disabled={!noShowReason.trim()} onClick={() => { setArrivals(list => list.map(arrival => arrival.id === activeArrival.id ? { ...arrival, status: "No Show", assigned: false, room: "" } : arrival)); add({ type: "error", title: "Reservation marked No Show", body: `${activeArrival.guest} · Room released · Penalty queued for review` }); setArrivalAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ERROR }}>Confirm no show</button>}
-              </div>
-            </div>
-          </div>
-        </>
+        <Dialog title={arrivalAction.type === "assign" ? "Assign a room" : arrivalAction.type === "note" ? "Add an arrival note" : "Mark as no-show"} sub={`${activeArrival.guest} · ${activeArrival.id}${activeArrival.eta ? ` · ETA ${activeArrival.eta}` : ""}`} danger={arrivalAction.type === "noshow"} onClose={() => setArrivalAction(null)}
+          footer={<>
+            <BtnO label="Cancel" onClick={() => setArrivalAction(null)} />
+            {arrivalAction.type === "assign" && <BtnP label="Assign room" onClick={() => {
+              if (!selectedRoom || !assignRoom(activeArrival.id, selectedRoom)) { add({ type: "error", title: "Choose a free room" }); return; }
+              add({ type: "success", title: `Room ${selectedRoom} assigned to ${activeArrival.guest}`, body: readiness(selectedRoom).label }); done(); }} />}
+            {arrivalAction.type === "note" && <BtnP label="Save note" onClick={() => {
+              if (!noteText.trim()) return;
+              addArrivalNote(activeArrival.id, { kind: noteType, text: noteText.trim(), by: staffName, at: stampNow() });
+              add({ type: "success", title: `${noteType} saved`, body: "It shows here and at check-in." }); done(); }} />}
+            {arrivalAction.type === "noshow" && <BtnP label="Mark as no-show" onClick={() => {
+              if (!noShowReason.trim()) return;
+              markNoShow(activeArrival.id, noShowReason.trim());
+              add({ type: "info", title: `${activeArrival.guest} marked as no-show`, body: activeArrival.room ? `Room ${activeArrival.room} can be sold again.` : undefined }); done(); }} />}
+          </>}>
+          {arrivalAction.type === "assign" && (() => {
+            const rooms = roomsForArrival(activeArrival.id);
+            return (
+              <Field label="Room" htmlFor="ar-room" required hint={`${activeArrival.type} rooms free for all ${activeArrival.nights} night${activeArrival.nights === 1 ? "" : "s"}, ready rooms first.`}>
+                <select id="ar-room" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)} className={controlClass} style={controlStyle(!selectedRoom)}>
+                  <option value="">Choose a room</option>
+                  {rooms.map(r => <option key={r} value={r}>{r}: {readiness(r).label}</option>)}
+                </select>
+              </Field>
+            );
+          })()}
+          {arrivalAction.type === "note" && (<>
+            <Field label="Note type" htmlFor="ar-note-type">
+              <select id="ar-note-type" value={noteType} onChange={e => setNoteType(e.target.value)} className={controlClass} style={controlStyle()}>{["Internal note", "Guest request", "Payment", "Transport"].map(t => <option key={t}>{t}</option>)}</select>
+            </Field>
+            <Field label="Note" htmlFor="ar-note" required hint="Shown on this list and at check-in.">
+              <textarea id="ar-note" value={noteText} onChange={e => setNoteText(e.target.value)} rows={3} className={`${controlClass} py-2.5 resize-none`} style={controlStyle(!noteText.trim())} />
+            </Field>
+          </>)}
+          {arrivalAction.type === "noshow" && (<>
+            <p className="text-sm mb-3" style={{ color: TEXT }}>The booking shows No-show in Reservation Search{activeArrival.room ? ` and room ${activeArrival.room} can be sold again` : ""}.</p>
+            <Field label="Why the guest is a no-show" htmlFor="ar-noshow" required hint="Say how you tried to reach them.">
+              <textarea id="ar-noshow" value={noShowReason} onChange={e => setNoShowReason(e.target.value)} rows={3} className={`${controlClass} py-2.5 resize-none`} style={controlStyle(!noShowReason.trim())} />
+            </Field>
+          </>)}
+        </Dialog>
       )}
     </div>
   );

@@ -103,7 +103,8 @@ export const folios = () => STAYS.map(s => {
 });
 
 // Today's arrivals: none of them are in house yet. Check-In and Arrivals list both read this.
-export type Arrival = { id: string; guest: string; av: string; room: string; type: string; eta: string; nights: number; rate: number; vip: boolean; requests: string; balance: number; status: string; risk: boolean };
+export type ArrivalNote = { kind: string; text: string; by: string; at: string };
+export type Arrival = { id: string; guest: string; av: string; room: string; type: string; eta: string; nights: number; rate: number; vip: boolean; requests: string; balance: number; status: string; risk: boolean; notes?: ArrivalNote[] };
 const ALL_ARRIVALS: Arrival[] = [
   { id: "BK-2855", guest: "Chief Emeka Okafor", av: "EO", room: "502", type: "Suite",    eta: "14:00", nights: 3, rate: 85000, vip: true,  requests: "Champagne + fruit basket",         balance: 0,     status: "Confirmed", risk: false },
   { id: "BK-2856", guest: "Aisha Mohammed",     av: "AM", room: "303", type: "Deluxe",   eta: "15:30", nights: 2, rate: 55000, vip: false, requests: "High floor preferred",             balance: 27500, status: "Confirmed", risk: false },
@@ -141,6 +142,7 @@ const roomType = (room: string) => ROOMS.find(r => r.id === room)?.type ?? "";
 // Bookings made in this session, and stays that have ended. shortcut: kept in memory until reload; the hotel server stores them.
 const ADDED: GridBooking[] = [];
 const DEPARTED: Reservation[] = [];
+const NO_SHOWS: (Reservation & { reason: string })[] = [];
 export const gridBookings = (): GridBooking[] => [
   ...ADDED,
   ...STAYS.map(s => ({ id: s.id, room: s.room, guest: s.guest, checkin: dayMonth(s.checkin), checkout: dayMonth(s.checkout), status: "Checked in" as const, rate: roomPrice(s.type), source: "Front desk", vip: s.vip })),
@@ -163,6 +165,7 @@ export const reservations = (): Reservation[] => [
   ...unassignedArrivals().map(a => ({ id: a.id, guest: a.guest, room: "", type: a.type, checkin: TODAY, checkout: short(addDays(BUSINESS_DATE, a.nights)),
     status: a.status, source: "Phone", nights: a.nights, rate: a.rate })),
   ...DEPARTED,
+  ...NO_SHOWS,
 ];
 
 // Plain record changes. mock/hotel.ts calls these and keeps the other departments in step.
@@ -194,6 +197,17 @@ export const setLateCheckout = (stayId: string, time: string) => {
 const DISCOUNTS: Record<string, number> = {};
 export const addDiscount = (stayId: string, amount: number) => { DISCOUNTS[stayId] = (DISCOUNTS[stayId] ?? 0) + amount; };
 export const discountOf = (stayId: string) => DISCOUNTS[stayId] ?? 0;
+// Today's arrivals screen: guests still to come, guests who already checked in today, and today's no-shows.
+export const checkedInToday = () => STAYS.filter(s => s.checkin === TODAY);
+export const noShowsToday = () => NO_SHOWS;
+export const setArrivalRoom = (arrivalId: string, room: string) => { const a = ARRIVALS.find(x => x.id === arrivalId); if (a) a.room = room; };
+export const addArrivalNote = (arrivalId: string, note: ArrivalNote) => { const a = ARRIVALS.find(x => x.id === arrivalId); if (a) a.notes = [...(a.notes ?? []), note]; };
+export const arrivalToNoShow = (arrivalId: string, reason: string) => {
+  const i = ARRIVALS.findIndex(a => a.id === arrivalId); if (i < 0) return null;
+  const [a] = ARRIVALS.splice(i, 1);
+  NO_SHOWS.push({ id: a.id, guest: a.guest, room: "", type: a.type, checkin: TODAY, checkout: short(addDays(BUSINESS_DATE, a.nights)), status: "No Show", source: "Phone", nights: a.nights, rate: a.rate, reason });
+  return a;
+};
 export const endStay = (stayId: string) => {
   const i = STAYS.findIndex(s => s.id === stayId); if (i < 0) return null;
   const [s] = STAYS.splice(i, 1);

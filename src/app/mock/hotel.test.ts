@@ -50,3 +50,24 @@ describe("hotel actions", () => {
     expect(roomState("114")).toBe("Being cleaned");
   });
 });
+
+import { assignRoom, roomsForArrival, markNoShow } from "./hotel";
+describe("today's arrivals", () => {
+  test("an arrival can only be given a free room of its type, ready rooms first", () => {
+    const a = ARRIVALS.find(x => x.id === "BK-2857")!; // Standard, no room yet
+    const rooms = roomsForArrival(a.id);
+    expect(rooms.length).toBeGreaterThan(0);
+    expect(rooms.indexOf("102")).toBeGreaterThan(rooms.indexOf("103")); // 102 is being cleaned, 103 is ready
+    expect(assignRoom(a.id, "202")).toBe(false); // a Deluxe room
+    expect(assignRoom(a.id, rooms[0])).toBe(true);
+    expect(roomState(rooms[0])).toBe("Arriving today");
+  });
+
+  test("a no-show leaves today's list, shows in Reservation Search and frees the room", () => {
+    const a = ARRIVALS.find(x => x.id === "BK-2856")!; // room 303
+    markNoShow(a.id, "No answer on two calls");
+    expect(ARRIVALS.some(x => x.id === a.id)).toBe(false);
+    expect(reservations().find(r => r.id === a.id)?.status).toBe("No Show");
+    expect(roomFree("303", BUSINESS_DATE, 1)).toBe(true);
+  });
+});
