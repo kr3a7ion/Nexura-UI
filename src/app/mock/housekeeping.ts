@@ -62,13 +62,12 @@ export const updateRoom = (id: string, patch: Partial<Pick<HKRoom, "hkSt" | "att
 export const CHECKLIST = ["Bed made correctly", "Linen clean and pressed", "Bathroom scrubbed", "Toilet disinfected", "Minibar restocked", "Amenities replenished", "Floors vacuumed or mopped", "Surfaces dusted", "Mirrors polished", "TV and AC working", "Curtains aligned", "Nothing left behind"];
 export const PASS_MARK = 10;
 export type Inspection = { id: string; room: string; attendant: string; inspector: string; ts: string; failed: number[]; notes: string };
-const checks = (failed: number[]) => failed;
 export const INSPECTIONS: Inspection[] = [
-  { id: "INS-041", room: "103", attendant: "Amaka Osei",  inspector: "Grace Mensah", ts: "Today 09:40",     failed: checks([7]),          notes: "Minor dust on top shelf. Otherwise excellent." },
-  { id: "INS-040", room: "102", attendant: "Fatima Musa", inspector: "Grace Mensah", ts: "Today 09:30",     failed: checks([2, 3, 4, 5, 6]), notes: "Bathroom not cleaned. Bed linen stained." },
-  { id: "INS-039", room: "301", attendant: "Amaka Osei",  inspector: "David Okafor", ts: "Yesterday 16:00", failed: checks([]),           notes: "Spotless." },
-  { id: "INS-038", room: "203", attendant: "Ngozi Ike",   inspector: "Grace Mensah", ts: "Yesterday 14:30", failed: checks([4, 10]),      notes: "Minibar not restocked; curtains not aligned." },
-  { id: "INS-037", room: "501", attendant: "Fatima Musa", inspector: "David Okafor", ts: "Yesterday 11:00", failed: checks([]),           notes: "Suite passed fully." },
+  { id: "INS-041", room: "103", attendant: "Amaka Osei",  inspector: "Grace Mensah", ts: "Today 09:40",     failed: [7],          notes: "Minor dust on top shelf. Otherwise excellent." },
+  { id: "INS-040", room: "102", attendant: "Fatima Musa", inspector: "Grace Mensah", ts: "Today 09:30",     failed: [2, 3, 4, 5, 6], notes: "Bathroom not cleaned. Bed linen stained." },
+  { id: "INS-039", room: "301", attendant: "Amaka Osei",  inspector: "David Okafor", ts: "Yesterday 16:00", failed: [],           notes: "Spotless." },
+  { id: "INS-038", room: "203", attendant: "Ngozi Ike",   inspector: "Grace Mensah", ts: "Yesterday 14:30", failed: [4, 10],      notes: "Minibar not restocked; curtains not aligned." },
+  { id: "INS-037", room: "501", attendant: "Fatima Musa", inspector: "David Okafor", ts: "Yesterday 11:00", failed: [],           notes: "Suite passed fully." },
 ];
 export const passed = (i: Inspection) => CHECKLIST.length - i.failed.length >= PASS_MARK;
 export const addInspection = (i: Omit<Inspection, "id">) => {
@@ -76,7 +75,7 @@ export const addInspection = (i: Omit<Inspection, "id">) => {
   INSPECTIONS.unshift(next);
   updateRoom(i.room, passed(next) ? { hkSt: "Inspected", awaitingInspection: false } : { hkSt: "Dirty", awaitingInspection: false, note: "Re-clean after failed inspection" });
   if (passed(next)) notify("inspection.passed", { title: `Room ${i.room} is ready to sell`, body: `Passed inspection by ${i.inspector}.`, link: { screen: "reservation-grid", label: "Reservation Grid" } });
-  else notify("inspection.failed", { title: `Room ${i.room} failed inspection`, body: `Clean it again: ${i.failed.join(", ")}.`, people: [i.attendant], link: { screen: "hk-board", label: "Housekeeping Board" } });
+  else notify("inspection.failed", { title: `Room ${i.room} failed inspection`, body: `Clean it again: ${i.failed.map(n => CHECKLIST[n]).join(", ")}.`, people: [i.attendant], link: { screen: "hk-board", label: "Housekeeping Board" } });
   return next;
 };
 

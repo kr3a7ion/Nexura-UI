@@ -136,7 +136,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "folio") return <FolioScreen add={add} nav={nav} />;
   if (screen === "finance-folio") return <FinanceFolioManagement add={add} nav={nav} />;
   if (screen === "arrivals") return <ArrivalsScreen add={add} nav={nav} staffName={staffName} />;
-  if (screen === "departures") return <DeparturesScreen add={add} nav={nav} staffName={staffName} />;
+  if (screen === "departures") return <DeparturesScreen add={add} nav={nav} />;
   if (screen === "room-assignment") return <RoomAssignmentBoard add={add} nav={nav} />;
   if (screen === "walk-in") return <WalkInReg add={add} nav={nav} staffName={staffName} />;
   if (screen === "key-card") return <KeyCardMgmt add={add} />;
@@ -380,7 +380,8 @@ const LEVEL_STYLE: Record<Level, { edge: string; bg: string; ink: string }> = {
 };
 const ago = (at: number) => { const m = Math.round((Date.now() - at) / 60000); return m < 1 ? "Just now" : m < 60 ? `${m} min ago` : `${Math.round(m / 60)} h ago`; };
 // A short two-tone sound for urgent notices; browsers allow it once the user has clicked in the page.
-const beep = () => { try { const c = new AudioContext(); [880, 660].forEach((f, i) => { const o = c.createOscillator(); o.frequency.value = f; o.connect(c.destination); o.start(c.currentTime + i * 0.18); o.stop(c.currentTime + i * 0.18 + 0.15); }); } catch { /* no sound available */ } };
+let audio: AudioContext | null = null;
+const beep = () => { try { const c = (audio ??= new AudioContext()); [880, 660].forEach((f, i) => { const o = c.createOscillator(); o.frequency.value = f; o.connect(c.destination); o.start(c.currentTime + i * 0.18); o.stop(c.currentTime + i * 0.18 + 0.15); }); } catch { /* no sound available */ } };
 
 function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   initialRole: Role;

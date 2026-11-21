@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { requestApproval, waitingFor, decide, latestFor, setApproverRoles, canApprove } from "./approvals";
+import { requestApproval, waitingFor, decide, setApproverRoles, canApprove } from "./approvals";
 import { walkIn } from "./hotel";
 import { CHARGES, setRoomRate } from "./frontOffice";
 
 describe("approvals", () => {
   test("a request waits on the manager's dashboard and the change happens only when approved", () => {
     let applied = 0;
-    const a = requestApproval({ kind: "Rate override", dept: "Front Office", ref: "BK-T1", title: "T", detail: "", reason: "Corporate", requestedBy: "Chioma Nwosu", apply: () => applied++ });
+    const a = requestApproval({ kind: "Rate override", dept: "Front Office", ref: "BK-T1", title: "T", detail: "", reason: "Corporate", requestedBy: "Chioma Nwosu", apply: () => { applied++; return true; } });
     expect(waitingFor("MGT").some(x => x.id === a.id)).toBe(true);
     expect(waitingFor("FD").some(x => x.id === a.id)).toBe(false);
     expect(decide(a.id, true, "Chioma Nwosu", "MGT")).toMatch(/someone else/i);
@@ -15,18 +15,18 @@ describe("approvals", () => {
     expect(decide(a.id, true, "Adaeze Okonkwo", "MGT")).toBeNull();
     expect(applied).toBe(1);
     expect(decide(a.id, true, "Adaeze Okonkwo", "MGT")).toMatch(/already/);
-    expect(latestFor("Rate override", "BK-T1")?.status).toBe("Approved");
+    expect(a.status).toBe("Approved");
   });
 
   test("a declined request changes nothing, and asking twice keeps one waiting request", () => {
     let applied = 0;
-    const one = requestApproval({ kind: "Discount", dept: "Front Office", ref: "BK-T2", title: "T", detail: "₦6,000", reason: "R", requestedBy: "X", apply: () => applied++ });
-    const two = requestApproval({ kind: "Discount", dept: "Front Office", ref: "BK-T2", title: "T", detail: "₦7,000", reason: "R", requestedBy: "X", apply: () => applied++ });
+    const one = requestApproval({ kind: "Discount", dept: "Front Office", ref: "BK-T2", title: "T", detail: "₦6,000", reason: "R", requestedBy: "X", apply: () => { applied++; return true; } });
+    const two = requestApproval({ kind: "Discount", dept: "Front Office", ref: "BK-T2", title: "T", detail: "₦7,000", reason: "R", requestedBy: "X", apply: () => { applied++; return true; } });
     expect(two.id).toBe(one.id);
     expect(two.detail).toBe("₦7,000");
     decide(one.id, false, "Adaeze Okonkwo", "MGT", "Too much");
     expect(applied).toBe(0);
-    expect(latestFor("Discount", "BK-T2")).toMatchObject({ status: "Declined", note: "Too much" });
+    expect(one).toMatchObject({ status: "Declined", note: "Too much" });
   });
 
   test("the admin can make a department lead an approver, but never remove the manager", () => {

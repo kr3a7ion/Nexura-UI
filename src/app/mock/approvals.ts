@@ -9,7 +9,7 @@ export type ApprovalKind = "Rate override" | "Discount";
 export type Approval = {
   id: string; kind: ApprovalKind; dept: string; ref: string; title: string; detail: string; reason: string;
   requestedBy: string; at: string; status: "Waiting" | "Approved" | "Declined"; decidedBy?: string; note?: string;
-  apply: () => void;
+  apply: () => boolean; // false when the change can no longer be made, for example the guest has left
 };
 
 // Who may approve each department's requests. Roles & Permissions changes this.
@@ -32,9 +32,7 @@ export const requestApproval = (a: Omit<Approval, "id" | "at" | "status">) => {
   return created;
 };
 
-export const approvals = () => LIST;
 export const waitingFor = (role: Role) => LIST.filter(a => a.status === "Waiting" && canApprove(role, a.dept));
-export const latestFor = (kind: ApprovalKind, ref: string) => LIST.find(a => a.kind === kind && a.ref === ref);
 
 // Nobody approves their own request. Returns a reason when the decision is refused.
 export const decide = (id: string, approve: boolean, by: string, role: Role, note = "") => {
@@ -42,8 +40,10 @@ export const decide = (id: string, approve: boolean, by: string, role: Role, not
   if (!a || a.status !== "Waiting") return "This request has already been decided.";
   if (!canApprove(role, a.dept)) return "You cannot approve this department's requests.";
   if (a.requestedBy === by) return "Someone else must approve your own request.";
+  // Approving after the guest has checked out would change a closed bill, so it is declined instead.
+  const tooLate = approve && !a.apply();
+  if (tooLate) { approve = false; note = "The guest checked out before this was approved; settle it at Finance."; }
   Object.assign(a, { status: approve ? "Approved" : "Declined", decidedBy: by, note });
-  if (approve) a.apply();
   notify("approval.decided", { title: `${a.kind} ${approve ? "approved" : "declined"}: ${a.title}`, body: approve ? `${by} approved ${a.detail}.` : `${by}: ${note}`, people: [a.requestedBy] });
-  return null;
+  return tooLate ? note : null;
 };

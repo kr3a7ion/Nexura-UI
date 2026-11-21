@@ -34,11 +34,11 @@ import {
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK } from "./constants";
 import { TextOrDate } from "./DateInput";
-import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, balanceOf, gridBookings, unassignedArrivals, type GridBooking, reservations } from "./mock/frontOffice";
+import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, balanceOf, gridBookings, unassignedArrivals, type GridBooking, reservations, unassignedFuture } from "./mock/frontOffice";
 import { UI, controlClass, controlStyle, Field, Card, SectionTitle, Stepper, Choice, Segmented, Row } from "./ui";
 import { ROOM_TYPES, roomPrice, roomTypeNames } from "./mock/property";
 import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
-import { addBooking, checkOut, typeAvailable } from "./mock/hotel";
+import { addBooking, checkOut, typeAvailable, assignRoom, roomsForBooking } from "./mock/hotel";
 import { requestApproval } from "./mock/approvals";
 import { addDiscount, discountOf } from "./mock/frontOffice";
 
@@ -283,7 +283,10 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<GridBooking | null>(null);
   const bookings = gridBookings();
-  const waiting = unassignedArrivals();
+  const [, refresh] = useState(0);
+  // Bookings with no room yet: today's arrivals and later "room at check-in" bookings. The desk gives each a room here.
+  const waiting = [...unassignedArrivals().map(a => ({ id: a.id, guest: a.guest, type: a.type, nights: a.nights, vip: a.vip, from: BUSINESS_DATE })),
+    ...unassignedFuture().map(b => ({ id: b.id, guest: b.guest, type: b.type ?? "", nights: Math.round((b.checkout.getTime() - b.checkin.getTime()) / 86400000), vip: b.vip, from: b.checkin }))];
 
   const start = new Date(BUSINESS_DATE); start.setDate(start.getDate() + offset);
   const days = Array.from({ length: DAYS }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
@@ -296,7 +299,7 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
     (!q || r.id.includes(q) || bookings.some(b => b.room === r.id && b.guest.toLowerCase().includes(q))));
   const booked = (d: Date) => rooms.filter(r => bookings.some(b => b.room === r.id && b.checkin <= d && b.checkout > d)).length;
   const tonight = booked(BUSINESS_DATE);
-  const arriving = bookings.filter(b => b.status !== "Checked in" && b.checkin.toDateString() === BUSINESS_DATE.toDateString()).length + waiting.length;
+  const arriving = bookings.filter(b => b.status !== "Checked in" && b.checkin.toDateString() === BUSINESS_DATE.toDateString()).length + waiting.filter(w => w.from.toDateString() === BUSINESS_DATE.toDateString()).length;
   const leaving = bookings.filter(b => b.checkout.toDateString() === BUSINESS_DATE.toDateString()).length;
   const short = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   const weekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
@@ -386,8 +389,13 @@ export function ReservationGrid({ add, nav }: { add: (t: Omit<Toast, "id">) => v
                 </div>
                 <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                   {waiting.map(a => (
-                    <span key={a.id} className="text-sm px-2.5 py-1 rounded-lg" style={{ backgroundColor: "white", border: "1px solid #FCD34D", color: "#78350F" }}>
-                      {a.vip && "★ "}{a.guest} · {a.type} · {a.nights} night{a.nights === 1 ? "" : "s"} from today
+                    <span key={a.id} className="flex items-center gap-2 text-sm pl-2.5 pr-1 py-1 rounded-lg" style={{ backgroundColor: "white", border: "1px solid #FCD34D", color: "#78350F" }}>
+                      {a.vip && "★ "}{a.guest} · {a.type} · {a.nights} night{a.nights === 1 ? "" : "s"} from {a.from.toDateString() === BUSINESS_DATE.toDateString() ? "today" : fmtDate(a.from)}
+                      <select aria-label={`Give ${a.guest} a room`} value="" onChange={e => { if (assignRoom(a.id, e.target.value)) { add({ type: "success", title: `Room ${e.target.value} given to ${a.guest}` }); refresh(n => n + 1); } }}
+                        className="h-7 rounded-md border bg-white px-1.5 text-sm" style={{ borderColor: "#FCD34D", color: TEXT }}>
+                        <option value="">Give a room</option>
+                        {roomsForBooking(a.id).map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
                     </span>
                   ))}
                 </div>

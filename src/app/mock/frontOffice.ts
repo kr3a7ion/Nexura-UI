@@ -97,7 +97,7 @@ for (const st of moreStays) {
   CHARGES[st.id] = [{ date: st.checkin, cat: "Room", desc: `${st.type} Room ${st.room} × ${st.nights} night${st.nights === 1 ? "" : "s"}`, qty: st.nights, unit, amount, by: "System", tax: Math.round(amount * 0.075), reversed: false }];
 }
 export const chargesTotal = (id: string) => (CHARGES[id] ?? []).filter(c => !c.reversed).reduce((s, c) => s + c.amount + c.tax, 0);
-export const balanceOf = (s: Stay) => chargesTotal(s.id) - s.paid;
+export const balanceOf = (s: Stay) => chargesTotal(s.id) - s.paid - discountOf(s.id);
 export const leavesToday = (s: Stay) => s.checkout === TODAY;
 const nightsLeft = (s: Stay) => Math.max(0, Math.round((new Date(`${s.checkout} ${BUSINESS_DATE.getFullYear()}`).getTime() - BUSINESS_DATE.getTime()) / 86400000));
 
@@ -121,7 +121,7 @@ export const departures = () => STAYS.filter(leavesToday).map(s => ({
 
 // Folio Management
 export const folios = () => STAYS.map(s => {
-  const charges = chargesTotal(s.id), balance = charges - s.paid;
+  const charges = chargesTotal(s.id), balance = balanceOf(s);
   return {
     id: s.folio, res: s.id, guest: s.guest, av: s.av, room: s.room, checkin: s.checkin, checkout: s.checkout,
     charges, payments: s.paid, balance, daysOpen: Math.max(1, s.nights - nightsLeft(s)), lastActivity: s.lastActivity,
@@ -201,7 +201,7 @@ export const reservations = (): Reservation[] => [
 
 // Plain record changes. mock/hotel.ts calls these and keeps the other departments in step.
 const bkNum = (id: string) => Number(id.slice(3));
-export const nextBookingId = () => `BK-${Math.max(...[...STAYS, ...ARRIVALS, ...ADDED, ...DEPARTED].map(b => bkNum(b.id)), ...FUTURE.map(f => bkNum(f[0]))) + 1}`;
+export const nextBookingId = () => `BK-${Math.max(...[...STAYS, ...ARRIVALS, ...ADDED, ...DEPARTED, ...NO_SHOWS].map(b => bkNum(b.id)), ...FUTURE.map(f => bkNum(f[0]))) + 1}`;
 export const initials = (name: string) => name.split(/\s+/).filter(w => !w.endsWith(".")).map(w => w[0]).join("").slice(0, 2).toUpperCase();
 export const addFutureBooking = (b: GridBooking) => { ADDED.push(b); };
 export const addArrival = (a: Arrival) => { ARRIVALS.push(a); };
@@ -217,21 +217,29 @@ export const arrivalToStay = (arrivalId: string, room: string, rate: number, pai
   return stay;
 };
 // Changes the nightly rate on a stay's room charge, for example after an approved rate override.
+// Both return false once the guest has left: a closed bill is settled at Finance, not changed here.
 export const setRoomRate = (stayId: string, rate: number) => {
-  const row = CHARGES[stayId]?.find(c => c.cat === "Room" && !c.reversed); if (!row) return;
+  const row = CHARGES[stayId]?.find(c => c.cat === "Room" && !c.reversed); if (!row || !STAYS.some(s => s.id === stayId)) return false;
   Object.assign(row, { unit: rate, amount: rate * row.qty, tax: Math.round(rate * row.qty * 0.075) });
+  return true;
 };
 export const setLateCheckout = (stayId: string, time: string) => {
   const stay = STAYS.find(x => x.id === stayId); if (stay) Object.assign(stay, { lateCheckout: true, checkoutTime: time });
 };
 // Discounts given off a stay's bill, small ones at the desk and larger ones once approved.
 const DISCOUNTS: Record<string, number> = {};
-export const addDiscount = (stayId: string, amount: number) => { DISCOUNTS[stayId] = (DISCOUNTS[stayId] ?? 0) + amount; };
+export const addDiscount = (stayId: string, amount: number) => {
+  if (!STAYS.some(s => s.id === stayId)) return false;
+  DISCOUNTS[stayId] = (DISCOUNTS[stayId] ?? 0) + amount; return true;
+};
 export const discountOf = (stayId: string) => DISCOUNTS[stayId] ?? 0;
 // Today's arrivals screen: guests still to come, guests who already checked in today, and today's no-shows.
 export const checkedInToday = () => STAYS.filter(s => s.checkin === TODAY);
 export const noShowsToday = () => NO_SHOWS;
-export const setArrivalRoom = (arrivalId: string, room: string) => { const a = ARRIVALS.find(x => x.id === arrivalId); if (a) a.room = room; };
+// Gives a booking its room, whether it arrives today or later.
+export const setBookingRoom = (id: string, room: string) => { const b = ARRIVALS.find(x => x.id === id) ?? ADDED.find(x => x.id === id); if (b) b.room = room; };
+// Later bookings made with "room at check-in", so the grid can show them and the desk can give them a room.
+export const unassignedFuture = () => ADDED.filter(b => !b.room);
 export const addArrivalNote = (arrivalId: string, note: ArrivalNote) => { const a = ARRIVALS.find(x => x.id === arrivalId); if (a) a.notes = [...(a.notes ?? []), note]; };
 export const arrivalToNoShow = (arrivalId: string, reason: string) => {
   const i = ARRIVALS.findIndex(a => a.id === arrivalId); if (i < 0) return null;

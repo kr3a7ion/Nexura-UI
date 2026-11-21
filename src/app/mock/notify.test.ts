@@ -46,7 +46,7 @@ describe("the bell", () => {
     expect(newest("Fatima Musa", "HK", "guest.checkedOut")?.title).toBe("Room 203 is free to clean");
     addBooking({ guest: "Bell Test", room: "119", type: "Standard", checkin: BUSINESS_DATE, nights: 1, rate: 35000, source: "Phone" });
     expect(newest("Amina Yusuf", "RSV", "booking.made")?.title).toBe("New booking: Bell Test");
-    const a = requestApproval({ kind: "Discount", dept: "Front Office", ref: "BK-BELL", title: "Guest", detail: "₦8,000 off", reason: "Noise", requestedBy: "Chioma Nwosu", apply: () => {} });
+    const a = requestApproval({ kind: "Discount", dept: "Front Office", ref: "BK-BELL", title: "Guest", detail: "₦8,000 off", reason: "Noise", requestedBy: "Chioma Nwosu", apply: () => true });
     expect(newest("Adaeze Okonkwo", "MGT", "approval.requested")?.level).toBe("High");
     expect(noticesFor("Chioma Nwosu", "FD").some(x => x.event === "approval.requested")).toBe(false);
     setCurrentUser("Adaeze Okonkwo", "MGT");
