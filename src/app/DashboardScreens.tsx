@@ -24,7 +24,7 @@ import {
 import {
   type Role, type Toast, type ToastType, type AddToast, fmtN, BUSINESS_DATE, fmtDate, uid, actC, actBg,
   mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR, BORDER, TEXT, MUTED, SUBTLE,
-  hkC, woC, priC, tblC, stC, roomStC, resStC,
+  hkC, tblC, stC, roomStC, resStC,
   occData, occ30Data, revCat, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
@@ -37,6 +37,7 @@ import { hkRooms } from "./mock/housekeeping";
 import { STAYS, ARRIVALS, departures, inHouseGuests, reservations } from "./mock/frontOffice";
 import { roomPrice } from "./mock/property";
 import { workOrders, isOpen, isOverdue, ageOf } from "./mock/maintenance";
+import { WO_STATUS_C, WO_PRI_C } from "./WorkOrderScreens";
 import { roomCounts } from "./mock/rooms";
 
 export function DashboardMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
@@ -636,8 +637,8 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RoleCard title="My Work Orders">
           {workOrders().filter(isOpen).slice(0, 5).map(wo => {
-            const sc = isOverdue(wo) ? woC.Overdue : woC[wo.status] ?? { bg: "#F3F4F6", text: "#374151" };
-            const pc = priC[wo.priority] ?? MUTED;
+            const sc = WO_STATUS_C[isOverdue(wo) ? "Overdue" : wo.status];
+            const pc = WO_PRI_C[wo.priority].text;
             return (
               <div key={wo.id} className="flex items-center gap-4 px-5 py-3.5 border-b cursor-pointer hover:bg-slate-50"
                 style={{ borderColor: BORDER }} onClick={() => go("work-order-detail", wo.id, wo.id)}>

@@ -3,7 +3,15 @@ import { roomState, roomCounts } from "./rooms";
 import { ROOMS } from "./property";
 import { STAYS, reservations } from "./frontOffice";
 import { updateRoom } from "./housekeeping";
-import { addWorkOrder, updateWorkOrder } from "./maintenance";
+import { addWorkOrder, moveWorkOrder } from "./maintenance";
+import { finishWorkOrder } from "./hotel";
+
+// Takes a job from raised to verified the way the department does: assigned, accepted, done, checked by someone else.
+const toVerified = (id: string) => {
+  for (const [to, m] of [["Assigned", { by: "Adaeze Okonkwo", tech: "Emeka Obi" }], ["Accepted", { by: "Emeka Obi" }], ["In progress", { by: "Emeka Obi" }],
+    ["Completed", { by: "Emeka Obi", note: "Fixed" }], ["Verified", { by: "Chidi Ike" }]] as const) expect(moveWorkOrder(id, to, m)).toBeNull();
+};
+
 
 describe("room state", () => {
   test("every room is counted once and the demo day adds up", () => {
@@ -16,13 +24,13 @@ describe("room state", () => {
     for (const s of STAYS) expect(roomState(s.room)).toBe("Occupied");
   });
 
-  test("an out-of-order order takes a room out until it is closed or cancelled, not when it is only fixed", () => {
+  test("an out-of-order job holds the room until it is closed, even once completed and verified", () => {
     expect(roomState("105")).toBe("Ready");
-    const w = addWorkOrder({ title: "Leak", location: "Room 105", cat: "Plumbing", priority: "High", reportedBy: "Test", desc: "Leak", room: "105", outOfOrder: true });
+    const w = addWorkOrder({ title: "Leak", location: "Room 105", cat: "Plumbing", priority: "P2", reportedBy: "Test", desc: "Leak", room: "105", outOfOrder: true });
     expect(roomState("105")).toBe("Out of order");
-    updateWorkOrder(w.id, { status: "Fixed" });
+    toVerified(w.id);
     expect(roomState("105")).toBe("Out of order");
-    updateWorkOrder(w.id, { status: "Closed" });
+    finishWorkOrder(w.id, "Closed", "Adaeze Okonkwo");
     expect(roomState("105")).not.toBe("Out of order");
   });
 

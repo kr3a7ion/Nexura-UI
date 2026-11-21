@@ -20,11 +20,11 @@ describe("fault reports", () => {
   test("Maintenance makes it a job once, sets the priority, and the reporter is told", () => {
     const r = report({ title: "Toilet running", room: "211", location: "Room 211", guestCannotUse: true });
     setCurrentUser("Emeka Obi", "MX");
-    const job = makeJob(r.id, { priority: "Medium", outOfOrder: true, cat: "Plumbing", by: "Emeka Obi" })!;
-    expect(job.priority).toBe("Medium");
+    const job = makeJob(r.id, { priority: "P2", outOfOrder: true, cat: "Plumbing", by: "Emeka Obi" })!;
+    expect(job.priority).toBe("P2");
     expect(job.reportedBy).toBe("Amaka Osei");
     expect(roomState("211")).toBe("Occupied"); // a guest is in 211, so the room stays occupied though the job holds it
-    expect(makeJob(r.id, { priority: "High", outOfOrder: false, cat: "Plumbing", by: "Emeka Obi" })).toBeNull(); // no second job
+    expect(makeJob(r.id, { priority: "P1", outOfOrder: false, cat: "Plumbing", by: "Emeka Obi" })).toBeNull(); // no second job
     expect(faultReports().find(x => x.id === r.id)).toMatchObject({ status: "Made into a job", jobId: job.id });
     expect(noticesFor("Amaka Osei", "HK").some(n => n.title === `Your report is now ${job.id}`)).toBe(true);
   });
@@ -34,7 +34,7 @@ describe("fault reports", () => {
     setCurrentUser("Emeka Obi", "MX");
     expect(turnDown(r.id, "  ", "Emeka Obi")).toBe(false);
     expect(turnDown(r.id, "Repainting is booked for the whole floor next month", "Emeka Obi")).toBe(true);
-    expect(makeJob(r.id, { priority: "Low", outOfOrder: false, cat: "General", by: "Emeka Obi" })).toBeNull();
+    expect(makeJob(r.id, { priority: "P4", outOfOrder: false, cat: "General", by: "Emeka Obi" })).toBeNull();
     expect(noticesFor("Amaka Osei", "HK").find(n => n.title === "Report turned down: Paint chipped")?.body).toBe("Emeka Obi: Repainting is booked for the whole floor next month");
   });
 });

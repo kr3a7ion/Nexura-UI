@@ -8,7 +8,8 @@ import {
   BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
 import { MAINTENANCE_EXCEPTIONS, MAINTENANCE_POWER } from "../../mock/maintenanceHome";
-import { workOrders, isOpen, isOverdue, ageOf, type WorkOrder } from "../../mock/maintenance";
+import { workOrders, isOpen, isOverdue, isUrgent, ageOf, priorityLabel, type WorkOrder } from "../../mock/maintenance";
+import { WO_STATUS_C, WO_PRI_C } from "../../WorkOrderScreens";
 import { ROOMS } from "../../mock/property";
 import { roomState } from "../../mock/rooms";
 import { DEPARTMENTS } from "../departments";
@@ -19,18 +20,6 @@ const flow = department.flow;
 
 type Nav = (screen: Screen, label: string, param?: string) => void;
 
-const statusColors: Record<string, { bg: string; text: string }> = {
-  Reported: { bg: "#F1F5F9", text: "#475569" },
-  Assigned: { bg: "#EFF6FF", text: "#1D4ED8" },
-  "In progress": { bg: "#FFF7ED", text: "#C2410C" },
-  Overdue: { bg: "#FEF2F2", text: ERROR },
-};
-
-const priorityColors: Record<WorkOrder["priority"], { bg: string; text: string }> = {
-  High: { bg: "#FEF2F2", text: ERROR },
-  Medium: { bg: "#FFFBEB", text: "#B45309" },
-  Low: { bg: BG, text: MUTED },
-};
 
 const severityColors = {
   Critical: { bg: "#FEF2F2", text: ERROR },
@@ -70,7 +59,7 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
 
       <section className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Open work orders" value={String(open.length)} sub={`${open.filter(w => w.room).length} in rooms · ${open.filter(w => !w.room).length} elsewhere`} icon={Wrench} accent={accent} />
-        <StatCard label="Overdue" value={String(overdue.length)} sub={overdue.length ? `${overdue.filter(w => w.priority === "High").length} high priority` : "All on time"} icon={Clock} accent={accent} />
+        <StatCard label="Overdue" value={String(overdue.length)} sub={overdue.length ? `${overdue.filter(isUrgent).length} P1 or P2` : "All on time"} icon={Clock} accent={accent} />
         <StatCard label="Rooms out of order" value={String(outOfOrder.length)} sub={outOfOrder.length ? `Rooms ${outOfOrder.map(r => r.id).join(", ")}` : "All rooms in service"} icon={Buildings} accent={accent} />
         <StatCard label="Main generator diesel" value="30%" sub={`${MAINTENANCE_POWER.dieselRemaining.replace(" (30%)", "")} · ${MAINTENANCE_POWER.reserveDays.toLowerCase()} left`} icon={Drop} accent={accent} />
       </section>
@@ -97,8 +86,8 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
                 <td className="px-4 py-3 min-w-[220px]"><div className="text-sm font-medium" style={{ color: TEXT }}>{item.title}</div><div className="mt-0.5 text-sm" style={{ color: MUTED }}>{item.id} · {item.location}</div></td>
                 <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: item.tech ? TEXT : "#B45309" }}>{item.tech ?? "Nobody yet"}</td>
                 <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: isOverdue(item) ? ERROR : TEXT }}>{ageOf(item)}</td>
-                <td className="px-4 py-3"><Badge label={item.priority} colors={priorityColors[item.priority]} /></td>
-                <td className="px-4 py-3 whitespace-nowrap"><Badge label={isOverdue(item) ? "Overdue" : item.status} colors={statusColors[isOverdue(item) ? "Overdue" : item.status] ?? statusColors.Reported} /></td>
+                <td className="px-4 py-3"><Badge label={priorityLabel(item.priority)} colors={WO_PRI_C[item.priority]} /></td>
+                <td className="px-4 py-3 whitespace-nowrap"><Badge label={isOverdue(item) ? "Overdue" : item.status} colors={WO_STATUS_C[isOverdue(item) ? "Overdue" : item.status]} /></td>
                 <td className="px-4 py-3 text-right"><button onClick={() => nav("work-order-detail", item.id, item.id)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium whitespace-nowrap" style={{ backgroundColor: `${accent}12`, color: "#C2410C" }}>Open<ArrowRight size={12} /></button></td>
               </tr>)}</tbody>
             </table>

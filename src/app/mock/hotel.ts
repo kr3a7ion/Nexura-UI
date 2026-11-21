@@ -6,7 +6,7 @@ import { ARRIVALS, STAYS, gridBookings, bookedOn, nextBookingId, initials, addFu
 import { updateRoom, hkStatus, hkRooms } from "./housekeeping";
 import { notify } from "./notify";
 import { ROOMS } from "./property";
-import { workOrder, updateWorkOrder, isOutOfOrder, type WorkOrder } from "./maintenance";
+import { workOrder, moveWorkOrder, isOutOfOrder } from "./maintenance";
 
 const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
@@ -65,16 +65,18 @@ export const checkOut = (stayId: string) => {
 };
 
 // Closing or cancelling the last order that held a room sends it to Housekeeping dirty, not straight to sale.
-export const finishWorkOrder = (id: string, status: "Closed" | "Cancelled", patch: Partial<WorkOrder>, log: { event: string; by: string; note: string }) => {
-  const w = workOrder(id); if (!w) return null;
-  updateWorkOrder(id, { ...patch, status }, log);
+// Only a verified job can be closed; cancelling needs a reason. Returns why it was refused, if it was.
+export const finishWorkOrder = (id: string, status: "Closed" | "Cancelled", by: string, note = "") => {
+  const w = workOrder(id); if (!w) return { refused: "There is no such work order.", backToHousekeeping: false };
+  const refused = moveWorkOrder(id, status, { by, note });
+  if (refused) return { refused, backToHousekeeping: false };
   const backToHousekeeping = !!w.room && w.outOfOrder && !isOutOfOrder(w.room) && !STAYS.some(s => s.room === w.room);
   if (backToHousekeeping) {
     updateRoom(w.room!, { hkSt: "Dirty", awaitingInspection: false, note: "Back from maintenance: clean before it is sold" });
     notify("room.backFromMaintenance", { title: `Room ${w.room} is back from maintenance`, body: "Clean and inspect it before it is sold.", people: [attendantOf(w.room!)], link: { screen: "hk-board", label: "Housekeeping Board" } });
   }
-  notify("workOrder.closed", { title: `${w.id} ${status === "Closed" ? "is done" : "was cancelled"}: ${w.title}`, body: status === "Closed" ? patch.resolution ?? "" : log.note, people: [w.reportedBy], link: { screen: "work-order-detail", label: "Work Order", param: w.id } });
-  return { order: w, backToHousekeeping };
+  notify("workOrder.closed", { title: `${w.id} ${status === "Closed" ? "is done" : "was cancelled"}: ${w.title}`, body: status === "Closed" ? w.resolution ?? "" : note, people: [w.reportedBy], link: { screen: "work-order-detail", label: "Work Order", param: w.id } });
+  return { refused: null, backToHousekeeping };
 };
 
 // Rooms a booking (today's arrival or a later one) can be given: its booked type, free for every night
