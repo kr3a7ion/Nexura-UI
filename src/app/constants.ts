@@ -16,7 +16,7 @@ export type Screen =
   | "room-types" | "rate-calendar" | "availability-board"
   | "check-in" | "check-out" | "in-house-guests" | "arrivals" | "departures" | "guest-profiles" | "room-assignment" | "walk-in" | "folio" | "key-card" | "room-access" | "key-card-log" | "pin-management"
   | "hk-board" | "hk-tasks" | "hk-schedule" | "hk-inspection" | "lost-found" | "linen-supplies" | "dnd-log"
-  | "work-orders" | "asset-register" | "preventive-schedule" | "vendor-contacts" | "work-order-detail"
+  | "work-orders" | "fault-reports" | "asset-register" | "preventive-schedule" | "vendor-contacts" | "work-order-detail"
   | "pos-terminal" | "kitchen-display" | "table-management" | "menu-management" | "dining-reservations" | "room-service" | "room-charges" | "cash-drawer"
   | "internal-chat" | "guest-messaging" | "announcements" | "shift-handover"
   | "night-audit" | "tax-config" | "refund-processing" | "folio-void"

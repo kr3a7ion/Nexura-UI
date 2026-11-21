@@ -35,7 +35,7 @@ stampNow, ORANGE_INK, TEAL_INK, WARNING_INK, fmtDate, BUSINESS_DATE } from "./co
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp, Sel } from "./UIKit";
 import { roomsFor, hkRooms, updateRoom, logFoundItem, INSPECTIONS, CHECKLIST, PASS_MARK, passed, addInspection, ATTENDANTS as HK_ATTENDANTS } from "./mock/housekeeping";
 import { STAYS } from "./mock/frontOffice";
-import { addWorkOrder } from "./mock/maintenance";
+import { ReportFaultDialog } from "./FaultScreens";
 // HK-04 Inspection Log
 export function InspectionLog({ add, staffName, navParam }: { add: (t: Omit<Toast, "id">) => void; staffName: string; navParam?: string }) {
   const [logs, setLogs] = useState(() => [...INSPECTIONS]);
@@ -560,7 +560,6 @@ export function HKMyTasks({ add, staffName }: { add: (t: Omit<Toast, "id">) => v
   const [requested, setRequested] = useState<Set<string>>(new Set());
   const [showInspect, setShowInspect] = useState<string | null>(null);
   const [showIssue, setShowIssue] = useState<string | null>(null);
-  const [issueDesc, setIssueDesc] = useState("");
   const mine = roomsFor(staffName);
   const [showFound, setShowFound] = useState<string | null>(null);
   const [foundDesc, setFoundDesc] = useState("");
@@ -644,7 +643,7 @@ export function HKMyTasks({ add, staffName }: { add: (t: Omit<Toast, "id">) => v
               </div>
               {/* Secondary actions */}
               <div className="flex gap-2 flex-wrap">
-                <button onClick={() => { setShowIssue(r.id); setIssueDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>Report a fault</button>
+                <button onClick={() => setShowIssue(r.id)} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>Report a fault</button>
                 <button onClick={() => { setDndRooms(p => { const n = new Set(p); isDND ? n.delete(r.id) : n.add(r.id); return n; }); add({ type: "info", title: isDND ? `Room ${r.id}: do not disturb cleared` : `Room ${r.id}: do not disturb noted` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>{isDND ? "Clear do not disturb" : "Do not disturb"}</button>
                 <button onClick={() => { setShowFound(r.id); setFoundDesc(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-medium border" style={{ color: TEXT, borderColor: BORDER, minHeight: 44 }}>Log found item</button>
               </div>
@@ -679,16 +678,8 @@ export function HKMyTasks({ add, staffName }: { add: (t: Omit<Toast, "id">) => v
         </>
       )}
       {/* Issue modal */}
-      {showIssue && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowIssue(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl p-6 w-full max-w-sm" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-semibold mb-3" style={{ color: TEXT }}>Report a fault in room {showIssue}</h3>
-            <textarea value={issueDesc} onChange={e => setIssueDesc(e.target.value)} placeholder="What is wrong, and where in the room?" aria-label="Describe the fault" rows={3} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none" style={{ borderColor: BORDER }} />
-            <div className="flex gap-3 mt-3"><BtnO label="Cancel" onClick={() => setShowIssue(null)} /><button disabled={!issueDesc.trim()} onClick={() => { const w = addWorkOrder({ title: issueDesc.trim().split(/[.\n]/)[0].slice(0, 60), location: `Room ${showIssue}`, room: showIssue, cat: "General", priority: "Medium", reportedBy: staffName, desc: issueDesc.trim() }); add({ type: "success", title: `Work order ${w.id} raised for room ${showIssue}`, body: "Maintenance can see it in Work Orders." }); setShowIssue(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Send to Maintenance</button></div>
-          </div>
-        </>
-      )}
+      {showIssue && <ReportFaultDialog room={showIssue} reportedBy={staffName} dept="Housekeeping" onClose={() => setShowIssue(null)}
+        onReported={r => { add({ type: "success", title: `${r.id} sent to Maintenance`, body: "You will be told when they decide." }); setShowIssue(null); }} />}
     </div>
   );
 }
