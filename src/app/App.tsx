@@ -42,7 +42,7 @@ const FleetHome = lazy(() => import("./suite/home/fleetHome"));
 import { SuiteHome, DepartmentHome } from "./suite/SuiteHome";
 import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
 import {
-  DEPARTMENTS, departmentForScreen, departmentsForRole,
+  departmentsForRole,
   type Department, type DepartmentId,
 } from "./suite/departments";
 import {
@@ -81,6 +81,7 @@ import {
   DispatchBoard, TripDetail, NewTripRequest, DriverRoster, FleetCosting, DriverAccessLog,
   VehicleRegister, VehicleDetail, FuelLog, GeneratorDieselLog,
 } from "./Screens";
+import { FaultReports } from "./FaultScreens";
 
 // ─── Placeholder for unbuilt screens ─────────────────────────────────────────
 function PlaceholderScreen({ title, desc, icon: Icon }: { title: string; desc: string; icon: React.ElementType }) {
@@ -130,7 +131,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   // Front Desk
   if (screen === "check-in") return <CheckInWizard add={add} initialReservationId={navParam} staffName={staffName} />;
   if (screen === "check-out") return <CheckOut add={add} initialReservationId={navParam} staffName={staffName} />;
-  if (screen === "in-house-guests") return <InHouseGuests add={add} nav={nav} />;
+  if (screen === "in-house-guests") return <InHouseGuests add={add} nav={nav} staffName={staffName} />;
   if (screen === "guest-profiles") return <GuestProfiles add={add} nav={nav} />;
   if (screen === "guest-profile-detail") return <GuestProfileDetail add={add} nav={nav} guestId={navParam} />;
   if (screen === "folio") return <FolioScreen add={add} nav={nav} />;
@@ -144,7 +145,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "key-card-log") return <KeyCardLog add={add} />;
   if (screen === "pin-management") return <PINManagement add={add} nav={nav} />;
   // Housekeeping
-  if (screen === "hk-board") return <HKBoard add={add} nav={nav} />;
+  if (screen === "hk-board") return <HKBoard add={add} nav={nav} staffName={staffName} />;
   if (screen === "hk-tasks") return <HKMyTasks add={add} staffName={staffName} />;
   if (screen === "hk-inspection") return <InspectionLog add={add} staffName={staffName} navParam={navParam} />;
   if (screen === "linen-supplies") return <LinenSupplies add={add} />;
@@ -152,8 +153,9 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "lost-found") return <LostFound add={add} staffName={staffName} />;
   if (screen === "dnd-log") return <DNDLog add={add} staffName={staffName} />;
   // Maintenance
-  if (screen === "work-orders") return <WorkOrders key={navParam} add={add} nav={nav} openNew={navParam?.startsWith("new") ? navParam.slice(4) : undefined} />;
-  if (screen === "work-order-detail") return <WorkOrderDetail key={navParam} add={add} nav={nav} id={navParam} />;
+  if (screen === "fault-reports") return <FaultReports add={add} nav={nav} role={role} staffName={staffName} dept={DEPT_OF[role] ?? "Management"} />;
+  if (screen === "work-orders") return <WorkOrders add={add} nav={nav} staffName={staffName} />;
+  if (screen === "work-order-detail") return <WorkOrderDetail key={navParam} add={add} nav={nav} id={navParam} staffName={staffName} />;
   if (screen === "asset-register") return <AssetRegister add={add} />;
   if (screen === "preventive-schedule") return <PreventiveSchedule add={add} />;
   if (screen === "vendor-contacts") return <VendorContacts add={add} />;
@@ -372,6 +374,9 @@ function PermissionsChangedDialog({ onReLogin }: { onReLogin: () => void }) {
 type SuiteScreen = Screen | "suite-home" | Department["home"];
 type SuitePortal = "field-app" | "guest-access" | "org-portal" | "admin-console";
 
+// Which department a person reports from, shown on their fault reports.
+const DEPT_OF: Partial<Record<Role, string>> = { HK: "Housekeeping", FD: "Front Office", RSV: "Front Office", MX: "Maintenance", RT: "Restaurant", MGT: "Management" };
+
 const LEVEL_STYLE: Record<Level, { edge: string; bg: string; ink: string }> = {
   Urgent: { edge: "#DC2626", bg: "#FEE2E2", ink: "#991B1B" },
   High:   { edge: "#EA580C", bg: "#FFEDD5", ink: "#9A3412" },
@@ -441,8 +446,11 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   const dismiss = useCallback((id: string) => setToasts(previous => previous.filter(toast => toast.id !== id)), []);
 
   const nav = (nextScreen: SuiteScreen, label: string, param = "") => {
-    const department = departmentForScreen(nextScreen);
-    if (department && (role === "MGT" || department.roles.includes(role))) setCurrentDepartmentId(department.id);
+    // A screen can sit in several departments (Fault Reports): stay in the open one if it has it,
+    // otherwise move to the first department this person may open that does.
+    const has = (d: Department) => d.home === nextScreen || d.screens.some(g => g.items.some(i => i.screen === nextScreen));
+    const department = currentDepartment && has(currentDepartment) ? currentDepartment : allowedDepartments.find(has);
+    if (department) setCurrentDepartmentId(department.id);
     setScreen(nextScreen);
     setActiveLabel(label);
     setNavParam(param);

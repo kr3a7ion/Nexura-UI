@@ -102,6 +102,45 @@ export const addWorkOrder = (w: Pick<WorkOrder, "title" | "location" | "cat" | "
   return created;
 };
 const PRIORITY_LEVEL: Record<WOPriority, Level> = { High: "Urgent", Medium: "High", Low: "Normal" };
+// Fault reports: Housekeeping and Front Office say what is wrong; Maintenance decides whether it is a job and how urgent.
+// The reporter never sets the priority, and a report becomes a job only once (FacilityFlow F1, F2).
+export type FaultReport = {
+  id: string; title: string; location: string; room?: string; desc: string; reportedBy: string; dept: string; at: Date;
+  guestCannotUse: boolean; danger: boolean; status: "New" | "Made into a job" | "Turned down"; jobId?: string; reason?: string; decidedBy?: string;
+};
+const REPORTS: FaultReport[] = [
+  { id: "RQ-0012", title: "Bathroom light flickering", location: "Room 207", room: "207", desc: "Ceiling light above the mirror flickers and buzzes.", reportedBy: "Amaka Osei", dept: "Housekeeping", at: at(0, 9, 50), guestCannotUse: false, danger: false, status: "New" },
+  { id: "RQ-0011", title: "Shower drain slow", location: "Room 210", room: "210", desc: "Water stands for a few minutes after a shower.", reportedBy: "Chioma Nwosu", dept: "Front Office", at: at(0, 8, 40), guestCannotUse: false, danger: false, status: "New" },
+  { id: "RQ-0010", title: "Wardrobe door hinge broken", location: "Room 102", room: "102", desc: "Door hangs loose.", reportedBy: "Fatima Musa", dept: "Housekeeping", at: at(-1, 15, 0), guestCannotUse: false, danger: false, status: "Made into a job", jobId: "WO-0087", decidedBy: "Emeka Obi" },
+];
+let nextReport = 13;
+export const faultReports = () => REPORTS;
+export const reportsBy = (name: string) => REPORTS.filter(r => r.reportedBy === name);
+export const reportFault = (r: Pick<FaultReport, "title" | "location" | "room" | "desc" | "reportedBy" | "dept" | "guestCannotUse" | "danger">) => {
+  const created: FaultReport = { ...r, id: `RQ-${String(nextReport++).padStart(4, "0")}`, at: NOW, status: "New" };
+  REPORTS.unshift(created);
+  notify("fault.reported", { title: `Fault reported: ${created.title}`, body: `${created.location}, by ${created.reportedBy} (${created.dept})${created.guestCannotUse ? ". The guest cannot use the room." : ""}`,
+    level: created.danger ? "Urgent" : created.guestCannotUse ? "High" : "Normal", link: { screen: "fault-reports", label: "Fault Reports" } });
+  return created;
+};
+// One step: a report that is no longer New cannot become a second job.
+export const makeJob = (reportId: string, j: { priority: WOPriority; outOfOrder: boolean; cat: string; by: string }) => {
+  const r = REPORTS.find(x => x.id === reportId);
+  if (!r || r.status !== "New") return null;
+  Object.assign(r, { status: "Made into a job", decidedBy: j.by });
+  const job = addWorkOrder({ title: r.title, location: r.location, room: r.room, cat: j.cat, priority: j.priority, reportedBy: r.reportedBy, desc: r.desc, outOfOrder: !!r.room && j.outOfOrder, guestImpact: r.guestCannotUse });
+  r.jobId = job.id;
+  notify("fault.madeJob", { title: `Your report is now ${job.id}`, body: `${r.title}, ${r.location}. Priority ${j.priority.toLowerCase()}.`, people: [r.reportedBy], link: { screen: "fault-reports", label: "Fault Reports" } });
+  return job;
+};
+export const turnDown = (reportId: string, reason: string, by: string) => {
+  const r = REPORTS.find(x => x.id === reportId);
+  if (!r || r.status !== "New" || !reason.trim()) return false;
+  Object.assign(r, { status: "Turned down", reason: reason.trim(), decidedBy: by });
+  notify("fault.turnedDown", { title: `Report turned down: ${r.title}`, body: `${by}: ${r.reason}`, people: [r.reportedBy], link: { screen: "fault-reports", label: "Fault Reports" } });
+  return true;
+};
+
 export const updateWorkOrder = (id: string, patch: Partial<WorkOrder>, log?: { event: string; by: string; note: string }) => {
   const w = workOrder(id); if (!w) return;
   const link = { screen: "work-order-detail", label: "Work Order", param: w.id };

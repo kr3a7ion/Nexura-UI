@@ -41,6 +41,7 @@ import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
 import { addBooking, checkOut, typeAvailable, assignRoom, roomsForBooking } from "./mock/hotel";
 import { requestApproval } from "./mock/approvals";
 import { addDiscount, discountOf } from "./mock/frontOffice";
+import { ReportFaultDialog } from "./FaultScreens";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
 // ─── PREMIUM UI PRIMITIVES ────────────────────────────────────────────────────
@@ -1817,7 +1818,8 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
   );
 }
 
-export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
+export function InHouseGuests({ add, nav, staffName }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; staffName: string }) {
+  const [faultRoom, setFaultRoom] = useState<string | null>(null);
   const [ihSearch, setIhSearch] = useState("");
   const [ihFilter, setIhFilter] = useState("All");
   const [moreMenu, setMoreMenu] = useState<string | null>(null);
@@ -1921,6 +1923,7 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
                             <button onClick={() => openAction("charge", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Post charge</button>
                             <button onClick={() => openAction("extend", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Extend stay</button>
                             <button onClick={() => openAction("move", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Move room</button>
+                            <button onClick={() => { setMoreMenu(null); setFaultRoom(g.room); }} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Report a fault</button>
                             <button disabled={revokedAccess.includes(g.id)} onClick={() => openAction("revoke", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#FEF2F2] transition-colors disabled:opacity-40" style={{ color: ERROR }}>{revokedAccess.includes(g.id) ? "Access Already Revoked" : "Revoke Room Access"}</button>
                           </div>
                         )}
@@ -2082,6 +2085,8 @@ export function InHouseGuests({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
           </div>
         </>
       )}
+      {faultRoom && <ReportFaultDialog room={faultRoom} reportedBy={staffName} dept="Front Office" onClose={() => setFaultRoom(null)}
+        onReported={rep => { add({ type: "success", title: `${rep.id} sent to Maintenance`, body: "You will be told when they decide." }); setFaultRoom(null); }} />}
     </div>
   );
 }

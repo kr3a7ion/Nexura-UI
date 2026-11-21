@@ -38,9 +38,11 @@ import { hkRooms, updateRoom, ATTENDANTS } from "./mock/housekeeping";
 import { inHouseGuests, gridBookings, reservations, bookedOn } from "./mock/frontOffice";
 import { ROOM_TYPES, replaceRoomTypes } from "./mock/property";
 import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
+import { ReportFaultDialog } from "./FaultScreens";
 
 
-export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
+export function HKBoard({ add, nav, staffName }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; staffName: string }) {
+  const [faultRoom, setFaultRoom] = useState<string | null>(null);
   const [rooms, setRooms] = useState(hkRooms);
   const [search, setSearch] = useState("");
   const [floorFilter, setFloorFilter] = useState("All");
@@ -159,7 +161,7 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
                           {col.next}
                         </button>
                       )}
-                      {nav && <button onClick={() => nav("work-orders", "Work Orders", `new:${r.id}`)} aria-label={`Report a fault in room ${r.id}`} title="Report a fault" className="h-9 w-9 flex items-center justify-center rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}><Wrench size={15} /></button>}
+                      <button onClick={() => setFaultRoom(r.id)} aria-label={`Report a fault in room ${r.id}`} title="Report a fault" className="h-9 w-9 flex items-center justify-center rounded-lg border" style={{ color: MUTED, borderColor: BORDER }}><Wrench size={15} /></button>
                     </div>
                   </article>
                 ))}
@@ -168,6 +170,8 @@ export function HKBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav
           );
         })}
       </div>
+      {faultRoom && <ReportFaultDialog room={faultRoom} reportedBy={staffName} dept="Housekeeping" onClose={() => setFaultRoom(null)}
+        onReported={rep => { add({ type: "success", title: `${rep.id} sent to Maintenance`, body: "You will be told when they decide." }); setFaultRoom(null); }} />}
     </div>
   );
 }

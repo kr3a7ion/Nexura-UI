@@ -99,11 +99,11 @@ export function NewWorkOrderDialog({ onClose, onCreated, reportedBy, room }: { o
 const FILTERS = ["Open", "Overdue", "Waiting to be checked", "Closed", "All"] as const;
 type Filter = typeof FILTERS[number];
 
-export function WorkOrders({ add, nav, openNew }: { add: Add; nav?: Nav; openNew?: string }) {
+export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staffName: string }) {
   const [, refresh] = useState(0);
   const [filter, setFilter] = useState<Filter>("Open");
   const [search, setSearch] = useState("");
-  const [showNew, setShowNew] = useState(openNew !== undefined);
+  const [showNew, setShowNew] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkTech, setBulkTech] = useState<string | null>(null);
 
@@ -124,7 +124,7 @@ export function WorkOrders({ add, nav, openNew }: { add: Add; nav?: Nav; openNew
     if (!bulkTech) return;
     selected.forEach(id => {
       const w = workOrder(id);
-      if (w && isOpen(w)) updateWorkOrder(id, { tech: bulkTech, status: w.status === "Reported" ? "Assigned" : w.status }, { event: "Assigned", by: "Adaeze Okonkwo", note: `Assigned to ${bulkTech}.` });
+      if (w && isOpen(w)) updateWorkOrder(id, { tech: bulkTech, status: w.status === "Reported" ? "Assigned" : w.status }, { event: "Assigned", by: staffName, note: `Assigned to ${bulkTech}.` });
     });
     add({ type: "success", title: `${selected.length} work order${selected.length === 1 ? "" : "s"} assigned to ${bulkTech}` });
     setSelected([]); setBulkTech(null); refresh(n => n + 1);
@@ -217,7 +217,7 @@ export function WorkOrders({ add, nav, openNew }: { add: Add; nav?: Nav; openNew
           <p className="text-sm" style={{ color: MUTED }}>Closed and cancelled orders in the selection are left as they are.</p>
         </Dialog>
       )}
-      {showNew && <NewWorkOrderDialog room={openNew} reportedBy="Adaeze Okonkwo" onClose={() => setShowNew(false)}
+      {showNew && <NewWorkOrderDialog reportedBy={staffName} onClose={() => setShowNew(false)}
         onCreated={w => { setShowNew(false); add({ type: "success", title: `Work order ${w.id} created`, body: w.outOfOrder ? `Room ${w.room} is now out of order.` : w.location }); refresh(n => n + 1); }} />}
     </div>
   );
@@ -230,7 +230,7 @@ const NEXT: Partial<Record<WOStatus, { to: WOStatus; label: string }>> = {
   "In progress": { to: "Fixed", label: "Mark as fixed" },
 };
 
-export function WorkOrderDetail({ add, nav, id }: { add: Add; nav?: Nav; id?: string }) {
+export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: Nav; id?: string; staffName: string }) {
   const [, refresh] = useState(0);
   const w = workOrder(id ?? "") ?? workOrders().find(isOpen) ?? workOrders()[0];
   const [note, setNote] = useState("");
@@ -239,7 +239,7 @@ export function WorkOrderDetail({ add, nav, id }: { add: Add; nav?: Nav; id?: st
   const [resolution, setResolution] = useState(w.resolution ?? "");
   const [reason, setReason] = useState("");
   const [part, setPart] = useState({ item: "", qty: "1", unit: "", ref: "" });
-  const me = "Adaeze Okonkwo";
+  const me = staffName;
   const done = () => { setDialog(null); refresh(n => n + 1); };
   const asset = ASSETS.find(a => a.id === w.asset);
   const partTotal = w.parts.reduce((s, p) => s + p.qty * p.unit, 0);

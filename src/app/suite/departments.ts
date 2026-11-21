@@ -53,7 +53,7 @@ export const DEPARTMENTS: Department[] = [
     screens: [
       group("Overview", [["Management Overview", "dashboard-mgmt"]]),
       group("Reservations", [["Reservation Grid", "reservation-grid"], ["New Reservation", "new-reservation"], ["Group Bookings", "group-bookings"], ["Waitlist", "waitlist"], ["Rate Management", "rate-management"], ["Reservation Lookup", "reservation-search"], ["Cancellation & Refund", "cancellation"], ["Room Types", "room-types"], ["Rate Calendar", "rate-calendar"], ["Availability Board", "availability-board"]]),
-      group("Guest Journey", [["Check-In", "check-in"], ["Check-Out", "check-out"], ["In-House Guests", "in-house-guests"], ["Arrivals List", "arrivals"], ["Departures List", "departures"], ["Guest Profiles", "guest-profiles"], ["Room Assignment", "room-assignment"], ["Walk-In Registration", "walk-in"], ["Folio Management", "folio"]]),
+      group("Guest Journey", [["Check-In", "check-in"], ["Check-Out", "check-out"], ["In-House Guests", "in-house-guests"], ["Arrivals List", "arrivals"], ["Departures List", "departures"], ["Guest Profiles", "guest-profiles"], ["Room Assignment", "room-assignment"], ["Walk-In Registration", "walk-in"], ["Folio Management", "folio"], ["Fault Reports", "fault-reports"]]),
     ],
   },
   {
@@ -76,19 +76,19 @@ export const DEPARTMENTS: Department[] = [
       { label: "Inspect", screen: "hk-inspection" },
       { label: "Ready", screen: "hk-board" },
     ],
-    screens: [group("Rooms", [["Housekeeping Board", "hk-board"], ["My Tasks", "hk-tasks"], ["Schedule", "hk-schedule"], ["Inspection Log", "hk-inspection"]]), group("Logs & Supplies", [["Lost & Found", "lost-found"], ["Linen & Supplies", "linen-supplies"], ["Do Not Disturb Log", "dnd-log"]])],
+    screens: [group("Rooms", [["Housekeeping Board", "hk-board"], ["My Tasks", "hk-tasks"], ["Schedule", "hk-schedule"], ["Inspection Log", "hk-inspection"], ["Fault Reports", "fault-reports"]]), group("Logs & Supplies", [["Lost & Found", "lost-found"], ["Linen & Supplies", "linen-supplies"], ["Do Not Disturb Log", "dnd-log"]])],
   },
   {
     id: "maintenance", name: "Maintenance", icon: Wrench, accent: "#EA580C",
     roles: ["MGT", "MX"], home: "dept-maintenance", flow: [
-      { label: "Report", screen: "work-orders" },
-      { label: "Triage", screen: "work-order-detail" },
+      { label: "Report", screen: "fault-reports" },
+      { label: "Triage", screen: "fault-reports" },
       { label: "Assign", screen: "work-orders" },
       { label: "Fix", screen: "work-order-detail" },
       { label: "Verify", screen: "work-order-detail" },
       { label: "Close", screen: "work-orders" },
     ],
-    screens: [group("Engineering", [["Work Orders", "work-orders"], ["Asset Register", "asset-register"], ["Preventive Schedule", "preventive-schedule"], ["Vendor Contacts", "vendor-contacts"], ["Generator Diesel", "generator-diesel"]])],
+    screens: [group("Engineering", [["Fault Reports", "fault-reports"], ["Work Orders", "work-orders"], ["Asset Register", "asset-register"], ["Preventive Schedule", "preventive-schedule"], ["Vendor Contacts", "vendor-contacts"], ["Generator Diesel", "generator-diesel"]])],
   },
   {
     id: "restaurant-pos", name: "Restaurant & POS", icon: ForkKnife, accent: "#C2410C",
@@ -173,9 +173,6 @@ export const DEPARTMENTS: Department[] = [
     screens: [group("Multi-Branch", [["Branch Overview", "branch-overview"], ["Branch Comparison", "branch-comparison"], ["Central Sync Status", "sync-status"]]), group("Configuration", [["Hotel Configuration", "hotel-config"], ["Sync Settings", "settings-sync"], ["Print Settings", "print-settings"], ["Print Templates", "print-templates" as Screen], ["My Preferences", "my-preferences"]])],
   },
 ];
-
-export const departmentForScreen = (screen: string) =>
-  DEPARTMENTS.find(department => department.home === screen || department.screens.some(section => section.items.some(item => item.screen === screen)));
 
 export const departmentsForRole = (role: Role) =>
   role === "MGT" ? DEPARTMENTS : DEPARTMENTS.filter(department => department.roles.includes(role));
