@@ -4,7 +4,14 @@ import { addBooking, checkIn, checkOut, walkIn, finishWorkOrder, roomFree } from
 import { roomState } from "./rooms";
 import { ARRIVALS, STAYS, reservations, gridBookings } from "./frontOffice";
 import { hkRooms, addInspection } from "./housekeeping";
-import { addWorkOrder } from "./maintenance";
+import { addWorkOrder, moveWorkOrder } from "./maintenance";
+
+// Takes a job from raised to verified the way the department does: assigned, accepted, done, checked by someone else.
+const toVerified = (id: string) => {
+  for (const [to, m] of [["Assigned", { by: "Adaeze Okonkwo", tech: "Emeka Obi" }], ["Accepted", { by: "Emeka Obi" }], ["In progress", { by: "Emeka Obi" }],
+    ["Completed", { by: "Emeka Obi", note: "Fixed" }], ["Verified", { by: "Chidi Ike" }]] as const) expect(moveWorkOrder(id, to, m)).toBeNull();
+};
+
 
 const plus = (n: number) => { const d = new Date(BUSINESS_DATE); d.setDate(d.getDate() + n); return d; };
 
@@ -44,8 +51,10 @@ describe("hotel actions", () => {
   });
 
   test("closing the last out-of-order order sends the room to Housekeeping dirty", () => {
-    const w = addWorkOrder({ title: "Socket", location: "Room 114", cat: "Electrical", priority: "High", reportedBy: "Test", desc: "", room: "114", outOfOrder: true });
-    const r = finishWorkOrder(w.id, "Closed", { resolution: "Replaced" }, { event: "Checked and closed", by: "Test", note: "Replaced" });
+    const w = addWorkOrder({ title: "Socket", location: "Room 114", cat: "Electrical", priority: "P1", reportedBy: "Test", desc: "", room: "114", outOfOrder: true });
+    expect(finishWorkOrder(w.id, "Closed", "Adaeze Okonkwo").refused).toMatch(/cannot/); // not verified yet
+    toVerified(w.id);
+    const r = finishWorkOrder(w.id, "Closed", "Adaeze Okonkwo");
     expect(r?.backToHousekeeping).toBe(true);
     expect(roomState("114")).toBe("Being cleaned");
   });

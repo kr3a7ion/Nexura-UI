@@ -60,8 +60,8 @@ describe("Phase 1 audit fixes", () => {
 
   test("7. cancelling a job tells the person who reported it, with the reason", () => {
     setCurrentUser("Emeka Obi", "MX");
-    const w = addWorkOrder({ title: "Dripping tap", location: "Room 208", cat: "Plumbing", priority: "Low", reportedBy: "Fatima Musa", desc: "" });
-    finishWorkOrder(w.id, "Cancelled", {}, { event: "Cancelled", by: "Emeka Obi", note: "Same as WO-0090" });
+    const w = addWorkOrder({ title: "Dripping tap", location: "Room 208", cat: "Plumbing", priority: "P4", reportedBy: "Fatima Musa", desc: "" });
+    finishWorkOrder(w.id, "Cancelled", "Emeka Obi", "Same as WO-0090");
     expect(noticesFor("Fatima Musa", "HK").find(n => n.title === `${w.id} was cancelled: Dripping tap`)?.body).toBe("Same as WO-0090");
   });
 });

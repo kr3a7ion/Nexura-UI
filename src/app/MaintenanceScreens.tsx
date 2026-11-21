@@ -96,7 +96,7 @@ export function AssetRegister({ add }: { add: (t: Omit<Toast, "id">) => void }) 
                   <td className="px-3 py-3"><Badge label={a.status} colors={statusC[a.status] ?? { bg: "#F4F4F5", text: "#374151" }} /></td>
                   <td className="px-3 py-3">
                     <div className="flex gap-1">
-                      <button onClick={e=>{e.stopPropagation(); const w = addWorkOrder({ title: `Service ${a.name}`, location: a.location, cat: a.cat, priority: "Medium", reportedBy: "Adaeze Okonkwo", desc: `Raised from the asset register for ${a.id}.`, asset: a.id }); add({type:"success",title:`Work order ${w.id} raised`, body: a.name });}} className="text-sm px-2.5 rounded-lg border whitespace-nowrap bg-white" style={{ height: 32, color: TEXT, borderColor: "#CBD5E1" }}>Raise work order</button>
+                      <button onClick={e=>{e.stopPropagation(); const w = addWorkOrder({ title: `Service ${a.name}`, location: a.location, cat: a.cat, priority: "P3", reportedBy: "Adaeze Okonkwo", desc: `Raised from the asset register for ${a.id}.`, asset: a.id }); add({type:"success",title:`Work order ${w.id} raised`, body: a.name });}} className="text-sm px-2.5 rounded-lg border whitespace-nowrap bg-white" style={{ height: 32, color: TEXT, borderColor: "#CBD5E1" }}>Raise work order</button>
                     </div>
                   </td>
                 </tr>
@@ -210,7 +210,7 @@ export function PreventiveSchedule({ add }: { add: (t: Omit<Toast, "id">) => voi
                       <div className="flex gap-1">
                         {st !== "Completed" && st !== "Skipped" && <>
                           <button onClick={() => { setShowDone(t.id); setMeter(""); }} className="text-xs px-2 py-1.5 rounded border font-medium whitespace-nowrap" style={{ color: SUCCESS, borderColor: `${SUCCESS}30` }}>Mark done</button>
-                          <button onClick={() => { const w = addWorkOrder({ title: `${t.task ?? "Service"}`.slice(0, 60), location: t.asset, cat: "Mechanical", priority: "Medium", reportedBy: "Preventive schedule", desc: `Preventive task ${t.id} for ${t.asset}.` }); add({ type: "success", title: `Work order ${w.id} raised`, body: t.asset }); }} className="text-sm px-2.5 rounded-lg border whitespace-nowrap bg-white" style={{ height: 32, color: TEXT, borderColor: "#CBD5E1" }}>Raise work order</button>
+                          <button onClick={() => { const w = addWorkOrder({ title: `${t.task ?? "Service"}`.slice(0, 60), location: t.asset, cat: "Mechanical", priority: "P4", reportedBy: "Preventive schedule", desc: `Preventive task ${t.id} for ${t.asset}.` }); add({ type: "success", title: `Work order ${w.id} raised`, body: t.asset }); }} className="text-sm px-2.5 rounded-lg border whitespace-nowrap bg-white" style={{ height: 32, color: TEXT, borderColor: "#CBD5E1" }}>Raise work order</button>
                           <button onClick={() => { setShowReschedule(t.id); setNewDate(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Reschedule</button>
                           <button onClick={() => { setShowSkip(t.id); setSkipReason(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Skip</button>
                         </>}
@@ -360,7 +360,7 @@ export function VendorContacts({ add }: { add: (t: Omit<Toast, "id">) => void })
                   <td className="px-3 py-3">
                     <div className="flex gap-1" onClick={e=>e.stopPropagation()}>
                       <button onClick={() => { setShowCall(v.id); setCallNotes(""); }} className="text-xs px-2 py-1.5 rounded border whitespace-nowrap" style={{ color: MUTED, borderColor: BORDER }}>Log call</button>
-                      <button onClick={() => { const w = addWorkOrder({ title: `Job for ${v.company}`, location: "To be confirmed", cat: "General", priority: "Medium", reportedBy: "Adaeze Okonkwo", desc: `Work handed to ${v.company}.` }); updateWorkOrder(w.id, { status: "Assigned", tech: "External vendor" }, { event: "Assigned", by: "Adaeze Okonkwo", note: `Given to ${v.company}.` }); add({ type: "success", title: `Work order ${w.id} raised for ${v.company}` }); }} className="text-sm px-2.5 rounded-lg border whitespace-nowrap bg-white" style={{ height: 32, color: TEXT, borderColor: "#CBD5E1" }}>Raise work order</button>
+                      <button onClick={() => { const w = addWorkOrder({ title: `Job for ${v.company}`, location: "To be confirmed", cat: "General", priority: "P3", reportedBy: "Adaeze Okonkwo", desc: `Work handed to ${v.company}.` }); updateWorkOrder(w.id, { status: "Assigned", tech: "External vendor" }, { event: "Assigned", by: "Adaeze Okonkwo", note: `Given to ${v.company}.` }); add({ type: "success", title: `Work order ${w.id} raised for ${v.company}` }); }} className="text-sm px-2.5 rounded-lg border whitespace-nowrap bg-white" style={{ height: 32, color: TEXT, borderColor: "#CBD5E1" }}>Raise work order</button>
                     </div>
                   </td>
                 </tr>

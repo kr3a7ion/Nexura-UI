@@ -33,6 +33,8 @@ export const ROUTES = {
   "room.outOfOrder":       { level: "High",   roles: ["FD", "HK"] },
   "workOrder.assigned":    { level: "Normal", roles: [] },
   "workOrder.reopened":    { level: "High",   roles: [] },
+  "workOrder.completed":   { level: "Normal", roles: ["MX"] },
+  "workOrder.verified":    { level: "Normal", roles: [] },
   "workOrder.closed":      { level: "Normal", roles: [] },
   "room.backFromMaintenance": { level: "Normal", roles: ["HK"] },
   "dnd.overridden":        { level: "High",   roles: ["FD", "MGT"] },

@@ -6,7 +6,7 @@ import { BORDER, TEXT, MUTED, ERROR, TEAL_INK, ORANGE_INK } from "./constants";
 import { PageHeader, BtnP, BtnO, EmptyState, Badge } from "./UIKit";
 import { UI, Card, Field, Dialog, controlClass, controlStyle } from "./ui";
 import { ROOMS } from "./mock/property";
-import { faultReports, reportsBy, reportFault, makeJob, turnDown, fmtWhen, WO_CATEGORIES, type FaultReport, type WOPriority } from "./mock/maintenance";
+import { faultReports, reportsBy, reportFault, makeJob, turnDown, fmtWhen, WO_CATEGORIES, PRIORITIES, priorityLabel, type FaultReport, type WOPriority } from "./mock/maintenance";
 
 type Add = (t: Omit<Toast, "id">) => void;
 type Nav = (s: string, label: string, param?: string) => void;
@@ -68,7 +68,7 @@ export function FaultReports({ add, nav, role, staffName, dept }: { add: Add; na
   const [showNew, setShowNew] = useState(false);
   const [job, setJob] = useState<FaultReport | null>(null);
   const [down, setDown] = useState<FaultReport | null>(null);
-  const [j, setJ] = useState({ priority: "Medium" as WOPriority, cat: "General", outOfOrder: false });
+  const [j, setJ] = useState({ priority: "P3" as WOPriority, cat: "General", outOfOrder: false });
   const [reason, setReason] = useState("");
   const triager = TRIAGERS.includes(role);
   const list = triager ? faultReports() : reportsBy(staffName);
@@ -92,7 +92,7 @@ export function FaultReports({ add, nav, role, staffName, dept }: { add: Add; na
         </p>
       </div>
       <div className="flex flex-none gap-2">
-        {triager && r.status === "New" && <><BtnO label="Turn down" onClick={() => setDown(r)} /><BtnP label="Make a job" onClick={() => { setJob(r); setJ({ priority: r.danger ? "High" : "Medium", cat: "General", outOfOrder: r.guestCannotUse }); }} /></>}
+        {triager && r.status === "New" && <><BtnO label="Turn down" onClick={() => setDown(r)} /><BtnP label="Make a job" onClick={() => { setJob(r); setJ({ priority: r.danger ? "P1" : r.guestCannotUse ? "P2" : "P3", cat: "General", outOfOrder: r.guestCannotUse }); }} /></>}
         {r.jobId && <BtnO label={`Open ${r.jobId}`} onClick={() => nav?.("work-order-detail", "Work Order", r.jobId)} />}
       </div>
     </div>
@@ -120,7 +120,7 @@ export function FaultReports({ add, nav, role, staffName, dept }: { add: Add; na
             add({ type: "success", title: `${w.id} raised from ${job.id}`, body: `${job.reportedBy} has been told.` }); close();
           }} /></>}>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Priority" htmlFor="fr-pri"><select id="fr-pri" value={j.priority} onChange={e => setJ(p => ({ ...p, priority: e.target.value as WOPriority }))} className={controlClass} style={controlStyle()}>{["High", "Medium", "Low"].map(o => <option key={o}>{o}</option>)}</select></Field>
+            <Field label="Priority" htmlFor="fr-pri"><select id="fr-pri" value={j.priority} onChange={e => setJ(p => ({ ...p, priority: e.target.value as WOPriority }))} className={controlClass} style={controlStyle()}>{(Object.keys(PRIORITIES) as WOPriority[]).map(o => <option key={o} value={o}>{priorityLabel(o)}</option>)}</select></Field>
             <Field label="Category" htmlFor="fr-cat"><select id="fr-cat" value={j.cat} onChange={e => setJ(p => ({ ...p, cat: e.target.value }))} className={controlClass} style={controlStyle()}>{WO_CATEGORIES.map(o => <option key={o}>{o}</option>)}</select></Field>
           </div>
           {job.room && <Check checked={j.outOfOrder} onChange={v => setJ(p => ({ ...p, outOfOrder: v }))}>Take room {job.room} out of order until it is fixed</Check>}

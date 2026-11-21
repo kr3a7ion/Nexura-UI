@@ -1,6 +1,6 @@
 // Maintenance: the work order list and one work order, read from mock/maintenance.ts.
 import React, { useState } from "react";
-import { Plus, Download, Search, AlertCircle, Activity, AlertTriangle, CheckCircle2, Wrench } from "lucide-react";
+import { Plus, Download, Search, AlertCircle, Activity, AlertTriangle, CheckCircle2, Wrench, PauseCircle } from "lucide-react";
 import type { Toast } from "./constants";
 import { BORDER, TEXT, MUTED, SUBTLE, ERROR, PRIMARY, TEAL_INK, ORANGE_INK, WARNING_INK, display } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO, EmptyState, Badge } from "./UIKit";
@@ -8,8 +8,8 @@ import { UI, Card, Field, Row, Dialog, controlClass, controlStyle, downloadCsv }
 import { ROOMS } from "./mock/property";
 import { ASSETS } from "./constants";
 import {
-  workOrders, workOrder, addWorkOrder, updateWorkOrder, isOpen, isOverdue, ageOf, fmtWhen,
-  TECHNICIANS, WO_CATEGORIES, LABOUR_RATE, type WorkOrder, type WOPriority, type WOStatus,
+  workOrders, workOrder, addWorkOrder, updateWorkOrder, moveWorkOrder, canMove, isOpen, isOverdue, isLateToRespond, respondDue, resolveDue, ageOf, fmtWhen, now,
+  TECHNICIANS, WO_CATEGORIES, LABOUR_RATE, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
 } from "./mock/maintenance";
 import { finishWorkOrder } from "./mock/hotel";
 import { roomState } from "./mock/rooms";
@@ -17,30 +17,37 @@ import { roomState } from "./mock/rooms";
 type Add = (t: Omit<Toast, "id">) => void;
 type Nav = (s: string, label: string, param?: string) => void;
 
-const STATUS_C: Record<string, { bg: string; text: string }> = {
-  Reported: { bg: "#EEF2FF", text: "#4338CA" }, Assigned: { bg: "#F0FDFA", text: TEAL_INK },
-  "In progress": { bg: "#FEF3C7", text: "#92400E" }, Fixed: { bg: "#E0F2FE", text: "#075985" },
+export const WO_STATUS_C: Record<WOStatus | "Overdue", { bg: string; text: string }> = {
+  Raised: { bg: "#EEF2FF", text: "#4338CA" }, Assigned: { bg: "#F0FDFA", text: TEAL_INK }, Accepted: { bg: "#F0FDFA", text: TEAL_INK },
+  "In progress": { bg: "#FEF3C7", text: "#92400E" }, "On hold": { bg: "#F5F3FF", text: "#5B21B6" },
+  Completed: { bg: "#E0F2FE", text: "#075985" }, Verified: { bg: "#ECFDF5", text: "#047857" },
   Closed: { bg: "#DCFCE7", text: "#166534" }, Cancelled: { bg: "#F1F5F9", text: "#475569" }, Overdue: { bg: "#FEE2E2", text: "#991B1B" },
 };
-const PRI_C: Record<WOPriority, string> = { High: ERROR, Medium: ORANGE_INK, Low: MUTED };
-const statusLabel = (w: WorkOrder) => w.status === "Fixed" ? "Waiting to be checked" : w.status;
+export const WO_PRI_C: Record<WOPriority, { bg: string; text: string }> = {
+  P1: { bg: "#FEE2E2", text: "#991B1B" }, P2: { bg: "#FFEDD5", text: "#9A3412" }, P3: { bg: "#FEF9C3", text: "#854D0E" }, P4: { bg: "#F1F5F9", text: "#475569" },
+};
+const statusLabel = (w: WorkOrder) => w.status === "Completed" ? "Ready to verify" : w.status === "Verified" ? "Verified, ready to close"
+  : w.status === "On hold" ? `On hold: ${(w.holdReason ?? "").replace("Waiting for ", "")}` : w.status;
 const StatusBadge = ({ w }: { w: WorkOrder }) => (
   <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-    <Badge label={statusLabel(w)} colors={STATUS_C[w.status]} />
-    {isOverdue(w) && <Badge label="Overdue" colors={STATUS_C.Overdue} />}
+    <Badge label={statusLabel(w)} colors={WO_STATUS_C[w.status]} />
+    {isOverdue(w) && <Badge label={isLateToRespond(w) ? "Not accepted in time" : "Overdue"} colors={WO_STATUS_C.Overdue} />}
   </span>
 );
-const Select = ({ label, value, onChange, options, id }: { label: string; value: string; onChange: (v: string) => void; options: string[]; id: string }) => (
+const PriBadge = ({ p }: { p: WOPriority }) => <Badge label={priorityLabel(p)} colors={WO_PRI_C[p]} />;
+// What the job is racing now: being accepted, then being done.
+const deadline = (w: WorkOrder) => w.acceptedAt ? { label: "Fix by", at: resolveDue(w) } : { label: "Accept by", at: respondDue(w) };
+const Select = ({ label, value, onChange, options, id }: { label: string; value: string; onChange: (v: string) => void; options: (string | [string, string])[]; id: string }) => (
   <Field label={label} htmlFor={id}>
     <select id={id} value={value} onChange={e => onChange(e.target.value)} className={controlClass} style={controlStyle()}>
-      {options.map(o => <option key={o}>{o}</option>)}
+      {options.map(o => Array.isArray(o) ? <option key={o[0]} value={o[0]}>{o[1]}</option> : <option key={o}>{o}</option>)}
     </select>
   </Field>
 );
 
 // ── New work order (also used from the detail screen's follow-up) ───────────
 export function NewWorkOrderDialog({ onClose, onCreated, reportedBy, room }: { onClose: () => void; onCreated: (w: WorkOrder) => void; reportedBy: string; room?: string }) {
-  const [f, setF] = useState({ title: "", where: "Room", room: room ?? "", place: "", cat: "General", priority: "Medium" as WOPriority, outOfOrder: false, guestImpact: false, desc: "" });
+  const [f, setF] = useState({ title: "", where: "Room", room: room ?? "", place: "", cat: "General", priority: "P3" as WOPriority, outOfOrder: false, guestImpact: false, desc: "" });
   const [tried, setTried] = useState(false);
   const set = (k: keyof typeof f) => (v: string | boolean) => setF(p => ({ ...p, [k]: v }));
   const location = f.where === "Room" ? (f.room ? `Room ${f.room}` : "") : f.place.trim();
@@ -73,7 +80,7 @@ export function NewWorkOrderDialog({ onClose, onCreated, reportedBy, room }: { o
       </div>
       <div className="grid grid-cols-2 gap-4">
         <Select id="wo-cat" label="Category" value={f.cat} onChange={set("cat")} options={WO_CATEGORIES} />
-        <Select id="wo-pri" label="Priority" value={f.priority} onChange={set("priority")} options={["High", "Medium", "Low"]} />
+        <Select id="wo-pri" label="Priority" value={f.priority} onChange={set("priority")} options={(Object.keys(PRIORITIES) as WOPriority[]).map(p => [p, priorityLabel(p)] as [string, string])} />
       </div>
       <div className="space-y-2">
         {f.where === "Room" && (
@@ -96,7 +103,7 @@ export function NewWorkOrderDialog({ onClose, onCreated, reportedBy, room }: { o
 }
 
 // ── Work Orders list ─────────────────────────────────────────────────────────
-const FILTERS = ["Open", "Overdue", "Waiting to be checked", "Closed", "All"] as const;
+const FILTERS = ["Open", "Overdue", "On hold", "To sign off", "Closed", "All"] as const;
 type Filter = typeof FILTERS[number];
 
 export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staffName: string }) {
@@ -112,7 +119,8 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
   function matches(w: WorkOrder, fl: Filter) {
     if (fl === "Open") return isOpen(w);
     if (fl === "Overdue") return isOverdue(w);
-    if (fl === "Waiting to be checked") return w.status === "Fixed";
+    if (fl === "On hold") return w.status === "On hold";
+    if (fl === "To sign off") return w.status === "Completed" || w.status === "Verified";
     if (fl === "Closed") return w.status === "Closed" || w.status === "Cancelled";
     return true;
   }
@@ -122,16 +130,13 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
 
   const assignSelected = () => {
     if (!bulkTech) return;
-    selected.forEach(id => {
-      const w = workOrder(id);
-      if (w && isOpen(w)) updateWorkOrder(id, { tech: bulkTech, status: w.status === "Reported" ? "Assigned" : w.status }, { event: "Assigned", by: staffName, note: `Assigned to ${bulkTech}.` });
-    });
-    add({ type: "success", title: `${selected.length} work order${selected.length === 1 ? "" : "s"} assigned to ${bulkTech}` });
+    const done = selected.filter(id => !moveWorkOrder(id, "Assigned", { by: staffName, tech: bulkTech })).length;
+    add({ type: done ? "success" : "warning", title: `${done} work order${done === 1 ? "" : "s"} assigned to ${bulkTech}`, body: done < selected.length ? `${selected.length - done} could not be assigned in their current state.` : undefined });
     setSelected([]); setBulkTech(null); refresh(n => n + 1);
   };
   const exportList = () => {
-    downloadCsv("work-orders.csv", [["ID", "Title", "Location", "Category", "Priority", "Status", "Assigned to", "Reported", "Reported by", "Due"],
-      ...visible.map(w => [w.id, w.title, w.location, w.cat, w.priority, statusLabel(w) + (isOverdue(w) ? " (overdue)" : ""), w.tech ?? "Nobody yet", fmtWhen(w.reportedAt), w.reportedBy, fmtWhen(w.slaDue)])]);
+    downloadCsv("work-orders.csv", [["ID", "Title", "Location", "Category", "Priority", "Status", "Assigned to", "Reported", "Reported by", "Accept by", "Fix by"],
+      ...visible.map(w => [w.id, w.title, w.location, w.cat, w.priority, statusLabel(w) + (isOverdue(w) ? " (overdue)" : ""), w.tech ?? "Nobody yet", fmtWhen(w.reportedAt), w.reportedBy, fmtWhen(respondDue(w)), fmtWhen(resolveDue(w))])]);
     add({ type: "success", title: `${visible.length} work orders saved as work-orders.csv` });
   };
 
@@ -141,10 +146,10 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
         actions={<><BtnO label="Export" icon={Download} onClick={exportList} /><BtnP label="New work order" icon={Plus} onClick={() => setShowNew(true)} /></>} />
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Not started" value={String(all.filter(w => w.status === "Reported" || w.status === "Assigned").length)} sub={`${all.filter(w => w.status === "Reported").length} still need someone`} icon={AlertCircle} accent={PRIMARY} />
-        <StatCard label="Being fixed" value={String(all.filter(w => w.status === "In progress").length)} sub="Work started" icon={Activity} accent={ORANGE_INK} />
-        <StatCard label="Overdue" value={String(count("Overdue"))} sub="Past the time to fix" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Waiting to be checked" value={String(count("Waiting to be checked"))} sub="Fixed, needs sign-off" icon={CheckCircle2} accent={TEAL_INK} />
+        <StatCard label="Not started" value={String(all.filter(w => w.status === "Raised" || w.status === "Assigned").length)} sub={`${all.filter(w => w.status === "Raised").length} still need someone`} icon={AlertCircle} accent={PRIMARY} />
+        <StatCard label="Being fixed" value={String(all.filter(w => w.status === "Accepted" || w.status === "In progress").length)} sub={`${count("On hold")} on hold, clock stopped`} icon={Activity} accent={ORANGE_INK} />
+        <StatCard label="Overdue" value={String(count("Overdue"))} sub={`${all.filter(isLateToRespond).length} not accepted in time`} icon={AlertTriangle} accent={ERROR} />
+        <StatCard label="To sign off" value={String(count("To sign off"))} sub="Completed, someone else verifies" icon={CheckCircle2} accent={TEAL_INK} />
       </div>
 
       <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -172,7 +177,7 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
               <th className="pl-4 pr-1 py-3 w-8"><input aria-label="Select all shown" type="checkbox" className="w-4 h-4"
                 checked={visible.length > 0 && visible.every(w => selected.includes(w.id))}
                 onChange={() => setSelected(visible.every(w => selected.includes(w.id)) ? [] : visible.map(w => w.id))} /></th>
-              {["Work order", "Priority", "Status", "Assigned to", "Reported", "Fix by"].map(h => (
+              {["Work order", "Priority", "Status", "Assigned to", "Reported", "Deadline"].map(h => (
                 <th key={h} className="px-3 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>
               ))}
             </tr>
@@ -188,11 +193,11 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
                   <div className="text-sm font-medium" style={{ color: TEXT }}>{w.title}</div>
                   <div className="text-sm" style={{ color: MUTED }}>
                     {w.id} · {w.location}
-                    {w.outOfOrder && isOpen(w) || (w.outOfOrder && w.status === "Fixed") ? <span style={{ color: ERROR }}> · Room out of order</span> : null}
+                    {w.outOfOrder && w.status !== "Closed" && w.status !== "Cancelled" ? <span style={{ color: ERROR }}> · Room out of order</span> : null}
                     {w.guestImpact && isOpen(w) ? <span style={{ color: ORANGE_INK }}> · Guest affected</span> : null}
                   </div>
                 </td>
-                <td className="px-3 py-3 text-sm font-medium whitespace-nowrap" style={{ color: PRI_C[w.priority] }}>{w.priority}</td>
+                <td className="px-3 py-3 whitespace-nowrap"><PriBadge p={w.priority} /></td>
                 <td className="px-3 py-3"><StatusBadge w={w} /></td>
                 <td className="px-3 py-3 text-sm whitespace-nowrap" style={{ color: w.tech ? TEXT : WARNING_INK }}>{w.tech ?? "Nobody yet"}</td>
                 <td className="px-3 py-3 whitespace-nowrap">
@@ -200,14 +205,16 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
                   <div className="text-sm" style={{ color: MUTED }}>{w.reportedBy}</div>
                 </td>
                 <td className="px-3 py-3 whitespace-nowrap">
-                  <div className="text-sm" style={{ color: isOverdue(w) ? ERROR : TEXT }}>{fmtWhen(w.slaDue)}</div>
-                  <div className="text-sm" style={{ color: MUTED }}>{isOpen(w) ? `Open ${ageOf(w)}` : statusLabel(w)}</div>
+                  {isOpen(w) ? <>
+                    <div className="text-sm" style={{ color: isOverdue(w) ? ERROR : TEXT }}>{deadline(w).label} {fmtWhen(deadline(w).at)}</div>
+                    <div className="text-sm" style={{ color: MUTED }}>{w.status === "On hold" ? "Clock stopped" : `Open ${ageOf(w)}`}</div>
+                  </> : <div className="text-sm" style={{ color: MUTED }}>{statusLabel(w)}</div>}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {visible.length === 0 && <EmptyState icon={Wrench} message={filter === "Overdue" ? "Nothing is overdue." : "No work orders here."} cta="New work order" onCta={() => setShowNew(true)} />}
+        {visible.length === 0 && <EmptyState icon={filter === "On hold" ? PauseCircle : Wrench} message={filter === "Overdue" ? "Nothing is overdue." : "No work orders here."} cta="New work order" onCta={() => setShowNew(true)} />}
       </div>
 
       {bulkTech !== null && (
@@ -224,49 +231,63 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
 }
 
 // ── One work order ───────────────────────────────────────────────────────────
-// Report → assign → start → fixed → checked and closed. Cancelled ends it at any point before closing.
-const NEXT: Partial<Record<WOStatus, { to: WOStatus; label: string }>> = {
-  Assigned: { to: "In progress", label: "Start work" },
-  "In progress": { to: "Fixed", label: "Mark as fixed" },
-};
+// Raised → assigned → accepted → in progress ⇄ on hold → completed → verified by someone else → closed.
+// Every button calls moveWorkOrder(), which refuses a move the job's status does not allow and says why.
+type DialogKind = null | "assign" | "hold" | "complete" | "sendback" | "reopen" | "cancel" | "part" | "follow";
 
 export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: Nav; id?: string; staffName: string }) {
   const [, refresh] = useState(0);
   const w = workOrder(id ?? "") ?? workOrders().find(isOpen) ?? workOrders()[0];
   const [note, setNote] = useState("");
-  const [dialog, setDialog] = useState<null | "assign" | "fixed" | "close" | "reopen" | "cancel" | "part" | "follow">(null);
+  const [dialog, setDialog] = useState<DialogKind>(null);
   const [tech, setTech] = useState(w.tech ?? TECHNICIANS[0]);
-  const [resolution, setResolution] = useState(w.resolution ?? "");
-  const [reason, setReason] = useState("");
+  const [holdReason, setHoldReason] = useState(HOLD_REASONS[0]);
+  const [text, setText] = useState("");
   const [part, setPart] = useState({ item: "", qty: "1", unit: "", ref: "" });
   const me = staffName;
-  const done = () => { setDialog(null); refresh(n => n + 1); };
+  const done = () => { setDialog(null); setText(""); refresh(n => n + 1); };
   const asset = ASSETS.find(a => a.id === w.asset);
   const partTotal = w.parts.reduce((s, p) => s + p.qty * p.unit, 0);
   const labour = w.labourHours * LABOUR_RATE;
-  const closedOrCancelled = w.status === "Closed" || w.status === "Cancelled";
+  const ended = w.status === "Closed" || w.status === "Cancelled";
 
-  const move = (to: WOStatus, event: string, noteText: string, patch: Partial<WorkOrder> = {}) => {
-    updateWorkOrder(w.id, { status: to, ...patch }, { event, by: patch.tech && to === "Assigned" ? me : (w.tech ?? me), note: noteText });
+  // One place that runs a move and reports the outcome.
+  const go = (to: WOStatus, m: { note?: string; tech?: string; holdReason?: string }, ok: string, body?: string) => {
+    const refused = to === "Closed" || to === "Cancelled" ? finishWorkOrder(w.id, to, me, m.note ?? "").refused : moveWorkOrder(w.id, to, { by: me, ...m });
+    if (refused) { add({ type: "error", title: refused }); return false; }
+    add({ type: "success", title: ok, body }); done(); return true;
   };
+  const roomNote = w.room && w.outOfOrder ? `Room ${w.room} goes to Housekeeping to be cleaned before it is sold.` : undefined;
+  const canAccept = w.tech === me || w.tech === "External vendor";
 
+  // The main button for each status; the rest sit beside it.
   const primary = (() => {
-    if (w.status === "Reported") return <BtnP label="Assign a technician" onClick={() => setDialog("assign")} />;
-    if (w.status === "Assigned") return <BtnP label="Start work" onClick={() => { move("In progress", "Work started", "Work started."); add({ type: "success", title: `${w.id}: work started` }); done(); }} />;
-    if (w.status === "In progress") return <BtnP label="Mark as fixed" onClick={() => setDialog("fixed")} />;
-    if (w.status === "Fixed") return <BtnP label="Check and close" onClick={() => setDialog("close")} />;
-    return null;
+    switch (w.status) {
+      case "Raised": return <BtnP label="Assign" onClick={() => setDialog("assign")} />;
+      case "Assigned": return canAccept ? <BtnP label="Accept the job" onClick={() => go("Accepted", {}, `${w.id} accepted`, "The response clock has stopped.")} /> : null;
+      case "Accepted": return <BtnP label="Start work" onClick={() => go("In progress", {}, `${w.id}: work started`)} />;
+      case "In progress": return <BtnP label="Mark as completed" onClick={() => setDialog("complete")} />;
+      case "On hold": return <BtnP label="Resume work" onClick={() => go("In progress", {}, `${w.id} resumed`, "The clock is running again.")} />;
+      case "Completed": return w.completedBy === me ? null : <BtnP label="Verify the work" onClick={() => go("Verified", {}, `${w.id} verified`, "It can be closed now.")} />;
+      case "Verified": return <BtnP label="Close work order" onClick={() => go("Closed", {}, `${w.id} closed`, roomNote ? `Room ${w.room} is on the Housekeeping board to be cleaned.` : `${w.reportedBy} has been told.`)} />;
+      default: return null;
+    }
   })();
+  const waitingNote = w.status === "Assigned" && !canAccept ? `Waiting for ${w.tech} to accept.`
+    : w.status === "Completed" && w.completedBy === me ? "You completed this job, so someone else must verify it." : null;
 
   return (
     <div>
-      <PageHeader title={`${w.title}`} sub={`${w.id} · ${w.location} · reported ${fmtWhen(w.reportedAt)} by ${w.reportedBy}`}
-        actions={<div className="flex flex-wrap gap-2">
+      <PageHeader title={`${w.title}`} sub={`${w.id} · ${w.location} · raised ${fmtWhen(w.reportedAt)} by ${w.reportedBy}`}
+        actions={<div className="flex flex-wrap items-center gap-2">
           <BtnO label="All work orders" onClick={() => nav?.("work-orders", "Work Orders")} />
-          {!closedOrCancelled && <BtnO label="Cancel order" onClick={() => setDialog("cancel")} />}
-          {w.status === "Fixed" && <BtnO label="Not fixed, reopen" onClick={() => setDialog("reopen")} />}
+          {canMove(w, "Cancelled") && <BtnO label="Cancel order" onClick={() => setDialog("cancel")} />}
+          {canMove(w, "Assigned") && w.status !== "Raised" && <BtnO label={w.status === "Verified" ? "Not right, reopen" : "Reassign"} onClick={() => setDialog(w.status === "Verified" ? "reopen" : "assign")} />}
+          {canMove(w, "On hold") && <BtnO label="Put on hold" onClick={() => setDialog("hold")} />}
+          {w.status === "Completed" && <BtnO label="Not done, send back" onClick={() => setDialog("sendback")} />}
           {primary}
         </div>} />
+      {waitingNote && <p role="status" className="-mt-3 mb-5 text-sm" style={{ color: MUTED }}>{waitingNote}</p>}
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
         <div className="space-y-5 min-w-0">
@@ -280,7 +301,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
             )}
           </Card>
 
-          <Card title="Parts and labour" actions={!closedOrCancelled && <BtnO label="Add a part" icon={Plus} onClick={() => setDialog("part")} />}>
+          <Card title="Parts and labour" actions={!ended && <BtnO label="Add a part" icon={Plus} onClick={() => setDialog("part")} />}>
             {w.parts.length ? (
               <table className="w-full mb-3">
                 <thead><tr>{["Part", "Qty", "Each", "Total"].map((h, i) => <th key={h} className={`py-2 text-sm font-medium ${i ? "text-right" : "text-left"}`} style={{ color: MUTED }}>{h}</th>)}</tr></thead>
@@ -295,7 +316,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
             ) : <p className="text-sm mb-3" style={{ color: MUTED }}>No parts used yet.</p>}
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-3" style={{ borderTop: `1px solid ${BORDER}` }}>
               <label className="flex items-center gap-2 text-sm" style={{ color: MUTED }}>Labour hours
-                <input aria-label="Labour hours" type="number" step="0.5" min="0" disabled={closedOrCancelled} value={w.labourHours}
+                <input aria-label="Labour hours" type="number" step="0.5" min="0" disabled={ended} value={w.labourHours}
                   onChange={e => { updateWorkOrder(w.id, { labourHours: Math.max(0, Number(e.target.value) || 0) }); refresh(n => n + 1); }}
                   className="w-20 px-2 text-sm outline-none" style={{ ...controlStyle(), height: 36 }} />
               </label>
@@ -316,7 +337,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
                 </li>
               ))}
             </ol>
-            {!closedOrCancelled && (
+            {!ended && (
               <div className="mt-5 pt-4 flex gap-3 items-end" style={{ borderTop: `1px solid ${BORDER}` }}>
                 <div className="flex-1"><Field label="Add an update" htmlFor="wo-note">
                   <input id="wo-note" value={note} onChange={e => setNote(e.target.value)} placeholder="For example: waiting for parts from stores" className={controlClass} style={controlStyle()} />
@@ -330,14 +351,17 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
         <div className="space-y-5 xl:sticky xl:top-4">
           <Card title="Details">
             <Row label="Status" value={<StatusBadge w={w} />} />
-            <Row label="Priority" value={<span style={{ color: PRI_C[w.priority] }}>{w.priority}</span>} />
+            <Row label="Priority" value={<PriBadge p={w.priority} />} />
             <Row label="Category" value={w.cat} />
             <Row label="Assigned to" value={w.tech ?? "Nobody yet"} />
-            <Row label="Fix by" value={<span style={{ color: isOverdue(w) ? ERROR : TEXT }}>{fmtWhen(w.slaDue)}</span>} />
+            <Row label="Accept by" value={w.acceptedAt ? `Accepted ${fmtWhen(w.acceptedAt)}` : <span style={{ color: isLateToRespond(w) ? ERROR : TEXT }}>{fmtWhen(respondDue(w))}</span>} />
+            <Row label="Fix by" value={w.completedBy ? `Completed by ${w.completedBy}` : <span style={{ color: isOverdue(w) && !isLateToRespond(w) ? ERROR : TEXT }}>{fmtWhen(resolveDue(w))}</span>} />
+            {(w.heldMs > 0 || w.heldSince) && <Row label="Time on hold" value={`${Math.round((w.heldMs + (w.heldSince ? now().getTime() - w.heldSince.getTime() : 0)) / 60000)} min, added to both deadlines`} />}
+            {w.verifiedBy && <Row label="Verified by" value={w.verifiedBy} />}
             <Row label="Open for" value={isOpen(w) ? ageOf(w) : "No longer open"} />
             {w.room && <Row label="Room now" value={roomState(w.room) === "Out of order" ? <span style={{ color: ERROR }}>Out of order</span> : roomState(w.room)} />}
             <label className="flex items-center gap-2.5 text-sm pt-3" style={{ color: TEXT }}>
-              <input type="checkbox" className="w-4 h-4" disabled={closedOrCancelled} checked={w.guestImpact}
+              <input type="checkbox" className="w-4 h-4" disabled={ended} checked={w.guestImpact}
                 onChange={e => { updateWorkOrder(w.id, { guestImpact: e.target.checked }, { event: e.target.checked ? "Marked as affecting a guest" : "No longer affecting a guest", by: me, note: "" }); refresh(n => n + 1); }} />
               A guest is affected
             </label>
@@ -355,38 +379,32 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
         </div>
       </div>
 
-      {dialog === "assign" && (
-        <Dialog title="Assign a technician" onClose={() => setDialog(null)}
-          footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label="Assign" onClick={() => { move("Assigned", "Assigned", `Assigned to ${tech}.`, { tech }); add({ type: "success", title: `${w.id} assigned to ${tech}` }); done(); }} /></>}>
+      {(dialog === "assign" || dialog === "reopen") && (
+        <Dialog title={dialog === "reopen" ? "Reopen work order" : w.tech ? "Reassign" : "Assign"} onClose={() => setDialog(null)}
+          sub={dialog === "reopen" ? "It goes back to the technician, who must accept it again." : `${priorityLabel(w.priority)}: someone must accept it by ${fmtWhen(respondDue(w))}.`}
+          footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label={dialog === "reopen" ? "Reopen" : "Assign"} onClick={() => go("Assigned", { tech, note: text }, `${w.id} ${dialog === "reopen" ? "reopened" : "assigned"} to ${tech}`)} /></>}>
           <Select id="as-tech" label="Technician" value={tech} onChange={setTech} options={TECHNICIANS} />
+          {dialog === "reopen" && <Field label="What is still wrong" htmlFor="wo-why" required><input id="wo-why" value={text} onChange={e => setText(e.target.value)} className={controlClass} style={controlStyle(!text.trim())} /></Field>}
         </Dialog>
       )}
-      {(dialog === "fixed" || dialog === "close") && (
-        <Dialog title={dialog === "fixed" ? "Mark as fixed" : "Check and close"} onClose={() => setDialog(null)}
-          sub={dialog === "fixed" ? "Say what was done. Someone else checks it before the order closes." : w.room && w.outOfOrder ? `Closing sends room ${w.room} to Housekeeping to be cleaned before it is sold.` : "Close the order once you have checked the fix."}
-          footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label={dialog === "fixed" ? "Mark as fixed" : "Close work order"} onClick={() => {
-            if (!resolution.trim()) return;
-            if (dialog === "fixed") { move("Fixed", "Fixed", resolution.trim(), { resolution: resolution.trim() }); add({ type: "success", title: `${w.id} fixed, waiting to be checked` }); }
-            else { const r = finishWorkOrder(w.id, "Closed", { resolution: resolution.trim() }, { event: "Checked and closed", by: me, note: resolution.trim() }); add({ type: "success", title: `${w.id} closed`, body: r?.backToHousekeeping ? `Room ${w.room} is on the Housekeeping board to be cleaned.` : undefined }); }
-            done();
-          }} /></>}>
-          <Field label="What was done" htmlFor="wo-res" required error={!resolution.trim() ? "Needed before the order moves on." : undefined}>
-            <textarea id="wo-res" rows={3} value={resolution} onChange={e => setResolution(e.target.value)} className="w-full px-3.5 py-2.5 text-sm outline-none resize-none"
-              style={{ border: `1px solid ${resolution.trim() ? "#CBD5E1" : ERROR}`, borderRadius: UI.radius.control, color: TEXT }} />
-          </Field>
+      {dialog === "hold" && (
+        <Dialog title="Put on hold" sub="The clock stops while the job waits. The time held is added to both deadlines." onClose={() => setDialog(null)}
+          footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label="Put on hold" onClick={() => go("On hold", { holdReason, note: text }, `${w.id} on hold`, holdReason)} /></>}>
+          <Select id="wo-hold" label="Waiting for" value={holdReason} onChange={setHoldReason} options={HOLD_REASONS} />
+          <Field label="Details" htmlFor="wo-hold-note" hint="For example the part and when it is expected."><input id="wo-hold-note" value={text} onChange={e => setText(e.target.value)} className={controlClass} style={controlStyle()} /></Field>
         </Dialog>
       )}
-      {(dialog === "reopen" || dialog === "cancel") && (
-        <Dialog title={dialog === "reopen" ? "Reopen work order" : "Cancel work order"} danger={dialog === "cancel"} onClose={() => setDialog(null)}
-          sub={dialog === "cancel" && w.room && w.outOfOrder ? `Room ${w.room} goes to Housekeeping to be cleaned before it is sold.` : undefined}
-          footer={<><BtnO label="Back" onClick={() => setDialog(null)} /><BtnP label={dialog === "reopen" ? "Reopen" : "Cancel work order"} onClick={() => {
-            if (!reason.trim()) return;
-            if (dialog === "reopen") move("In progress", "Reopened", reason.trim(), { resolution: undefined });
-            const r = dialog === "cancel" ? finishWorkOrder(w.id, "Cancelled", {}, { event: "Cancelled", by: me, note: reason.trim() }) : null;
-            add({ type: dialog === "reopen" ? "warning" : "info", title: `${w.id} ${dialog === "reopen" ? "reopened" : "cancelled"}`, body: r?.backToHousekeeping ? `Room ${w.room} is on the Housekeeping board to be cleaned.` : undefined }); setReason(""); done();
+      {(dialog === "complete" || dialog === "sendback" || dialog === "cancel") && (
+        <Dialog title={dialog === "complete" ? "Mark as completed" : dialog === "sendback" ? "Send back to the technician" : "Cancel work order"} danger={dialog === "cancel"} onClose={() => setDialog(null)}
+          sub={dialog === "complete" ? "Say what was done. Someone else verifies it before the order closes." : dialog === "cancel" ? roomNote : "Say what is still wrong. It goes back to work in progress."}
+          footer={<><BtnO label="Back" onClick={() => setDialog(null)} /><BtnP label={dialog === "complete" ? "Mark as completed" : dialog === "sendback" ? "Send back" : "Cancel work order"} onClick={() => {
+            if (dialog === "complete") go("Completed", { note: text }, `${w.id} completed`, "It now waits for someone else to verify it.");
+            else if (dialog === "sendback") go("In progress", { note: text }, `${w.id} sent back`, `${w.tech} has been told.`);
+            else go("Cancelled", { note: text }, `${w.id} cancelled`, roomNote ? `Room ${w.room} is on the Housekeeping board to be cleaned.` : undefined);
           }} /></>}>
-          <Field label={dialog === "reopen" ? "What is still wrong" : "Why cancel it"} htmlFor="wo-why" required>
-            <input id="wo-why" value={reason} onChange={e => setReason(e.target.value)} className={controlClass} style={controlStyle()} />
+          <Field label={dialog === "complete" ? "What was done" : dialog === "sendback" ? "What is still wrong" : "Why cancel it"} htmlFor="wo-text" required error={!text.trim() ? "Needed before the order moves on." : undefined}>
+            <textarea id="wo-text" rows={3} value={text} onChange={e => setText(e.target.value)} className="w-full px-3.5 py-2.5 text-sm outline-none resize-none"
+              style={{ border: `1px solid ${text.trim() ? "#CBD5E1" : ERROR}`, borderRadius: UI.radius.control, color: TEXT }} />
           </Field>
         </Dialog>
       )}

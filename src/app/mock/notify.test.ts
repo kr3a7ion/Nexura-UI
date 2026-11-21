@@ -32,11 +32,11 @@ describe("the bell", () => {
     expect(unreadCount("Tester", "FIN")).toBe(before);
   });
 
-  test("a high-priority job interrupts Maintenance; a low one waits on the bell", () => {
+  test("a P1 job interrupts Maintenance; a P3 one waits on the bell", () => {
     setCurrentUser("Fatima Musa", "HK");
-    addWorkOrder({ title: "Sparking socket", location: "Room 117", cat: "Electrical", priority: "High", reportedBy: "Fatima Musa", desc: "" });
+    addWorkOrder({ title: "Sparking socket", location: "Room 117", cat: "Electrical", priority: "P1", reportedBy: "Fatima Musa", desc: "" });
     expect(noticesFor("Emeka Obi", "MX").find(n => n.title.endsWith("Sparking socket"))?.level).toBe("Urgent");
-    addWorkOrder({ title: "Loose handle", location: "Room 117", cat: "Furniture", priority: "Low", reportedBy: "Fatima Musa", desc: "" });
+    addWorkOrder({ title: "Loose handle", location: "Room 117", cat: "Furniture", priority: "P3", reportedBy: "Fatima Musa", desc: "" });
     expect(noticesFor("Emeka Obi", "MX").find(n => n.title.endsWith("Loose handle"))?.level).toBe("Normal");
   });
 

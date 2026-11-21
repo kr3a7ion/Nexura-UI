@@ -11,7 +11,7 @@ import { homeToday } from "../mock/suiteHome";
 import { ARRIVALS } from "../mock/frontOffice";
 import { ROOMS } from "../mock/property";
 import { roomState } from "../mock/rooms";
-import { workOrders, isOpen } from "../mock/maintenance";
+import { workOrders, isOpen, isUrgent } from "../mock/maintenance";
 import type { Department, DepartmentId } from "./departments";
 import { ApprovalsCard } from "./ApprovalsCard";
 
@@ -35,7 +35,7 @@ const META: Record<DepartmentId, { description: string; live: string }> = {
 const live = (id: DepartmentId) => {
   if (id === "front-office") { const n = ARRIVALS.length; return `${n} arrival${n === 1 ? "" : "s"} to come`; }
   if (id === "housekeeping") { const n = ROOMS.filter(r => roomState(r.id) === "Ready").length; return `${n} room${n === 1 ? "" : "s"} ready`; }
-  if (id === "maintenance") { const n = workOrders().filter(w => isOpen(w) && w.priority === "High").length; return n ? `${n} high priority` : "Nothing urgent"; }
+  if (id === "maintenance") { const n = workOrders().filter(w => isOpen(w) && isUrgent(w)).length; return n ? `${n} P1 or P2` : "Nothing urgent"; }
   return META[id].live;
 };
 
