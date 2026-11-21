@@ -45,7 +45,7 @@ import { FOUND_ITEMS, logFoundItem, hkRooms } from "./mock/housekeeping";
 import { UI, controlClass, controlStyle, SectionTitle, Stepper, Row, Dialog, Field } from "./ui";
 import { roomPrice } from "./mock/property";
 import { notify } from "./mock/notify";
-import { checkIn, checkOut, assignRoom, roomsForArrival, markNoShow, rushRoom } from "./mock/hotel";
+import { checkIn, checkOut, assignRoom, roomsForBooking, markNoShow, rushRoom, roomFree } from "./mock/hotel";
 import { isOutOfOrder } from "./mock/maintenance";
 
 // Local gender-coded avatar (mirrors ScreensA Av)
@@ -143,7 +143,8 @@ export function CheckInWizard({ add, initialReservationId = "", staffName }: { a
   }, [initialReservationId]);
   const selData = ALL_ARRIVALS.find(a => a.id === selRes);
   // Rooms free tonight, straight from Housekeeping; only clean or inspected rooms can be given out.
-  const AVAIL_ROOMS = hkRooms().filter(r => r.guestState === "Vacant" || (selData && r.id === selData.room));
+  // Only rooms nobody else holds on any night of this stay, so check-in can never double-book.
+  const AVAIL_ROOMS = hkRooms().filter(r => (r.guestState === "Vacant" || (selData && r.id === selData.room)) && (!selData || roomFree(r.id, BUSINESS_DATE, selData.nights, selData.id)));
   const ready = (r: { hkSt: string; note: string }) => (r.hkSt === "Clean" || r.hkSt === "Inspected") && !r.note.startsWith("Out of order");
   const selectedRoomData = AVAIL_ROOMS.find(r => r.id === selRoom);
   // A dearer room needs no approval: the guest pays its rate.
@@ -762,7 +763,7 @@ export function ArrivalsScreen({ add, nav, staffName }: { add: (t: Omit<Toast, "
               add({ type: "info", title: `${activeArrival.guest} marked as no-show`, body: activeArrival.room ? `Room ${activeArrival.room} can be sold again.` : undefined }); done(); }} />}
           </>}>
           {arrivalAction.type === "assign" && (() => {
-            const rooms = roomsForArrival(activeArrival.id);
+            const rooms = roomsForBooking(activeArrival.id);
             return (
               <Field label="Room" htmlFor="ar-room" required hint={`${activeArrival.type} rooms free for all ${activeArrival.nights} night${activeArrival.nights === 1 ? "" : "s"}, ready rooms first.`}>
                 <select id="ar-room" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)} className={controlClass} style={controlStyle(!selectedRoom)}>
@@ -792,7 +793,7 @@ export function ArrivalsScreen({ add, nav, staffName }: { add: (t: Omit<Toast, "
   );
 }
 
-export function DeparturesScreen({ add, nav, staffName }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; staffName: string }) {
+export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [dep, setDep] = useState(departures);
   type Departure = typeof dep[number];
   const [depSearch, setDepSearch] = useState("");
@@ -811,7 +812,7 @@ export function DeparturesScreen({ add, nav, staffName }: { add: (t: Omit<Toast,
     return matchesSearch && matchesFilter;
   });
   const departed = dep.filter(item => item.status === "Departed").length;
-  const eligibleForExpress = dep.filter(item => item.status === "Pending" && item.balance === 0);
+  const eligibleForExpress = dep.filter(item => item.status === "Pending" && item.balance <= 0);
   const selectedEligible = eligibleForExpress.filter(item => selectedRooms.includes(item.room));
   const openDepartureAction = (type: "late" | "charge", item: Departure) => {
     setDepAction({ type, id: item.id });

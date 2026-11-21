@@ -51,11 +51,11 @@ describe("hotel actions", () => {
   });
 });
 
-import { assignRoom, roomsForArrival, markNoShow } from "./hotel";
+import { assignRoom, roomsForBooking, markNoShow } from "./hotel";
 describe("today's arrivals", () => {
   test("an arrival can only be given a free room of its type, ready rooms first", () => {
     const a = ARRIVALS.find(x => x.id === "BK-2857")!; // Standard, no room yet
-    const rooms = roomsForArrival(a.id);
+    const rooms = roomsForBooking(a.id);
     expect(rooms.length).toBeGreaterThan(0);
     expect(rooms.indexOf("102")).toBeGreaterThan(rooms.indexOf("103")); // 102 is being cleaned, 103 is ready
     expect(assignRoom(a.id, "202")).toBe(false); // a Deluxe room

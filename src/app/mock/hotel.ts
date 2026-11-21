@@ -2,7 +2,7 @@
 // so a screen never has to keep two departments in step by itself.
 // PR C adds the bell: each action will also tell the people who need to know.
 import { BUSINESS_DATE } from "../constants";
-import { ARRIVALS, STAYS, gridBookings, bookedOn, nextBookingId, initials, addFutureBooking, addArrival, arrivalToStay, endStay, setArrivalRoom, arrivalToNoShow } from "./frontOffice";
+import { ARRIVALS, STAYS, gridBookings, bookedOn, nextBookingId, initials, addFutureBooking, addArrival, arrivalToStay, endStay, setBookingRoom, arrivalToNoShow } from "./frontOffice";
 import { updateRoom, hkStatus, hkRooms } from "./housekeeping";
 import { notify } from "./notify";
 import { ROOMS } from "./property";
@@ -12,9 +12,10 @@ const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 
 // True when nobody holds the room on any of the nights from checkin for that many nights.
-export const roomFree = (room: string, checkin: Date, nights: number) => {
+// `except` is the booking being placed, so its own current room does not count against it.
+export const roomFree = (room: string, checkin: Date, nights: number, except?: string) => {
   const from = day(checkin), to = addDays(from, nights);
-  return !gridBookings().some(b => b.room === room && day(b.checkin) < to && day(b.checkout) > from);
+  return !gridBookings().some(b => b.id !== except && b.room === room && day(b.checkin) < to && day(b.checkout) > from);
 };
 
 // How many rooms of a type are still free on every night of a stay, out-of-order rooms excluded.
@@ -39,8 +40,9 @@ export const addBooking = (b: NewBooking) => {
 
 // Turns today's arrival into a guest in the room; Housekeeping then sees a stayover.
 export const checkIn = (arrivalId: string, room: string, rate: number, paid: number) => {
+  // The room must be free for every night of the stay, not just tonight, and not out of order.
   const a = ARRIVALS.find(x => x.id === arrivalId);
-  if (!a || STAYS.some(s => s.room === room)) return null;
+  if (!a || isOutOfOrder(room) || !roomFree(room, BUSINESS_DATE, a.nights, a.id)) return null;
   const stay = arrivalToStay(arrivalId, room, rate, paid);
   if (stay) notify("guest.checkedIn", { title: `${stay.guest} checked in to room ${room}`, body: "Now a stayover on the Housekeeping board." });
   return stay;
@@ -71,21 +73,24 @@ export const finishWorkOrder = (id: string, status: "Closed" | "Cancelled", patc
     updateRoom(w.room!, { hkSt: "Dirty", awaitingInspection: false, note: "Back from maintenance: clean before it is sold" });
     notify("room.backFromMaintenance", { title: `Room ${w.room} is back from maintenance`, body: "Clean and inspect it before it is sold.", people: [attendantOf(w.room!)], link: { screen: "hk-board", label: "Housekeeping Board" } });
   }
-  if (status === "Closed") notify("workOrder.closed", { title: `${w.id} is done: ${w.title}`, body: patch.resolution ?? "", people: [w.reportedBy], link: { screen: "work-order-detail", label: "Work Order", param: w.id } });
+  notify("workOrder.closed", { title: `${w.id} ${status === "Closed" ? "is done" : "was cancelled"}: ${w.title}`, body: status === "Closed" ? patch.resolution ?? "" : log.note, people: [w.reportedBy], link: { screen: "work-order-detail", label: "Work Order", param: w.id } });
   return { order: w, backToHousekeeping };
 };
 
-// Rooms an arrival can be given: its booked type, free for every night of the stay and not out of order,
-// ready rooms first so the guest is not kept waiting.
-export const roomsForArrival = (arrivalId: string) => {
-  const a = ARRIVALS.find(x => x.id === arrivalId); if (!a) return [];
-  const ready = (id: string) => ["Clean", "Inspected"].includes(hkStatus(id) ?? "") ? 0 : 1;
-  return ROOMS.filter(r => r.type === a.type && !isOutOfOrder(r.id) && (r.id === a.room || roomFree(r.id, BUSINESS_DATE, a.nights)))
+// Rooms a booking (today's arrival or a later one) can be given: its booked type, free for every night
+// of the stay and not out of order, ready rooms first so the guest is not kept waiting.
+export const roomsForBooking = (id: string) => {
+  const a = ARRIVALS.find(x => x.id === id), g = a ? null : gridBookings().find(x => x.id === id);
+  const b = a ? { type: a.type, checkin: BUSINESS_DATE, nights: a.nights }
+    : g ? { type: g.type ?? ROOMS.find(r => r.id === g.room)?.type ?? "", checkin: g.checkin, nights: Math.round((day(g.checkout).getTime() - day(g.checkin).getTime()) / 86400000) } : null;
+  if (!b) return [];
+  const ready = (r: string) => ["Clean", "Inspected"].includes(hkStatus(r) ?? "") ? 0 : 1;
+  return ROOMS.filter(r => r.type === b.type && !isOutOfOrder(r.id) && roomFree(r.id, b.checkin, b.nights, id))
     .map(r => r.id).sort((x, y) => ready(x) - ready(y) || x.localeCompare(y));
 };
-export const assignRoom = (arrivalId: string, room: string) => {
-  if (!roomsForArrival(arrivalId).includes(room)) return false;
-  setArrivalRoom(arrivalId, room);
+export const assignRoom = (id: string, room: string) => {
+  if (!roomsForBooking(id).includes(room)) return false;
+  setBookingRoom(id, room);
   return true;
 };
 // The room is released, so the grid and New Reservation can sell it again.
