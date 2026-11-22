@@ -3,6 +3,7 @@
 // shortcut: held in memory until the hotel server exists; changes last until the page reloads.
 import { BUSINESS_DATE } from "../constants";
 import { notify, type Level } from "./notify";
+import { pendingFor } from "./handover";
 import { onPlannedVerified, missingCritical, type CheckResult } from "./ppm";
 import { presentToday, isPresentToday, team, teamMembers, staff, holdersOf, type StaffRole } from "./roster";
 
@@ -212,6 +213,8 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   if (to === "Assigned" && !m.tech && !m.team) return "Choose a technician or a team.";
   if (to === "Assigned" && m.team && !team(m.team)) return "There is no such team.";
   if (to === "Assigned" && m.tech && m.tech !== VENDOR && !isPresentToday(m.tech)) return `${m.tech} is not marked present today. Mark them present on the roster first, or choose someone who is on shift.`;
+  const unread = to === "Assigned" && m.tech ? pendingFor(m.tech) : undefined;
+  if (unread) return `${m.tech} has not acknowledged the handover from ${unread.from} yet. They read it and acknowledge it first.`;
   const onTeam = !!w.team && (teamMembers(w.team).includes(m.by) || team(w.team)?.lead === m.by);
   if (to === "Accepted" && (w.tech ? w.tech !== m.by && w.tech !== VENDOR : !onTeam)) return `Only ${assignee(w)} can accept this job.`;
   if (to === "On hold" && !HOLD_REASONS.includes(m.holdReason ?? "")) return "Choose why it is on hold.";

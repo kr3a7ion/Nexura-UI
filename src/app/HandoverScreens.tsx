@@ -5,7 +5,8 @@ import type { Toast } from "./constants";
 import { BORDER, TEXT, MUTED, TEAL_INK } from "./constants";
 import { PageHeader, BtnP, BtnO, Badge } from "./UIKit";
 import { Card, Field, controlClass, controlStyle } from "./ui";
-import { WO_PRI_C } from "./WorkOrderScreens";
+import { WO_PRI_C, Select } from "./WorkOrderScreens";
+import { staffList } from "./mock/roster";
 import { fmtWhen } from "./mock/maintenance";
 import { draft, handovers, submitHandover, acknowledgeHandover } from "./mock/handover";
 
@@ -15,15 +16,16 @@ type Nav = (s: string, label: string, param?: string) => void;
 export function MaintenanceHandover({ add, nav, staffName }: { add: Add; nav?: Nav; staffName: string }) {
   const [notes, setNotes] = useState("");
   const [keys, setKeys] = useState("");
+  const [to, setTo] = useState("");
   const [tried, setTried] = useState(false);
   const [, redraw] = useState(0);
   const d = draft();
   const submit = () => {
     setTried(true);
-    const r = submitHandover(staffName, notes, keys);
+    const r = submitHandover(staffName, to, notes, keys);
     if (typeof r === "string") { add({ type: "error", title: r }); return; }
-    add({ type: "success", title: "Handover submitted", body: "The incoming shift has been told to read and acknowledge it." });
-    setNotes(""); setKeys(""); setTried(false); redraw(n => n + 1);
+    add({ type: "success", title: "Handover submitted", body: `${to} has been told. They cannot be given work until they acknowledge it.` });
+    setNotes(""); setKeys(""); setTo(""); setTried(false); redraw(n => n + 1);
   };
   const acknowledge = (id: string) => {
     const refused = acknowledgeHandover(id, staffName);
@@ -42,6 +44,10 @@ export function MaintenanceHandover({ add, nav, staffName }: { add: Add; nav?: N
                 <span className="font-semibold">{p.name}</span><span style={{ color: MUTED }}>{p.status}{p.meter ? `, ${p.meter}` : ""}</span>
               </div>)) : <p className="text-sm" style={{ color: MUTED }}>No plant on the register.</p>}
           </Card>
+          <Card title="Live permits" sub="Issued permits are locks on plant. They carry over until closed.">
+            {d.permits.length ? d.permits.map(p => <div key={p} className="py-2 text-sm" style={{ borderTop: `1px solid ${BORDER}`, color: TEXT }}>{p}</div>)
+              : <p className="text-sm" style={{ color: MUTED }}>No permits open.</p>}
+          </Card>
           <Card title="Jobs carried into the next shift" sub={`${d.carried.length} open, most urgent first.`}>
             {d.carried.length ? d.carried.map(j => (
               <button key={j.id} type="button" onClick={() => nav?.("work-order-detail", j.id, j.id)} className="w-full text-left flex items-center gap-3 py-2" style={{ borderTop: `1px solid ${BORDER}` }}>
@@ -51,6 +57,7 @@ export function MaintenanceHandover({ add, nav, staffName }: { add: Add; nav?: N
               </button>)) : <p className="text-sm" style={{ color: MUTED }}>Nothing carried over.</p>}
           </Card>
           <Card title="What the next shift must know">
+            <Select id="ho-to" label="Handing over to" value={to} onChange={setTo} options={[["", "Choose who is taking over"], ...staffList().filter(s => s.name !== staffName).map(s => [s.name, `${s.name}, ${s.role.toLowerCase()}`] as [string, string])]} />
             <Field label="Notes" htmlFor="ho-notes" required error={tried && notes.trim().length < 5 ? "Write what the next shift must know." : undefined}
               hint="Access restrictions, what you tried, what to watch overnight, anything the system cannot see.">
               <textarea id="ho-notes" rows={5} value={notes} onChange={e => setNotes(e.target.value)} className="w-full px-3.5 py-2.5 text-sm outline-none resize-none" style={controlStyle(tried && notes.trim().length < 5)} />
@@ -58,7 +65,7 @@ export function MaintenanceHandover({ add, nav, staffName }: { add: Add; nav?: N
             <Field label="Keys and permits held" htmlFor="ho-keys">
               <input id="ho-keys" value={keys} onChange={e => setKeys(e.target.value)} className={controlClass} style={controlStyle()} />
             </Field>
-            <p className="text-sm mt-3" style={{ color: MUTED }}>A handover book fails in two ways: the outgoing shift writes too little, and the incoming shift never signs. Acknowledging here is how the next shift signs.</p>
+            <p className="text-sm mt-3" style={{ color: MUTED }}>A handover book fails in two ways: the outgoing shift writes too little, and the incoming shift never signs. The person taking over cannot be given work until they acknowledge it here.</p>
             <div className="hidden print:grid grid-cols-2 gap-8 mt-10 text-sm" style={{ color: TEXT }}>
               <div style={{ borderTop: `1px solid ${TEXT}` }} className="pt-2">Handed over by: signature, name and time</div>
               <div style={{ borderTop: `1px solid ${TEXT}` }} className="pt-2">Taken over by: signature, name and time</div>
@@ -71,10 +78,10 @@ export function MaintenanceHandover({ add, nav, staffName }: { add: Add; nav?: N
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="text-sm font-semibold" style={{ color: TEXT }}>{fmtWhen(h.at)}, {h.shift} shift</div>
-                  <div className="text-sm" style={{ color: MUTED }}>{h.from} → {h.acknowledgedBy ?? "next shift"}. {h.carried.length} job{h.carried.length === 1 ? "" : "s"} carried.</div>
+                  <div className="text-sm" style={{ color: MUTED }}>{h.from} → {h.to}. {h.carried.length} job{h.carried.length === 1 ? "" : "s"} carried.</div>
                 </div>
                 {h.status === "Acknowledged" ? <Badge label="Acknowledged" colors={{ bg: "#DCFCE7", text: "#166534" }} />
-                  : h.from === staffName ? <Badge label="Waiting" colors={{ bg: "#FEF3C7", text: "#92400E" }} />
+                  : h.to !== staffName ? <Badge label={`Waiting for ${h.to.split(" ")[0]}`} colors={{ bg: "#FEF3C7", text: "#92400E" }} />
                   : <BtnP label={`Acknowledge ${h.id}`} onClick={() => acknowledge(h.id)} />}
               </div>
               <p className="text-sm mt-1.5" style={{ color: TEXT }}>{h.notes}</p>
