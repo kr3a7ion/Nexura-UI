@@ -7,6 +7,8 @@ import { BORDER, TEXT, MUTED, SUBTLE, TEAL_INK } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO } from "./UIKit";
 import { UI, Card, Field, Dialog, controlClass, controlStyle } from "./ui";
 import { Select } from "./WorkOrderScreens";
+import { LeaveDialog } from "./LeaveScreens";
+import { requestLeave } from "./mock/leave";
 import {
   staffList, teams, teamMembers, patterns, patternName, rosterDay, daysBetween, paintDay, fillPattern, publish, markDay,
   weekStart, weekOf, addDays, parseDay, TODAY, ABSENCE_REASONS, type AbsenceReason, type RosterDay,
@@ -30,6 +32,7 @@ export function MaintenanceRoster({ add, staffName }: { add: Add; staffName: str
   const [brush, setBrush] = useState<string | null>(patterns()[0].id);
   const [marking, setMarking] = useState<RosterDay | null>(null);
   const [filling, setFilling] = useState(false);
+  const [asking, setAsking] = useState(false);
   const [, redraw] = useState(0);
   const days = weekOf(from);
   const to = days[6];
@@ -58,6 +61,7 @@ export function MaintenanceRoster({ add, staffName }: { add: Add; staffName: str
           <BtnO label="Previous week" onClick={() => setFrom(addDays(from, -7))} />
           <span className="text-sm font-semibold px-1 whitespace-nowrap" style={{ color: TEXT }}>{label}</span>
           <BtnO label="Next week" onClick={() => setFrom(addDays(from, 7))} />
+          <BtnO label="Request time off" onClick={() => setAsking(true)} />
           <BtnO label="Fill a pattern" onClick={() => setFilling(true)} />
           <BtnO label={editing ? "Done editing" : "Edit week"} onClick={() => setEditing(!editing)} />
           {drafts > 0 && <BtnP label={`Publish ${drafts} day${drafts === 1 ? "" : "s"}`} onClick={release} />}
@@ -98,7 +102,7 @@ export function MaintenanceRoster({ add, staffName }: { add: Add; staffName: str
                   const e = rosterDay(p.name, date);
                   const state = e?.status ?? "Off";
                   const canMark = !editing && date === TODAY && !!e && e.status !== "Off";
-                  const text = !e ? "Not rostered" : e.status === "Off" ? "Off" : e.status === "Absent" ? `Absent: ${e.reason?.toLowerCase()}` : patternName(e.shift);
+                  const text = !e ? "Not rostered" : e.status === "Off" ? "Off" : e.status === "Absent" ? `Absent: ${e.reason?.toLowerCase()}${e.source === "HR" ? " (HR)" : ""}` : patternName(e.shift);
                   return (
                     <td key={date} className="px-2 py-2">
                       <button type="button" disabled={!editing && !canMark} onClick={() => editing ? paint(p.name, date) : e && setMarking(e)}
@@ -138,6 +142,8 @@ export function MaintenanceRoster({ add, staffName }: { add: Add; staffName: str
 
       {marking && <MarkDialog day={marking} by={staffName} onClose={() => setMarking(null)}
         onDone={(title, ok) => { add({ type: ok ? "success" : "error", title }); if (ok) { setMarking(null); redraw(n => n + 1); } }} />}
+      {asking && <LeaveDialog title="Request time off" sub="HR decides. Approved, it marks the roster absent and they cannot be given work those days." people={staffList().map(s => s.name)}
+        onClose={() => setAsking(false)} onSave={r => { const l = requestLeave(r, staffName, "Maintenance"); if (typeof l === "string") add({ type: "error", title: l }); else { add({ type: "success", title: `Time off asked for ${l.staff}`, body: "HR has been told." }); setAsking(false); } }} />}
       {filling && <FillDialog from={from} onClose={() => setFilling(false)}
         onDone={title => { add({ type: "success", title, body: "Publish when the week is right." }); setFilling(false); setEditing(true); redraw(n => n + 1); }}
         onError={title => add({ type: "error", title })} />}
@@ -146,7 +152,7 @@ export function MaintenanceRoster({ add, staffName }: { add: Add; staffName: str
 }
 
 function MarkDialog({ day, by, onClose, onDone }: { day: RosterDay; by: string; onClose: () => void; onDone: (title: string, ok: boolean) => void }) {
-  const [reason, setReason] = useState<AbsenceReason>(day.reason ?? "Sick");
+  const [reason, setReason] = useState<AbsenceReason>((ABSENCE_REASONS as readonly string[]).includes(day.reason ?? "") ? day.reason as AbsenceReason : "Sick");
   const [note, setNote] = useState(day.note ?? "");
   const mark = (status: "Present" | "Absent") => {
     const refused = markDay(day.staff, day.date, status, by, status === "Absent" ? reason : undefined, note);

@@ -204,7 +204,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "staff-profile") return <StaffProfileDetail add={add} />;
   if (screen === "roles-permissions") return <RolesPermissions add={add} />;
   if (screen === "attendance") return <AttendanceScreen add={add} />;
-  if (screen === "leave-management") return <LeaveManagement add={add} />;
+  if (screen === "leave-management") return <LeaveManagement add={add} staffName={staffName} />;
   if (screen === "shift-scheduler") return <ShiftScheduler add={add} />;
   if (screen === "payroll") return <PayrollSummary add={add} />;
   // Multi-Branch

@@ -1,5 +1,6 @@
 // All screen components and shared UI primitives.
 // Imported by App.tsx — no circular dependencies.
+import { staffAll } from "./mock/staff";
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   LayoutDashboard, CalendarDays, KeyRound, BedDouble, Wrench,
@@ -743,20 +744,7 @@ export function TableManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => v
 
 
 export function StaffDirectory({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
-  const STAFF_FULL = [
-    { id:"EMP-001", name:"John Abubakar",    role:"Front Desk Officer",  dept:"Front Desk",  phone:"0803-001-1001", email:"j.abubakar@grandpalms.ng",   empType:"Full-time",  hireDate:"3 Jan 2022", status:"Active",   shift:"Morning 07:00–15:00", gender:"M" as const },
-    { id:"EMP-002", name:"Amaka Osei",       role:"Housekeeping Attendant",dept:"Housekeeping",phone:"0802-002-2002",email:"a.osei@grandpalms.ng",       empType:"Full-time",  hireDate:"15 Mar 2021", status:"Active",   shift:"Morning 06:00–14:00", gender:"F" as const },
-    { id:"EMP-003", name:"Emeka Obi",      role:"Executive Chef",       dept:"Restaurant",  phone:"0801-003-3003", email:"e.nwosu@grandpalms.ng",       empType:"Full-time",  hireDate:"1 Jun 2020", status:"Active",   shift:"Morning 06:00–14:00", gender:"M" as const },
-    { id:"EMP-004", name:"Fatima Ibrahim",   role:"Reservations Manager", dept:"Front Desk",  phone:"0805-004-4004", email:"f.ibrahim@grandpalms.ng",     empType:"Full-time",  hireDate:"20 Sep 2023", status:"Active",   shift:"Morning 08:00–16:00", gender:"F" as const },
-    { id:"EMP-005", name:"Chidi Eze",        role:"Maintenance Engineer", dept:"Maintenance", phone:"0806-005-5005", email:"c.eze@grandpalms.ng",         empType:"Full-time",  hireDate:"10 Apr 2019", status:"Active",   shift:"Rotating",            gender:"M" as const },
-    { id:"EMP-006", name:"Ngozi Okonkwo",    role:"HK Supervisor",       dept:"Housekeeping",phone:"0807-006-6006", email:"n.okonkwo@grandpalms.ng",     empType:"Full-time",  hireDate:"1 Feb 2022", status:"On Leave", shift:"Morning 06:00–14:00", gender:"F" as const },
-    { id:"EMP-007", name:"Bello Musa",       role:"Finance Officer",      dept:"Finance",     phone:"0808-007-7007", email:"b.musa@grandpalms.ng",        empType:"Full-time",  hireDate:"14 Jul 2023", status:"Active",   shift:"Morning 08:00–17:00", gender:"M" as const },
-    { id:"EMP-008", name:"Ada Okonkwo",      role:"Guest Relations",      dept:"Front Desk",  phone:"0809-008-8008", email:"a.okonkwo@grandpalms.ng",     empType:"Contract",   hireDate:"1 Jan 2025", status:"Active",   shift:"Evening 15:00–23:00", gender:"F" as const },
-    { id:"EMP-009", name:"Tunde Adeyemi",    role:"IT Administrator",     dept:"IT",          phone:"0810-009-9009", email:"t.adeyemi@grandpalms.ng",     empType:"Full-time",  hireDate:"5 May 2021", status:"Active",   shift:"Morning 08:00–17:00", gender:"M" as const },
-    { id:"EMP-010", name:"Grace Ojo",        role:"Restaurant Supervisor",dept:"Restaurant",  phone:"0811-010-1010", email:"g.ojo@grandpalms.ng",         empType:"Full-time",  hireDate:"22 Oct 2022", status:"Active",   shift:"Evening 14:00–22:00", gender:"F" as const },
-    { id:"EMP-011", name:"Samuel Okafor",    role:"Security Officer",     dept:"Security",    phone:"0812-011-1011", email:"s.okafor@grandpalms.ng",      empType:"Contract",   hireDate:"1 Mar 2024", status:"Active",   shift:"Night 23:00–07:00",   gender:"M" as const },
-    { id:"EMP-012", name:"Chidinma Eze",     role:"Spa Therapist",        dept:"Spa",         phone:"0813-012-1012", email:"c.eze2@grandpalms.ng",        empType:"Part-time",  hireDate:"15 Aug 2023", status:"Inactive", shift:"Morning 09:00–15:00", gender:"F" as const },
-  ];
+  const STAFF_FULL = staffAll().filter(s => s.status !== "Left");
 
   const deptColors: Record<string, string> = { "Front Desk":"#2563EB","Housekeeping":"#059669","Maintenance":"#D97706","Restaurant":"#9333EA","Finance":"#0891B2","IT":"#DC2626","Security":"#374151","Spa":"#BE185D" };
   const stColors: Record<string,{bg:string;text:string}> = { Active:{bg:"#DCFCE7",text:"#166534"}, "On Leave":{bg:"#FEF3C7",text:"#92400E"}, Inactive:{bg:"#F3F4F6",text:"#374151"} };
