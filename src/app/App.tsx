@@ -156,7 +156,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   // Maintenance
   if (screen === "fault-reports") return <FaultReports add={add} nav={nav} role={role} staffName={staffName} dept={DEPT_OF[role] ?? "Management"} />;
   if (screen === "work-orders") return <WorkOrders add={add} nav={nav} staffName={staffName} />;
-  if (screen === "mx-roster") return <MaintenanceRoster add={add} />;
+  if (screen === "mx-roster") return <MaintenanceRoster add={add} staffName={staffName} />;
   if (screen === "work-order-detail") return <WorkOrderDetail key={navParam} add={add} nav={nav} id={navParam} staffName={staffName} />;
   if (screen === "asset-register") return <AssetRegister add={add} />;
   if (screen === "preventive-schedule") return <PreventiveSchedule add={add} />;

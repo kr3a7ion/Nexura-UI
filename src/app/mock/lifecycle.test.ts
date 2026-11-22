@@ -19,7 +19,7 @@ describe("work order lifecycle (FacilityFlow rules)", () => {
   test("moves the status does not allow are refused, with a reason", () => {
     const w = job();
     expect(moveWorkOrder(w.id, "Completed", { by: "Emeka Obi", note: "x" })).toMatch(/cannot/);
-    expect(moveWorkOrder(w.id, "Assigned", { by: "Adaeze Okonkwo" })).toMatch(/who/);
+    expect(moveWorkOrder(w.id, "Assigned", { by: "Adaeze Okonkwo" })).toMatch(/technician or a team/);
     step(w.id, "Assigned", { by: "Adaeze Okonkwo", tech: "Emeka Obi" });
     expect(moveWorkOrder(w.id, "Accepted", { by: "Chidi Ike" })).toMatch(/Only Emeka Obi/);
     step(w.id, "Accepted", { by: "Emeka Obi" });

@@ -1,25 +1,67 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { addWorkOrder, moveWorkOrder, workOrder, assignable, setPresent, escalate, VENDOR } from "./maintenance";
+import { addWorkOrder, moveWorkOrder, workOrder, assignable, escalate, VENDOR } from "./maintenance";
+import { markDay, paintDay, publish, fillPattern, rosterDay, presentToday, weekStart, addDays, TODAY } from "./roster";
 import { noticesFor } from "./notify";
 
 const job = (priority: "P1" | "P3" = "P1") => addWorkOrder({ title: `Job ${Math.random()}`, location: "Room 210", cat: "Electrical", priority, reportedBy: "Amaka Osei", desc: "" });
 const lateFor = (name: string, id: string) => noticesFor(name, "MX").filter(n => n.event === "workOrder.late" && n.link?.param === id);
+const NEXT = addDays(weekStart(TODAY), 7);
 
-describe("roster and escalation (FacilityFlow rules)", () => {
-  beforeEach(() => { vi.useFakeTimers(); });
-  afterEach(() => { vi.useRealTimers(); setPresent("Chidi Ike", true); });
+describe("roster (FacilityFlow rules)", () => {
+  afterEach(() => { markDay("Chidi Ike", TODAY, "Present", "Yusuf Garba"); });
 
-  test("only people in today can be given work; an outside vendor always can", () => {
-    expect(assignable()).not.toContain("Musa Danladi");
-    expect(assignable()).not.toContain("Yusuf Garba"); // supervisors do not take jobs
-    setPresent("Chidi Ike", false);
+  test("only people marked present today can be given work; an outside vendor always can", () => {
+    expect(assignable()).not.toContain("Musa Danladi"); // off sick today
+    markDay("Chidi Ike", TODAY, "Absent", "Yusuf Garba", "Training");
+    expect(presentToday()).not.toContain("Chidi Ike");
     const w = job("P3");
-    expect(moveWorkOrder(w.id, "Assigned", { by: "Adaeze Okonkwo", tech: "Chidi Ike" })).toMatch(/not on today/);
+    expect(moveWorkOrder(w.id, "Assigned", { by: "Adaeze Okonkwo", tech: "Chidi Ike" })).toMatch(/not marked present/);
     expect(moveWorkOrder(w.id, "Assigned", { by: "Adaeze Okonkwo", tech: VENDOR })).toBeNull();
   });
 
-  test("a P1 nobody accepts goes to the team lead, then the supervisor, then the head of department, each once", () => {
+  test("absent needs a reason; off-duty and unpublished days cannot be marked", () => {
+    expect(markDay("Chidi Ike", TODAY, "Absent", "Yusuf Garba")).toMatch(/why/);
+    expect(markDay("Emeka Obi", weekStart(TODAY), "Present", "Yusuf Garba")).toMatch(/off duty/); // Emeka rests on Monday
+    expect(paintDay("Emeka Obi", NEXT, "SP-1")).toBeNull();
+    expect(markDay("Emeka Obi", NEXT, "Present", "Yusuf Garba")).toMatch(/not published/);
+    expect(publish(NEXT, addDays(NEXT, 6))).toBe(1);
+    expect(rosterDay("Emeka Obi", NEXT)?.published).toBe(true);
+  });
+
+  test("a marked day is never repainted; a fill rotates people through shifts and leaves rest days off", () => {
+    expect(paintDay("Chidi Ike", TODAY, null)).toMatch(/already marked/);
+    const r = fillPattern({ from: NEXT, to: addDays(NEXT, 6), people: ["Chidi Ike", "Musa Danladi"], restDays: [6], shifts: ["SP-1", "SP-2"] });
+    expect(r.written).toBe(14);
+    expect(rosterDay("Chidi Ike", NEXT)?.shift).toBe("SP-1");
+    expect(rosterDay("Musa Danladi", NEXT)?.shift).toBe("SP-2");
+    expect(rosterDay("Chidi Ike", addDays(NEXT, 6))?.status).toBe("Off");
+    expect(fillPattern({ from: NEXT, to: addDays(NEXT, 20), people: ["Chidi Ike"], restDays: [], shifts: ["SP-1"] }).refused).toMatch(/two weeks/);
+  });
+
+  test("a job given to a team becomes the name of whoever on it accepts; someone off the team cannot", () => {
+    const w = job("P3");
+    expect(moveWorkOrder(w.id, "Assigned", { by: "Adaeze Okonkwo", team: "Electrical and HVAC" })).toBeNull();
+    expect(noticesFor("Emeka Obi", "MX").some(n => n.title.startsWith(`${w.id} is with your team`))).toBe(true);
+    expect(moveWorkOrder(w.id, "Accepted", { by: "Chidi Ike" })).toMatch(/Only Electrical and HVAC team/);
+    expect(moveWorkOrder(w.id, "Accepted", { by: "Emeka Obi" })).toBeNull();
+    expect(workOrder(w.id)?.tech).toBe("Emeka Obi");
+  });
+
+  test("reassigning tells the person the job left their board", () => {
+    const w = job("P3");
+    moveWorkOrder(w.id, "Assigned", { by: "Adaeze Okonkwo", tech: "Emeka Obi" });
+    moveWorkOrder(w.id, "Assigned", { by: "Adaeze Okonkwo", tech: "Chidi Ike" });
+    expect(noticesFor("Emeka Obi", "MX").some(n => n.title === `${w.id} is no longer yours: ${workOrder(w.id)!.title}`)).toBe(true);
+  });
+});
+
+describe("escalation", () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
+
+  test("a P1 nobody accepts goes to its team's lead, then its supervisor, then the head of department, each once", () => {
     const w = job("P1");
+    moveWorkOrder(w.id, "Assigned", { by: "Adaeze Okonkwo", team: "Plumbing and building" });
     escalate();
     expect(lateFor("Bola Adewale", w.id)).toHaveLength(0);
     vi.advanceTimersByTime(16 * 60000); escalate(); escalate();

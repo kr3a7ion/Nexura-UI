@@ -3,6 +3,7 @@
 // shortcut: held in memory until the hotel server exists; changes last until the page reloads.
 import { BUSINESS_DATE } from "../constants";
 import { notify, type Level } from "./notify";
+import { presentToday, isPresentToday, team, teamMembers, staff, holdersOf, type StaffRole } from "./roster";
 
 // The lifecycle and priorities follow FacilityFlow (docs/OPERATING.md, services/workOrders.ts).
 export type WOStatus = "Raised" | "Assigned" | "Accepted" | "In progress" | "On hold" | "Completed" | "Verified" | "Closed" | "Cancelled";
@@ -17,26 +18,13 @@ export type WorkOrder = {
   outOfOrder: boolean; asset?: string; desc: string; timeline: WOEvent[];
   parts: { item: string; qty: number; unit: number; ref: string }[]; labourHours: number; resolution?: string;
   escalated?: Escalation[];
+  team?: string; // handed to a team: whoever on it accepts becomes the name on the job
 };
 
-// Maintenance roster: who does what, and who is in today. Work goes only to people present (an outside vendor always can).
-// shortcut: presence is set by hand on the Roster screen; HR attendance feeds it in Phase 3.
-export type RosterRole = "Technician" | "Team lead" | "Supervisor" | "Head of department";
-export type RosterEntry = { name: string; role: RosterRole; present: boolean };
-const ROSTER: RosterEntry[] = [
-  { name: "Emeka Obi", role: "Technician", present: true },
-  { name: "Chidi Ike", role: "Technician", present: true },
-  { name: "Musa Danladi", role: "Technician", present: false },
-  { name: "Bola Adewale", role: "Team lead", present: true },
-  { name: "Yusuf Garba", role: "Supervisor", present: true },
-  { name: "Adaeze Okonkwo", role: "Head of department", present: true },
-];
 export const VENDOR = "External vendor";
-export const roster = () => ROSTER;
-export const setPresent = (name: string, present: boolean) => { const r = ROSTER.find(x => x.name === name); if (r) r.present = present; };
-const CAN_DO_WORK: RosterRole[] = ["Technician", "Team lead"];
-export const assignable = () => [...ROSTER.filter(r => r.present && CAN_DO_WORK.includes(r.role)).map(r => r.name), VENDOR];
-const holding = (role: RosterRole) => ROSTER.filter(r => r.role === role).map(r => r.name);
+// Work goes only to people marked present on today's roster (mock/roster.ts), to a team, or to an outside vendor.
+export const assignable = () => [...presentToday(), VENDOR];
+export const assignee = (w: WorkOrder) => w.tech ?? (w.team ? `${w.team} team` : null);
 export const WO_CATEGORIES = ["Electrical", "HVAC", "Plumbing", "Furniture", "Equipment", "Mechanical", "General"];
 export const LABOUR_RATE = 5000;
 // Respond = someone accepted it; resolve = it was completed. Minutes from when the job is raised.
@@ -202,7 +190,7 @@ const ALLOWED: Record<WOStatus, WOStatus[]> = {
   Closed: [], Cancelled: [],
 };
 export const canMove = (w: WorkOrder, to: WOStatus) => ALLOWED[w.status].includes(to);
-export type Move = { by: string; note?: string; tech?: string; holdReason?: string };
+export type Move = { by: string; note?: string; tech?: string; team?: string; holdReason?: string };
 
 // The only way a job changes status. Returns why a move is refused, or null when it is done.
 // Closing and cancelling go through finishWorkOrder() in mock/hotel.ts, which also returns the room.
@@ -210,9 +198,11 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   const w = workOrder(id); if (!w) return "There is no such work order.";
   if (!canMove(w, to)) return `A job that is ${w.status.toLowerCase()} cannot be ${to === "Assigned" ? "assigned" : `moved to ${to.toLowerCase()}`}.`;
   const note = m.note?.trim() ?? "", sentBack = w.status === "Completed" && to === "In progress", reopened = w.status === "Verified" && to === "Assigned";
-  if (to === "Assigned" && !m.tech) return "Choose who will do it.";
-  if (to === "Assigned" && m.tech !== VENDOR && !assignable().includes(m.tech!)) return `${m.tech} is not on today's roster.`;
-  if (to === "Accepted" && w.tech !== m.by && w.tech !== VENDOR) return `Only ${w.tech} can accept this job.`;
+  if (to === "Assigned" && !m.tech && !m.team) return "Choose a technician or a team.";
+  if (to === "Assigned" && m.team && !team(m.team)) return "There is no such team.";
+  if (to === "Assigned" && m.tech && m.tech !== VENDOR && !isPresentToday(m.tech)) return `${m.tech} is not marked present today. Mark them present on the roster first, or choose someone who is on shift.`;
+  const onTeam = !!w.team && (teamMembers(w.team).includes(m.by) || team(w.team)?.lead === m.by);
+  if (to === "Accepted" && (w.tech ? w.tech !== m.by && w.tech !== VENDOR : !onTeam)) return `Only ${assignee(w)} can accept this job.`;
   if (to === "On hold" && !HOLD_REASONS.includes(m.holdReason ?? "")) return "Choose why it is on hold.";
   if (to === "Completed" && !note) return "Say what was done.";
   if (to === "Verified" && m.by === w.completedBy) return "You completed this job, so someone else must verify it.";
@@ -221,17 +211,21 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   // Leaving hold adds the time held back onto both deadlines.
   const patch: Partial<WorkOrder> = { status: to };
   if (w.status === "On hold" && w.heldSince) Object.assign(patch, { heldMs: w.heldMs + now().getTime() - w.heldSince.getTime(), heldSince: undefined, holdReason: undefined });
-  if (to === "Assigned") patch.tech = m.tech;
-  if (to === "Accepted") patch.acceptedAt = w.acceptedAt ?? now();
+  if (to === "Assigned") Object.assign(patch, m.team ? { tech: null, team: m.team } : { tech: m.tech, team: undefined });
+  if (to === "Accepted") Object.assign(patch, { acceptedAt: w.acceptedAt ?? now() }, w.tech ? {} : { tech: m.by });
   if (to === "On hold") Object.assign(patch, { holdReason: m.holdReason, heldSince: now() });
   if (to === "Completed") Object.assign(patch, { completedBy: m.by, resolution: note });
   if (to === "Verified") patch.verifiedBy = m.by;
   if (sentBack || reopened) Object.assign(patch, { completedBy: undefined, verifiedBy: undefined, resolution: undefined });
-  const event = reopened ? "Reopened" : sentBack ? "Sent back" : to === "Assigned" ? (w.tech ? "Reassigned" : "Assigned") : to === "In progress" ? (w.status === "On hold" ? "Resumed" : "Work started")
+  const prevTech = w.tech; // w is changed in place below
+  const event = reopened ? "Reopened" : sentBack ? "Sent back" : to === "Assigned" ? (w.tech || w.team ? "Reassigned" : "Assigned") : to === "In progress" ? (w.status === "On hold" ? "Resumed" : "Work started")
     : to === "On hold" ? `On hold: ${m.holdReason!.toLowerCase()}` : to;
-  updateWorkOrder(id, patch, { event, by: m.by, note: note || (to === "Assigned" ? `Assigned to ${m.tech}.` : "") });
+  updateWorkOrder(id, patch, { event, by: m.by, note: note || (to === "Assigned" ? `Assigned to ${m.team ? `the ${m.team} team` : m.tech}.` : "") });
 
   const link = { screen: "work-order-detail", label: "Work Order", param: w.id };
+  // Reassigning tells the person it left their board, so nobody keeps working on something that moved.
+  if (to === "Assigned" && prevTech && prevTech !== VENDOR && prevTech !== m.tech) notify("workOrder.assigned", { title: `${w.id} is no longer yours: ${w.title}`, body: `Reassigned by ${m.by} to ${m.team ? `the ${m.team} team` : m.tech}.`, people: [prevTech], link });
+  if (to === "Assigned" && m.team) { const t = team(m.team)!; notify("workOrder.assigned", { title: `${w.id} is with your team: ${w.title}`, body: `${w.location}. ${priorityLabel(w.priority)}: first to accept takes it, by ${fmtWhen(respondDue(w))}.`, people: [...new Set([...teamMembers(t.name), t.lead])], level: PRIORITIES[w.priority].level, link }); }
   if ((sentBack || reopened) && w.tech) notify("workOrder.reopened", { title: `${w.id} ${sentBack ? "sent back" : "reopened"}: ${w.title}`, body: note, people: [w.tech], link });
   if (to === "Completed") notify("workOrder.completed", { title: `${w.id} is ready to verify: ${w.title}`, body: `Completed by ${m.by}: ${note}`, link });
   if (to === "Verified") notify("workOrder.verified", { title: `Signed off: ${w.title}`, body: `${w.id}, ${w.location}. Verified by ${m.by}.`, people: [w.reportedBy], link });
@@ -252,11 +246,13 @@ export const escalate = () => {
       if (done.includes(step)) return;
       done.push(step);
       w.timeline.push({ at: now(), event: `Escalated to ${to.join(", ")}`, by: "System", note: title });
-      notify("workOrder.late", { title, body: `${w.title}, ${w.location}. ${w.tech ? `With ${w.tech}.` : "Nobody assigned."}`, people: to, level, link, by: "System" });
+      notify("workOrder.late", { title, body: `${w.title}, ${w.location}. ${assignee(w) ? `With ${assignee(w)}.` : "Nobody assigned."}`, people: to, level, link, by: "System" });
     };
-    if (isLateToRespond(w)) send("respond", holding("Team lead"), `${w.id} not accepted in time`, "High");
-    if (resolveDue(w).getTime() < t) send("resolve", holding("Supervisor"), `${w.id} past its fix-by deadline`, "High");
+    const t2 = team(w.team ?? staff(w.tech ?? "")?.team ?? "");
+    const who = (name: string | undefined, role: StaffRole) => name ? [name] : holdersOf(role).length ? holdersOf(role) : holdersOf("Head of department");
+    if (isLateToRespond(w)) send("respond", who(t2?.lead, "Team lead"), `${w.id} not accepted in time`, "High");
+    if (resolveDue(w).getTime() < t) send("resolve", who(t2?.supervisor, "Supervisor"), `${w.id} past its fix-by deadline`, "High");
     const doubled = w.reportedAt.getTime() + 2 * (w.resolveBy.getTime() - w.reportedAt.getTime()) + heldFor(w);
-    if (w.priority === "P1" && doubled < t) send("p1Double", holding("Head of department"), `${w.id} P1 at twice its deadline`, "Urgent");
+    if (w.priority === "P1" && doubled < t) send("p1Double", holdersOf("Head of department"), `${w.id} P1 at twice its deadline`, "Urgent");
   }
 };
