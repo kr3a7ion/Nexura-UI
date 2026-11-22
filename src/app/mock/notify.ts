@@ -42,6 +42,8 @@ export const ROUTES = {
   "handover.acknowledged": { level: "Low",    roles: [] },
   "permit.requested":      { level: "High",   roles: [] },
   "permit.issued":         { level: "High",   roles: [] },
+  "leave.requested":       { level: "Normal", roles: ["MGT"] },
+  "leave.decided":         { level: "Normal", roles: [] },
   "room.backFromMaintenance": { level: "Normal", roles: ["HK"] },
   "dnd.overridden":        { level: "High",   roles: ["FD", "MGT"] },
   "foundItem.logged":      { level: "Low",    roles: ["FD"] },

@@ -28,6 +28,23 @@ import {
   ShiftProposalStore, type ShiftProposal,
 stampNow, ORANGE_INK, TEAL_INK, WARNING_INK, propertyLabel, ROOMS } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
+import { absences, parseDay, TODAY } from "./mock/roster";
+import { Card } from "./ui";
+
+// Absences set on department rosters (with the reason the supervisor gave) and leave HR recorded, in one list.
+function RosterAbsences() {
+  // Today first, then what is coming: the question HR has is who is out now and next.
+  const list = absences().filter(a => a.date >= TODAY).reverse().slice(0, 10);
+  return (
+    <div className="mb-7"><Card title="Absences from department rosters and leave" sub="Set by a department's supervisor on its roster, or by HR. A department cannot change an absence HR set.">
+      {list.length ? list.map(a => (
+        <div key={a.staff + a.date} className="flex flex-wrap justify-between gap-2 py-2 text-sm" style={{ borderTop: `1px solid ${BORDER}`, color: TEXT }}>
+          <span><b>{a.staff}</b>, {parseDay(a.date).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</span>
+          <span style={{ color: MUTED }}>{a.reason}{a.note ? `: ${a.note}` : ""}. Set by {a.markedBy ?? "unknown"} ({a.source === "HR" ? "HR" : "Maintenance roster"})</span>
+        </div>)) : <p className="text-sm" style={{ color: MUTED }}>No absences recorded.</p>}
+    </Card></div>
+  );
+}
 import { DateInput } from "./DateInput";
 import { ARRIVALS as FO_ARRIVALS, STAYS, reservations } from "./mock/frontOffice";
 import { roomTypeNames } from "./mock/property";
@@ -238,9 +255,10 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
   const ATTENDANCE = [
     { id:"EMP-001", name:"John Abubakar",    dept:"Front Desk",  shift:"07:00–15:00", clockIn:"07:03", clockOut:"15:07", hours:8.1, lateMins:3,  overtime:0,  status:"Present" as AttStatus },
     { id:"EMP-002", name:"Amaka Osei",       dept:"Housekeeping",shift:"06:00–14:00", clockIn:"06:22", clockOut:"14:05", hours:7.7, lateMins:22, overtime:0,  status:"Late" as AttStatus    },
-    { id:"EMP-003", name:"Emeka Obi",      dept:"Restaurant",  shift:"06:00–14:00", clockIn:"05:58", clockOut:"16:30", hours:10.5,lateMins:0,  overtime:2.5,status:"Present" as AttStatus },
+    { id:"EMP-003", name:"Emeka Obi",      dept:"Maintenance", shift:"07:00–15:00", clockIn:"06:58", clockOut:"",      hours:0,   lateMins:0,  overtime:0,  status:"Present" as AttStatus },
     { id:"EMP-004", name:"Fatima Ibrahim",   dept:"Front Desk",  shift:"08:00–16:00", clockIn:"08:01", clockOut:"16:02", hours:8.0, lateMins:1,  overtime:0,  status:"Present" as AttStatus },
-    { id:"EMP-005", name:"Chidi Eze",        dept:"Maintenance", shift:"08:00–16:00", clockIn:"",      clockOut:"",      hours:0,   lateMins:0,  overtime:0,  status:"Absent" as AttStatus  },
+    { id:"EMP-005", name:"Chidi Ike",        dept:"Maintenance", shift:"07:00–15:00", clockIn:"06:55", clockOut:"",      hours:0,   lateMins:0,  overtime:0,  status:"Present" as AttStatus },
+    { id:"EMP-015", name:"Musa Danladi",     dept:"Maintenance", shift:"15:00–23:00", clockIn:"",      clockOut:"",      hours:0,   lateMins:0,  overtime:0,  status:"Absent" as AttStatus  },
     { id:"EMP-006", name:"Ngozi Okonkwo",    dept:"Housekeeping",shift:"06:00–14:00", clockIn:"",      clockOut:"",      hours:0,   lateMins:0,  overtime:0,  status:"Leave" as AttStatus   },
     { id:"EMP-007", name:"Bello Musa",       dept:"Finance",     shift:"08:00–17:00", clockIn:"07:55", clockOut:"17:10", hours:9.25,lateMins:0,  overtime:0.25,status:"Present" as AttStatus},
     { id:"EMP-008", name:"Ada Okonkwo",      dept:"Front Desk",  shift:"15:00–23:00", clockIn:"14:58", clockOut:"",      hours:0,   lateMins:0,  overtime:0,  status:"Present" as AttStatus },
@@ -304,6 +322,8 @@ export function AttendanceScreen({ add }: { add: (t: Omit<Toast, "id">) => void 
           <BtnO label="Manual entry" icon={Edit3} onClick={()=>setShowManual(true)} />
         </div>
       } />
+
+      <RosterAbsences />
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
         <StatCard label="Present"   value={String(ATTENDANCE.filter(a=>a.status==="Present").length)} sub="On duty now"          icon={CheckCircle2}  accent={SUCCESS} />

@@ -3,6 +3,7 @@
 // The roster answers one question for the job board: who is on the floor right now.
 // Availability only: no clock-in, late minutes, overtime or leave (HR feeds attendance in Phase 3).
 import { BUSINESS_DATE } from "../constants";
+import { staffAll, isEmployed } from "./staff";
 
 export type StaffRole = "Technician" | "Team lead" | "Supervisor" | "Head of department";
 export type Staff = { name: string; trade: string; role: StaffRole; team?: string };
@@ -12,7 +13,7 @@ export type DayStatus = "Scheduled" | "Off" | "Present" | "Absent";
 export const ABSENCE_REASONS = ["Sick", "Day off", "Permission", "Training", "Unexplained", "Other"] as const;
 export type AbsenceReason = typeof ABSENCE_REASONS[number];
 export type RosterDay = { staff: string; date: string; shift: string | null; status: DayStatus; published: boolean;
-  reason?: AbsenceReason; note?: string; markedBy?: string };
+  reason?: string; note?: string; markedBy?: string; source?: "Maintenance" | "HR" };
 
 // Dates are local YYYY-MM-DD keys, the way the hotel reads them.
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -27,14 +28,19 @@ const TEAMS: Team[] = [
   { name: "Electrical and HVAC", trade: "Electrical", lead: "Bola Adewale", supervisor: "Yusuf Garba" },
   { name: "Plumbing and building", trade: "Plumbing", lead: "Bola Adewale", supervisor: "Yusuf Garba" },
 ];
-const STAFF: Staff[] = [
-  { name: "Adaeze Okonkwo", trade: "Management", role: "Head of department" },
-  { name: "Bola Adewale", trade: "Electrical", role: "Team lead", team: "Electrical and HVAC" },
-  { name: "Chidi Ike", trade: "Plumbing", role: "Technician", team: "Plumbing and building" },
-  { name: "Emeka Obi", trade: "Electrical", role: "Technician", team: "Electrical and HVAC" },
-  { name: "Musa Danladi", trade: "HVAC", role: "Technician", team: "Electrical and HVAC" },
-  { name: "Yusuf Garba", trade: "Mechanical", role: "Supervisor" },
-];
+// People come from HR (mock/staff.ts). Maintenance keeps only what it adds: trade, team and maintenance role.
+// Anyone in HR's Maintenance department is on the roster; someone outside it is, once Maintenance gives them a role.
+const PROFILE: Record<string, Omit<Staff, "name">> = {
+  "Adaeze Okonkwo": { trade: "Management", role: "Head of department" },
+  "Bola Adewale": { trade: "Electrical", role: "Team lead", team: "Electrical and HVAC" },
+  "Chidi Ike": { trade: "Plumbing", role: "Technician", team: "Plumbing and building" },
+  "Emeka Obi": { trade: "Electrical", role: "Technician", team: "Electrical and HVAC" },
+  "Musa Danladi": { trade: "HVAC", role: "Technician", team: "Electrical and HVAC" },
+  "Yusuf Garba": { trade: "Mechanical", role: "Supervisor" },
+};
+/** Maintenance's people as HR has them now: someone who left drops out, a new hire in Maintenance appears. */
+const STAFF = () => staffAll().filter(s => isEmployed(s.name) && (s.dept === "Maintenance" || PROFILE[s.name]))
+  .map(s => ({ name: s.name, ...(PROFILE[s.name] ?? { trade: "General", role: "Technician" as StaffRole }) }));
 // Any number of patterns, any times. Nothing about morning or night is built into the screens.
 const PATTERNS: ShiftPattern[] = [
   { id: "SP-1", name: "Morning", start: "07:00", end: "15:00" },
@@ -42,13 +48,13 @@ const PATTERNS: ShiftPattern[] = [
   { id: "SP-3", name: "Night", start: "23:00", end: "07:00" },
 ];
 
-export const staffList = () => STAFF;
+export const staffList = () => STAFF();
 export const teams = () => TEAMS;
 export const patterns = () => PATTERNS;
-export const staff = (name: string) => STAFF.find(s => s.name === name);
+export const staff = (name: string) => STAFF().find(s => s.name === name);
 export const team = (name: string) => TEAMS.find(t => t.name === name);
-export const teamMembers = (name: string) => STAFF.filter(s => s.team === name).map(s => s.name);
-export const holdersOf = (role: StaffRole) => STAFF.filter(s => s.role === role).map(s => s.name);
+export const teamMembers = (name: string) => STAFF().filter(s => s.team === name).map(s => s.name);
+export const holdersOf = (role: StaffRole) => STAFF().filter(s => s.role === role).map(s => s.name);
 export const patternName = (id: string | null) => PATTERNS.find(p => p.id === id)?.name ?? "Off";
 
 // One row per person per day; the key alone stops double booking.
@@ -70,13 +76,14 @@ weekOf(weekStart(TODAY)).forEach((date, i) => {
   for (const [name, row] of Object.entries(SEED)) {
     const shift = row[i];
     const status: DayStatus = !shift ? "Off" : date < TODAY ? "Present" : date === TODAY ? (name === "Musa Danladi" ? "Absent" : "Present") : "Scheduled";
-    DAYS.set(key(name, date), { staff: name, date, shift, status, published: true, ...(status === "Absent" ? { reason: "Sick" as const, markedBy: "Yusuf Garba" } : {}) });
+    DAYS.set(key(name, date), { staff: name, date, shift, status, published: true, ...(status === "Absent" ? { reason: "Sick", markedBy: "Yusuf Garba", source: "Maintenance" as const } : {}) });
   }
 });
 
 /** Draft one day: a shift, or off. A day already marked present or absent is not repainted. */
 export const paintDay = (s: string, date: string, shift: string | null): string | null => {
   const cur = rosterDay(s, date);
+  if (cur?.source === "HR") return `${s} is on ${cur.reason?.toLowerCase()} recorded by HR that day. HR changes it, not the roster.`;
   if (cur && (cur.status === "Present" || cur.status === "Absent")) return `${s} is already marked ${cur.status.toLowerCase()} on that day.`;
   DAYS.set(key(s, date), { staff: s, date, shift, status: shift ? "Scheduled" : "Off", published: false });
   return null;
@@ -112,22 +119,23 @@ export const markDay = (s: string, date: string, status: "Present" | "Absent", b
   if (!d) return `${s} is not on the roster that day.`;
   if (d.status === "Off") return `${s} is off duty that day.`;
   if (!d.published) return "This week is not published yet. Publish it first.";
+  if (d.source === "HR") return `${s} is on ${d.reason?.toLowerCase()} recorded by HR. HR changes it, not the roster.`;
   if (status === "Absent" && !reason) return "Choose why they are absent.";
-  Object.assign(d, { status, markedBy: by, reason: status === "Absent" ? reason : undefined, note: status === "Absent" ? note?.trim() || undefined : undefined });
+  Object.assign(d, { status, markedBy: by, source: status === "Absent" ? "Maintenance" : undefined, reason: status === "Absent" ? reason : undefined, note: status === "Absent" ? note?.trim() || undefined : undefined });
   return null;
 };
 
 /** The one question the job board asks: who is marked present today. */
-export const presentToday = () => STAFF.filter(s => rosterDay(s.name, TODAY)?.status === "Present").map(s => s.name);
+export const presentToday = () => STAFF().filter(s => rosterDay(s.name, TODAY)?.status === "Present").map(s => s.name);
 export const isPresentToday = (name: string) => rosterDay(name, TODAY)?.status === "Present";
 
 // ── Maintenance setup ────────────────────────────────────────────────────────
 export const ROLES: StaffRole[] = ["Technician", "Team lead", "Supervisor", "Head of department"];
 /** Trade, team and maintenance role. The person's own record comes from HR (next PR). */
 export const setPerson = (name: string, p: { trade: string; team?: string; role: StaffRole }): string | null => {
-  const s = staff(name); if (!s) return "That person is not on the list.";
+  if (!staff(name)) return "That person is not on the list.";
   if (p.team && !team(p.team)) return "There is no such team.";
-  Object.assign(s, { trade: p.trade, team: p.team || undefined, role: p.role });
+  PROFILE[name] = { trade: p.trade, team: p.team || undefined, role: p.role };
   return null;
 };
 export const addTeam = (t: Team): string | null => {
@@ -146,3 +154,17 @@ export const addPattern = (p: Omit<ShiftPattern, "id">): string | null => {
   PATTERNS.push({ ...p, name: p.name.trim(), id: `SP-${PATTERNS.length + 1}` });
   return null;
 };
+
+/** HR's approved leave lands on the roster: every day in the range is absent with HR's reason, published, and cannot be repainted. */
+export const applyLeave = (s: string, from: string, to: string, reason: string, by: string) => {
+  for (let d = from; d <= to; d = addDays(d, 1)) {
+    const cur = rosterDay(s, d);
+    DAYS.set(key(s, d), { staff: s, date: d, shift: cur?.shift ?? null, status: "Absent", published: true, reason, markedBy: by, source: "HR" });
+  }
+};
+/** Leave cancelled by HR gives the days back to Maintenance to plan. */
+export const clearLeave = (s: string, from: string, to: string) => {
+  for (let d = from; d <= to; d = addDays(d, 1)) if (rosterDay(s, d)?.source === "HR") DAYS.delete(key(s, d));
+};
+/** Every absence on the roster, newest first, with who set it and from where: what HR's Attendance reads. */
+export const absences = () => [...DAYS.values()].filter(d => d.status === "Absent").sort((a, b) => b.date.localeCompare(a.date) || a.staff.localeCompare(b.staff));
