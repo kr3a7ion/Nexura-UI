@@ -14,6 +14,8 @@ import {
 import { finishWorkOrder } from "./mock/hotel";
 import { roomState } from "./mock/rooms";
 import { teams, staff, parseDay } from "./mock/roster";
+import { permitsFor, isExpired, PERMIT_TYPES } from "./mock/permits";
+import { RequestPermitDialog } from "./PermitScreens";
 const teamOf = (name: string) => staff(name)?.team;
 
 // A person in today, a team, or an outside vendor. Team values carry a prefix so one select holds both.
@@ -240,7 +242,7 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
 // ── One work order ───────────────────────────────────────────────────────────
 // Raised → assigned → accepted → in progress ⇄ on hold → completed → verified by someone else → closed.
 // Every button calls moveWorkOrder(), which refuses a move the job's status does not allow and says why.
-type DialogKind = null | "assign" | "hold" | "complete" | "sendback" | "reopen" | "cancel" | "part" | "follow";
+type DialogKind = null | "assign" | "hold" | "complete" | "sendback" | "reopen" | "cancel" | "part" | "follow" | "permit";
 
 export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: Nav; id?: string; staffName: string }) {
   const [, refresh] = useState(0);
@@ -385,6 +387,10 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
               {w.dueAt && <Row label="Due" value={fmtDate(parseDay(w.dueAt))} />}
             </Card>
           )}
+          <Card title="Permits to work" sub="Hot work, an isolation or work at height needs one, issued by someone else, before work starts.">
+            {permitsFor(w.id).map(p => <Row key={p.id} label={`${p.id}, ${PERMIT_TYPES[p.type].toLowerCase()}`} value={isExpired(p) ? "Past its end time" : p.status} />)}
+            {!ended && <div className="mt-2"><BtnO label="Request a permit" onClick={() => setDialog("permit")} /></div>}
+          </Card>
           <Card title="Stop it happening again" sub="Raise a follow-up check for the same place.">
             <BtnO label="Raise a follow-up" onClick={() => setDialog("follow")} />
           </Card>
@@ -437,6 +443,9 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
           </div>
         </Dialog>
       )}
+      {dialog === "permit" && <RequestPermitDialog by={me} woId={w.id} onClose={() => setDialog(null)}
+        onDone={p => { add({ type: "success", title: `${p.id} requested`, body: "The supervisor has been told. Do not start until it is issued." }); done(); }}
+        onError={t => add({ type: "error", title: t })} />}
       {dialog === "follow" && (
         <NewWorkOrderDialog reportedBy={me} onClose={() => setDialog(null)}
           onCreated={f => { add({ type: "success", title: `Follow-up ${f.id} raised` }); setDialog(null); nav?.("work-order-detail", f.id, f.id); }} />
