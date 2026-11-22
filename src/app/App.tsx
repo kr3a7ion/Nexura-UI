@@ -40,6 +40,7 @@ import HrHome from "./suite/home/hrHome";
 const CommunicationsHome = lazy(() => import("./suite/home/communicationsHome"));
 const FleetHome = lazy(() => import("./suite/home/fleetHome"));
 import { SuiteHome, DepartmentHome } from "./suite/SuiteHome";
+import { escalate } from "./mock/maintenance";
 import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
 import {
   departmentsForRole,
@@ -65,7 +66,7 @@ import {
   KeyCardMgmt, RoomAccessMgmt, KeyCardLog, PINManagement,
   HKBoard, HKMyTasks, InspectionLog, LinenSupplies, HousekeepingSchedule,
   LostFound, DNDLog,
-  WorkOrders, WorkOrderDetail, AssetRegister, PreventiveSchedule, VendorContacts,
+  WorkOrders, WorkOrderDetail, MaintenanceRoster, AssetRegister, PreventiveSchedule, VendorContacts,
   POSTerminal, KitchenDisplay, TableManagement, MenuManagement,
   DiningReservations, RoomServiceOrders, GuestRoomCharges, CashDrawerReconciliation,
   InternalChat, GuestMessaging, Announcements, ShiftHandover,
@@ -155,6 +156,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   // Maintenance
   if (screen === "fault-reports") return <FaultReports add={add} nav={nav} role={role} staffName={staffName} dept={DEPT_OF[role] ?? "Management"} />;
   if (screen === "work-orders") return <WorkOrders add={add} nav={nav} staffName={staffName} />;
+  if (screen === "mx-roster") return <MaintenanceRoster add={add} />;
   if (screen === "work-order-detail") return <WorkOrderDetail key={navParam} add={add} nav={nav} id={navParam} staffName={staffName} />;
   if (screen === "asset-register") return <AssetRegister add={add} />;
   if (screen === "preventive-schedule") return <PreventiveSchedule add={add} />;
@@ -482,6 +484,8 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   // The bell: re-renders whenever any department calls notify(), newest and loudest first.
   useSyncExternalStore(subscribe, getVersion);
   useEffect(() => setCurrentUser(staffName, role), [staffName, role]);
+  // Late jobs chase themselves: check every minute on the demo clock.
+  useEffect(() => { escalate(); const t = setInterval(escalate, 60000); return () => clearInterval(t); }, []);
   const notices = noticesFor(staffName, role);
   const unread = unreadCount(staffName, role);
   const urgentOpen = notices.filter(n => n.level === "Urgent" && !isRead(n, staffName));

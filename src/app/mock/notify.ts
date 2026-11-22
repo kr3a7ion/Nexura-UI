@@ -36,6 +36,7 @@ export const ROUTES = {
   "workOrder.completed":   { level: "Normal", roles: ["MX"] },
   "workOrder.verified":    { level: "Normal", roles: [] },
   "workOrder.closed":      { level: "Normal", roles: [] },
+  "workOrder.late":        { level: "High",   roles: [] },
   "room.backFromMaintenance": { level: "Normal", roles: ["HK"] },
   "dnd.overridden":        { level: "High",   roles: ["FD", "MGT"] },
   "foundItem.logged":      { level: "Low",    roles: ["FD"] },
@@ -80,6 +81,5 @@ const ago = (min: number) => Date.now() - min * 60000;
 LIST = [
   { id: nextId++, event: "announcement", level: "High", title: "Fire drill in Zone B at 10:30", body: "Scheduled drill 10:30 to 10:45. Tell guests on floors 2 and 3.", roles: ["FD", "HK", "MX", "RT"], people: [], by: "Security", at: ago(2), readBy: [] },
   { id: nextId++, event: "booking.made", level: "Normal", title: "VIP arriving: Chief Emeka Okafor", body: "Suite 502, arriving 14:00. Champagne and fruit basket requested.", roles: ["FD", "RSV", "HK"], people: [], by: "Amina Yusuf", at: ago(8), link: { screen: "arrivals", label: "Arrivals List" }, readBy: [] },
-  { id: nextId++, event: "workOrder.raised", level: "High", title: "WO-0091 is late", body: "Air conditioner not cooling, room 316. Assigned to Emeka Obi.", roles: ["MX"], people: [], by: "System", at: ago(32), link: { screen: "work-order-detail", label: "Work Order", param: "WO-0091" }, readBy: [] },
   { id: nextId++, event: "report.ready", level: "Low", title: "End-of-day summary ready", body: "Yesterday's revenue report is in Reports.", roles: ["FIN"], people: [], by: "System", at: ago(60), readBy: [] },
 ];

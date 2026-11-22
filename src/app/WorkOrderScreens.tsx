@@ -9,7 +9,7 @@ import { ROOMS } from "./mock/property";
 import { ASSETS } from "./constants";
 import {
   workOrders, workOrder, addWorkOrder, updateWorkOrder, moveWorkOrder, canMove, isOpen, isOverdue, isLateToRespond, respondDue, resolveDue, ageOf, fmtWhen, now,
-  TECHNICIANS, WO_CATEGORIES, LABOUR_RATE, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
+  assignable, roster, setPresent, WO_CATEGORIES, LABOUR_RATE, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
 } from "./mock/maintenance";
 import { finishWorkOrder } from "./mock/hotel";
 import { roomState } from "./mock/rooms";
@@ -167,7 +167,7 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
             </button>
           ))}
         </div>
-        {selected.length > 0 && <div className="ml-auto"><BtnP label={`Assign ${selected.length} selected`} onClick={() => setBulkTech(TECHNICIANS[0])} /></div>}
+        {selected.length > 0 && <div className="ml-auto"><BtnP label={`Assign ${selected.length} selected`} onClick={() => setBulkTech(assignable()[0])} /></div>}
       </div>
 
       <div className="bg-white overflow-x-auto" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.card }}>
@@ -220,7 +220,7 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
       {bulkTech !== null && (
         <Dialog title={`Assign ${selected.length} work order${selected.length === 1 ? "" : "s"}`} onClose={() => setBulkTech(null)}
           footer={<><BtnO label="Cancel" onClick={() => setBulkTech(null)} /><BtnP label="Assign" onClick={assignSelected} /></>}>
-          <Select id="bulk-tech" label="Technician" value={bulkTech} onChange={setBulkTech} options={TECHNICIANS} />
+          <Select id="bulk-tech" label="Technician (in today)" value={bulkTech} onChange={setBulkTech} options={assignable()} />
           <p className="text-sm" style={{ color: MUTED }}>Closed and cancelled orders in the selection are left as they are.</p>
         </Dialog>
       )}
@@ -240,7 +240,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
   const w = workOrder(id ?? "") ?? workOrders().find(isOpen) ?? workOrders()[0];
   const [note, setNote] = useState("");
   const [dialog, setDialog] = useState<DialogKind>(null);
-  const [tech, setTech] = useState(w.tech ?? TECHNICIANS[0]);
+  const [tech, setTech] = useState(w.tech && assignable().includes(w.tech) ? w.tech : assignable()[0]);
   const [holdReason, setHoldReason] = useState(HOLD_REASONS[0]);
   const [text, setText] = useState("");
   const [part, setPart] = useState({ item: "", qty: "1", unit: "", ref: "" });
@@ -383,7 +383,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
         <Dialog title={dialog === "reopen" ? "Reopen work order" : w.tech ? "Reassign" : "Assign"} onClose={() => setDialog(null)}
           sub={dialog === "reopen" ? "It goes back to the technician, who must accept it again." : `${priorityLabel(w.priority)}: someone must accept it by ${fmtWhen(respondDue(w))}.`}
           footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label={dialog === "reopen" ? "Reopen" : "Assign"} onClick={() => go("Assigned", { tech, note: text }, `${w.id} ${dialog === "reopen" ? "reopened" : "assigned"} to ${tech}`)} /></>}>
-          <Select id="as-tech" label="Technician" value={tech} onChange={setTech} options={TECHNICIANS} />
+          <Select id="as-tech" label="Technician (in today)" value={tech} onChange={setTech} options={assignable()} />
           {dialog === "reopen" && <Field label="What is still wrong" htmlFor="wo-why" required><input id="wo-why" value={text} onChange={e => setText(e.target.value)} className={controlClass} style={controlStyle(!text.trim())} /></Field>}
         </Dialog>
       )}
@@ -428,6 +428,39 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
         <NewWorkOrderDialog reportedBy={me} onClose={() => setDialog(null)}
           onCreated={f => { add({ type: "success", title: `Follow-up ${f.id} raised` }); setDialog(null); nav?.("work-order-detail", f.id, f.id); }} />
       )}
+    </div>
+  );
+}
+
+// Who is in today. Work orders can only be assigned to technicians and team leads marked present.
+export function MaintenanceRoster({ add }: { add: Add }) {
+  const [, redraw] = useState(0);
+  const people = roster();
+  const toggle = (name: string, present: boolean) => { setPresent(name, present); redraw(n => n + 1); add({ type: "success", title: `${name} marked ${present ? "in today" : "away today"}` }); };
+  return (
+    <div>
+      <PageHeader title="Roster" sub={`${people.filter(p => p.present).length} of ${people.length} in today. Jobs go only to people who are in, or to an outside vendor.`} />
+      <div className="bg-white overflow-x-auto" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.card }}>
+        <table className="w-full">
+          <thead>
+            <tr style={{ backgroundColor: UI.surface, borderBottom: `1px solid ${BORDER}` }}>
+              {["Name", "Role", "Today", ""].map(h => <th key={h} className="px-4 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {people.map(p => (
+              <tr key={p.name} style={{ borderBottom: `1px solid ${BORDER}` }}>
+                <td className="px-4 py-3 text-sm font-semibold whitespace-nowrap" style={{ color: TEXT }}>{p.name}</td>
+                <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: MUTED }}>{p.role}</td>
+                <td className="px-4 py-3 whitespace-nowrap"><Badge label={p.present ? "In today" : "Away"} colors={p.present ? { bg: "#DCFCE7", text: "#166534" } : { bg: "#F1F5F9", text: "#475569" }} /></td>
+                <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <BtnO label={p.present ? `Mark ${p.name} away` : `Mark ${p.name} in`} onClick={() => toggle(p.name, !p.present)} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
