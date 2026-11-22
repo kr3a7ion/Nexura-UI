@@ -38,6 +38,8 @@ export const ROUTES = {
   "workOrder.closed":      { level: "Normal", roles: [] },
   "workOrder.late":        { level: "High",   roles: [] },
   "ppm.dueSoon":           { level: "Normal", roles: ["MX"] },
+  "handover.submitted":    { level: "Normal", roles: ["MX"] },
+  "handover.acknowledged": { level: "Low",    roles: [] },
   "room.backFromMaintenance": { level: "Normal", roles: ["HK"] },
   "dnd.overridden":        { level: "High",   roles: ["FD", "MGT"] },
   "foundItem.logged":      { level: "Low",    roles: ["FD"] },

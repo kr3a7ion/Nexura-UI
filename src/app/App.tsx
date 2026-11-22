@@ -67,7 +67,7 @@ import {
   KeyCardMgmt, RoomAccessMgmt, KeyCardLog, PINManagement,
   HKBoard, HKMyTasks, InspectionLog, LinenSupplies, HousekeepingSchedule,
   LostFound, DNDLog,
-  WorkOrders, WorkOrderDetail, MaintenanceRoster, AssetRegister, PlannedWork, VendorContacts,
+  WorkOrders, WorkOrderDetail, MaintenanceRoster, MaintenanceHandover, AssetRegister, PlannedWork, VendorContacts,
   POSTerminal, KitchenDisplay, TableManagement, MenuManagement,
   DiningReservations, RoomServiceOrders, GuestRoomCharges, CashDrawerReconciliation,
   InternalChat, GuestMessaging, Announcements, ShiftHandover,
@@ -157,6 +157,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   // Maintenance
   if (screen === "fault-reports") return <FaultReports add={add} nav={nav} role={role} staffName={staffName} dept={DEPT_OF[role] ?? "Management"} />;
   if (screen === "work-orders") return <WorkOrders add={add} nav={nav} staffName={staffName} />;
+  if (screen === "mx-handover") return <MaintenanceHandover add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-roster") return <MaintenanceRoster add={add} staffName={staffName} />;
   if (screen === "work-order-detail") return <WorkOrderDetail key={navParam} add={add} nav={nav} id={navParam} staffName={staffName} />;
   if (screen === "asset-register") return <AssetRegister add={add} nav={nav} staffName={staffName} />;

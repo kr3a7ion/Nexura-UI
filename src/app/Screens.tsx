@@ -18,3 +18,4 @@ export { GuestPortal } from "./GuestPortal";
 export { WorkOrders, WorkOrderDetail } from "./WorkOrderScreens";
 export { MaintenanceRoster } from "./RosterScreens";
 export { AssetRegister, PlannedWork } from "./PlannedScreens";
+export { MaintenanceHandover } from "./HandoverScreens";
