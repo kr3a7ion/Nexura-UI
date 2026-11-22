@@ -28,7 +28,7 @@ import {
   occData, occ30Data, revCat, deptKPIs, recentAct, ROOMS, STAFF, BRANCHES, FOLIO_CHARGES, MENU_ITEMS, MENU_CATS, TABLE_LAYOUT, STOCK, CHAT_MSGS,
   ACCESS_CREDS, KEY_LOG, ACTIVE_PINS, LOST_FOUND, DND_ROOMS,
   INVOICES_DATA, AP_DATA, DEPT_PERMS, ATTEND_DATA, SYNC_BRANCHES, KDS_ORDERS, REV_DATA,
-  USERS_DATA, ASSETS, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
+  USERS_DATA, SUPPLIERS_DATA, PRODUCTS_DATA, STOCK_TXN, PO_DATA, DEVICES,
   INV_CONS, STAFF_RPT, RATE_PLANS, WAITLIST_DATA, ROOM_SERVICE_ORDERS,
   DINING_RES, ANNOUNCE_DATA, PAYROLL_DATA, GUEST_ANALYTICS_DATA, NATIONALITY_DATA, ORANGE_INK, TEAL_INK, WARNING_INK, propertyLabel } from "./constants";
 
@@ -692,7 +692,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
           <div className="bg-white rounded-xl border p-4" style={{ borderColor: BORDER }}>
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold" style={{ color: TEXT }}>PM Schedule — Next 7 Days</div>
-              <button onClick={() => go("preventive-schedule", "Preventive Schedule")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Full schedule →</button>
+              <button onClick={() => go("preventive-schedule", "Planned Work")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Full schedule →</button>
             </div>
             {[
               { asset:"HVAC Unit — Floor 3", due:"25 Jun", priority:"High",   status:"due"     },

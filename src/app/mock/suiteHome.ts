@@ -2,6 +2,7 @@ import { ROOMS, type Role, type Screen } from "../constants";
 import { STAYS, ARRIVALS, departures } from "./frontOffice";
 import { hkRooms, FOUND_ITEMS } from "./housekeeping";
 import { roomState } from "./rooms";
+import { schedules, scheduleState, compliance } from "./ppm";
 import { workOrders, isOpen, isUrgent, isOverdue, fmtWhen } from "./maintenance";
 
 export type HomeStat = { label: string; value: string; sub: string; screen: Screen; screenLabel: string };
@@ -63,7 +64,7 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
   MX: {
     stats: [
       stat("Open work orders", String(workOrders().filter(isOpen).length), `${workOrders().filter(w => isOpen(w) && isUrgent(w)).length} P1 or P2`, "work-orders", "Work Orders"),
-      stat("Due today", "3", "Preventive tasks", "preventive-schedule", "Preventive Schedule"),
+      stat("Planned work due", String(schedules().filter(s => ["Overdue", "Due now"].includes(scheduleState(s))).length), `Compliance ${compliance().pct ?? "not yet"}${compliance().pct == null ? "" : "%"} over 90 days`, "preventive-schedule", "Planned Work"),
       stat("Diesel level", "24%", "About 9 hours left", "generator-diesel", "Generator & Diesel"),
       stat("Rooms out of order", String(ROOMS.filter(r => roomState(r.id) === "Out of order").length), ROOMS.filter(r => roomState(r.id) === "Out of order").map(r => r.id).join(", ") || "All rooms in service", "work-orders", "Work Orders"),
     ],

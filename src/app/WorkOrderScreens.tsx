@@ -2,18 +2,18 @@
 import React, { useState } from "react";
 import { Plus, Download, Search, AlertCircle, Activity, AlertTriangle, CheckCircle2, Wrench, PauseCircle } from "lucide-react";
 import type { Toast } from "./constants";
-import { BORDER, TEXT, MUTED, SUBTLE, ERROR, PRIMARY, TEAL_INK, ORANGE_INK, WARNING_INK, display } from "./constants";
+import { BORDER, TEXT, MUTED, SUBTLE, ERROR, PRIMARY, TEAL_INK, ORANGE_INK, WARNING_INK, display, fmtDate } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO, EmptyState, Badge } from "./UIKit";
 import { UI, Card, Field, Row, Dialog, controlClass, controlStyle, downloadCsv } from "./ui";
 import { ROOMS } from "./mock/property";
-import { ASSETS } from "./constants";
+import { asset as assetOf, schedule, sheetFor, recordChecklist, everyLabel, type CheckResult } from "./mock/ppm";
 import {
   workOrders, workOrder, addWorkOrder, updateWorkOrder, moveWorkOrder, canMove, isOpen, isOverdue, isLateToRespond, respondDue, resolveDue, ageOf, fmtWhen, now,
   assignable, assignee, WO_CATEGORIES, LABOUR_RATE, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
 } from "./mock/maintenance";
 import { finishWorkOrder } from "./mock/hotel";
 import { roomState } from "./mock/rooms";
-import { teams, staff } from "./mock/roster";
+import { teams, staff, parseDay } from "./mock/roster";
 const teamOf = (name: string) => staff(name)?.team;
 
 // A person in today, a team, or an outside vendor. Team values carry a prefix so one select holds both.
@@ -253,7 +253,8 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
   const [part, setPart] = useState({ item: "", qty: "1", unit: "", ref: "" });
   const me = staffName;
   const done = () => { setDialog(null); setText(""); refresh(n => n + 1); };
-  const asset = ASSETS.find(a => a.id === w.asset);
+  const asset = assetOf(w.asset);
+  const plan = schedule(w.ppm);
   const partTotal = w.parts.reduce((s, p) => s + p.qty * p.unit, 0);
   const labour = w.labourHours * LABOUR_RATE;
   const ended = w.status === "Closed" || w.status === "Cancelled";
@@ -308,6 +309,9 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
             )}
           </Card>
 
+          {sheetFor(w) && <ChecklistCard w={w} by={me} canRecord={!ended && ["Accepted", "In progress", "On hold"].includes(w.status)}
+            onSaved={(failed, refused) => { if (refused) add({ type: "error", title: refused }); else { add({ type: failed ? "warning" : "success", title: "Checklist saved", body: failed ? `${failed} step${failed === 1 ? "" : "s"} failed. Consider raising a follow-up job.` : undefined }); refresh(n => n + 1); } }}
+            onFollowUp={() => setDialog("follow")} />}
           <Card title="Parts and labour" actions={!ended && <BtnO label="Add a part" icon={Plus} onClick={() => setDialog("part")} />}>
             {w.parts.length ? (
               <table className="w-full mb-3">
@@ -377,7 +381,8 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
             <Card title="Equipment">
               <Row label="Asset" value={`${asset.id} · ${asset.name}`} />
               <Row label="Location" value={asset.location} />
-              <Row label="Next service" value={asset.nextService} />
+              {plan && <Row label="Planned work" value={`${plan.name}, ${everyLabel(plan).toLowerCase()}`} />}
+              {w.dueAt && <Row label="Due" value={fmtDate(parseDay(w.dueAt))} />}
             </Card>
           )}
           <Card title="Stop it happening again" sub="Raise a follow-up check for the same place.">
@@ -440,3 +445,41 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
   );
 }
 
+
+// A planned job's checklist. The whole sheet saves at once; critical steps must be recorded before the job can be completed.
+function ChecklistCard({ w, by, canRecord, onSaved, onFollowUp }: { w: WorkOrder; by: string; canRecord: boolean; onSaved: (failed: number, refused: string | null) => void; onFollowUp: () => void }) {
+  const sheet = sheetFor(w)!;
+  const [rows, setRows] = useState<Record<string, Omit<CheckResult, "by">>>(() => Object.fromEntries((w.checklist ?? []).map(r => [r.item, r])));
+  const set = (item: string, p: Partial<Omit<CheckResult, "by">>) => setRows(r => ({ ...r, [item]: { ...(r[item] ?? { item, result: "Pass" as const }), ...p } }));
+  const done = sheet.items.filter(i => w.checklist?.some(r => r.item === i.id)).length;
+  const failedCrit = sheet.items.filter(i => i.critical && w.checklist?.some(r => r.item === i.id && r.result === "Fail"));
+  const RESULT_C = { Pass: "#166534", Fail: "#991B1B", "N/A": MUTED } as const;
+  return (
+    <Card title={`Checklist: ${sheet.name}`} sub={`${done} of ${sheet.items.length} recorded.${canRecord ? " Steps marked critical must be recorded before the job is completed." : ""}`}
+      footer={canRecord ? <BtnP label="Save checklist" onClick={() => { const r = recordChecklist(w, Object.values(rows), by); onSaved(r.failed, r.refused); }} /> : undefined}>
+      {failedCrit.length > 0 && <div className="mb-3 p-3 text-sm flex items-center justify-between gap-3" style={{ backgroundColor: "#FEF2F2", borderRadius: 10, color: "#991B1B" }}>
+        <span>A critical step failed: {failedCrit.map(i => i.task).join("; ")}.</span>{canRecord || !["Cancelled"].includes(w.status) ? <BtnO label="Raise a follow-up" onClick={onFollowUp} /> : null}</div>}
+      {sheet.items.map((i, n) => {
+        const r = rows[i.id];
+        return (
+          <div key={i.id} className="py-3" style={{ borderTop: `1px solid ${BORDER}` }}>
+            <div className="text-sm font-semibold" style={{ color: TEXT }}>{n + 1}. {i.task}{i.critical ? <span className="ml-2"><Badge label="Critical" colors={{ bg: "#FEE2E2", text: "#991B1B" }} /></span> : null}</div>
+            {i.expected && <div className="text-sm" style={{ color: MUTED }}>Expect {i.expected}</div>}
+            {canRecord ? (
+              <div className="flex flex-wrap items-end gap-2 mt-2">
+                <div role="group" aria-label={`Result for step ${n + 1}`} className="flex gap-1.5">
+                  {(["Pass", "Fail", "N/A"] as const).map(v => (
+                    <button key={v} type="button" aria-pressed={r?.result === v} onClick={() => set(i.id, { result: v })} className="px-3 text-sm font-medium"
+                      style={{ height: 36, borderRadius: 10, border: `1px solid ${r?.result === v ? UI.focus : "#CBD5E1"}`, backgroundColor: r?.result === v ? UI.selectedBg : "white", color: r?.result === v ? TEAL_INK : TEXT }}>{v}</button>))}
+                </div>
+                {i.reading && <input aria-label={`Reading for step ${n + 1}`} placeholder="Reading" value={r?.value ?? ""} onChange={e => set(i.id, { value: e.target.value })} className={controlClass} style={{ ...controlStyle(), width: 140 }} />}
+                <input aria-label={`Note for step ${n + 1}`} placeholder="Note" value={r?.note ?? ""} onChange={e => set(i.id, { note: e.target.value })} className={controlClass} style={{ ...controlStyle(), flex: 1, minWidth: 160 }} />
+              </div>
+            ) : (() => { const x = w.checklist?.find(c => c.item === i.id); return (
+              <div className="text-sm mt-1" style={{ color: x ? RESULT_C[x.result] : MUTED }}>{x ? `${x.result}${x.value ? `: ${x.value}` : ""}${x.note ? `. ${x.note}` : ""} (${x.by})` : "Not recorded"}</div>); })()}
+          </div>
+        );
+      })}
+    </Card>
+  );
+}

@@ -41,6 +41,7 @@ const CommunicationsHome = lazy(() => import("./suite/home/communicationsHome"))
 const FleetHome = lazy(() => import("./suite/home/fleetHome"));
 import { SuiteHome, DepartmentHome } from "./suite/SuiteHome";
 import { escalate } from "./mock/maintenance";
+import { generateDue } from "./mock/ppm";
 import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
 import {
   departmentsForRole,
@@ -66,7 +67,7 @@ import {
   KeyCardMgmt, RoomAccessMgmt, KeyCardLog, PINManagement,
   HKBoard, HKMyTasks, InspectionLog, LinenSupplies, HousekeepingSchedule,
   LostFound, DNDLog,
-  WorkOrders, WorkOrderDetail, MaintenanceRoster, AssetRegister, PreventiveSchedule, VendorContacts,
+  WorkOrders, WorkOrderDetail, MaintenanceRoster, AssetRegister, PlannedWork, VendorContacts,
   POSTerminal, KitchenDisplay, TableManagement, MenuManagement,
   DiningReservations, RoomServiceOrders, GuestRoomCharges, CashDrawerReconciliation,
   InternalChat, GuestMessaging, Announcements, ShiftHandover,
@@ -158,8 +159,8 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "work-orders") return <WorkOrders add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-roster") return <MaintenanceRoster add={add} staffName={staffName} />;
   if (screen === "work-order-detail") return <WorkOrderDetail key={navParam} add={add} nav={nav} id={navParam} staffName={staffName} />;
-  if (screen === "asset-register") return <AssetRegister add={add} />;
-  if (screen === "preventive-schedule") return <PreventiveSchedule add={add} />;
+  if (screen === "asset-register") return <AssetRegister add={add} nav={nav} staffName={staffName} />;
+  if (screen === "preventive-schedule") return <PlannedWork add={add} nav={nav} />;
   if (screen === "vendor-contacts") return <VendorContacts add={add} />;
   // Restaurant
   if (screen === "pos-terminal") return <POSTerminal add={add} nav={nav} />;
@@ -485,7 +486,8 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   useSyncExternalStore(subscribe, getVersion);
   useEffect(() => setCurrentUser(staffName, role), [staffName, role]);
   // Late jobs chase themselves: check every minute on the demo clock.
-  useEffect(() => { escalate(); const t = setInterval(escalate, 60000); return () => clearInterval(t); }, []);
+  // Planned jobs coming due are raised on the same check, as FacilityFlow's host sweep does.
+  useEffect(() => { const tick = () => { generateDue(); escalate(); }; tick(); const t = setInterval(tick, 60000); return () => clearInterval(t); }, []);
   const notices = noticesFor(staffName, role);
   const unread = unreadCount(staffName, role);
   const urgentOpen = notices.filter(n => n.level === "Urgent" && !isRead(n, staffName));

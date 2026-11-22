@@ -36,7 +36,7 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
   const quickActions: Array<{ label: string; icon: ElementType; screen: Screen }> = [
     { label: "New work order", icon: Plus, screen: "work-orders" },
     { label: "Log diesel", icon: Drop, screen: "generator-diesel" },
-    { label: "Preventive schedule", icon: CalendarDots, screen: "preventive-schedule" },
+    { label: "Planned work", icon: CalendarDots, screen: "preventive-schedule" },
     { label: "Vendor contacts", icon: Buildings, screen: "vendor-contacts" },
   ];
 

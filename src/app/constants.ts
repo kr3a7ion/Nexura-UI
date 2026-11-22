@@ -279,7 +279,7 @@ export const AP_DATA = [
 export const DEPT_PERMS: Record<string, string[]> = {
   "Front Desk": ["Dashboard", "Reservations (View)", "Reservations (Create)", "Check-In", "Check-Out", "Folio (View)", "Folio (Post Charge)", "Guest Profiles", "Key Card Management", "Room Access Management", "Communications"],
   "Housekeeping": ["Dashboard", "Housekeeping Board", "My Tasks", "Lost & Found", "DND Log", "Inspection Log", "Communications"],
-  "Maintenance": ["Dashboard", "Work Orders (View)", "Work Orders (Create)", "Work Orders (Update)", "Asset Register", "Preventive Schedule", "Communications"],
+  "Maintenance": ["Dashboard", "Work Orders (View)", "Work Orders (Create)", "Work Orders (Update)", "Asset Register", "Planned Work", "Communications"],
   "Finance": ["Dashboard", "Folio (Full)", "Invoices", "Daily Summary", "Accounts Payable", "Revenue Reports", "Stock Dashboard", "Communications"],
   "Management": ["All Modules", "Reports", "HR & Staff", "Settings", "Multi-Branch", "Discount Approval", "Emergency Revoke", "Audit Log"],
 };
@@ -315,12 +315,6 @@ export const USERS_DATA = [
   { name: "Emeka Obi", email: "e.nwosu@grandpalms.ng", role: "MX", dept: "Maintenance", status: "Active", lastLogin: "Today 07:30" },
   { name: "Fatima Al-Hassan", email: "f.hassan@grandpalms.ng", role: "RSV", dept: "Reservations", status: "Active", lastLogin: "Today 08:00" },
   { name: "Bola Adewale", email: "b.adewale@grandpalms.ng", role: "FIN", dept: "Finance", status: "Active", lastLogin: "Today 08:30" },
-];
-export const ASSETS = [
-  { id: "AST-001", name: "Central Air Conditioning Unit", cat: "HVAC", location: "Roof", purchased: "Jan 2021", warranty: "Jan 2025", lastService: "12 Mar 2026", nextService: "12 Jun 2026", status: "Overdue" },
-  { id: "AST-002", name: "Commercial Refrigerator (Restaurant)", cat: "Kitchen", location: "Restaurant Kitchen", purchased: "Mar 2022", warranty: "Mar 2026", lastService: "10 May 2026", nextService: "10 Aug 2026", status: "Ok" },
-  { id: "AST-003", name: "Elevator #1", cat: "Infrastructure", location: "Main Lobby", purchased: "Sep 2019", warranty: "Sep 2025", lastService: "1 Jun 2026", nextService: "1 Sep 2026", status: "Ok" },
-  { id: "AST-004", name: "Main generator 500 kVA", cat: "Power", location: "Generator House", purchased: "Jun 2020", warranty: "Jun 2026", lastService: "15 May 2026", nextService: "15 Jun 2026", status: "Due Soon" },
 ];
 export const SUPPLIERS_DATA = [
   { id: "SUP-001", company: "FoodstuffPro Ltd", contact: "Mr. Dayo Ola", phone: "+234 801 100 2000", cat: "Food & Beverage", terms: "Net 30", lastOrder: "20 Jun 2026" },
