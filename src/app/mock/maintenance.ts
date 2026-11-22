@@ -29,7 +29,26 @@ export const VENDOR = "External vendor";
 export const assignable = () => [...presentToday(), VENDOR];
 export const assignee = (w: WorkOrder) => w.tech ?? (w.team ? `${w.team} team` : null);
 export const WO_CATEGORIES = ["Electrical", "HVAC", "Plumbing", "Furniture", "Equipment", "Mechanical", "General"];
-export const LABOUR_RATE = 5000;
+// ── Maintenance setup: targets, trades, hold reasons. A change shapes future jobs only; deadlines are stored on each job.
+const MINUTES = (n: number) => Number.isInteger(n) && n > 0;
+export const setTarget = (p: WOPriority, respondMin: number, resolveMin: number): string | null => {
+  if (!MINUTES(respondMin) || !MINUTES(resolveMin)) return "Times must be whole minutes, more than zero.";
+  if (respondMin > resolveMin) return `${p}: respond time cannot be longer than resolve time.`;
+  Object.assign(PRIORITIES[p], { respondMin, resolveMin }); return null;
+};
+const addTo = (list: string[], what: string, v: string): string | null => {
+  const t = v.trim(); if (!t) return `Enter the ${what}.`;
+  if (list.some(x => x.toLowerCase() === t.toLowerCase())) return `That ${what} is already on the list.`;
+  list.push(t); return null;
+};
+export const addTrade = (v: string) => addTo(WO_CATEGORIES, "trade", v);
+export const addHoldReason = (v: string) => addTo(HOLD_REASONS, "hold reason", v);
+/** A job already on hold keeps its reason; the reason only leaves the list for new holds. */
+export const removeHoldReason = (v: string): string | null => {
+  if (!HOLD_REASONS.includes(v)) return "That hold reason is not on the list.";
+  if (HOLD_REASONS.length === 1) return "Keep at least one hold reason.";
+  HOLD_REASONS.splice(HOLD_REASONS.indexOf(v), 1); return null;
+};
 // Respond = someone accepted it; resolve = it was completed. Minutes from when the job is raised.
 export const PRIORITIES: Record<WOPriority, { name: string; respondMin: number; resolveMin: number; level: Level }> = {
   P1: { name: "Emergency", respondMin: 15, resolveMin: 4 * 60, level: "Urgent" },

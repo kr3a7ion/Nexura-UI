@@ -9,12 +9,13 @@ import { ROOMS } from "./mock/property";
 import { asset as assetOf, schedule, sheetFor, recordChecklist, everyLabel, type CheckResult } from "./mock/ppm";
 import {
   workOrders, workOrder, addWorkOrder, updateWorkOrder, moveWorkOrder, canMove, isOpen, isOverdue, isLateToRespond, respondDue, resolveDue, ageOf, fmtWhen, now,
-  assignable, assignee, WO_CATEGORIES, LABOUR_RATE, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
+  assignable, assignee, WO_CATEGORIES, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
 } from "./mock/maintenance";
 import { finishWorkOrder } from "./mock/hotel";
 import { roomState } from "./mock/rooms";
 import { teams, staff, parseDay } from "./mock/roster";
 import { permitsFor, isExpired, PERMIT_TYPES } from "./mock/permits";
+import { money } from "./mock/setup";
 import { RequestPermitDialog } from "./PermitScreens";
 const teamOf = (name: string) => staff(name)?.team;
 
@@ -258,7 +259,8 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
   const asset = assetOf(w.asset);
   const plan = schedule(w.ppm);
   const partTotal = w.parts.reduce((s, p) => s + p.qty * p.unit, 0);
-  const labour = w.labourHours * LABOUR_RATE;
+  // shortcut: one current labour rate re-costs old jobs too; FacilityFlow versions rates by date, do that with the backend.
+  const labour = w.labourHours * money().labourRate;
   const ended = w.status === "Closed" || w.status === "Cancelled";
 
   // One place that runs a move and reports the outcome.
@@ -333,7 +335,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
                   onChange={e => { updateWorkOrder(w.id, { labourHours: Math.max(0, Number(e.target.value) || 0) }); refresh(n => n + 1); }}
                   className="w-20 px-2 text-sm outline-none" style={{ ...controlStyle(), height: 36 }} />
               </label>
-              <span className="text-sm" style={{ color: MUTED }}>Labour at ₦{LABOUR_RATE.toLocaleString()} an hour: <span style={{ color: TEXT }}>₦{labour.toLocaleString()}</span></span>
+              <span className="text-sm" style={{ color: MUTED }}>Labour at ₦{money().labourRate.toLocaleString()} an hour: <span style={{ color: TEXT }}>₦{labour.toLocaleString()}</span></span>
               <span className="ml-auto text-sm font-semibold" style={{ color: TEXT }}>Total ₦{(partTotal + labour).toLocaleString()}</span>
             </div>
           </Card>

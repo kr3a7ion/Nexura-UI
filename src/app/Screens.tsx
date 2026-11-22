@@ -20,3 +20,4 @@ export { MaintenanceRoster } from "./RosterScreens";
 export { AssetRegister, PlannedWork } from "./PlannedScreens";
 export { MaintenanceHandover } from "./HandoverScreens";
 export { Permits } from "./PermitScreens";
+export { MaintenanceSetup } from "./SetupScreens";
