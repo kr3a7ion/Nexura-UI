@@ -15,4 +15,5 @@ export { PrintTemplates } from "./PrintTemplates";
 export { FieldApp } from "./FieldApp";
 export { GuestPortal } from "./GuestPortal";
 
-export { WorkOrders, WorkOrderDetail, MaintenanceRoster } from "./WorkOrderScreens";
+export { WorkOrders, WorkOrderDetail } from "./WorkOrderScreens";
+export { MaintenanceRoster } from "./RosterScreens";

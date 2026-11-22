@@ -8,7 +8,7 @@ import {
   BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
 import { MAINTENANCE_EXCEPTIONS, MAINTENANCE_POWER } from "../../mock/maintenanceHome";
-import { workOrders, isOpen, isOverdue, isUrgent, ageOf, priorityLabel, type WorkOrder } from "../../mock/maintenance";
+import { workOrders, isOpen, isOverdue, isUrgent, ageOf, priorityLabel, assignee, type WorkOrder } from "../../mock/maintenance";
 import { WO_STATUS_C, WO_PRI_C } from "../../WorkOrderScreens";
 import { ROOMS } from "../../mock/property";
 import { roomState } from "../../mock/rooms";
@@ -84,7 +84,7 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
               <thead><tr style={{ backgroundColor: BG }}>{["Work order", "Assigned to", "Open for", "Priority", "Status", ""].map(label => <th key={label} className="px-4 py-2.5 text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{label}</th>)}</tr></thead>
               <tbody>{open.map(item => <tr key={item.id} className="border-t hover:bg-slate-50" style={{ borderColor: BORDER }}>
                 <td className="px-4 py-3 min-w-[220px]"><div className="text-sm font-medium" style={{ color: TEXT }}>{item.title}</div><div className="mt-0.5 text-sm" style={{ color: MUTED }}>{item.id} · {item.location}</div></td>
-                <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: item.tech ? TEXT : "#B45309" }}>{item.tech ?? "Nobody yet"}</td>
+                <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: assignee(item) ? TEXT : "#B45309" }}>{assignee(item) ?? "Nobody yet"}</td>
                 <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: isOverdue(item) ? ERROR : TEXT }}>{ageOf(item)}</td>
                 <td className="px-4 py-3"><Badge label={priorityLabel(item.priority)} colors={WO_PRI_C[item.priority]} /></td>
                 <td className="px-4 py-3 whitespace-nowrap"><Badge label={isOverdue(item) ? "Overdue" : item.status} colors={WO_STATUS_C[isOverdue(item) ? "Overdue" : item.status]} /></td>

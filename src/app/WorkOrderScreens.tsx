@@ -9,10 +9,17 @@ import { ROOMS } from "./mock/property";
 import { ASSETS } from "./constants";
 import {
   workOrders, workOrder, addWorkOrder, updateWorkOrder, moveWorkOrder, canMove, isOpen, isOverdue, isLateToRespond, respondDue, resolveDue, ageOf, fmtWhen, now,
-  assignable, roster, setPresent, WO_CATEGORIES, LABOUR_RATE, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
+  assignable, assignee, WO_CATEGORIES, LABOUR_RATE, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
 } from "./mock/maintenance";
 import { finishWorkOrder } from "./mock/hotel";
 import { roomState } from "./mock/rooms";
+import { teams, staff } from "./mock/roster";
+const teamOf = (name: string) => staff(name)?.team;
+
+// A person in today, a team, or an outside vendor. Team values carry a prefix so one select holds both.
+const assignOptions = (): [string, string][] => [...assignable().map(n => [n, n] as [string, string]), ...teams().map(t => [`team:${t.name}`, `${t.name} team`] as [string, string])];
+const target = (v: string) => v.startsWith("team:") ? { team: v.slice(5) } : { tech: v };
+const targetLabel = (v: string) => v.startsWith("team:") ? `the ${v.slice(5)} team` : v;
 
 type Add = (t: Omit<Toast, "id">) => void;
 type Nav = (s: string, label: string, param?: string) => void;
@@ -37,7 +44,7 @@ const StatusBadge = ({ w }: { w: WorkOrder }) => (
 const PriBadge = ({ p }: { p: WOPriority }) => <Badge label={priorityLabel(p)} colors={WO_PRI_C[p]} />;
 // What the job is racing now: being accepted, then being done.
 const deadline = (w: WorkOrder) => w.acceptedAt ? { label: "Fix by", at: resolveDue(w) } : { label: "Accept by", at: respondDue(w) };
-const Select = ({ label, value, onChange, options, id }: { label: string; value: string; onChange: (v: string) => void; options: (string | [string, string])[]; id: string }) => (
+export const Select = ({ label, value, onChange, options, id }: { label: string; value: string; onChange: (v: string) => void; options: (string | [string, string])[]; id: string }) => (
   <Field label={label} htmlFor={id}>
     <select id={id} value={value} onChange={e => onChange(e.target.value)} className={controlClass} style={controlStyle()}>
       {options.map(o => Array.isArray(o) ? <option key={o[0]} value={o[0]}>{o[1]}</option> : <option key={o}>{o}</option>)}
@@ -125,18 +132,18 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
     return true;
   }
   const visible = all.filter(w => matches(w, filter) &&
-    (!search || `${w.id} ${w.title} ${w.location} ${w.tech ?? ""}`.toLowerCase().includes(search.toLowerCase())));
+    (!search || `${w.id} ${w.title} ${w.location} ${assignee(w) ?? ""}`.toLowerCase().includes(search.toLowerCase())));
   const toggle = (id: string) => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
 
   const assignSelected = () => {
     if (!bulkTech) return;
-    const done = selected.filter(id => !moveWorkOrder(id, "Assigned", { by: staffName, tech: bulkTech })).length;
-    add({ type: done ? "success" : "warning", title: `${done} work order${done === 1 ? "" : "s"} assigned to ${bulkTech}`, body: done < selected.length ? `${selected.length - done} could not be assigned in their current state.` : undefined });
+    const done = selected.filter(id => !moveWorkOrder(id, "Assigned", { by: staffName, ...target(bulkTech) })).length;
+    add({ type: done ? "success" : "warning", title: `${done} work order${done === 1 ? "" : "s"} assigned to ${targetLabel(bulkTech)}`, body: done < selected.length ? `${selected.length - done} could not be assigned in their current state.` : undefined });
     setSelected([]); setBulkTech(null); refresh(n => n + 1);
   };
   const exportList = () => {
     downloadCsv("work-orders.csv", [["ID", "Title", "Location", "Category", "Priority", "Status", "Assigned to", "Reported", "Reported by", "Accept by", "Fix by"],
-      ...visible.map(w => [w.id, w.title, w.location, w.cat, w.priority, statusLabel(w) + (isOverdue(w) ? " (overdue)" : ""), w.tech ?? "Nobody yet", fmtWhen(w.reportedAt), w.reportedBy, fmtWhen(respondDue(w)), fmtWhen(resolveDue(w))])]);
+      ...visible.map(w => [w.id, w.title, w.location, w.cat, w.priority, statusLabel(w) + (isOverdue(w) ? " (overdue)" : ""), assignee(w) ?? "Nobody yet", fmtWhen(w.reportedAt), w.reportedBy, fmtWhen(respondDue(w)), fmtWhen(resolveDue(w))])]);
     add({ type: "success", title: `${visible.length} work orders saved as work-orders.csv` });
   };
 
@@ -199,7 +206,7 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
                 </td>
                 <td className="px-3 py-3 whitespace-nowrap"><PriBadge p={w.priority} /></td>
                 <td className="px-3 py-3"><StatusBadge w={w} /></td>
-                <td className="px-3 py-3 text-sm whitespace-nowrap" style={{ color: w.tech ? TEXT : WARNING_INK }}>{w.tech ?? "Nobody yet"}</td>
+                <td className="px-3 py-3 text-sm whitespace-nowrap" style={{ color: assignee(w) ? TEXT : WARNING_INK }}>{assignee(w) ?? "Nobody yet"}</td>
                 <td className="px-3 py-3 whitespace-nowrap">
                   <div className="text-sm" style={{ color: TEXT }}>{fmtWhen(w.reportedAt)}</div>
                   <div className="text-sm" style={{ color: MUTED }}>{w.reportedBy}</div>
@@ -220,7 +227,7 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
       {bulkTech !== null && (
         <Dialog title={`Assign ${selected.length} work order${selected.length === 1 ? "" : "s"}`} onClose={() => setBulkTech(null)}
           footer={<><BtnO label="Cancel" onClick={() => setBulkTech(null)} /><BtnP label="Assign" onClick={assignSelected} /></>}>
-          <Select id="bulk-tech" label="Technician (in today)" value={bulkTech} onChange={setBulkTech} options={assignable()} />
+          <Select id="bulk-tech" label="Person in today, or a team" value={bulkTech} onChange={setBulkTech} options={assignOptions()} />
           <p className="text-sm" style={{ color: MUTED }}>Closed and cancelled orders in the selection are left as they are.</p>
         </Dialog>
       )}
@@ -240,7 +247,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
   const w = workOrder(id ?? "") ?? workOrders().find(isOpen) ?? workOrders()[0];
   const [note, setNote] = useState("");
   const [dialog, setDialog] = useState<DialogKind>(null);
-  const [tech, setTech] = useState(w.tech && assignable().includes(w.tech) ? w.tech : assignable()[0]);
+  const [tech, setTech] = useState(w.tech && assignable().includes(w.tech) ? w.tech : w.team ? `team:${w.team}` : assignable()[0]);
   const [holdReason, setHoldReason] = useState(HOLD_REASONS[0]);
   const [text, setText] = useState("");
   const [part, setPart] = useState({ item: "", qty: "1", unit: "", ref: "" });
@@ -252,13 +259,13 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
   const ended = w.status === "Closed" || w.status === "Cancelled";
 
   // One place that runs a move and reports the outcome.
-  const go = (to: WOStatus, m: { note?: string; tech?: string; holdReason?: string }, ok: string, body?: string) => {
+  const go = (to: WOStatus, m: { note?: string; tech?: string; team?: string; holdReason?: string }, ok: string, body?: string) => {
     const refused = to === "Closed" || to === "Cancelled" ? finishWorkOrder(w.id, to, me, m.note ?? "").refused : moveWorkOrder(w.id, to, { by: me, ...m });
     if (refused) { add({ type: "error", title: refused }); return false; }
     add({ type: "success", title: ok, body }); done(); return true;
   };
   const roomNote = w.room && w.outOfOrder ? `Room ${w.room} goes to Housekeeping to be cleaned before it is sold.` : undefined;
-  const canAccept = w.tech === me || w.tech === "External vendor";
+  const canAccept = w.tech ? w.tech === me || w.tech === "External vendor" : !!w.team && (teams().find(t => t.name === w.team)?.lead === me || teamOf(me) === w.team);
 
   // The main button for each status; the rest sit beside it.
   const primary = (() => {
@@ -273,7 +280,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
       default: return null;
     }
   })();
-  const waitingNote = w.status === "Assigned" && !canAccept ? `Waiting for ${w.tech} to accept.`
+  const waitingNote = w.status === "Assigned" && !canAccept ? `Waiting for ${assignee(w)} to accept.`
     : w.status === "Completed" && w.completedBy === me ? "You completed this job, so someone else must verify it." : null;
 
   return (
@@ -353,7 +360,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
             <Row label="Status" value={<StatusBadge w={w} />} />
             <Row label="Priority" value={<PriBadge p={w.priority} />} />
             <Row label="Category" value={w.cat} />
-            <Row label="Assigned to" value={w.tech ?? "Nobody yet"} />
+            <Row label="Assigned to" value={assignee(w) ?? "Nobody yet"} />
             <Row label="Accept by" value={w.acceptedAt ? `Accepted ${fmtWhen(w.acceptedAt)}` : <span style={{ color: isLateToRespond(w) ? ERROR : TEXT }}>{fmtWhen(respondDue(w))}</span>} />
             <Row label="Fix by" value={w.completedBy ? `Completed by ${w.completedBy}` : <span style={{ color: isOverdue(w) && !isLateToRespond(w) ? ERROR : TEXT }}>{fmtWhen(resolveDue(w))}</span>} />
             {(w.heldMs > 0 || w.heldSince) && <Row label="Time on hold" value={`${Math.round((w.heldMs + (w.heldSince ? now().getTime() - w.heldSince.getTime() : 0)) / 60000)} min, added to both deadlines`} />}
@@ -380,10 +387,11 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
       </div>
 
       {(dialog === "assign" || dialog === "reopen") && (
-        <Dialog title={dialog === "reopen" ? "Reopen work order" : w.tech ? "Reassign" : "Assign"} onClose={() => setDialog(null)}
+        <Dialog title={dialog === "reopen" ? "Reopen work order" : assignee(w) ? "Reassign" : "Assign"} onClose={() => setDialog(null)}
           sub={dialog === "reopen" ? "It goes back to the technician, who must accept it again." : `${priorityLabel(w.priority)}: someone must accept it by ${fmtWhen(respondDue(w))}.`}
-          footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label={dialog === "reopen" ? "Reopen" : "Assign"} onClick={() => go("Assigned", { tech, note: text }, `${w.id} ${dialog === "reopen" ? "reopened" : "assigned"} to ${tech}`)} /></>}>
-          <Select id="as-tech" label="Technician (in today)" value={tech} onChange={setTech} options={assignable()} />
+          footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label={dialog === "reopen" ? "Reopen" : "Assign"} onClick={() => go("Assigned", { ...target(tech), note: text }, `${w.id} ${dialog === "reopen" ? "reopened" : "assigned"} to ${targetLabel(tech)}`)} /></>}>
+          <Select id="as-tech" label="Person in today, or a team" value={tech} onChange={setTech} options={assignOptions()} />
+          <p className="text-sm" style={{ color: MUTED }}>Someone missing? They are not marked present on today's roster.</p>
           {dialog === "reopen" && <Field label="What is still wrong" htmlFor="wo-why" required><input id="wo-why" value={text} onChange={e => setText(e.target.value)} className={controlClass} style={controlStyle(!text.trim())} /></Field>}
         </Dialog>
       )}
@@ -432,35 +440,3 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
   );
 }
 
-// Who is in today. Work orders can only be assigned to technicians and team leads marked present.
-export function MaintenanceRoster({ add }: { add: Add }) {
-  const [, redraw] = useState(0);
-  const people = roster();
-  const toggle = (name: string, present: boolean) => { setPresent(name, present); redraw(n => n + 1); add({ type: "success", title: `${name} marked ${present ? "in today" : "away today"}` }); };
-  return (
-    <div>
-      <PageHeader title="Roster" sub={`${people.filter(p => p.present).length} of ${people.length} in today. Jobs go only to people who are in, or to an outside vendor.`} />
-      <div className="bg-white overflow-x-auto" style={{ border: `1px solid ${BORDER}`, borderRadius: UI.radius.card }}>
-        <table className="w-full">
-          <thead>
-            <tr style={{ backgroundColor: UI.surface, borderBottom: `1px solid ${BORDER}` }}>
-              {["Name", "Role", "Today", ""].map(h => <th key={h} className="px-4 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {people.map(p => (
-              <tr key={p.name} style={{ borderBottom: `1px solid ${BORDER}` }}>
-                <td className="px-4 py-3 text-sm font-semibold whitespace-nowrap" style={{ color: TEXT }}>{p.name}</td>
-                <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: MUTED }}>{p.role}</td>
-                <td className="px-4 py-3 whitespace-nowrap"><Badge label={p.present ? "In today" : "Away"} colors={p.present ? { bg: "#DCFCE7", text: "#166534" } : { bg: "#F1F5F9", text: "#475569" }} /></td>
-                <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <BtnO label={p.present ? `Mark ${p.name} away` : `Mark ${p.name} in`} onClick={() => toggle(p.name, !p.present)} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
