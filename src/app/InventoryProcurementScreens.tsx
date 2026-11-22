@@ -866,7 +866,7 @@ export function PurchaseOrders({ add }: { add: (t: Omit<Toast, "id">) => void })
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs" style={{ color: MUTED }}>Receive qty:</span>
-                      <input type="number" value={grnQtys[l.sku]||""} onChange={e=>setGrnQtys(prev=>({...prev,[l.sku]:Math.min(parseInt(e.target.value)||0,outstanding)}))} max={outstanding} placeholder={`0 – ${outstanding}`} className="flex-1 px-2.5 py-1.5 rounded-lg border text-sm outline-none text-center" style={{ borderColor: BORDER, fontFamily: mono }} />
+                      <input type="number" aria-label={`Quantity received of ${l.sku}`} value={grnQtys[l.sku]||""} onChange={e=>setGrnQtys(prev=>({...prev,[l.sku]:Math.min(parseInt(e.target.value)||0,outstanding)}))} max={outstanding} placeholder={`0 – ${outstanding}`} className="flex-1 px-2.5 py-1.5 rounded-lg border text-sm outline-none text-center" style={{ borderColor: BORDER, fontFamily: mono }} />
                     </div>
                     {(grnQtys[l.sku]||0) > 0 && <div className="mt-1.5 text-xs" style={{ color: SUCCESS }}>+₦{((grnQtys[l.sku]||0)*l.unitCost).toLocaleString()} added to stock</div>}
                   </div>

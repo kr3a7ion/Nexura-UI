@@ -618,9 +618,9 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border" style={{ borderColor: BORDER, color: MUTED }}>
             <Car size={13} />Request Vehicle
           </button>
-          <button onClick={() => go("generator-diesel", "Generator Diesel")}
+          <button onClick={() => go("generator-diesel", "Power & Diesel")}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border" style={{ borderColor: BORDER, color: MUTED }}>
-            <Zap size={13} />Generator Diesel
+            <Zap size={13} />Power & Diesel
           </button>
           <button onClick={() => go("work-orders", "Work Orders")}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>
@@ -665,7 +665,7 @@ export function DashboardRole({ role, nav }: { role: Role; nav?: (s: string, lab
                 <Zap size={13} style={{ color: WARNING_INK }} />
                 <div className="text-sm font-semibold" style={{ color: TEXT }}>Generator status</div>
               </div>
-              <button onClick={() => go("generator-diesel", "Generator Diesel")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Log diesel →</button>
+              <button onClick={() => go("generator-diesel", "Power & Diesel")} className="text-xs font-semibold" style={{ color: TEAL_INK }}>Log diesel →</button>
             </div>
             {[
               { name:"Main Generator",  kva:500, status:"standby", svcLeft:220 },

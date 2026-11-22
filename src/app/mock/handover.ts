@@ -6,6 +6,8 @@ import { rosterDay, patternName, dayKey } from "./roster";
 import { notify } from "./notify";
 import { BUSINESS_DATE } from "../constants";
 import { livePermits, PERMIT_TYPES } from "./permits";
+import { tankLine } from "./power";
+import { tanks } from "./setup";
 
 export type CarriedJob = { id: string; title: string; priority: WOPriority; status: WOStatus; holdReason?: string; with?: string };
 export type PlantLine = { id: string; name: string; status: string; meter?: string };
@@ -16,8 +18,9 @@ const PRI_ORDER: WOPriority[] = ["P1", "P2", "P3", "P4"];
 /** The facts the system already holds at this moment: power plant and every open job, most urgent first. */
 export const draft = (): { plant: PlantLine[]; carried: CarriedJob[]; permits: string[] } => ({
   permits: livePermits().map(p => `${p.id} ${PERMIT_TYPES[p.type].toLowerCase()}${p.woId ? ` on ${p.woId}` : ""}`),
-  // shortcut: plant is the metered power assets; fuel tanks and utility outages join when Diesel and Power is built.
-  plant: assets().filter(a => a.cat === "Power").map(a => ({ id: a.id, name: a.name, status: a.status, meter: a.meter ? `${a.meter.value.toLocaleString()} ${a.meter.unit}` : undefined })),
+  // shortcut: utility outages join with Power as it happens (PR I).
+  plant: [...assets().filter(a => a.cat === "Power").map(a => ({ id: a.id, name: a.name, status: a.status, meter: a.meter ? `${a.meter.value.toLocaleString()} ${a.meter.unit}` : undefined })),
+    ...tanks().map(t => ({ id: t.id, name: "Diesel", status: tankLine(t) }))],
   carried: workOrders().filter(isOpen).sort((a, b) => PRI_ORDER.indexOf(a.priority) - PRI_ORDER.indexOf(b.priority))
     .map(w => ({ id: w.id, title: w.title, priority: w.priority, status: w.status, holdReason: w.holdReason, with: w.tech ?? (w.team ? `${w.team} team` : undefined) })),
 });

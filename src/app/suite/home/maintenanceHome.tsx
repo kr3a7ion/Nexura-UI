@@ -7,7 +7,7 @@ import type { Screen } from "../../constants";
 import {
   BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
-import { MAINTENANCE_EXCEPTIONS, MAINTENANCE_POWER } from "../../mock/maintenanceHome";
+import { maintenanceExceptions, maintenancePower } from "../../mock/maintenanceHome";
 import { workOrders, isOpen, isOverdue, isUrgent, ageOf, priorityLabel, assignee, type WorkOrder } from "../../mock/maintenance";
 import { WO_STATUS_C, WO_PRI_C } from "../../WorkOrderScreens";
 import { ROOMS } from "../../mock/property";
@@ -30,6 +30,7 @@ const severityColors = {
 export default function MaintenanceHome({ nav }: { nav: Nav }) {
   // Counted from the work orders and the property's rooms.
   const open = workOrders().filter(isOpen);
+  const power = maintenancePower();
   const overdue = open.filter(isOverdue);
   const outOfOrder = ROOMS.filter(r => roomState(r.id) === "Out of order");
 
@@ -61,13 +62,13 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
         <StatCard label="Open work orders" value={String(open.length)} sub={`${open.filter(w => w.room).length} in rooms · ${open.filter(w => !w.room).length} elsewhere`} icon={Wrench} accent={accent} />
         <StatCard label="Overdue" value={String(overdue.length)} sub={overdue.length ? `${overdue.filter(isUrgent).length} P1 or P2` : "All on time"} icon={Clock} accent={accent} />
         <StatCard label="Rooms out of order" value={String(outOfOrder.length)} sub={outOfOrder.length ? `Rooms ${outOfOrder.map(r => r.id).join(", ")}` : "All rooms in service"} icon={Buildings} accent={accent} />
-        <StatCard label="Main generator diesel" value="30%" sub={`${MAINTENANCE_POWER.dieselRemaining.replace(" (30%)", "")} · ${MAINTENANCE_POWER.reserveDays.toLowerCase()} left`} icon={Drop} accent={accent} />
+        <StatCard label="Bulk diesel" value={power.dieselPct} sub={`${power.dieselRemaining.replace(/ \(.*\)$/, "")} · ${power.reserveDays.toLowerCase()} left`} icon={Drop} accent={accent} />
       </section>
 
       <section className="mb-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
-        <div className="mb-4 flex items-center justify-between"><div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Power & generator</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Backup power at this property right now.</p></div><Badge label="Pool generator running" colors={{ bg: `${accent}12`, text: accent }} /></div>
+        <div className="mb-4 flex items-center justify-between"><div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Power & generator</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Backup power at this property right now.</p></div></div>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {[["Runtime today", MAINTENANCE_POWER.runtimeToday], ["Diesel remaining", MAINTENANCE_POWER.dieselRemaining], ["Reserve", MAINTENANCE_POWER.reserveDays], ["Last grid outage", MAINTENANCE_POWER.lastGridOutage]].map(([label, value]) => <div key={label} className="rounded-xl p-3" style={{ backgroundColor: BG }}><div className="text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{label}</div><div className="mt-1.5 text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>{value}</div></div>)}
+          {[["Generator run today", power.runtimeToday], ["Diesel remaining", power.dieselRemaining], ["Reserve", power.reserveDays], ["Last power cut", power.lastGridOutage]].map(([label, value]) => <div key={label} className="rounded-xl p-3" style={{ backgroundColor: BG }}><div className="text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{label}</div><div className="mt-1.5 text-sm font-bold" style={{ color: TEXT, fontFamily: mono }}>{value}</div></div>)}
         </div>
       </section>
 
@@ -96,7 +97,7 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
 
         <section className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
           <div className="border-b px-5 py-4" style={{ borderColor: BORDER }}><h2 className="text-sm font-bold" style={{ color: TEXT }}>Engineering exceptions</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Service and asset risks requiring action.</p></div>
-          {MAINTENANCE_EXCEPTIONS.map((item, index) => <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div><button onClick={() => nav(item.screen, item.screenLabel)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button></div>)}
+          {maintenanceExceptions().map((item, index) => <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div><button onClick={() => nav(item.screen, item.screenLabel)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button></div>)}
         </section>
       </div>
 

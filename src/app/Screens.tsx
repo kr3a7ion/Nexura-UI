@@ -9,7 +9,8 @@ export { OccupancyReports, RevenueReports, DepartmentReports, GuestAnalytics, In
 export { UserManagement, SystemHealth, SchemaUpdateStatus, DeviceManagement, BackupRestore, AuditLog, ErrorLog } from "./ITAdminScreens";
 export { BranchOverview, BranchComparison, CentralSyncStatus, HotelConfig, SyncSettings, DoorLockSettings, MyPreferences, PrintSettings } from "./MultibranchSettingsScreens";
 export { DispatchBoard, TripDetail, NewTripRequest, DriverRoster, FleetCosting, DriverAccessLog, setDriverTab } from "./FleetScreens";
-export { VehicleRegister, VehicleDetail, FuelLog, GeneratorDieselLog, setVehicleId } from "./FleetAssetsScreens";
+export { VehicleRegister, VehicleDetail, FuelLog, setVehicleId } from "./FleetAssetsScreens";
+export { PowerDiesel } from "./PowerScreens";
 export { GuestAccessScreen } from "./AuthFlowScreens";
 export { PrintTemplates } from "./PrintTemplates";
 export { FieldApp } from "./FieldApp";
