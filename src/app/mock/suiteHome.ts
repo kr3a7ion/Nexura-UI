@@ -3,6 +3,9 @@ import { STAYS, ARRIVALS, departures } from "./frontOffice";
 import { hkRooms, FOUND_ITEMS } from "./housekeeping";
 import { roomState } from "./rooms";
 import { schedules, scheduleState, compliance } from "./ppm";
+import { tanks } from "./setup";
+import { levelOf } from "./power";
+import { maintenancePower } from "./maintenanceHome";
 import { workOrders, isOpen, isUrgent, isOverdue, fmtWhen } from "./maintenance";
 
 export type HomeStat = { label: string; value: string; sub: string; screen: Screen; screenLabel: string };
@@ -11,6 +14,8 @@ export type HomeAlert = { text: string; from: string; since: string; tone: "erro
 const stat = (label: string, value: string, sub: string, screen: Screen, screenLabel: string): HomeStat => ({ label, value, sub, screen, screenLabel });
 // The most overdue open job, read from the work orders (on hold never counts).
 const lateJobs = () => workOrders().filter(isOverdue).slice(0, 1).map(w => alert(`${w.id} ${w.title.toLowerCase()} is overdue`, "Maintenance", fmtWhen(w.reportedAt), "error", "work-orders", "Work Orders"));
+// A tank below its minimum, from the diesel book.
+const dieselAlerts = () => tanks().filter(t => levelOf(t.id) < t.minimum).map(t => alert(`${t.name} is below its minimum`, "Maintenance", "Now", "warning", "generator-diesel", "Power & Diesel"));
 const alert = (text: string, from: string, since: string, tone: HomeAlert["tone"], screen: Screen, screenLabel: string): HomeAlert => ({ text, from, since, tone, screen, screenLabel });
 
 // Room and guest figures are counted from the Front Office and Housekeeping data, so Suite Home agrees with every screen.
@@ -39,7 +44,7 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
     alerts: [
       LATE_ARRIVAL,
       ...lateJobs(),
-      alert("Diesel is below 25%", "Inventory", "09:10", "warning", "generator-diesel", "Generator & Diesel"),
+      ...dieselAlerts(),
     ],
   },
   FD: { stats: frontDesk(), alerts: [LATE_ARRIVAL, alert("Tobi Adeyemi has no deposit on his reservation", "Front Office", "09:55", "warning", "arrivals", "Arrivals List")] },
@@ -65,7 +70,7 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
     stats: [
       stat("Open work orders", String(workOrders().filter(isOpen).length), `${workOrders().filter(w => isOpen(w) && isUrgent(w)).length} P1 or P2`, "work-orders", "Work Orders"),
       stat("Planned work due", String(schedules().filter(s => ["Overdue", "Due now"].includes(scheduleState(s))).length), `Compliance ${compliance().pct ?? "not yet"}${compliance().pct == null ? "" : "%"} over 90 days`, "preventive-schedule", "Planned Work"),
-      stat("Diesel level", "24%", "About 9 hours left", "generator-diesel", "Generator & Diesel"),
+      stat("Bulk diesel", maintenancePower().dieselPct, `${maintenancePower().reserveDays} at this month's rate`, "generator-diesel", "Power & Diesel"),
       stat("Rooms out of order", String(ROOMS.filter(r => roomState(r.id) === "Out of order").length), ROOMS.filter(r => roomState(r.id) === "Out of order").map(r => r.id).join(", ") || "All rooms in service", "work-orders", "Work Orders"),
     ],
     alerts: lateJobs(),

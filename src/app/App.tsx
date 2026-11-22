@@ -81,7 +81,7 @@ import {
   SystemHealth, UserManagement, SchemaUpdateStatus, DeviceManagement, BackupRestore, AuditLog, ErrorLog,
   HotelConfig, DoorLockSettings, MyPreferences, SyncSettings,
   DispatchBoard, TripDetail, NewTripRequest, DriverRoster, FleetCosting, DriverAccessLog,
-  VehicleRegister, VehicleDetail, FuelLog, GeneratorDieselLog,
+  VehicleRegister, VehicleDetail, FuelLog, PowerDiesel,
 } from "./Screens";
 import { FaultReports } from "./FaultScreens";
 
@@ -243,7 +243,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "vehicle-register") return <VehicleRegister add={add} nav={nav} />;
   if (screen === "vehicle-detail") return <VehicleDetail add={add} />;
   if (screen === "fuel-log") return <FuelLog add={add} />;
-  if (screen === "generator-diesel") return <GeneratorDieselLog add={add} role={role} />;
+  if (screen === "generator-diesel") return <PowerDiesel add={add} staffName={staffName} />;
 
   return <PlaceholderScreen title="Screen" desc="This screen is coming soon." icon={SquaresFour} />;
 }
