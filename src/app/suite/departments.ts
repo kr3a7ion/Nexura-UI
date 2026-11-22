@@ -88,7 +88,7 @@ export const DEPARTMENTS: Department[] = [
       { label: "Verify", screen: "work-order-detail" },
       { label: "Close", screen: "work-orders" },
     ],
-    screens: [group("Engineering", [["Fault Reports", "fault-reports"], ["Work Orders", "work-orders"], ["Asset Register", "asset-register"], ["Preventive Schedule", "preventive-schedule"], ["Vendor Contacts", "vendor-contacts"], ["Roster", "mx-roster"], ["Generator Diesel", "generator-diesel"]])],
+    screens: [group("Engineering", [["Fault Reports", "fault-reports"], ["Work Orders", "work-orders"], ["Asset Register", "asset-register"], ["Planned Work", "preventive-schedule"], ["Vendor Contacts", "vendor-contacts"], ["Roster", "mx-roster"], ["Generator Diesel", "generator-diesel"]])],
   },
   {
     id: "restaurant-pos", name: "Restaurant & POS", icon: ForkKnife, accent: "#C2410C",

@@ -3,6 +3,7 @@
 // shortcut: held in memory until the hotel server exists; changes last until the page reloads.
 import { BUSINESS_DATE } from "../constants";
 import { notify, type Level } from "./notify";
+import { onPlannedVerified, missingCritical, type CheckResult } from "./ppm";
 import { presentToday, isPresentToday, team, teamMembers, staff, holdersOf, type StaffRole } from "./roster";
 
 // The lifecycle and priorities follow FacilityFlow (docs/OPERATING.md, services/workOrders.ts).
@@ -18,6 +19,7 @@ export type WorkOrder = {
   outOfOrder: boolean; asset?: string; desc: string; timeline: WOEvent[];
   parts: { item: string; qty: number; unit: number; ref: string }[]; labourHours: number; resolution?: string;
   escalated?: Escalation[];
+  ppm?: string; dueAt?: string; completedAt?: Date; checklist?: CheckResult[]; // planned work: schedule, due day, sheet
   team?: string; // handed to a team: whoever on it accepts becomes the name on the job
 };
 
@@ -83,8 +85,8 @@ const LIST: WorkOrder[] = [
   wo({ id: "WO-0089", title: "Kitchen fridge noisy", location: "Restaurant kitchen", cat: "Equipment", priority: "P4", status: "Assigned",
     tech: "Chidi Ike", reportedBy: "Kitchen staff", reportedAt: at(-1, 9, 0), guestImpact: false, outOfOrder: false, asset: "AST-002",
     desc: "Compressor rattles loudly when it starts. Still holding temperature." }),
-  wo({ id: "WO-0088", title: "Generator oil change", location: "Generator House", cat: "Mechanical", priority: "P4", status: "Assigned",
-    tech: "Emeka Obi", reportedBy: "Preventive schedule", reportedAt: at(0, 7, 0), guestImpact: false, outOfOrder: false, asset: "AST-004",
+  wo({ id: "WO-0088", title: "250-hour service: Main generator 500 kVA", location: "Generator house", cat: "Power", priority: "P4", status: "Assigned",
+    tech: "Emeka Obi", reportedBy: "Planned work", reportedAt: at(0, 7, 0), guestImpact: false, outOfOrder: false, asset: "AST-004", ppm: "PM-002", dueAt: "2026-07-01",
     desc: "250-hour service: oil, oil filter, battery and coolant check." }),
   wo({ id: "WO-0087", title: "Wardrobe door hinge broken", location: "Room 102", room: "102", cat: "Furniture", priority: "P4", status: "Completed",
     tech: "Chidi Ike", acceptedAt: at(-2, 11, 10), completedBy: "Chidi Ike", reportedBy: "Grace Achebe", reportedAt: at(-2, 10, 0), guestImpact: false, outOfOrder: false,
@@ -97,6 +99,14 @@ const LIST: WorkOrder[] = [
   wo({ id: "WO-0086", title: "Pool pump making noise", location: "Pool area", cat: "Equipment", priority: "P3", status: "Closed",
     tech: "Chidi Ike", acceptedAt: at(-3, 10, 40), completedBy: "Chidi Ike", verifiedBy: "Bola Adewale", reportedBy: "Bola Adewale", reportedAt: at(-3, 10, 15), guestImpact: false, outOfOrder: false, asset: "AST-007",
     desc: "Grinding noise from the pump housing.", labourHours: 2, resolution: "Bearing replaced; pump checked running quietly." }),
+
+  // Planned work already done this quarter, so compliance has history to judge.
+  wo({ id: "WO-0085", title: "Backwash and balance: Pool circulation pump", location: "Pool area", cat: "Pool", priority: "P4", status: "Closed",
+    tech: "Chidi Ike", acceptedAt: at(-21, 9, 0), completedBy: "Chidi Ike", completedAt: at(-19, 11, 0), verifiedBy: "Bola Adewale", reportedBy: "Planned work", reportedAt: at(-22, 6, 0),
+    guestImpact: false, outOfOrder: false, asset: "AST-007", ppm: "PM-006", dueAt: "2026-06-05", desc: "Every month.", resolution: "Backwashed, basket cleaned, chlorine and pH balanced." }),
+  wo({ id: "WO-0084", title: "Brake and safety inspection: Lift 1", location: "Main building", cat: "Infrastructure", priority: "P3", status: "Closed",
+    tech: "External vendor", acceptedAt: at(-24, 10, 0), completedBy: "External vendor", completedAt: at(-23, 15, 0), verifiedBy: "Yusuf Garba", reportedBy: "Planned work", reportedAt: at(-30, 6, 0),
+    guestImpact: false, outOfOrder: false, asset: "AST-003", ppm: "PM-003", dueAt: "2026-06-01", desc: "Every 3 months.", resolution: "Otis engineer: brakes, ropes and safety gear inspected, certificate issued." }),
 ];
 
 export const workOrders = () => LIST;
@@ -121,13 +131,14 @@ export const fmtWhen = (d: Date) => `${d.toLocaleDateString("en-GB", { day: "num
 export const isOutOfOrder = (room: string) => LIST.some(w => w.room === room && w.outOfOrder && w.status !== "Closed" && w.status !== "Cancelled");
 
 let next = 95;
-export const addWorkOrder = (w: Pick<WorkOrder, "title" | "location" | "cat" | "priority" | "reportedBy" | "desc"> & { room?: string; outOfOrder?: boolean; guestImpact?: boolean; asset?: string }) => {
+export const addWorkOrder = (w: Pick<WorkOrder, "title" | "location" | "cat" | "priority" | "reportedBy" | "desc"> & { room?: string; outOfOrder?: boolean; guestImpact?: boolean; asset?: string; ppm?: string; dueAt?: string }) => {
   const created = wo({ id: `WO-${String(next++).padStart(4, "0")}`, status: "Raised", tech: null, reportedAt: now(),
     guestImpact: false, outOfOrder: false, ...w });
   LIST.unshift(created);
   const link = { screen: "work-order-detail", label: "Work Order", param: created.id };
   // A job's priority sets how loudly Maintenance is told: P1 interrupts, P4 waits on the bell.
-  notify("workOrder.raised", { title: `New ${created.priority} job ${created.id}: ${created.title}`, body: `${created.location}, reported by ${created.reportedBy}`, level: PRIORITIES[created.priority].level, link });
+  // Planned jobs are announced once per sweep by generateDue(), not one chime each.
+  if (!created.ppm) notify("workOrder.raised", { title: `New ${created.priority} job ${created.id}: ${created.title}`, body: `${created.location}, reported by ${created.reportedBy}`, level: PRIORITIES[created.priority].level, link });
   if (created.room && created.outOfOrder) notify("room.outOfOrder", { title: `Room ${created.room} is out of order`, body: `${created.title}. Do not sell or give it out.`, link });
   return created;
 };
@@ -205,6 +216,8 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   if (to === "Accepted" && (w.tech ? w.tech !== m.by && w.tech !== VENDOR : !onTeam)) return `Only ${assignee(w)} can accept this job.`;
   if (to === "On hold" && !HOLD_REASONS.includes(m.holdReason ?? "")) return "Choose why it is on hold.";
   if (to === "Completed" && !note) return "Say what was done.";
+  const missing = to === "Completed" ? missingCritical(w) : [];
+  if (missing.length) return `${missing.length} critical step${missing.length === 1 ? "" : "s"} on the checklist ${missing.length === 1 ? "has" : "have"} not been recorded: ${missing.slice(0, 3).map(i => i.task).join("; ")}${missing.length > 3 ? `; and ${missing.length - 3} more` : ""}.`;
   if (to === "Verified" && m.by === w.completedBy) return "You completed this job, so someone else must verify it.";
   if ((to === "Cancelled" || sentBack || reopened) && !note) return "Say why.";
 
@@ -214,9 +227,9 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   if (to === "Assigned") Object.assign(patch, m.team ? { tech: null, team: m.team } : { tech: m.tech, team: undefined });
   if (to === "Accepted") Object.assign(patch, { acceptedAt: w.acceptedAt ?? now() }, w.tech ? {} : { tech: m.by });
   if (to === "On hold") Object.assign(patch, { holdReason: m.holdReason, heldSince: now() });
-  if (to === "Completed") Object.assign(patch, { completedBy: m.by, resolution: note });
+  if (to === "Completed") Object.assign(patch, { completedBy: m.by, completedAt: now(), resolution: note });
   if (to === "Verified") patch.verifiedBy = m.by;
-  if (sentBack || reopened) Object.assign(patch, { completedBy: undefined, verifiedBy: undefined, resolution: undefined });
+  if (sentBack || reopened) Object.assign(patch, { completedBy: undefined, completedAt: undefined, verifiedBy: undefined, resolution: undefined });
   const prevTech = w.tech; // w is changed in place below
   const event = reopened ? "Reopened" : sentBack ? "Sent back" : to === "Assigned" ? (w.tech || w.team ? "Reassigned" : "Assigned") : to === "In progress" ? (w.status === "On hold" ? "Resumed" : "Work started")
     : to === "On hold" ? `On hold: ${m.holdReason!.toLowerCase()}` : to;
@@ -228,6 +241,7 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   if (to === "Assigned" && m.team) { const t = team(m.team)!; notify("workOrder.assigned", { title: `${w.id} is with your team: ${w.title}`, body: `${w.location}. ${priorityLabel(w.priority)}: first to accept takes it, by ${fmtWhen(respondDue(w))}.`, people: [...new Set([...teamMembers(t.name), t.lead])], level: PRIORITIES[w.priority].level, link }); }
   if ((sentBack || reopened) && w.tech) notify("workOrder.reopened", { title: `${w.id} ${sentBack ? "sent back" : "reopened"}: ${w.title}`, body: note, people: [w.tech], link });
   if (to === "Completed") notify("workOrder.completed", { title: `${w.id} is ready to verify: ${w.title}`, body: `Completed by ${m.by}: ${note}`, link });
+  if (to === "Verified") onPlannedVerified(w);
   if (to === "Verified") notify("workOrder.verified", { title: `Signed off: ${w.title}`, body: `${w.id}, ${w.location}. Verified by ${m.by}.`, people: [w.reportedBy], link });
   return null;
 };
