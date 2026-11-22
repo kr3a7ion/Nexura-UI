@@ -2,12 +2,14 @@ import { ROOMS, type Role, type Screen } from "../constants";
 import { STAYS, ARRIVALS, departures } from "./frontOffice";
 import { hkRooms, FOUND_ITEMS } from "./housekeeping";
 import { roomState } from "./rooms";
-import { workOrders, isOpen, isUrgent } from "./maintenance";
+import { workOrders, isOpen, isUrgent, isOverdue, fmtWhen } from "./maintenance";
 
 export type HomeStat = { label: string; value: string; sub: string; screen: Screen; screenLabel: string };
 export type HomeAlert = { text: string; from: string; since: string; tone: "error" | "warning"; screen: Screen; screenLabel: string };
 
 const stat = (label: string, value: string, sub: string, screen: Screen, screenLabel: string): HomeStat => ({ label, value, sub, screen, screenLabel });
+// The most overdue open job, read from the work orders (on hold never counts).
+const lateJobs = () => workOrders().filter(isOverdue).slice(0, 1).map(w => alert(`${w.id} ${w.title.toLowerCase()} is overdue`, "Maintenance", fmtWhen(w.reportedAt), "error", "work-orders", "Work Orders"));
 const alert = (text: string, from: string, since: string, tone: HomeAlert["tone"], screen: Screen, screenLabel: string): HomeAlert => ({ text, from, since, tone, screen, screenLabel });
 
 // Room and guest figures are counted from the Front Office and Housekeeping data, so Suite Home agrees with every screen.
@@ -35,7 +37,7 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
     ],
     alerts: [
       LATE_ARRIVAL,
-      alert("Air conditioner fault in room 316 is overdue", "Maintenance", "Yesterday", "error", "work-orders", "Work Orders"),
+      ...lateJobs(),
       alert("Diesel is below 25%", "Inventory", "09:10", "warning", "generator-diesel", "Generator & Diesel"),
     ],
   },
@@ -65,7 +67,7 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
       stat("Diesel level", "24%", "About 9 hours left", "generator-diesel", "Generator & Diesel"),
       stat("Rooms out of order", String(ROOMS.filter(r => roomState(r.id) === "Out of order").length), ROOMS.filter(r => roomState(r.id) === "Out of order").map(r => r.id).join(", ") || "All rooms in service", "work-orders", "Work Orders"),
     ],
-    alerts: [alert("Air conditioner fault in room 316 is overdue", "Maintenance", "Yesterday", "error", "work-orders", "Work Orders")],
+    alerts: lateJobs(),
   },
   RT: {
     stats: [

@@ -16,9 +16,27 @@ export type WorkOrder = {
   completedBy?: string; verifiedBy?: string;
   outOfOrder: boolean; asset?: string; desc: string; timeline: WOEvent[];
   parts: { item: string; qty: number; unit: number; ref: string }[]; labourHours: number; resolution?: string;
+  escalated?: Escalation[];
 };
 
-export const TECHNICIANS = ["Emeka Obi", "Chidi Ike", "External vendor"];
+// Maintenance roster: who does what, and who is in today. Work goes only to people present (an outside vendor always can).
+// shortcut: presence is set by hand on the Roster screen; HR attendance feeds it in Phase 3.
+export type RosterRole = "Technician" | "Team lead" | "Supervisor" | "Head of department";
+export type RosterEntry = { name: string; role: RosterRole; present: boolean };
+const ROSTER: RosterEntry[] = [
+  { name: "Emeka Obi", role: "Technician", present: true },
+  { name: "Chidi Ike", role: "Technician", present: true },
+  { name: "Musa Danladi", role: "Technician", present: false },
+  { name: "Bola Adewale", role: "Team lead", present: true },
+  { name: "Yusuf Garba", role: "Supervisor", present: true },
+  { name: "Adaeze Okonkwo", role: "Head of department", present: true },
+];
+export const VENDOR = "External vendor";
+export const roster = () => ROSTER;
+export const setPresent = (name: string, present: boolean) => { const r = ROSTER.find(x => x.name === name); if (r) r.present = present; };
+const CAN_DO_WORK: RosterRole[] = ["Technician", "Team lead"];
+export const assignable = () => [...ROSTER.filter(r => r.present && CAN_DO_WORK.includes(r.role)).map(r => r.name), VENDOR];
+const holding = (role: RosterRole) => ROSTER.filter(r => r.role === role).map(r => r.name);
 export const WO_CATEGORIES = ["Electrical", "HVAC", "Plumbing", "Furniture", "Equipment", "Mechanical", "General"];
 export const LABOUR_RATE = 5000;
 // Respond = someone accepted it; resolve = it was completed. Minutes from when the job is raised.
@@ -193,7 +211,8 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   if (!canMove(w, to)) return `A job that is ${w.status.toLowerCase()} cannot be ${to === "Assigned" ? "assigned" : `moved to ${to.toLowerCase()}`}.`;
   const note = m.note?.trim() ?? "", sentBack = w.status === "Completed" && to === "In progress", reopened = w.status === "Verified" && to === "Assigned";
   if (to === "Assigned" && !m.tech) return "Choose who will do it.";
-  if (to === "Accepted" && w.tech !== m.by && w.tech !== "External vendor") return `Only ${w.tech} can accept this job.`;
+  if (to === "Assigned" && m.tech !== VENDOR && !assignable().includes(m.tech!)) return `${m.tech} is not on today's roster.`;
+  if (to === "Accepted" && w.tech !== m.by && w.tech !== VENDOR) return `Only ${w.tech} can accept this job.`;
   if (to === "On hold" && !HOLD_REASONS.includes(m.holdReason ?? "")) return "Choose why it is on hold.";
   if (to === "Completed" && !note) return "Say what was done.";
   if (to === "Verified" && m.by === w.completedBy) return "You completed this job, so someone else must verify it.";
@@ -219,3 +238,25 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   return null;
 };
 
+
+// Late jobs chase themselves. Each step is sent once per job, never while it is on hold.
+// shortcut: run every minute in the browser on the demo clock; the hotel server runs it as a job.
+export type Escalation = "respond" | "resolve" | "p1Double";
+export const escalate = () => {
+  const t = now().getTime();
+  for (const w of LIST) {
+    if (!isOpen(w) || w.status === "On hold") continue;
+    const done = (w.escalated ??= []);
+    const link = { screen: "work-order-detail", label: "Work Order", param: w.id };
+    const send = (step: Escalation, to: string[], title: string, level: Level) => {
+      if (done.includes(step)) return;
+      done.push(step);
+      w.timeline.push({ at: now(), event: `Escalated to ${to.join(", ")}`, by: "System", note: title });
+      notify("workOrder.late", { title, body: `${w.title}, ${w.location}. ${w.tech ? `With ${w.tech}.` : "Nobody assigned."}`, people: to, level, link, by: "System" });
+    };
+    if (isLateToRespond(w)) send("respond", holding("Team lead"), `${w.id} not accepted in time`, "High");
+    if (resolveDue(w).getTime() < t) send("resolve", holding("Supervisor"), `${w.id} past its fix-by deadline`, "High");
+    const doubled = w.reportedAt.getTime() + 2 * (w.resolveBy.getTime() - w.reportedAt.getTime()) + heldFor(w);
+    if (w.priority === "P1" && doubled < t) send("p1Double", holding("Head of department"), `${w.id} P1 at twice its deadline`, "Urgent");
+  }
+};
