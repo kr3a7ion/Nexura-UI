@@ -120,3 +120,29 @@ export const markDay = (s: string, date: string, status: "Present" | "Absent", b
 /** The one question the job board asks: who is marked present today. */
 export const presentToday = () => STAFF.filter(s => rosterDay(s.name, TODAY)?.status === "Present").map(s => s.name);
 export const isPresentToday = (name: string) => rosterDay(name, TODAY)?.status === "Present";
+
+// ── Maintenance setup ────────────────────────────────────────────────────────
+export const ROLES: StaffRole[] = ["Technician", "Team lead", "Supervisor", "Head of department"];
+/** Trade, team and maintenance role. The person's own record comes from HR (next PR). */
+export const setPerson = (name: string, p: { trade: string; team?: string; role: StaffRole }): string | null => {
+  const s = staff(name); if (!s) return "That person is not on the list.";
+  if (p.team && !team(p.team)) return "There is no such team.";
+  Object.assign(s, { trade: p.trade, team: p.team || undefined, role: p.role });
+  return null;
+};
+export const addTeam = (t: Team): string | null => {
+  if (!t.name.trim()) return "Name the team.";
+  if (TEAMS.some(x => x.name.toLowerCase() === t.name.trim().toLowerCase())) return "There is already a team with that name.";
+  if (!staff(t.lead) || !staff(t.supervisor)) return "Choose a lead and a supervisor from the people list.";
+  TEAMS.push({ ...t, name: t.name.trim() });
+  return null;
+};
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+export const addPattern = (p: Omit<ShiftPattern, "id">): string | null => {
+  if (!p.name.trim()) return "Name the shift.";
+  if (PATTERNS.some(x => x.name.toLowerCase() === p.name.trim().toLowerCase())) return "There is already a shift with that name.";
+  if (!HHMM.test(p.start) || !HHMM.test(p.end)) return "Enter the start and end as 24-hour times, for example 07:00.";
+  if (p.start === p.end) return "A shift cannot start and end at the same time.";
+  PATTERNS.push({ ...p, name: p.name.trim(), id: `SP-${PATTERNS.length + 1}` });
+  return null;
+};
