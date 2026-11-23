@@ -589,7 +589,7 @@ export function StockTransactions({ add }: { add: (t: Omit<Toast, "id">) => void
         {ALL_TYPES.map(t=>(
           <button key={t} onClick={()=>setTypeFilter(t)} className="text-xs px-3 py-1.5 rounded-xl border" style={{ backgroundColor: typeFilter===t?PRIMARY:"white", color: typeFilter===t?"white":MUTED, borderColor: typeFilter===t?PRIMARY:BORDER }}>{t}</button>
         ))}
-        <DateInput type="date" value={dateFilter} onChange={e=>setDateFilter(e.target.value)} className="ml-auto px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER }} />
+        <DateInput type="date" aria-label="Show transactions on this date" value={dateFilter} onChange={e=>setDateFilter(e.target.value)} className="ml-auto px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER }} />
       </div>
 
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow:"0 1px 4px rgba(13,27,46,0.07)" }}>
