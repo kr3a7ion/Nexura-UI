@@ -8,7 +8,8 @@
     "dev": "vite --host 0.0.0.0 --config vite.figma.config.ts",
     "preview": "vite preview --config vite.figma.config.ts",
     "format": "oxfmt",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sweep": "python3 scripts/sweep.py"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
