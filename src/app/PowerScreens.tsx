@@ -1,4 +1,4 @@
-// Maintenance: Power & Diesel. Dips, two-signature deliveries, fuel issued, generator runs and the month's reconciliation.
+// Maintenance: Power & Diesel. Mains and sets as they change (PlantScreens), then dips, two-signature deliveries, fuel issued, generator runs and the month's reconciliation.
 import React, { useState } from "react";
 import { Fuel, Zap, Gauge, AlertTriangle } from "lucide-react";
 import type { Toast } from "./constants";
@@ -14,6 +14,7 @@ import {
   dips, deliveries, runs, reconciliations, levelOf, highBurnStreak, logDip, recordDelivery, issueFuel, recordRun, reconcile, saveReconciliation, costPerKwh,
   type RunReason, type Reconciliation,
 } from "./mock/power";
+import { PlantNow } from "./PlantScreens";
 
 type Add = (t: Omit<Toast, "id">) => void;
 type Kind = null | "dip" | "delivery" | "issue" | "run";
@@ -40,11 +41,12 @@ export function PowerDiesel({ add, staffName }: { add: Add; staffName: string })
 
   return (
     <div>
-      <PageHeader title="Power & Diesel" sub="Where the diesel came from and where it went. Deliveries are signed by two people, and a month that does not balance is explained in writing."
+      <PageHeader title="Power & Diesel" sub="Mains and generators as they change, the generator log and the building load. Then where the diesel came from and where it went. Deliveries are signed by two people, and a month that does not balance is explained in writing."
         actions={<div className="flex flex-wrap gap-2 justify-end">
           <BtnO label="Log a dip" onClick={() => setDialog("dip")} /><BtnO label="Issue fuel" onClick={() => setDialog("issue")} />
           <BtnO label="Log a generator run" onClick={() => setDialog("run")} /><BtnP label="Record a delivery" onClick={() => setDialog("delivery")} />
         </div>} />
+      <PlantNow add={add} staffName={staffName} />
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-7">
         {tanks().slice(0, 2).map(tk => <StatCard key={tk.id} label={tk.name} value={L(levelOf(tk.id))} sub={`${Math.round(levelOf(tk.id) / tk.capacity * 100)}% of ${tk.capacity.toLocaleString()} L${levelOf(tk.id) < tk.minimum ? ", below minimum" : ""}`} icon={Fuel} accent={levelOf(tk.id) < tk.minimum ? ERROR : TEAL_INK} />)}
         <StatCard label="Diesel cost per kWh" value={cost.perKwh == null ? "No runs yet" : `₦${cost.perKwh}`} sub={`This month, against ₦${cost.grid} from the grid`} icon={Zap} accent={cost.perKwh && cost.perKwh > cost.grid ? WARNING_INK : TEAL_INK} />
