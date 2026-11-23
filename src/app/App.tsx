@@ -42,6 +42,7 @@ const FleetHome = lazy(() => import("./suite/home/fleetHome"));
 import { SuiteHome, DepartmentHome } from "./suite/SuiteHome";
 import { escalate } from "./mock/maintenance";
 import { generateDue } from "./mock/ppm";
+import { PowerStrip } from "./PlantScreens";
 import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
 import {
   departmentsForRole,
@@ -605,6 +606,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
         <main data-suite-content className="flex-1 overflow-y-auto p-4 pb-8 md:p-6" style={{ scrollbarWidth: "none", backgroundColor: BG }}>
           <div className="mx-auto max-w-screen-2xl">
             {offline && <div className="mb-5 flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium" style={{ backgroundColor: "#FEF3C7", color: "#92400E", borderColor: "#FDE68A" }}><WifiSlash size={15} weight="bold" /><span>Working offline. Everything you do is saved on this hotel's server and will sync later.</span><button onClick={() => setOffline(false)} className="ml-auto rounded-lg px-2.5 py-1 text-xs font-medium text-white" style={{ backgroundColor: WARNING }}>Go online</button></div>}
+            <PowerStrip onOpen={() => nav("generator-diesel", "Power & Diesel")} />
             <ScreenErrorBoundary key={screen} onHome={() => nav("suite-home", "Suite Home")}>
             {loadState === "loading" ? <ScreenLoading /> : loadState === "error" ? <ScreenError onRetry={retry} /> : screen === "suite-home" ? (
               <SuiteHome staffName={staffName} role={role} departments={allowedDepartments} offline={offline} pinned={pinned.filter(id => allowedDepartments.some(department => department.id === id))} onTogglePin={togglePin} onOpenDepartment={openDepartment} onOpenScreen={(nextScreen, label) => nav(nextScreen, label)} onOpenPortal={onOpenPortal} />

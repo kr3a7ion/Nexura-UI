@@ -8,18 +8,32 @@ import { BUSINESS_DATE } from "../constants";
 import { livePermits, PERMIT_TYPES } from "./permits";
 import { tankLine } from "./power";
 import { tanks } from "./setup";
+import { plantNow, outagesBetween, span } from "./changeover";
+import { shiftLogStatus, shiftAt } from "./gensetLog";
 
 export type CarriedJob = { id: string; title: string; priority: WOPriority; status: WOStatus; holdReason?: string; with?: string };
 export type PlantLine = { id: string; name: string; status: string; meter?: string };
 export type Handover = { id: string; at: Date; from: string; to: string; shift: string; permits: string[]; plant: PlantLine[]; carried: CarriedJob[];
   notes: string; keys: string; status: "Submitted" | "Acknowledged"; acknowledgedBy?: string; acknowledgedAt?: Date };
 
+const clock = (d: Date) => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+/** Mains now, the cuts this shift, and the sets nobody logged: what the next shift walks into. */
+const powerLines = (): PlantLine[] => {
+  const p = plantNow(), t = now(), s = shiftAt(t), cuts = outagesBetween(s.start, t), log = shiftLogStatus(t);
+  const offMin = cuts.reduce((n, o) => n + Math.round(((o.end ?? t).getTime() - Math.max(o.start.getTime(), s.start.getTime())) / 60000), 0);
+  const unlogged = log.sets.filter(x => !x.entries).map(x => x.name);
+  return [
+    { id: "MAINS", name: "Mains", status: `${p.mains === "off" ? `Off since ${clock(p.offSince!)}` : "On"}${p.sets.filter(x => x.runningSince).map(x => `, ${x.name} running since ${clock(x.runningSince!)}`).join("")}` },
+    { id: "OUTAGES", name: "Outages this shift", status: cuts.length ? `${cuts.length}, ${span(offMin)} off in all` : "None" },
+    { id: "GENLOG", name: "Generator log", status: unlogged.length ? `Not logged this shift: ${unlogged.join(", ")}` : "Every set logged this shift" },
+  ];
+};
+
 const PRI_ORDER: WOPriority[] = ["P1", "P2", "P3", "P4"];
 /** The facts the system already holds at this moment: power plant and every open job, most urgent first. */
 export const draft = (): { plant: PlantLine[]; carried: CarriedJob[]; permits: string[] } => ({
   permits: livePermits().map(p => `${p.id} ${PERMIT_TYPES[p.type].toLowerCase()}${p.woId ? ` on ${p.woId}` : ""}`),
-  // shortcut: utility outages join with Power as it happens (PR I).
-  plant: [...assets().filter(a => a.cat === "Power").map(a => ({ id: a.id, name: a.name, status: a.status, meter: a.meter ? `${a.meter.value.toLocaleString()} ${a.meter.unit}` : undefined })),
+  plant: [...powerLines(), ...assets().filter(a => a.cat === "Power").map(a => ({ id: a.id, name: a.name, status: a.status, meter: a.meter ? `${a.meter.value.toLocaleString()} ${a.meter.unit}` : undefined })),
     ...tanks().map(t => ({ id: t.id, name: "Diesel", status: tankLine(t) }))],
   carried: workOrders().filter(isOpen).sort((a, b) => PRI_ORDER.indexOf(a.priority) - PRI_ORDER.indexOf(b.priority))
     .map(w => ({ id: w.id, title: w.title, priority: w.priority, status: w.status, holdReason: w.holdReason, with: w.tech ?? (w.team ? `${w.team} team` : undefined) })),
