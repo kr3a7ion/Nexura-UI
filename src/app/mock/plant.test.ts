@@ -40,6 +40,7 @@ describe("power as it happens (FacilityFlow rules)", () => {
     expect(recordSwitch("Mains restored", {}, "Emeka Obi")).toMatch(/already recorded on/);
     expect(recordSwitch("Mains failed", { at: new Date(t.getTime() + 10 * 60000) }, "Emeka Obi")).toMatch(/future/);
     expect(recordSwitch("Set started", {}, "Emeka Obi")).toMatch(/Pick which generator/);
+    expect(recordSwitch("Mains failed", { at: new Date(t.getTime() - 3 * 3600000) }, "Emeka Obi")).toMatch(/overlap/); // 07:15, inside last night's cut
     expect(recordSwitch("Mains failed", { at: new Date(t.getTime() - 5 * 60000) }, "Emeka Obi")).toMatchObject({ event: "Mains failed" });
     expect(noticesFor("Musa Danladi", "MX").find(n => n.event === "power.mainsOff")).toMatchObject({ level: "Urgent" });
     expect(recordSwitch("Mains failed", {}, "Emeka Obi")).toMatch(/recorded off since/);
