@@ -167,6 +167,7 @@ export const saveRule = (input: RuleInput, by: string, id?: string): string | nu
   const trade = input.trade?.trim() || undefined, place = input.place?.trim() || undefined, note = input.note?.trim() || undefined;
   if (!trade && !place) return "Pick a trade, a place, or both. A rule for every job of a priority is that priority's target: change it above.";
   if (input.respondMin == null && input.resolveMin == null && !input.escalateTo) return "The rule has to change something: the respond time, the resolve time, or who a breach goes to.";
+  if (input.escalateTo && !holdersOf(input.escalateTo).length) return `Nobody in Maintenance is a ${input.escalateTo.toLowerCase()} right now. Give someone that role first, or leave it as usual.`;
   if (trade && !WO_CATEGORIES.includes(trade)) return `"${trade}" is not one of Maintenance's trades.`;
   if ([input.respondMin, input.resolveMin].some(m => m != null && !MINUTES(m))) return "Times must be whole minutes, more than zero.";
   // Judged against what the job would actually get, so a rule that only shortens resolve cannot fall below the default respond.
@@ -337,8 +338,9 @@ export const escalate = () => {
       notify("workOrder.late", { title, body: `${w.title}, ${w.location}. ${assignee(w) ? `With ${assignee(w)}.` : "Nobody assigned."}${rule ? ` Deadlines from the rule ${describeRule(rule)}.` : ""}`, people: to, level, link, by: "System" });
     };
     const t2 = team(w.team ?? staff(w.tech ?? "")?.team ?? "");
-    const rule = slaRule(w.rule), named = rule?.escalateTo && holdersOf(rule.escalateTo); // the job's rule names who hears a breach
-    const who = (name: string | undefined, role: StaffRole) => named?.length ? named : name ? [name] : holdersOf(role).length ? holdersOf(role) : holdersOf("Head of department");
+    // The job's rule adds people to a breach; it never takes the usual chain off it.
+    const rule = slaRule(w.rule), named = rule?.escalateTo ? holdersOf(rule.escalateTo) : [];
+    const who = (name: string | undefined, role: StaffRole) => [...new Set([...(name ? [name] : holdersOf(role).length ? holdersOf(role) : holdersOf("Head of department")), ...named])];
     if (isLateToRespond(w)) send("respond", who(t2?.lead, "Team lead"), `${w.id} not accepted in time`, "High");
     if (resolveDue(w).getTime() < t) send("resolve", who(t2?.supervisor, "Supervisor"), `${w.id} past its fix-by deadline`, "High");
     const doubled = w.reportedAt.getTime() + 2 * (w.resolveBy.getTime() - w.reportedAt.getTime()) + heldFor(w);

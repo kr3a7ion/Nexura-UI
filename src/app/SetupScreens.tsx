@@ -110,14 +110,14 @@ function Targets({ onSaved, onRule }: { onSaved: (r: string | null) => boolean; 
         </tr>)}
       </Table>
     </Card>
-    <Card title="Deadline rules" sub="A priority narrowed to a trade, a place, or both. Blanks take the priority's target. The most specific rule wins: trade and place, then place, then trade."
+    <Card title="Deadline rules" sub="A priority narrowed to a trade, a place, or both. Blanks take the priority's target. A missed deadline still goes to the team lead and supervisor as usual. The most specific rule wins: trade and place, then place, then trade."
       footer={<BtnO label="Add a rule" icon={Plus} onClick={() => onRule()} />}>
-      {slaRules().length ? <Table heads={["Rule", "Respond within", "Resolve within", "A breach goes to", ""]}>
+      {slaRules().length ? <Table heads={["Rule", "Respond within", "Resolve within", "A breach also tells", ""]}>
         {slaRules().map(r => <tr key={r.id} style={{ borderTop: `1px solid ${BORDER}` }}>
           <td className="px-3 py-2.5 text-sm" style={{ color: TEXT }}><b>{r.priority}{r.trade ? `, ${r.trade}` : ""}{r.place ? `, ${r.place}` : ""}</b>{r.note && <span className="block" style={{ color: MUTED }}>{r.note}</span>}</td>
           <td className={td} style={{ color: r.respondMin ? TEXT : MUTED }}>{r.respondMin ? mins(r.respondMin) : `${mins(PRIORITIES[r.priority].respondMin)} (priority)`}</td>
           <td className={td} style={{ color: r.resolveMin ? TEXT : MUTED }}>{r.resolveMin ? mins(r.resolveMin) : `${mins(PRIORITIES[r.priority].resolveMin)} (priority)`}</td>
-          <td className={td} style={{ color: r.escalateTo ? TEXT : MUTED }}>{r.escalateTo ?? "As usual"}</td>
+          <td className={td} style={{ color: r.escalateTo ? TEXT : MUTED }}>{r.escalateTo ?? "Nobody extra"}</td>
           <td className="px-3 py-2 text-right"><BtnO label="Edit rule" onClick={() => onRule(r)} /></td>
         </tr>)}
       </Table> : <p className="text-sm" style={{ color: MUTED }}>No rules. Every job takes its priority's targets.</p>}
@@ -252,7 +252,7 @@ function RuleDialog({ rule, onClose, onSave, onRemove }: { rule?: SlaRule; onClo
     <div className="grid sm:grid-cols-3 gap-4">
       <Field label="Respond (minutes)" htmlFor="sr-respond" hint={`Blank takes ${p.respondMin}.`}>{input("sr-respond", f.respond, set("respond"), true)}</Field>
       <Field label="Resolve (minutes)" htmlFor="sr-resolve" hint={`Blank takes ${p.resolveMin}.`}>{input("sr-resolve", f.resolve, set("resolve"), true)}</Field>
-      <Select id="sr-escalate" label="Breach goes to" value={f.escalateTo} onChange={set("escalateTo")} options={[["", "As usual"], ...ROLES.map(r => [r, r] as [string, string])]} />
+      <Select id="sr-escalate" label="A breach also tells" value={f.escalateTo} onChange={set("escalateTo")} options={[["", "Nobody extra"], ...ROLES.map(r => [r, r] as [string, string])]} />
     </div>
     <Field label="Why this rule" htmlFor="sr-note" hint="Shown with the rule, so the next person knows why it is there.">{input("sr-note", f.note, set("note"))}</Field>
   </Dialog>;
