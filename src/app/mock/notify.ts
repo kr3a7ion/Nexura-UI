@@ -56,6 +56,7 @@ export const ROUTES = {
   "power.load":            { level: "High",   roles: ["MX"] },
   "incident.reported":     { level: "High",   roles: [] },
   "meter.flagged":         { level: "High",   roles: ["MX"] },
+  "stock.low":             { level: "Normal", roles: ["MX"] },
   "room.backFromMaintenance": { level: "Normal", roles: ["HK"] },
   "dnd.overridden":        { level: "High",   roles: ["FD", "MGT"] },
   "foundItem.logged":      { level: "Low",    roles: ["FD"] },

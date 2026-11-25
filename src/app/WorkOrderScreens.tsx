@@ -10,8 +10,10 @@ import { asset as assetOf, schedule, sheetFor, recordChecklist, everyLabel, type
 import {
   workOrders, workOrder, addWorkOrder, updateWorkOrder, moveWorkOrder, canMove, isOpen, isOverdue, isLateToRespond, respondDue, resolveDue, ageOf, fmtWhen, now,
   assignable, assignee, WO_CATEGORIES, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
-  slaRule, describeRule,
+  slaRule, describeRule, type Move,
 } from "./mock/maintenance";
+import { takenFor, claimFor, item as itemOf, type Line } from "./mock/stores";
+import { MaterialsCard, LinesEditor } from "./StoreScreens";
 import { finishWorkOrder } from "./mock/hotel";
 import { roomState } from "./mock/rooms";
 import { teams, staff, parseDay } from "./mock/roster";
@@ -244,7 +246,7 @@ export function WorkOrders({ add, nav, staffName }: { add: Add; nav?: Nav; staff
 // ── One work order ───────────────────────────────────────────────────────────
 // Raised → assigned → accepted → in progress ⇄ on hold → completed → verified by someone else → closed.
 // Every button calls moveWorkOrder(), which refuses a move the job's status does not allow and says why.
-type DialogKind = null | "assign" | "hold" | "complete" | "sendback" | "reopen" | "cancel" | "part" | "follow" | "permit";
+type DialogKind = null | "assign" | "hold" | "complete" | "verify" | "sendback" | "reopen" | "cancel" | "part" | "follow" | "permit";
 
 export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: Nav; id?: string; staffName: string }) {
   const [, refresh] = useState(0);
@@ -255,6 +257,9 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
   const [holdReason, setHoldReason] = useState(HOLD_REASONS[0]);
   const [text, setText] = useState("");
   const [part, setPart] = useState({ item: "", qty: "1", unit: "", ref: "" });
+  const [lines, setLines] = useState<Line[]>([]);          // items used: stated at completion, confirmed at verification
+  const [noneUsed, setNoneUsed] = useState(false);
+  const [why, setWhy] = useState("");
   const me = staffName;
   const done = () => { setDialog(null); setText(""); refresh(n => n + 1); };
   const asset = assetOf(w.asset);
@@ -265,7 +270,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
   const ended = w.status === "Closed" || w.status === "Cancelled";
 
   // One place that runs a move and reports the outcome.
-  const go = (to: WOStatus, m: { note?: string; tech?: string; team?: string; holdReason?: string }, ok: string, body?: string) => {
+  const go = (to: WOStatus, m: Omit<Move, "by">, ok: string, body?: string) => {
     const refused = to === "Closed" || to === "Cancelled" ? finishWorkOrder(w.id, to, me, m.note ?? "").refused : moveWorkOrder(w.id, to, { by: me, ...m });
     if (refused) { add({ type: "error", title: refused }); return false; }
     add({ type: "success", title: ok, body }); done(); return true;
@@ -279,9 +284,9 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
       case "Raised": return <BtnP label="Assign" onClick={() => setDialog("assign")} />;
       case "Assigned": return canAccept ? <BtnP label="Accept the job" onClick={() => go("Accepted", {}, `${w.id} accepted`, "The response clock has stopped.")} /> : null;
       case "Accepted": return <BtnP label="Start work" onClick={() => go("In progress", {}, `${w.id}: work started`)} />;
-      case "In progress": return <BtnP label="Mark as completed" onClick={() => setDialog("complete")} />;
+      case "In progress": return <BtnP label="Mark as completed" onClick={() => { setLines(takenFor(w.id).map(l => ({ ...l }))); setNoneUsed(false); setDialog("complete"); }} />;
       case "On hold": return <BtnP label="Resume work" onClick={() => go("In progress", {}, `${w.id} resumed`, "The clock is running again.")} />;
-      case "Completed": return w.completedBy === me ? null : <BtnP label="Verify the work" onClick={() => go("Verified", {}, `${w.id} verified`, "It can be closed now.")} />;
+      case "Completed": return w.completedBy === me ? null : <BtnP label="Verify the work" onClick={() => { setLines((claimFor(w.id) ?? []).map(l => ({ ...l }))); setWhy(""); setDialog("verify"); }} />;
       case "Verified": return <BtnP label="Close work order" onClick={() => go("Closed", {}, `${w.id} closed`, roomNote ? `Room ${w.room} is on the Housekeeping board to be cleaned.` : `${w.reportedBy} has been told.`)} />;
       default: return null;
     }
@@ -317,7 +322,8 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
           {sheetFor(w) && <ChecklistCard w={w} by={me} canRecord={!ended && ["Accepted", "In progress", "On hold"].includes(w.status)}
             onSaved={(failed, refused) => { if (refused) add({ type: "error", title: refused }); else { add({ type: failed ? "warning" : "success", title: "Checklist saved", body: failed ? `${failed} step${failed === 1 ? "" : "s"} failed. Consider raising a follow-up job.` : undefined }); refresh(n => n + 1); } }}
             onFollowUp={() => setDialog("follow")} />}
-          <Card title="Parts and labour" actions={!ended && <BtnO label="Add a part" icon={Plus} onClick={() => setDialog("part")} />}>
+          <MaterialsCard job={w.id} by={me} add={add} canTake={["Accepted", "In progress", "On hold"].includes(w.status)} onChange={() => refresh(n => n + 1)} />
+          <Card title="Parts and labour" sub="Store items appear here once issued at verification." actions={!ended && <BtnO label="Add a part bought outside" icon={Plus} onClick={() => setDialog("part")} />}>
             {w.parts.length ? (
               <table className="w-full mb-3">
                 <thead><tr>{["Part", "Qty", "Each", "Total"].map((h, i) => <th key={h} className={`py-2 text-sm font-medium ${i ? "text-right" : "text-left"}`} style={{ color: MUTED }}>{h}</th>)}</tr></thead>
@@ -421,7 +427,11 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
         <Dialog title={dialog === "complete" ? "Mark as completed" : dialog === "sendback" ? "Send back to the technician" : "Cancel work order"} danger={dialog === "cancel"} onClose={() => setDialog(null)}
           sub={dialog === "complete" ? "Say what was done. Someone else verifies it before the order closes." : dialog === "cancel" ? roomNote : "Say what is still wrong. It goes back to work in progress."}
           footer={<><BtnO label="Back" onClick={() => setDialog(null)} /><BtnP label={dialog === "complete" ? "Mark as completed" : dialog === "sendback" ? "Send back" : "Cancel work order"} onClick={() => {
-            if (dialog === "complete") go("Completed", { note: text }, `${w.id} completed`, "It now waits for someone else to verify it.");
+            if (dialog === "complete") {
+              // Taken from the store but nothing listed: ask before it all goes back on the shelf.
+              if (!lines.length && takenFor(w.id).length && !noneUsed) { add({ type: "warning", title: "You took items from the store for this job", body: "List what you used, or tick that none of it was used so it goes back to the store." }); return; }
+              go("Completed", { note: text, used: lines }, `${w.id} completed`, lines.length ? "Its materials wait for the verifier to confirm them." : "It now waits for someone else to verify it.");
+            }
             else if (dialog === "sendback") go("In progress", { note: text }, `${w.id} sent back`, `${w.tech} has been told.`);
             else go("Cancelled", { note: text }, `${w.id} cancelled`, roomNote ? `Room ${w.room} is on the Housekeeping board to be cleaned.` : undefined);
           }} /></>}>
@@ -429,21 +439,38 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
             <textarea id="wo-text" rows={3} value={text} onChange={e => setText(e.target.value)} className="w-full px-3.5 py-2.5 text-sm outline-none resize-none"
               style={{ border: `1px solid ${text.trim() ? "#CBD5E1" : ERROR}`, borderRadius: UI.radius.control, color: TEXT }} />
           </Field>
+          {dialog === "complete" && <div>
+            <p className="mb-2 text-sm font-medium" style={{ color: TEXT }}>What you used from the maintenance store</p>
+            <p className="mb-2 text-sm" style={{ color: MUTED }}>Anything taken and not listed goes back on the shelf. The verifier confirms this list before it leaves the store.</p>
+            <LinesEditor lines={lines} setLines={setLines} prefix="cu" />
+            {!lines.length && takenFor(w.id).length > 0 && <label className="mt-3 flex items-start gap-2 text-sm" style={{ color: WARNING_INK }}>
+              <input type="checkbox" checked={noneUsed} onChange={e => setNoneUsed(e.target.checked)} className="mt-0.5" />
+              You took {takenFor(w.id).map(l => `${l.qty} × ${itemOf(l.sku)?.name}`).join(", ")} for this job. None of it was used: it all goes back to the store.</label>}
+          </div>}
+        </Dialog>
+      )}
+      {dialog === "verify" && (
+        <Dialog title="Verify the work" sub="Check the job, then confirm the materials used. They leave the maintenance store and go on this job's cost when you verify." wide onClose={() => setDialog(null)}
+          footer={<><BtnO label="Back" onClick={() => setDialog(null)} /><BtnP label={lines.length ? "Verify and issue the materials" : "Verify the work"} onClick={() => go("Verified", { confirmed: lines, materialsReason: why }, `${w.id} verified`, lines.length ? "The materials are issued from the store onto the job." : "It can be closed now.")} /></>}>
+          <p className="text-sm" style={{ color: TEXT }}>{w.completedBy} said: {w.resolution}</p>
+          <p className="text-sm font-medium" style={{ color: TEXT }}>Materials used{claimFor(w.id)?.length ? "" : ": none claimed"}</p>
+          <LinesEditor lines={lines} setLines={setLines} prefix="vf" />
+          <Field label="Why you changed the list" htmlFor="vf-why" hint="Needed only if your list differs from what was claimed."><input id="vf-why" value={why} onChange={e => setWhy(e.target.value)} className={controlClass} style={controlStyle()} /></Field>
         </Dialog>
       )}
       {dialog === "part" && (
-        <Dialog title="Add a part" onClose={() => setDialog(null)}
+        <Dialog title="Add a part bought outside" sub="For parts bought for this job outside the store. Store items come from Materials." onClose={() => setDialog(null)}
           footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label="Add part" onClick={() => {
             const qty = Number(part.qty), unit = Number(part.unit);
             if (!part.item.trim() || !(qty > 0) || !(unit >= 0)) return;
-            updateWorkOrder(w.id, { parts: [...w.parts, { item: part.item.trim(), qty, unit, ref: part.ref.trim() || "Not from stores" }] }, { event: "Part added", by: me, note: `${qty} × ${part.item.trim()}` });
+            updateWorkOrder(w.id, { parts: [...w.parts, { item: part.item.trim(), qty, unit, ref: part.ref.trim() || "Bought outside" }] }, { event: "Part added", by: me, note: `${qty} × ${part.item.trim()}` });
             setPart({ item: "", qty: "1", unit: "", ref: "" }); done();
           }} /></>}>
           <Field label="Part" htmlFor="pt-item" required><input id="pt-item" value={part.item} onChange={e => setPart(p => ({ ...p, item: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
           <div className="grid grid-cols-3 gap-4">
             <Field label="Qty" htmlFor="pt-qty"><input id="pt-qty" type="number" min="1" value={part.qty} onChange={e => setPart(p => ({ ...p, qty: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
             <Field label="Each (₦)" htmlFor="pt-unit"><input id="pt-unit" type="number" min="0" value={part.unit} onChange={e => setPart(p => ({ ...p, unit: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
-            <Field label="Stock code" htmlFor="pt-ref"><input id="pt-ref" value={part.ref} onChange={e => setPart(p => ({ ...p, ref: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
+            <Field label="Receipt or supplier" htmlFor="pt-ref"><input id="pt-ref" value={part.ref} onChange={e => setPart(p => ({ ...p, ref: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
           </div>
         </Dialog>
       )}

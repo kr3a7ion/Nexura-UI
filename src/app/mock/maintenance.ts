@@ -1,6 +1,7 @@
 // Maintenance work orders: one list read by Work Orders, the detail screen, the department home,
 // Suite Home and the manager dashboard. Housekeeping's "Report a fault" adds to it.
 // shortcut: held in memory until the hotel server exists; changes last until the page reloads.
+import { checkClaim, commitClaim, checkConfirm, issueConfirmed, clearClaim, claimFor, takenFor, type Line } from "./stores";
 import { BUSINESS_DATE } from "../constants";
 import { notify, type Level } from "./notify";
 import { pendingFor } from "./handover";
@@ -81,7 +82,7 @@ const LIST: WorkOrder[] = [
       { at: at(0, 7, 40), event: "Accepted", by: "Emeka Obi", note: "" },
       { at: at(0, 8, 5), event: "Work started", by: "Emeka Obi", note: "Cartridge worn. Replacing it and resealing the panel." },
     ],
-    parts: [{ item: "Shower cartridge", qty: 1, unit: 12500, ref: "STK-0052" }, { item: "Silicone sealant", qty: 1, unit: 3500, ref: "STK-0018" }], labourHours: 1.5 }),
+    labourHours: 1.5 }), // holds a cartridge and a tube of sealant from the store (mock/stores.ts)
   wo({ id: "WO-0093", title: "Ceiling stain under room 315", location: "Room 215", room: "215", cat: "Plumbing", priority: "P3", status: "Assigned",
     tech: "Chidi Ike", reportedBy: "Amaka Osei", reportedAt: at(-1, 15, 40), guestImpact: false, outOfOrder: true,
     desc: "Damp patch spreading on the ceiling near the window. Room out of order until the source is found." }),
@@ -98,7 +99,7 @@ const LIST: WorkOrder[] = [
       { at: at(-1, 16, 5), event: "Work started", by: "Emeka Obi", note: "Low refrigerant." },
       { at: at(-1, 16, 10), event: "On hold: waiting for parts", by: "Emeka Obi", note: "R-410A ordered from stores." },
     ],
-    parts: [{ item: "R-410A refrigerant (1 kg)", qty: 1, unit: 8500, ref: "STK-0044" }, { item: "Condenser filter", qty: 1, unit: 2200, ref: "STK-0041" }], labourHours: 1 }),
+    labourHours: 1 }), // holds refrigerant and a filter from the store (mock/stores.ts)
   wo({ id: "WO-0090", title: "Lobby light flickering", location: "Lobby", cat: "Electrical", priority: "P3", status: "Raised",
     tech: null, reportedBy: "Fatima Al-Hassan", reportedAt: at(0, 6, 30), guestImpact: true, outOfOrder: false,
     desc: "Two downlights by the reception desk flicker every few seconds." }),
@@ -274,7 +275,8 @@ const ALLOWED: Record<WOStatus, WOStatus[]> = {
   Closed: [], Cancelled: [],
 };
 export const canMove = (w: WorkOrder, to: WOStatus) => ALLOWED[w.status].includes(to);
-export type Move = { by: string; note?: string; tech?: string; team?: string; holdReason?: string };
+// used: what the technician says came from the store (at Completed); confirmed: the verifier's list (at Verified).
+export type Move = { by: string; note?: string; tech?: string; team?: string; holdReason?: string; used?: Line[]; confirmed?: Line[]; materialsReason?: string };
 
 // The only way a job changes status. Returns why a move is refused, or null when it is done.
 // Closing and cancelling go through finishWorkOrder() in mock/hotel.ts, which also returns the room.
@@ -295,6 +297,11 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   if (missing.length) return `${missing.length} critical step${missing.length === 1 ? "" : "s"} on the checklist ${missing.length === 1 ? "has" : "have"} not been recorded: ${missing.slice(0, 3).map(i => i.task).join("; ")}${missing.length > 3 ? `; and ${missing.length - 3} more` : ""}.`;
   if (to === "Verified" && m.by === w.completedBy) return "You completed this job, so someone else must verify it.";
   if ((to === "Cancelled" || sentBack || reopened) && !note) return "Say why.";
+  // Materials: what was used is stated at completion and confirmed by the verifier; only then does it leave the store.
+  if (to === "Completed") { const r = checkClaim(id, m.used ?? []); if (r) return r; }
+  const confirmed = to === "Verified" ? m.confirmed ?? claimFor(id) ?? [] : [];
+  if (to === "Verified") { const r = checkConfirm(id, confirmed, m.materialsReason); if (r) return r; }
+  if (to === "Cancelled" && takenFor(id).length) return "Items taken from the store for this job are still out. Return them to the store first.";
 
   // Leaving hold adds the time held back onto both deadlines.
   const patch: Partial<WorkOrder> = { status: to };
@@ -309,6 +316,10 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   const event = reopened ? "Reopened" : sentBack ? "Sent back" : to === "Assigned" ? (w.tech || w.team ? "Reassigned" : "Assigned") : to === "In progress" ? (w.status === "On hold" ? "Resumed" : "Work started")
     : to === "On hold" ? `On hold: ${m.holdReason!.toLowerCase()}` : to;
   updateWorkOrder(id, patch, { event, by: m.by, note: note || (to === "Assigned" ? `Assigned to ${m.team ? `the ${m.team} team` : m.tech}.` : "") });
+
+  if (to === "Completed") commitClaim(id, m.used ?? [], m.by);
+  if (sentBack) clearClaim(id);
+  if (to === "Verified") { const parts = issueConfirmed(id, confirmed, m.by, m.materialsReason); if (parts.length) updateWorkOrder(id, { parts: [...w.parts, ...parts] }, { event: "Issued from the store", by: m.by, note: parts.map(p => `${p.qty} × ${p.item}`).join(", ") + (m.materialsReason?.trim() ? `. ${m.materialsReason.trim()}` : "") }); }
 
   const link = { screen: "work-order-detail", label: "Work Order", param: w.id };
   // Reassigning tells the person it left their board, so nobody keeps working on something that moved.
