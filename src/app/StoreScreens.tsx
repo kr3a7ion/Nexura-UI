@@ -16,33 +16,37 @@ const td = "px-3 py-2.5 text-sm";
 const naira = (n: number) => `₦${n.toLocaleString()}`;
 const num = (id: string, label: string, value: string, set: (v: string) => void, hint?: string) =>
   <Field label={label} htmlFor={id} hint={hint}><input id={id} inputMode="decimal" value={value} onChange={e => set(e.target.value.replace(/[^\d.-]/g, ""))} className={controlClass} style={controlStyle()} /></Field>;
-const itemOptions = (store: StoreName = "Maintenance store") => items().map(i => [i.sku, `${i.name} (${available(store, i.sku)} ${i.unit} free)`] as [string, string]);
+const itemOptions = (store: StoreName = "Maintenance store") => items().map(i => [i.sku, `${i.cat}: ${i.name} (${available(store, i.sku)} ${i.unit} free, ${i.shelf})`] as [string, string]);
 
-export function Stores({ add, staffName, role, initial = "Maintenance store" }: { add: Add; staffName: string; role: string; initial?: StoreName }) {
-  const [store, setStore] = useState<StoreName>(initial);
+// Maintenance sees only its own store. The store house will be its own department that every department's stock syncs to;
+// until it exists, Inventory's menu shows both stores and is where transfers happen.
+export function Stores({ add, staffName, role, stores = [...STORES] }: { add: Add; staffName: string; role: string; stores?: StoreName[] }) {
+  const [store, setStore] = useState<StoreName>(stores[0]);
   const [dialog, setDialog] = useState<null | "receive" | "transfer" | "adjust">(null);
   const [, redraw] = useState(0);
   // Receiving and moving stock is for supervisors and up; technicians take items for a job from the job itself.
   const manager = canSetUp(staffName, role);
   const done = (ok: string, r: unknown) => { if (typeof r === "string") { add({ type: "error", title: r }); return; } add({ type: "success", title: ok }); setDialog(null); redraw(n => n + 1); };
   const rows = items().filter(i => onHand(store, i.sku) || i.min[store] != null);
+  const cats = [...new Set(rows.map(i => i.cat))].sort();
 
   return <div>
-    <PageHeader title="Stores" sub="Both stores on one ledger. A job takes items from the maintenance store; they leave the books only when the supervisor confirms them at verification."
-      actions={manager && <div className="flex flex-wrap gap-2"><BtnO label="Transfer between stores" onClick={() => setDialog("transfer")} /><BtnO label="Adjust a count" onClick={() => setDialog("adjust")} /><BtnP label="Receive stock" onClick={() => setDialog("receive")} /></div>} />
-    <div className="mb-6"><Segmented label="Store" options={STORES} value={store} onChange={setStore} /></div>
+    <PageHeader title={stores.length > 1 ? "Stores" : store} sub="Laid out as the shelves are. A job takes items from the maintenance store; they leave the books only when a supervisor confirms them at verification."
+      actions={manager && <div className="flex flex-wrap gap-2">{stores.length > 1 && <BtnO label="Transfer between stores" onClick={() => setDialog("transfer")} />}<BtnO label="Adjust a count" onClick={() => setDialog("adjust")} /><BtnP label="Receive stock" onClick={() => setDialog("receive")} /></div>} />
+    {stores.length > 1 && <div className="mb-6"><Segmented label="Store" options={stores} value={store} onChange={setStore} /></div>}
     <div className="space-y-4">
       <Card title={store} sub={store === "Maintenance store" ? "Held: taken for a job and not yet confirmed. Free: what the store can still give out." : undefined}>
         <div className="overflow-x-auto"><table className="w-full">
-          <thead><tr style={{ borderBottom: `1px solid ${BORDER}` }}>{["Item", "On the shelf", ...(store === "Maintenance store" ? ["Held for jobs"] : []), "Free", "Reorder at", "Average cost"].map(h => <th key={h} className="px-3 py-2.5 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-          <tbody>{rows.map(i => { const free = available(store, i.sku), low = i.min[store] != null && free <= i.min[store]!; return <tr key={i.sku} style={{ borderTop: `1px solid ${BORDER}` }}>
+          <thead><tr style={{ borderBottom: `1px solid ${BORDER}` }}>{["Item", "Shelf", "On the shelf", ...(store === "Maintenance store" ? ["Held for jobs"] : []), "Free", "Reorder at", "Average cost"].map(h => <th key={h} className="px-3 py-2.5 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          {cats.map(cat => <tbody key={cat}><tr><th colSpan={7} scope="colgroup" className="px-3 pt-4 pb-1 text-left text-sm font-semibold" style={{ color: TEXT }}>{cat}</th></tr>{rows.filter(i => i.cat === cat).map(i => { const free = available(store, i.sku), low = i.min[store] != null && free <= i.min[store]!; return <tr key={i.sku} style={{ borderTop: `1px solid ${BORDER}` }}>
             <td className={td} style={{ color: TEXT }}><b>{i.name}</b><span className="block" style={{ color: MUTED }}>{i.sku}</span></td>
+            <td className={td} style={{ color: MUTED }}>{i.shelf}</td>
             <td className={td} style={{ color: TEXT }}>{onHand(store, i.sku)} {i.unit}</td>
             {store === "Maintenance store" && <td className={td} style={{ color: held(i.sku) ? WARNING_INK : MUTED }}>{held(i.sku) || "None"}</td>}
             <td className={td} style={{ color: low ? ERROR : TEXT }}>{free}{low ? ". Reorder" : ""}</td>
             <td className={td} style={{ color: MUTED }}>{i.min[store] ?? "Not set"}</td>
             <td className={td} style={{ color: TEXT }}>{naira(i.avgCost)}</td>
-          </tr>; })}</tbody>
+          </tr>; })}</tbody>)}
         </table></div>
       </Card>
       <Card title="Movements" sub="Newest first. Each row carries the balance it left in the store.">

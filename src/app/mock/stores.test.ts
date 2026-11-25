@@ -3,7 +3,7 @@ import { onHand, available, takeForJob, returnFromJob, takenFor, claimFor, recei
 import { addWorkOrder, moveWorkOrder, workOrder } from "./maintenance";
 import { finishWorkOrder } from "./hotel";
 
-const M = "Maintenance store", G = "General store";
+const M = "Maintenance store", G = "Store house";
 const newJob = () => {
   const w = addWorkOrder({ title: "Socket burnt", location: "Room 204", room: "204", cat: "Electrical", priority: "P3", reportedBy: "Fatima Musa", desc: "x" });
   expect(moveWorkOrder(w.id, "Assigned", { by: "Yusuf Garba", tech: "Emeka Obi" })).toBeNull();

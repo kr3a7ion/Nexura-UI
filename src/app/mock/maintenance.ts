@@ -6,7 +6,7 @@ import { BUSINESS_DATE } from "../constants";
 import { notify, type Level } from "./notify";
 import { pendingFor } from "./handover";
 import { onPlannedVerified, missingCritical, type CheckResult } from "./ppm";
-import { presentToday, isPresentToday, team, teamMembers, staff, holdersOf, type StaffRole } from "./roster";
+import { presentToday, isPresentToday, team, teamMembers, staff, holdersOf, type StaffRole, canVerify } from "./roster";
 
 // The lifecycle and priorities follow FacilityFlow (docs/OPERATING.md, services/workOrders.ts).
 export type WOStatus = "Raised" | "Assigned" | "Accepted" | "In progress" | "On hold" | "Completed" | "Verified" | "Closed" | "Cancelled";
@@ -296,6 +296,7 @@ export const moveWorkOrder = (id: string, to: WOStatus, m: Move): string | null 
   const missing = to === "Completed" ? missingCritical(w) : [];
   if (missing.length) return `${missing.length} critical step${missing.length === 1 ? "" : "s"} on the checklist ${missing.length === 1 ? "has" : "have"} not been recorded: ${missing.slice(0, 3).map(i => i.task).join("; ")}${missing.length > 3 ? `; and ${missing.length - 3} more` : ""}.`;
   if (to === "Verified" && m.by === w.completedBy) return "You completed this job, so someone else must verify it.";
+  if (to === "Verified" && !canVerify(m.by)) return "Only a Maintenance supervisor or the head of department verifies a job.";
   if ((to === "Cancelled" || sentBack || reopened) && !note) return "Say why.";
   // Materials: what was used is stated at completion and confirmed by the verifier; only then does it leave the store.
   if (to === "Completed") { const r = checkClaim(id, m.used ?? []); if (r) return r; }

@@ -9,7 +9,7 @@ import { finishWorkOrder } from "./hotel";
 // Takes a job from raised to verified the way the department does: assigned, accepted, done, checked by someone else.
 const toVerified = (id: string) => {
   for (const [to, m] of [["Assigned", { by: "Adaeze Okonkwo", tech: "Emeka Obi" }], ["Accepted", { by: "Emeka Obi" }], ["In progress", { by: "Emeka Obi" }],
-    ["Completed", { by: "Emeka Obi", note: "Fixed" }], ["Verified", { by: "Chidi Ike" }]] as const) expect(moveWorkOrder(id, to, m)).toBeNull();
+    ["Completed", { by: "Emeka Obi", note: "Fixed" }], ["Verified", { by: "Yusuf Garba" }]] as const) expect(moveWorkOrder(id, to, m)).toBeNull();
 };
 
 

@@ -36,8 +36,10 @@ describe("work order lifecycle (FacilityFlow rules)", () => {
     step(w.id, "In progress", { by: "Emeka Obi" });
     step(w.id, "Completed", { by: "Emeka Obi", note: "New washer" });
     expect(moveWorkOrder(w.id, "Verified", { by: "Emeka Obi" })).toMatch(/someone else/);
+    expect(moveWorkOrder(w.id, "Verified", { by: "Chidi Ike" })).toMatch(/Only a Maintenance supervisor/);   // a technician
+    expect(moveWorkOrder(w.id, "Verified", { by: "Bola Adewale" })).toMatch(/Only a Maintenance supervisor/); // a team lead
     setCurrentUser("Chidi Ike", "MX");
-    step(w.id, "Verified", { by: "Chidi Ike" });
+    step(w.id, "Verified", { by: "Yusuf Garba" });
     expect(noticesFor("Amaka Osei", "HK").some(n => n.title === "Signed off: Leak")).toBe(true);
     expect(finishWorkOrder(w.id, "Closed", "Adaeze Okonkwo").refused).toBeNull();
     expect(workOrder(w.id)?.status).toBe("Closed");
