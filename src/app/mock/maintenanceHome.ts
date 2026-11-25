@@ -1,13 +1,14 @@
 import { tanks } from "./setup";
 import { levelOf, issues, runs } from "./power";
 import { now, fmtWhen } from "./maintenance";
+import { lowStock } from "./stores";
 
 export type MaintenanceException = {
   id: string;
   title: string;
   detail: string;
   severity: "Critical" | "Warning" | "Info";
-  screen: "work-orders" | "asset-register" | "preventive-schedule" | "generator-diesel";
+  screen: "work-orders" | "asset-register" | "preventive-schedule" | "generator-diesel" | "mx-stores";
   screenLabel: string;
 };
 
@@ -18,6 +19,8 @@ const FIXED: MaintenanceException[] = [
 ];
 export const maintenanceExceptions = (): MaintenanceException[] => [
   ...tanks().filter(t => levelOf(t.id) < t.minimum).map(t => ({ id: `MX-${t.id}`, title: `${t.name} below its minimum`, detail: `${Math.round(levelOf(t.id)).toLocaleString()} L against a minimum of ${t.minimum.toLocaleString()} L. Order diesel.`, severity: "Critical" as const, screen: "generator-diesel" as const, screenLabel: "Power & Diesel" })),
+  // Free stock at or below the reorder level: what the store can still give out, not what the books say.
+  ...lowStock().filter(l => l.store === "Maintenance store").map(l => ({ id: `MX-LOW-${l.item.sku}`, title: `${l.item.name} running low`, detail: `${l.left} ${l.item.unit} free in the maintenance store, reorder at ${l.item.min["Maintenance store"]}.`, severity: "Warning" as const, screen: "mx-stores" as const, screenLabel: "Maintenance Store" })),
   ...FIXED,
 ];
 

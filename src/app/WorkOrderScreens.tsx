@@ -10,7 +10,7 @@ import { asset as assetOf, schedule, sheetFor, recordChecklist, everyLabel, type
 import {
   workOrders, workOrder, addWorkOrder, updateWorkOrder, moveWorkOrder, canMove, isOpen, isOverdue, isLateToRespond, respondDue, resolveDue, ageOf, fmtWhen, now,
   assignable, assignee, WO_CATEGORIES, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
-  slaRule, describeRule, type Move,
+  slaRule, describeRule, recordPurchase, type Move,
 } from "./mock/maintenance";
 import { takenFor, claimFor, item as itemOf, type Line } from "./mock/stores";
 import { MaterialsCard, LinesEditor } from "./StoreScreens";
@@ -256,7 +256,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
   const [tech, setTech] = useState(w.tech && assignable().includes(w.tech) ? w.tech : w.team ? `team:${w.team}` : assignable()[0]);
   const [holdReason, setHoldReason] = useState(HOLD_REASONS[0]);
   const [text, setText] = useState("");
-  const [part, setPart] = useState({ item: "", qty: "1", unit: "", ref: "" });
+  const [part, setPart] = useState({ item: "", qty: "1", unit: "", supplier: "", receipt: "" });
   const [lines, setLines] = useState<Line[]>([]);          // items used: stated at completion, confirmed at verification
   const [noneUsed, setNoneUsed] = useState(false);
   const [why, setWhy] = useState("");
@@ -324,7 +324,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
             onSaved={(failed, refused) => { if (refused) add({ type: "error", title: refused }); else { add({ type: failed ? "warning" : "success", title: "Checklist saved", body: failed ? `${failed} step${failed === 1 ? "" : "s"} failed. Consider raising a follow-up job.` : undefined }); refresh(n => n + 1); } }}
             onFollowUp={() => setDialog("follow")} />}
           <MaterialsCard job={w.id} by={me} add={add} canTake={["Accepted", "In progress", "On hold"].includes(w.status)} onChange={() => refresh(n => n + 1)} />
-          <Card title="Parts and labour" sub="Store items appear here once issued at verification." actions={!ended && <BtnO label="Add a part bought outside" icon={Plus} onClick={() => setDialog("part")} />}>
+          <Card title="Parts and labour" sub="Store items appear here once issued at verification; purchases once recorded, or approved when over the limit." actions={!ended && <BtnO label="Record a purchase" icon={Plus} onClick={() => setDialog("part")} />}>
             {w.parts.length ? (
               <table className="w-full mb-3">
                 <thead><tr>{["Part", "Qty", "Each", "Total"].map((h, i) => <th key={h} className={`py-2 text-sm font-medium ${i ? "text-right" : "text-left"}`} style={{ color: MUTED }}>{h}</th>)}</tr></thead>
@@ -460,18 +460,21 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
         </Dialog>
       )}
       {dialog === "part" && (
-        <Dialog title="Add a part bought outside" sub="For parts bought for this job outside the store. Store items come from Materials." onClose={() => setDialog(null)}
-          footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label="Add part" onClick={() => {
-            const qty = Number(part.qty), unit = Number(part.unit);
-            if (!part.item.trim() || !(qty > 0) || !(unit >= 0)) return;
-            updateWorkOrder(w.id, { parts: [...w.parts, { item: part.item.trim(), qty, unit, ref: part.ref.trim() || "Bought outside" }] }, { event: "Part added", by: me, note: `${qty} × ${part.item.trim()}` });
-            setPart({ item: "", qty: "1", unit: "", ref: "" }); done();
+        <Dialog title="Record a purchase" sub={`Bought outside the store for this job. Up to ₦${money().supervisorLimit.toLocaleString()} it goes straight onto the job's cost; above that it waits for approval.`} onClose={() => setDialog(null)}
+          footer={<><BtnO label="Cancel" onClick={() => setDialog(null)} /><BtnP label="Record purchase" onClick={() => {
+            const r = recordPurchase(w.id, { item: part.item, qty: Number(part.qty), unit: Number(part.unit), supplier: part.supplier, receipt: part.receipt }, me);
+            if (r !== "Added" && r !== "Waiting for approval") { add({ type: "error", title: r }); return; }
+            add({ type: r === "Added" ? "success" : "info", title: r === "Added" ? "Purchase added to the job" : "Purchase sent for approval", body: r === "Added" ? undefined : "It lands on the job's cost once someone else approves it." });
+            setPart({ item: "", qty: "1", unit: "", supplier: "", receipt: "" }); done();
           }} /></>}>
-          <Field label="Part" htmlFor="pt-item" required><input id="pt-item" value={part.item} onChange={e => setPart(p => ({ ...p, item: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
-          <div className="grid grid-cols-3 gap-4">
-            <Field label="Qty" htmlFor="pt-qty"><input id="pt-qty" type="number" min="1" value={part.qty} onChange={e => setPart(p => ({ ...p, qty: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
+          <Field label="What was bought" htmlFor="pt-item" required><input id="pt-item" value={part.item} onChange={e => setPart(p => ({ ...p, item: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="How many" htmlFor="pt-qty"><input id="pt-qty" type="number" min="1" value={part.qty} onChange={e => setPart(p => ({ ...p, qty: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
             <Field label="Each (₦)" htmlFor="pt-unit"><input id="pt-unit" type="number" min="0" value={part.unit} onChange={e => setPart(p => ({ ...p, unit: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
-            <Field label="Receipt or supplier" htmlFor="pt-ref"><input id="pt-ref" value={part.ref} onChange={e => setPart(p => ({ ...p, ref: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Supplier" htmlFor="pt-supplier" required><input id="pt-supplier" value={part.supplier} onChange={e => setPart(p => ({ ...p, supplier: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
+            <Field label="Receipt number" htmlFor="pt-receipt"><input id="pt-receipt" value={part.receipt} onChange={e => setPart(p => ({ ...p, receipt: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>
           </div>
         </Dialog>
       )}
