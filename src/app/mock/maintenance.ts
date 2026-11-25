@@ -1,7 +1,7 @@
 // Maintenance work orders: one list read by Work Orders, the detail screen, the department home,
 // Suite Home and the manager dashboard. Housekeeping's "Report a fault" adds to it.
 // shortcut: held in memory until the hotel server exists; changes last until the page reloads.
-import { requestApproval } from "./approvals";
+import { requestApproval, setApproverPeople } from "./approvals";
 import { money } from "./setup";
 import { checkClaim, commitClaim, checkConfirm, issueConfirmed, clearClaim, claimFor, takenFor, type Line } from "./stores";
 import { BUSINESS_DATE } from "../constants";
@@ -267,6 +267,8 @@ export const updateWorkOrder = (id: string, patch: Partial<WorkOrder>, log?: { e
 
 // ── Bought outside the store for a job. Up to the supervisor's limit it goes straight onto the job's cost; above it, it
 // waits on the approvals queue and lands on the job only when someone else approves it (nobody approves their own).
+// Purchases above the supervisor's limit are the head of department's call (managers can approve every department's).
+setApproverPeople("Maintenance", () => holdersOf("Head of department"));
 export type Purchase = { item: string; qty: number; unit: number; supplier: string; receipt?: string };
 export const recordPurchase = (id: string, p: Purchase, by: string): "Added" | "Waiting for approval" | string => {
   const w = workOrder(id); if (!w) return "There is no such work order.";

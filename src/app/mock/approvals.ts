@@ -17,7 +17,12 @@ export type Approval = {
 const APPROVERS: Record<string, Role[]> = { "Front Office": ["MGT"] };
 export const approverRoles = (dept: string) => APPROVERS[dept] ?? ["MGT"];
 export const setApproverRoles = (dept: string, roles: Role[]) => { APPROVERS[dept] = roles.includes("MGT") ? roles : ["MGT", ...roles]; };
-export const canApprove = (role: Role, dept: string) => approverRoles(dept).includes(role);
+// A department can also name people who approve its requests, for when a role is too wide: the Maintenance role covers
+// technicians, but only its head of department approves its purchases.
+const PEOPLE: Record<string, () => string[]> = {};
+export const setApproverPeople = (dept: string, who: () => string[]) => { PEOPLE[dept] = who; };
+export const approverPeople = (dept: string) => PEOPLE[dept]?.() ?? [];
+export const canApprove = (role: Role, dept: string, name?: string) => approverRoles(dept).includes(role) || (!!name && approverPeople(dept).includes(name));
 
 const LIST: Approval[] = [];
 let next = 1;
@@ -29,17 +34,17 @@ export const requestApproval = (a: Omit<Approval, "id" | "at" | "status">) => {
   if (waiting) { Object.assign(waiting, a, { at: time() }); return waiting; }
   const created: Approval = { ...a, id: `APR-${String(next++).padStart(3, "0")}`, at: time(), status: "Waiting" };
   LIST.unshift(created);
-  notify("approval.requested", { title: `${a.kind} to approve: ${a.title}`, body: `${a.detail}. ${a.reason}.`, roles: approverRoles(a.dept), link: { screen: "suite-home", label: "Suite Home" } });
+  notify("approval.requested", { title: `${a.kind} to approve: ${a.title}`, body: `${a.detail}. ${a.reason}.`, roles: approverRoles(a.dept), people: approverPeople(a.dept), link: { screen: "suite-home", label: "Suite Home" } });
   return created;
 };
 
-export const waitingFor = (role: Role) => LIST.filter(a => a.status === "Waiting" && canApprove(role, a.dept));
+export const waitingFor = (role: Role, name?: string) => LIST.filter(a => a.status === "Waiting" && canApprove(role, a.dept, name));
 
 // Nobody approves their own request. Returns a reason when the decision is refused.
 export const decide = (id: string, approve: boolean, by: string, role: Role, note = "") => {
   const a = LIST.find(x => x.id === id);
   if (!a || a.status !== "Waiting") return "This request has already been decided.";
-  if (!canApprove(role, a.dept)) return "You cannot approve this department's requests.";
+  if (!canApprove(role, a.dept, by)) return "You cannot approve this department's requests.";
   if (a.requestedBy === by) return "Someone else must approve your own request.";
   // Approving after the guest has checked out would change a closed bill, so it is declined instead.
   const tooLate = approve && !a.apply();

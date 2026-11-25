@@ -3,7 +3,8 @@ import {
   ArrowRight, Buildings, CalendarDots, CheckCircle, Clock, Drop, GearSix,
   Lightning, MagnifyingGlass, Plus, Wrench, Warning, WarningCircle,
 } from "@phosphor-icons/react";
-import type { Screen } from "../../constants";
+import type { Screen, Role } from "../../constants";
+import { ApprovalsCard } from "../ApprovalsCard";
 import {
   BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
@@ -27,7 +28,7 @@ const severityColors = {
   Info: { bg: "#EFF6FF", text: "#1D4ED8" },
 };
 
-export default function MaintenanceHome({ nav }: { nav: Nav }) {
+export default function MaintenanceHome({ nav, role, staffName }: { nav: Nav; role: Role; staffName: string }) {
   // Counted from the work orders and the property's rooms.
   const open = workOrders().filter(isOpen);
   const power = maintenancePower();
@@ -44,6 +45,7 @@ export default function MaintenanceHome({ nav }: { nav: Nav }) {
   return (
     <div>
       <PageHeader title="Maintenance & Engineering command centre" sub="Today’s work orders, assets, power and preventive-maintenance operations." />
+      <div className="-mt-4 mb-5"><ApprovalsCard role={role} staffName={staffName} dept="Maintenance" /></div>
 
       <section className="mb-5 flex flex-col gap-4 rounded-2xl border bg-white p-5 lg:flex-row lg:items-center" style={{ borderColor: BORDER }}>
         <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl" style={{ backgroundColor: `${accent}14`, color: accent }}><Wrench size={27} weight="duotone" /></div>
