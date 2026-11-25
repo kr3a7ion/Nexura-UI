@@ -54,6 +54,8 @@ export const ROUTES = {
   "genset.fault":          { level: "Urgent", roles: ["MX"] },
   "genset.outOfRange":     { level: "Urgent", roles: [] },
   "power.load":            { level: "High",   roles: ["MX"] },
+  "incident.reported":     { level: "High",   roles: [] },
+  "meter.flagged":         { level: "High",   roles: ["MX"] },
   "room.backFromMaintenance": { level: "Normal", roles: ["HK"] },
   "dnd.overridden":        { level: "High",   roles: ["FD", "MGT"] },
   "foundItem.logged":      { level: "Low",    roles: ["FD"] },

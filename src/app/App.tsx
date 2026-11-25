@@ -12,6 +12,7 @@ import {
   Shield, Cpu, Pulse, ArrowClockwise, Hash, Phone, PencilSimple, Eye, Trash,
   DownloadSimple, PaperPlaneRight, List as MenuIcon, Question, CheckCircle, MagnifyingGlass, WifiSlash, Clock,
   TrendUp, TrendDown, UserCheck, Car, Flag,
+  FirstAidKit,
 } from "@phosphor-icons/react";
 
 // ─── Shared data & types ─────────────────────────────────────────────────────
@@ -43,6 +44,8 @@ import { SuiteHome, DepartmentHome } from "./suite/SuiteHome";
 import { escalate } from "./mock/maintenance";
 import { generateDue } from "./mock/ppm";
 import { PowerStrip } from "./PlantScreens";
+import { Safety, IncidentDialog } from "./SafetyScreens";
+import { reportIncident } from "./mock/safety";
 import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
 import {
   departmentsForRole,
@@ -159,6 +162,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "fault-reports") return <FaultReports add={add} nav={nav} role={role} staffName={staffName} dept={DEPT_OF[role] ?? "Management"} />;
   if (screen === "work-orders") return <WorkOrders add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-setup") return <MaintenanceSetup add={add} staffName={staffName} />;
+  if (screen === "mx-safety") return <Safety add={add} staffName={staffName} role={role} />;
   if (screen === "mx-permits") return <Permits add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-handover") return <MaintenanceHandover add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-roster") return <MaintenanceRoster add={add} staffName={staffName} />;
@@ -411,6 +415,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   const [pinned, setPinned] = useState<DepartmentId[]>(initialDepartments.slice(0, 2).map(department => department.id));
   const [appSwitcherOpen, setAppSwitcherOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [incidentOpen, setIncidentOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifFilter, setNotifFilter] = useState("All");
@@ -593,6 +598,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
 
             <div className="flex flex-shrink-0 items-center gap-2">
               <button onClick={() => { setOffline(previous => !previous); add({ type: offline ? "success" : "warning", title: offline ? "Back online — syncing…" : "Simulating offline mode" }); }} className="hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold sm:flex" style={{ backgroundColor: loadState === "error" ? "#FEF2F2" : offline ? "#FEF3C7" : "#ECFDF5", borderColor: loadState === "error" ? "#FECACA" : offline ? "#FDE68A" : "#A7F3D0", color: loadState === "error" ? "#B91C1C" : offline ? "#92400E" : "#047857" }}><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: loadState === "error" ? ERROR : offline ? WARNING : SUCCESS }} />{loadState === "error" ? "Server not reachable" : offline ? "Working offline" : "All changes synced"}</button>
+              <button aria-label="Report an incident" title="Report an incident" onClick={() => setIncidentOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-xl border" style={{ borderColor: BORDER }}><FirstAidKit size={16} style={{ color: MUTED }} weight="bold" /></button>
               <button aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} onClick={() => { setNotifOpen(previous => !previous); setUserMenuOpen(false); }} className="relative flex h-9 w-9 items-center justify-center rounded-xl border" style={{ borderColor: BORDER }}><Bell size={16} style={{ color: MUTED }} weight="bold" />{unread > 0 && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: ERROR }}>{unread}</span>}</button>
               <div className="relative"><button onClick={() => { setUserMenuOpen(previous => !previous); setNotifOpen(false); setAppSwitcherOpen(false); }} className="flex items-center gap-2 rounded-xl border px-2 py-1" style={{ borderColor: BORDER }}><div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: PRIMARY }}>{initials}</div><CaretDown size={11} style={{ color: SUBTLE }} /></button>{userMenuOpen && <div className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-xl border bg-white shadow-xl" style={{ borderColor: BORDER }}><div className="border-b px-4 py-3" style={{ borderColor: BORDER }}><div className="text-xs font-semibold" style={{ color: TEXT }}>{staffName}</div><div className="mt-0.5 text-xs" style={{ color: MUTED }}>{roleLabels[role]}</div></div><button onClick={() => nav("my-preferences", "My Preferences")} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><User size={13} />My profile</button><button onClick={() => setShowSessionExpired(true)} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><Lock size={13} />Auth demo</button><button onClick={onLogout} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: ERROR }}><SignOut size={13} />Sign out</button></div>}</div>
             </div>
@@ -620,6 +626,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
         </main>
       </div>
 
+      {incidentOpen && <IncidentDialog onClose={() => setIncidentOpen(false)} onSave={i => { const r = reportIncident(i, staffName); if (typeof r === "string") add({ type: "error", title: r }); else { add({ type: "success", title: `Incident ${r.id} reported. The managers and Maintenance leads have it.` }); setIncidentOpen(false); } }} />}
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
         <CommandInput placeholder="Search departments and screens…" />
         <CommandList><CommandEmpty>No matching screen.</CommandEmpty><CommandGroup heading="Departments">{allowedDepartments.map(department => { const Icon = department.icon; return <CommandItem key={department.id} value={`${department.name} department`} onSelect={() => openDepartment(department)}><Icon style={{ color: department.accent }} />{department.name}</CommandItem>; })}</CommandGroup><CommandGroup heading="Screens">{searchableScreens.map(item => <CommandItem key={item.screen} value={`${item.label} ${item.department.name}`} onSelect={() => nav(item.screen, item.label)}><item.department.icon style={{ color: item.department.accent }} /><span>{item.label}</span><span className="ml-auto text-xs" style={{ color: SUBTLE }}>{item.department.name}</span></CommandItem>)}</CommandGroup></CommandList>
