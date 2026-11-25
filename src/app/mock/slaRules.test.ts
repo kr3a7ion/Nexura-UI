@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { addWorkOrder, ruleFor, saveRule, removeRule, slaRules, escalate, workOrders, PRIORITIES, GUEST_ROOMS, type WorkOrder } from "./maintenance";
 import { noticesFor } from "./notify";
-import { holdersOf } from "./roster";
+import { holdersOf, setPerson, staff } from "./roster";
 
 const mins = (w: WorkOrder) => [(w.respondBy.getTime() - w.reportedAt.getTime()) / 60000, (w.resolveBy.getTime() - w.reportedAt.getTime()) / 60000];
 const job = (priority: "P1" | "P2" | "P3" | "P4", cat: string, location: string, room?: string) =>
@@ -34,6 +34,7 @@ describe("deadline rules per job type (FacilityFlow slaRules)", () => {
     expect(saveRule({ priority: "P3", trade: "Juggling", resolveMin: 60 * 5 }, "Musa Danladi")).toMatch(/not one of/);
     expect(saveRule({ priority: "P3", trade: "HVAC", resolveMin: 30 }, "Musa Danladi")).toMatch(/at least as long as respond/); // P3 respond is 240
     expect(saveRule({ priority: "P3", trade: "HVAC", respondMin: 1.5 }, "Musa Danladi")).toMatch(/whole minutes/);
+    expect(saveRule({ priority: "P3", trade: "HVAC", respondMin: 60, escalateTo: "Technician" }, "Musa Danladi")).toBeNull();
     expect(saveRule({ priority: "P3", place: "Generator house", respondMin: 30 }, "Musa Danladi")).toMatch(/already a rule/);
   });
 
@@ -58,8 +59,15 @@ describe("deadline rules per job type (FacilityFlow slaRules)", () => {
     escalate();
     const sup = holdersOf("Supervisor")[0];
     const n = noticesFor(sup, "MX").find(x => x.event === "workOrder.late" && x.title.startsWith(w.id));
-    expect(n?.people).toEqual(holdersOf("Supervisor"));
+    expect(n?.people).toEqual(expect.arrayContaining([...holdersOf("Team lead"), ...holdersOf("Supervisor")])); // usual chain kept, the rule's role added
     expect(n?.body).toMatch(/Deadlines from the rule P3, Generator house/);
     expect(GUEST_ROOMS).toBe("Guest rooms");
+  });
+
+  test("a rule cannot add a role nobody holds", () => {
+    const sup = holdersOf("Supervisor")[0], was = staff(sup)!;
+    expect(setPerson(sup, { trade: was.trade, team: was.team, role: "Technician" })).toBeNull();
+    expect(saveRule({ priority: "P4", trade: "HVAC", resolveMin: 2000, escalateTo: "Supervisor" }, "Adaeze Okonkwo")).toMatch(/Nobody in Maintenance is a supervisor/);
+    expect(setPerson(sup, { trade: was.trade, team: was.team, role: "Supervisor" })).toBeNull();
   });
 });
