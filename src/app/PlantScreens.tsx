@@ -13,6 +13,8 @@ import { asset } from "./mock/ppm";
 import { plantNow, recordSwitch, switchLog, span, type SwitchEvent } from "./mock/changeover";
 import { gensetLog, logGenset, shiftLogStatus, type Reading } from "./mock/gensetLog";
 import { loadNow, recordClamp, FRESH_MINUTES } from "./mock/load";
+import { METER_KINDS, meters, readingsOf, readMeter, addMeter, type Meter } from "./mock/meters";
+import { Plus } from "lucide-react";
 
 type Add = (t: Omit<Toast, "id">) => void;
 const clock = (d: Date) => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
@@ -139,5 +141,60 @@ function ClampDialog({ onClose, onSave }: { onClose: () => void; onSave: (supply
     <Select id="cr-supply" label="Supply" value={f.supply} onChange={set("supply")} options={supplies().map(x => [x.id, `${x.name} (${x.kind.toLowerCase()})`] as [string, string])} />
     <div className="grid grid-cols-3 gap-4">{num("cr-l1", s.phases === 3 ? "L1 (A)" : "Amps", f.l1, set("l1"))}{s.phases === 3 && num("cr-l2", "L2 (A)", f.l2, set("l2"))}{s.phases === 3 && num("cr-l3", "L3 (A)", f.l3, set("l3"))}</div>
     <div className="grid grid-cols-2 gap-4">{num("cr-volts", "Volts", f.volts, set("volts"), `Blank uses ${s.volts} V from setup.`)}{num("cr-pf", "Power factor", f.pf, set("pf"), `Blank uses ${s.pf}.`)}</div>
+  </Dialog>;
+}
+
+/** Electricity, water and gas meters: what the building used, read by hand. */
+export function UtilityMeters({ add, staffName }: { add: Add; staffName: string }) {
+  const [dialog, setDialog] = useState<null | "meter" | { read: Meter }>(null);
+  const [, redraw] = useState(0);
+  const td = "px-3 py-2.5 text-sm align-top";
+  const done = (ok: string, r: unknown) => { if (typeof r === "string") { add({ type: "error", title: r }); return; } add({ type: "success", title: ok }); setDialog(null); redraw(n => n + 1); };
+  return <><Card title="Utility meters" sub="A reading never goes backwards. A meter that rolled over or was replaced starts the count again. More than three times the recent average is flagged."
+      footer={<BtnO label="Add a meter" icon={Plus} onClick={() => setDialog("meter")} />}>
+      <div className="overflow-x-auto"><table className="w-full">
+        <thead><tr style={{ borderBottom: `1px solid ${BORDER}` }}>{["Meter", "Place", "Last reading", "Used since the one before", ""].map(h => <th key={h} className="px-3 py-2.5 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+        <tbody>{meters().map(m => { const [last] = readingsOf(m.id); return <tr key={m.id} style={{ borderTop: `1px solid ${BORDER}` }}>
+          <td className={td} style={{ color: TEXT }}><b>{m.kind}</b><span className="block" style={{ color: MUTED }}>{m.serial}{m.multiplier !== 1 ? `, ×${m.multiplier}` : ""}</span></td>
+          <td className={td} style={{ color: TEXT }}>{m.place}</td>
+          <td className={td} style={{ color: TEXT }}>{last ? <>{last.reading}<span className="block" style={{ color: MUTED }}>{fmtWhen(last.at)}, {last.by}{last.estimated ? ", estimated" : ""}</span></> : <span style={{ color: MUTED }}>Never read</span>}</td>
+          <td className={td} style={{ color: last?.flagged ? ERROR : last?.reset ? WARNING_INK : TEXT }}>{!last ? "" : last.reset ? `${last.reset}: counting again` : last.consumption == null ? "First reading" : `${last.consumption} ${m.unit}${last.flagged ? ". Over three times the recent average: check for a leak or a misread" : ""}`}</td>
+          <td className="px-3 py-2 text-right"><BtnO label={`Read ${m.serial}`} onClick={() => setDialog({ read: m })} /></td>
+        </tr>; })}</tbody>
+      </table></div>
+    </Card>
+    {dialog === "meter" && <MeterDialog onClose={() => setDialog(null)} onSave={m => done(`Meter ${m.serial.trim()} added`, addMeter(m))} />}
+    {dialog && typeof dialog === "object" && <ReadDialog m={dialog.read} onClose={() => setDialog(null)} onSave={r => {
+      const x = readMeter(dialog.read.id, r, staffName);
+      if (typeof x !== "string" && x.flagged) { add({ type: "warning", title: "Saved. Over three times the recent average: check for a leak or a misread" }); setDialog(null); redraw(n => n + 1); }
+      else done("Reading saved", x);
+    }} />}
+  </>;
+}
+
+const text = (id: string, value: string, set: (v: string) => void, numeric = false) =>
+  <input id={id} inputMode={numeric ? "decimal" : undefined} value={value} onChange={e => set(numeric ? e.target.value.replace(/[^\d.]/g, "") : e.target.value)} className={controlClass} style={controlStyle()} />;
+
+function MeterDialog({ onClose, onSave }: { onClose: () => void; onSave: (m: Omit<Meter, "id">) => void }) {
+  const [f, setF] = useState({ kind: "Electricity", serial: "", place: "", multiplier: "1", unit: "kWh" });
+  const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v });
+  return <Dialog title="Add a meter" onClose={onClose} footer={<><BtnO label="Cancel" onClick={onClose} /><BtnP label="Add meter" onClick={() => onSave({ kind: f.kind as Meter["kind"], serial: f.serial, place: f.place, multiplier: Number(f.multiplier), unit: f.unit })} /></>}>
+    <div className="grid grid-cols-2 gap-4"><Select id="mt-kind" label="Kind" value={f.kind} onChange={v => setF({ ...f, kind: v, unit: v === "Electricity" ? "kWh" : v === "Water" ? "m³" : "kg" })} options={[...METER_KINDS]} />
+      <Field label="Serial" htmlFor="mt-serial">{text("mt-serial", f.serial, set("serial"))}</Field></div>
+    <Field label="Where it is" htmlFor="mt-place">{text("mt-place", f.place, set("place"))}</Field>
+    <div className="grid grid-cols-2 gap-4"><Field label="Multiplier" htmlFor="mt-mult" hint="The CT ratio on a meter read through current transformers. 1 otherwise.">{text("mt-mult", f.multiplier, set("multiplier"), true)}</Field>
+      <Field label="Unit" htmlFor="mt-unit">{text("mt-unit", f.unit, set("unit"))}</Field></div>
+  </Dialog>;
+}
+
+function ReadDialog({ m, onClose, onSave }: { m: Meter; onClose: () => void; onSave: (r: Parameters<typeof readMeter>[1]) => void }) {
+  const [f, setF] = useState({ reading: "", reset: "", estimated: false, note: "" });
+  const last = readingsOf(m.id)[0];
+  return <Dialog title={`Read ${m.kind.toLowerCase()} meter ${m.serial}`} sub={last ? `Last read ${last.reading} on ${fmtWhen(last.at)}.` : "First reading."} onClose={onClose}
+    footer={<><BtnO label="Cancel" onClick={onClose} /><BtnP label="Save reading" onClick={() => onSave({ reading: f.reading.trim() === "" ? NaN : Number(f.reading), reset: (f.reset || undefined) as "Rolled over" | "Replaced" | undefined, estimated: f.estimated, note: f.note })} /></>}>
+    <div className="grid grid-cols-2 gap-4"><Field label="Figure on the meter" htmlFor="rd-reading">{text("rd-reading", f.reading, v => setF({ ...f, reading: v }), true)}</Field>
+      <Select id="rd-reset" label="The meter" value={f.reset} onChange={v => setF({ ...f, reset: v })} options={[["", "Counts on as before"], ["Rolled over", "Rolled over to zero"], ["Replaced", "Was replaced"]]} /></div>
+    <label className="flex items-center gap-2 text-sm" style={{ color: TEXT }}><input type="checkbox" checked={f.estimated} onChange={e => setF({ ...f, estimated: e.target.checked })} /> Estimated: the meter could not be reached</label>
+    <Field label="Note" htmlFor="rd-note">{text("rd-note", f.note, v => setF({ ...f, note: v }))}</Field>
   </Dialog>;
 }

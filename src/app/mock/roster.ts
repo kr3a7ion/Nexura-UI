@@ -168,3 +168,7 @@ export const clearLeave = (s: string, from: string, to: string) => {
 };
 /** Every absence on the roster, newest first, with who set it and from where: what HR's Attendance reads. */
 export const absences = () => [...DAYS.values()].filter(d => d.status === "Absent").sort((a, b) => b.date.localeCompare(a.date) || a.staff.localeCompare(b.staff));
+
+/** Maintenance Setup changes how the whole department runs (targets, rules, limits), as FacilityFlow's Admin does:
+ *  managers and Maintenance's head of department only. Supervisors and technicians never see it. */
+export const canSetUp = (name: string, role: string) => role === "MGT" || staff(name)?.role === "Head of department";
