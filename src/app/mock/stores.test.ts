@@ -160,3 +160,34 @@ describe("stock count", () => {
     expect(onHand(M, "STK-0072")).toBe(mcb);                             // the delivery is kept, not counted away
   });
 });
+
+import { recordPurchase } from "./maintenance";
+import { waitingFor, decide } from "./approvals";
+import { maintenanceExceptions } from "./maintenanceHome";
+describe("purchases on a job", () => {
+  test("up to the supervisor's limit it goes straight onto the job's cost", () => {
+    const id = newJob();
+    expect(recordPurchase(id, { item: "Brass union 1/2 in", qty: 2, unit: 3500, supplier: "Wuse market", receipt: "R-118" }, "Emeka Obi")).toBe("Added");
+    expect(workOrder(id)!.parts.at(-1)).toMatchObject({ item: "Brass union 1/2 in", qty: 2, unit: 3500, ref: "Bought from Wuse market, receipt R-118" });
+    expect(recordPurchase(id, { item: "", qty: 1, unit: 1, supplier: "x" }, "Emeka Obi")).toMatch(/what was bought/);
+  });
+
+  test("over the limit it waits for someone else's approval and lands on the job only then", () => {
+    const id = newJob(), before = workOrder(id)!.parts.length;
+    expect(recordPurchase(id, { item: "Water heater element 3 kW", qty: 2, unit: 38000, supplier: "Ariaria Electricals" }, "Emeka Obi")).toBe("Waiting for approval");
+    expect(workOrder(id)!.parts.length).toBe(before);
+    const a = waitingFor("MGT").find(x => x.kind === "Purchase" && x.title.startsWith(id))!;
+    expect(a.detail).toMatch(/₦76,000/);
+    expect(decide(a.id, true, "Emeka Obi", "MGT")).toMatch(/Someone else/);                // nobody approves their own
+    expect(decide(a.id, true, "Adaeze Okonkwo", "MGT")).toBeNull();
+    expect(workOrder(id)!.parts.at(-1)).toMatchObject({ item: "Water heater element 3 kW", qty: 2, unit: 38000 });
+  });
+
+  test("low free stock shows on the Maintenance home", () => {
+    const sku = "STK-0071";                                    // reorder at 5
+    receive(M, sku, 10, 2600, "Yusuf Garba");
+    expect(maintenanceExceptions().some(e => e.id === `MX-LOW-${sku}`)).toBe(false);
+    expect(takeForJob(newJob(), sku, available(M, sku) - 1, "Emeka Obi")).toBeNull(); // one left free
+    expect(maintenanceExceptions().find(e => e.id === `MX-LOW-${sku}`)).toMatchObject({ severity: "Warning", detail: expect.stringMatching(/^1 pcs free/) });
+  });
+});

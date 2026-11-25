@@ -1,6 +1,8 @@
 // Maintenance work orders: one list read by Work Orders, the detail screen, the department home,
 // Suite Home and the manager dashboard. Housekeeping's "Report a fault" adds to it.
 // shortcut: held in memory until the hotel server exists; changes last until the page reloads.
+import { requestApproval } from "./approvals";
+import { money } from "./setup";
 import { checkClaim, commitClaim, checkConfirm, issueConfirmed, clearClaim, claimFor, takenFor, type Line } from "./stores";
 import { BUSINESS_DATE } from "../constants";
 import { notify, type Level } from "./notify";
@@ -261,6 +263,24 @@ export const updateWorkOrder = (id: string, patch: Partial<WorkOrder>, log?: { e
   if (patch.tech && patch.tech !== w.tech) notify("workOrder.assigned", { title: `${w.id} is yours: ${w.title}`, body: `${w.location}. ${priorityLabel(w.priority)}: accept it by ${fmtWhen(respondDue(w))}.`, people: [patch.tech], level: PRIORITIES[w.priority].level, link });
   Object.assign(w, patch);
   if (log) w.timeline.push({ at: now(), ...log });
+};
+
+// ── Bought outside the store for a job. Up to the supervisor's limit it goes straight onto the job's cost; above it, it
+// waits on the approvals queue and lands on the job only when someone else approves it (nobody approves their own).
+export type Purchase = { item: string; qty: number; unit: number; supplier: string; receipt?: string };
+export const recordPurchase = (id: string, p: Purchase, by: string): "Added" | "Waiting for approval" | string => {
+  const w = workOrder(id); if (!w) return "There is no such work order.";
+  if (["Closed", "Cancelled"].includes(w.status)) return "This job is finished; record the purchase before it is closed.";
+  const item = p.item.trim(), supplier = p.supplier.trim();
+  if (!item || !supplier) return "Say what was bought and from whom.";
+  if (!(p.qty > 0) || !(p.unit > 0)) return "Enter how many and what each cost.";
+  const total = p.qty * p.unit, line = { item, qty: p.qty, unit: p.unit, ref: `Bought from ${supplier}${p.receipt?.trim() ? `, receipt ${p.receipt.trim()}` : ""}` };
+  const add = () => { const now_ = workOrder(id)!; updateWorkOrder(id, { parts: [...now_.parts, line] }, { event: "Purchase added", by, note: `${p.qty} × ${item} from ${supplier}, ₦${total.toLocaleString()}` }); return true; };
+  if (total <= money().supervisorLimit) { add(); return "Added"; }
+  requestApproval({ kind: "Purchase", dept: "Maintenance", ref: `${id}:${item}:${now().getTime()}`, title: `${id}: ${item}`, detail: `₦${total.toLocaleString()} from ${supplier}`,
+    reason: `Over the supervisor's limit of ₦${money().supervisorLimit.toLocaleString()}`, requestedBy: by, apply: add });
+  updateWorkOrder(id, {}, { event: "Purchase waiting for approval", by, note: `${p.qty} × ${item} from ${supplier}, ₦${total.toLocaleString()}` });
+  return "Waiting for approval";
 };
 
 // Which moves each status allows; anything else is refused with a reason.

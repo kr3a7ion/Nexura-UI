@@ -5,7 +5,8 @@ import type { Role } from "../constants";
 import { notify } from "./notify";
 
 // Only decisions that give money away need a second person; check-in and check-out never wait.
-export type ApprovalKind = "Rate override" | "Discount";
+// Purchase: something bought outside the store for a maintenance job, above the supervisor's limit.
+export type ApprovalKind = "Rate override" | "Discount" | "Purchase";
 export type Approval = {
   id: string; kind: ApprovalKind; dept: string; ref: string; title: string; detail: string; reason: string;
   requestedBy: string; at: string; status: "Waiting" | "Approved" | "Declined"; decidedBy?: string; note?: string;
