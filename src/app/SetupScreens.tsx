@@ -7,7 +7,7 @@ import { PageHeader, BtnP, BtnO } from "./UIKit";
 import { Card, Field, Row, Dialog, Segmented, controlClass, controlStyle } from "./ui";
 import { Select } from "./WorkOrderScreens";
 import { PRIORITIES, HOLD_REASONS, WO_CATEGORIES, setTarget, addTrade, addHoldReason, removeHoldReason, slaRules, saveRule, removeRule, workOrders, GUEST_ROOMS, type WOPriority, type SlaRule } from "./mock/maintenance";
-import { staffList, teams, teamMembers, patterns, setPerson, addTeam, addPattern, ROLES, type StaffRole } from "./mock/roster";
+import { canSetAuthority, staffList, teams, teamMembers, patterns, setPerson, addTeam, addPattern, ROLES, type StaffRole } from "./mock/roster";
 import { money, setMoney, gensets, saveGenset, tanks, addTank, parseChart, supplies, addSupply, isIncomer, type GensetProfile, type TankKind, type SupplyKind } from "./mock/setup";
 import { asset, assets } from "./mock/ppm";
 
@@ -24,8 +24,10 @@ const Table = ({ heads, children }: { heads: string[]; children: React.ReactNode
 );
 const td = "px-3 py-2.5 text-sm whitespace-nowrap";
 
-export function MaintenanceSetup({ add, staffName }: { add: Add; staffName: string }) {
-  const [tab, setTab] = useState<Tab>("People and teams");
+export function MaintenanceSetup({ add, staffName, role }: { add: Add; staffName: string; role: string }) {
+  // Roles and money decide who may approve what: never in a supervisor's hands, so nobody sets their own authority.
+  const tabs = canSetAuthority(staffName, role) ? TABS : TABS.filter(t => t !== "People and teams" && t !== "Money");
+  const [tab, setTab] = useState<Tab>(tabs[0]);
   const [dialog, setDialog] = useState<null | { kind: "person"; name: string } | { kind: "team" | "shift" | "tank" | "supply" } | { kind: "genset"; assetId: string } | { kind: "rule"; rule?: SlaRule }>(null);
   const [, redraw] = useState(0);
   const result = (ok: string) => (refused: string | null) => {
@@ -35,7 +37,7 @@ export function MaintenanceSetup({ add, staffName }: { add: Add; staffName: stri
   return (
     <div>
       <PageHeader title="Maintenance Setup" sub="The people, shifts, targets and plant the department runs on. Changes shape future work; a job keeps the deadlines it was raised with." />
-      <div className="mb-6"><Segmented label="Setup section" options={TABS} value={tab} onChange={setTab} /></div>
+      <div className="mb-6"><Segmented label="Setup section" options={tabs} value={tab} onChange={setTab} /></div>
 
       {tab === "People and teams" && <div className="space-y-4">
         <Card title="People" sub="Their records come from HR. Here Maintenance sets each person's trade, team and role, which decide what they can be given and who a late job goes to.">

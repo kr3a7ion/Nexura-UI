@@ -169,6 +169,10 @@ export const clearLeave = (s: string, from: string, to: string) => {
 /** Every absence on the roster, newest first, with who set it and from where: what HR's Attendance reads. */
 export const absences = () => [...DAYS.values()].filter(d => d.status === "Absent").sort((a, b) => b.date.localeCompare(a.date) || a.staff.localeCompare(b.staff));
 
-/** Maintenance Setup changes how the whole department runs (targets, rules, limits), as FacilityFlow's Admin does:
- *  managers and Maintenance's head of department only. Supervisors and technicians never see it. */
-export const canSetUp = (name: string, role: string) => role === "MGT" || staff(name)?.role === "Head of department";
+/** Maintenance Setup: managers, the head of department and supervisors, who plan shifts, set targets and deadline
+ *  rules and keep the plant limits. FacilityFlow keeps all of it to administrators, which leaves supervisors unable to
+ *  fix a target they live with every day. */
+export const canSetUp = (name: string, role: string) => role === "MGT" || ["Head of department", "Supervisor"].includes(staff(name)?.role ?? "");
+/** People's roles and the money settings (approval limits, labour rate) decide who may approve what, so a supervisor
+ *  never changes them: nobody sets their own authority. Managers and the head of department only. */
+export const canSetAuthority = (name: string, role: string) => role === "MGT" || staff(name)?.role === "Head of department";

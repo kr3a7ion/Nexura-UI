@@ -88,7 +88,7 @@ export const DEPARTMENTS: Department[] = [
       { label: "Verify", screen: "work-order-detail" },
       { label: "Close", screen: "work-orders" },
     ],
-    screens: [group("Engineering", [["Fault Reports", "fault-reports"], ["Work Orders", "work-orders"], ["Asset Register", "asset-register"], ["Planned Work", "preventive-schedule"], ["Vendor Contacts", "vendor-contacts"], ["Roster", "mx-roster"], ["Shift Handover", "mx-handover"], ["Permits to Work", "mx-permits"], ["Safety", "mx-safety"], ["Maintenance Setup", "mx-setup"], ["Power & Diesel", "generator-diesel"]])],
+    screens: [group("Engineering", [["Fault Reports", "fault-reports"], ["Work Orders", "work-orders"], ["Asset Register", "asset-register"], ["Planned Work", "preventive-schedule"], ["Vendor Contacts", "vendor-contacts"], ["Roster", "mx-roster"], ["Shift Handover", "mx-handover"], ["Permits to Work", "mx-permits"], ["Safety", "mx-safety"], ["Power & Diesel", "generator-diesel"]]), group("Configuration", [["Maintenance Setup", "mx-setup"]])],
   },
   {
     id: "restaurant-pos", name: "Restaurant & POS", icon: ForkKnife, accent: "#C2410C",
