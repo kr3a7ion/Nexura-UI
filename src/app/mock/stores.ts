@@ -1,5 +1,5 @@
 // Stores, as FacilityFlow keeps them (services/stores.ts, 0007), with materials on a job as Gideon runs it (25 Nov).
-// One item list, two stores (Maintenance and General), and an append-only ledger: every movement carries the balance it
+// One item list, two stores (Maintenance and the Store house), and an append-only ledger: every movement carries the balance it
 // produced in its store, and a balance is never written directly.
 //
 // Materials on a job: the technician takes items from the maintenance store against the job; they are HELD (off the
@@ -12,23 +12,24 @@ import { BUSINESS_DATE } from "../constants";
 import { notify } from "./notify";
 import { now, workOrder, updateWorkOrder } from "./maintenance";
 
-export const STORES = ["Maintenance store", "General store"] as const;
+export const STORES = ["Maintenance store", "Store house"] as const;
 export type StoreName = typeof STORES[number];
-export type Item = { sku: string; name: string; unit: string; avgCost: number; min: Partial<Record<StoreName, number>> };
+// Every item has a category and a shelf, so the screen reads like the store looks.
+export type Item = { sku: string; name: string; cat: string; shelf: string; unit: string; avgCost: number; min: Partial<Record<StoreName, number>> };
 export type MoveKind = "Receive" | "Issue" | "Adjust" | "Transfer in" | "Transfer out";
 export type Movement = { id: string; at: Date; sku: string; store: StoreName; kind: MoveKind; qty: number; unitCost: number; balance: number; job?: string; by: string; reason?: string };
 export type Line = { sku: string; qty: number };
 
 const ITEMS: Item[] = [
-  { sku: "STK-0052", name: "Shower cartridge", unit: "pcs", avgCost: 12500, min: { "Maintenance store": 2 } },
-  { sku: "STK-0018", name: "Silicone sealant", unit: "tube", avgCost: 3500, min: { "Maintenance store": 4 } },
-  { sku: "STK-0044", name: "R-410A refrigerant (1 kg)", unit: "kg", avgCost: 8500, min: { "Maintenance store": 2 } },
-  { sku: "STK-0041", name: "Condenser filter", unit: "pcs", avgCost: 2200, min: { "Maintenance store": 3 } },
-  { sku: "STK-0063", name: "Cabinet hinge", unit: "pcs", avgCost: 1800, min: { "Maintenance store": 6 } },
-  { sku: "STK-0071", name: "13 A socket outlet", unit: "pcs", avgCost: 2600, min: { "Maintenance store": 5 } },
-  { sku: "STK-0072", name: "MCB 32 A single pole", unit: "pcs", avgCost: 4800, min: { "Maintenance store": 3 } },
-  { sku: "STK-0080", name: "LED bulb 12 W", unit: "pcs", avgCost: 1500, min: { "Maintenance store": 10, "General store": 20 } },
-  { sku: "CLN-001", name: "Floor cleaner 5 L", unit: "jerrycan", avgCost: 2200, min: { "General store": 20 } },
+  { sku: "STK-0052", name: "Shower cartridge", cat: "Plumbing", shelf: "Rack A, shelf 1", unit: "pcs", avgCost: 12500, min: { "Maintenance store": 2 } },
+  { sku: "STK-0018", name: "Silicone sealant", cat: "Plumbing", shelf: "Rack A, shelf 2", unit: "tube", avgCost: 3500, min: { "Maintenance store": 4 } },
+  { sku: "STK-0044", name: "R-410A refrigerant (1 kg)", cat: "HVAC", shelf: "Gas cage", unit: "kg", avgCost: 8500, min: { "Maintenance store": 2 } },
+  { sku: "STK-0041", name: "Condenser filter", cat: "HVAC", shelf: "Rack B, shelf 1", unit: "pcs", avgCost: 2200, min: { "Maintenance store": 3 } },
+  { sku: "STK-0063", name: "Cabinet hinge", cat: "Carpentry", shelf: "Rack C, bin 4", unit: "pcs", avgCost: 1800, min: { "Maintenance store": 6 } },
+  { sku: "STK-0071", name: "13 A socket outlet", cat: "Electrical", shelf: "Rack D, shelf 1", unit: "pcs", avgCost: 2600, min: { "Maintenance store": 5 } },
+  { sku: "STK-0072", name: "MCB 32 A single pole", cat: "Electrical", shelf: "Rack D, shelf 2", unit: "pcs", avgCost: 4800, min: { "Maintenance store": 3 } },
+  { sku: "STK-0080", name: "LED bulb 12 W", cat: "Lighting", shelf: "Rack D, shelf 3", unit: "pcs", avgCost: 1500, min: { "Maintenance store": 10, "Store house": 20 } },
+  { sku: "CLN-001", name: "Floor cleaner 5 L", cat: "Cleaning", shelf: "Bay 2", unit: "jerrycan", avgCost: 2200, min: { "Store house": 20 } },
 ];
 const LEDGER: Movement[] = [];
 let seq = 0;
@@ -42,7 +43,7 @@ const write = (m: Omit<Movement, "id" | "balance">) => {
 ([["STK-0052", 4], ["STK-0018", 10], ["STK-0044", 6], ["STK-0041", 8], ["STK-0063", 12], ["STK-0071", 15], ["STK-0072", 6], ["STK-0080", 30]] as const)
   .forEach(([sku, qty]) => write({ at: at(-30, 9), sku, store: "Maintenance store", kind: "Receive", qty, unitCost: ITEMS.find(i => i.sku === sku)!.avgCost, by: "Yusuf Garba", reason: "Opening stock" }));
 ([["STK-0080", 60], ["CLN-001", 18]] as const)
-  .forEach(([sku, qty]) => write({ at: at(-30, 9), sku, store: "General store", kind: "Receive", qty, unitCost: ITEMS.find(i => i.sku === sku)!.avgCost, by: "Store keeper", reason: "Opening stock" }));
+  .forEach(([sku, qty]) => write({ at: at(-30, 9), sku, store: "Store house", kind: "Receive", qty, unitCost: ITEMS.find(i => i.sku === sku)!.avgCost, by: "Store keeper", reason: "Opening stock" }));
 write({ at: at(-2, 12), sku: "STK-0063", store: "Maintenance store", kind: "Issue", qty: -2, unitCost: 1800, job: "WO-0087", by: "Emeka Obi" });
 
 // Held: taken off the shelf for a job, not yet issued. Claim: what the technician said they used, waiting for the supervisor.

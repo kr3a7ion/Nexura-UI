@@ -16,7 +16,7 @@ import { takenFor, claimFor, item as itemOf, type Line } from "./mock/stores";
 import { MaterialsCard, LinesEditor } from "./StoreScreens";
 import { finishWorkOrder } from "./mock/hotel";
 import { roomState } from "./mock/rooms";
-import { teams, staff, parseDay } from "./mock/roster";
+import { teams, staff, parseDay, canVerify } from "./mock/roster";
 import { permitsFor, isExpired, PERMIT_TYPES } from "./mock/permits";
 import { money } from "./mock/setup";
 import { RequestPermitDialog } from "./PermitScreens";
@@ -286,13 +286,14 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
       case "Accepted": return <BtnP label="Start work" onClick={() => go("In progress", {}, `${w.id}: work started`)} />;
       case "In progress": return <BtnP label="Mark as completed" onClick={() => { setLines(takenFor(w.id).map(l => ({ ...l }))); setNoneUsed(false); setDialog("complete"); }} />;
       case "On hold": return <BtnP label="Resume work" onClick={() => go("In progress", {}, `${w.id} resumed`, "The clock is running again.")} />;
-      case "Completed": return w.completedBy === me ? null : <BtnP label="Verify the work" onClick={() => { setLines((claimFor(w.id) ?? []).map(l => ({ ...l }))); setWhy(""); setDialog("verify"); }} />;
+      case "Completed": return w.completedBy === me || !canVerify(me) ? null : <BtnP label="Verify the work" onClick={() => { setLines((claimFor(w.id) ?? []).map(l => ({ ...l }))); setWhy(""); setDialog("verify"); }} />;
       case "Verified": return <BtnP label="Close work order" onClick={() => go("Closed", {}, `${w.id} closed`, roomNote ? `Room ${w.room} is on the Housekeeping board to be cleaned.` : `${w.reportedBy} has been told.`)} />;
       default: return null;
     }
   })();
   const waitingNote = w.status === "Assigned" && !canAccept ? `Waiting for ${assignee(w)} to accept.`
-    : w.status === "Completed" && w.completedBy === me ? "You completed this job, so someone else must verify it." : null;
+    : w.status === "Completed" && w.completedBy === me ? "You completed this job, so someone else must verify it."
+    : w.status === "Completed" && !canVerify(me) ? "Waiting for a Maintenance supervisor to verify it and confirm the materials." : null;
 
   return (
     <div>

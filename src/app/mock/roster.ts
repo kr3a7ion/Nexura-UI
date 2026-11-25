@@ -176,3 +176,6 @@ export const canSetUp = (name: string, role: string) => role === "MGT" || ["Head
 /** People's roles and the money settings (approval limits, labour rate) decide who may approve what, so a supervisor
  *  never changes them: nobody sets their own authority. Managers and the head of department only. */
 export const canSetAuthority = (name: string, role: string) => role === "MGT" || staff(name)?.role === "Head of department";
+
+/** Signing off a job (and confirming its materials) is a Maintenance supervisor's or the head of department's call. */
+export const canVerify = (name: string) => ["Supervisor", "Head of department"].includes(staff(name)?.role ?? "");

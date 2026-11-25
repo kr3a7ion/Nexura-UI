@@ -34,7 +34,7 @@ describe("planned work (FacilityFlow rules)", () => {
 
   test("verifying moves the next due date on from the due date, rolled past today, not from the day it was done", () => {
     const w = workOrders().find(x => x.ppm === "PM-005")!; // due 20 May, monthly, done 24 Jun
-    expect(moveWorkOrder(w.id, "Verified", { by: "Bola Adewale" })).toBeNull();
+    expect(moveWorkOrder(w.id, "Verified", { by: "Yusuf Garba" })).toBeNull();
     expect(schedule("PM-005")!.nextDue).toBe("2026-07-20");
     expect(addInterval("2026-01-31", 1, "month")).toBe("2026-03-03"); // JS month overflow, same as the server
   });
@@ -46,7 +46,7 @@ describe("planned work (FacilityFlow rules)", () => {
     moveWorkOrder(w.id, "Accepted", { by: "Emeka Obi" }); moveWorkOrder(w.id, "In progress", { by: "Emeka Obi" });
     recordChecklist(w, ["g1", "g2", "g6"].map(item => ({ item, result: "Pass" as const })).concat([{ item: "g3", result: "Pass", value: "12.8 V" } as never]), "Emeka Obi");
     expect(moveWorkOrder(w.id, "Completed", { by: "Emeka Obi", note: "Serviced" })).toBeNull();
-    expect(moveWorkOrder(w.id, "Verified", { by: "Bola Adewale" })).toBeNull();
+    expect(moveWorkOrder(w.id, "Verified", { by: "Yusuf Garba" })).toBeNull();
     expect(schedule("PM-002")!.nextMeter).toBe(3710);
   });
 
