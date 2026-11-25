@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { addWorkOrder, setTarget, PRIORITIES, addHoldReason, removeHoldReason, HOLD_REASONS, addTrade } from "./maintenance";
-import { setPerson, addTeam, addPattern, staff, patterns } from "./roster";
+import { setPerson, addTeam, addPattern, staff, patterns, canSetUp, holdersOf } from "./roster";
 import { setMoney, saveGenset, genset, addTank, parseChart, addSupply, tanks } from "./setup";
 
 describe("maintenance setup (FacilityFlow admin rules)", () => {
@@ -49,5 +49,15 @@ describe("maintenance setup (FacilityFlow admin rules)", () => {
     expect(addSupply({ name: "Laundry feeder", kind: "Generator", phases: 3, volts: 415, pf: 0.8, ctRatio: 1 })).toMatch(/which generator/);
     expect(addSupply({ name: "Laundry feeder", kind: "Feeder", phases: 3, volts: 415, pf: 1.2, ctRatio: 1 })).toMatch(/power factor/);
     expect(setMoney({ fuelTolerancePct: 0, gridTariff: 225, supervisorLimit: 50000, labourRate: 5000 })).toMatch(/between 0 and 20/);
+  });
+});
+
+describe("who opens Maintenance Setup", () => {
+  test("managers and Maintenance's head of department only, as FacilityFlow's Admin", () => {
+    expect(canSetUp("Anyone", "MGT")).toBe(true);
+    expect(canSetUp(holdersOf("Head of department")[0], "MX")).toBe(true);
+    expect(canSetUp(holdersOf("Supervisor")[0], "MX")).toBe(false);
+    expect(canSetUp(holdersOf("Team lead")[0], "MX")).toBe(false);
+    expect(canSetUp("Emeka Obi", "MX")).toBe(false);
   });
 });

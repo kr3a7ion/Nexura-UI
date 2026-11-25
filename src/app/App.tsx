@@ -44,6 +44,7 @@ import { SuiteHome, DepartmentHome } from "./suite/SuiteHome";
 import { escalate } from "./mock/maintenance";
 import { generateDue } from "./mock/ppm";
 import { PowerStrip } from "./PlantScreens";
+import { canSetUp } from "./mock/roster";
 import { Safety, IncidentDialog } from "./SafetyScreens";
 import { reportIncident } from "./mock/safety";
 import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
@@ -161,7 +162,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   // Maintenance
   if (screen === "fault-reports") return <FaultReports add={add} nav={nav} role={role} staffName={staffName} dept={DEPT_OF[role] ?? "Management"} />;
   if (screen === "work-orders") return <WorkOrders add={add} nav={nav} staffName={staffName} />;
-  if (screen === "mx-setup") return <MaintenanceSetup add={add} staffName={staffName} />;
+  if (screen === "mx-setup") return canSetUp(staffName, role) ? <MaintenanceSetup add={add} staffName={staffName} /> : <NoAccess what="Maintenance Setup" who="managers and Maintenance's head of department" />;
   if (screen === "mx-safety") return <Safety add={add} staffName={staffName} role={role} />;
   if (screen === "mx-permits") return <Permits add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-handover") return <MaintenanceHandover add={add} nav={nav} staffName={staffName} />;
@@ -433,11 +434,11 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   const searchableScreens = useMemo(() => {
     const seen = new Set<string>();
     return allowedDepartments.flatMap(department => department.screens.flatMap(group => group.items.map(item => ({ ...item, department })))).filter(item => {
-      if (seen.has(item.screen)) return false;
+      if (seen.has(item.screen) || (item.screen === "mx-setup" && !canSetUp(staffName, role))) return false;
       seen.add(item.screen);
       return true;
     });
-  }, [allowedDepartments]);
+  }, [allowedDepartments, staffName, role]);
 
   useEffect(() => {
     const openCommand = (event: KeyboardEvent) => {
@@ -552,7 +553,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
               {currentDepartment.screens.map(group => (
                 <div key={group.label} className="mt-3">
                   {!collapsed && <div className="px-5 pb-1 text-xs font-bold uppercase tracking-[0.14em] text-white/25">{group.label}</div>}
-                  {group.items.map(item => {
+                  {group.items.filter(item => item.screen !== "mx-setup" || canSetUp(staffName, role)).map(item => {
                     const isActive = screen === item.screen;
                     return <button key={`${group.label}-${item.screen}`} onClick={() => nav(item.screen, item.label)} className="group relative flex min-h-9 w-full items-center gap-3 px-[18px] text-left" style={{ backgroundColor: isActive ? `${currentDepartment.accent}1c` : "transparent", borderLeft: isActive ? `3px solid ${currentDepartment.accent}` : "3px solid transparent" }} title={collapsed ? item.label : undefined}>
                       <span className="h-1.5 w-1.5 flex-none rounded-full" style={{ backgroundColor: isActive ? currentDepartment.accent : "rgba(255,255,255,.25)" }} />
@@ -598,9 +599,8 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
 
             <div className="flex flex-shrink-0 items-center gap-2">
               <button onClick={() => { setOffline(previous => !previous); add({ type: offline ? "success" : "warning", title: offline ? "Back online — syncing…" : "Simulating offline mode" }); }} className="hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold sm:flex" style={{ backgroundColor: loadState === "error" ? "#FEF2F2" : offline ? "#FEF3C7" : "#ECFDF5", borderColor: loadState === "error" ? "#FECACA" : offline ? "#FDE68A" : "#A7F3D0", color: loadState === "error" ? "#B91C1C" : offline ? "#92400E" : "#047857" }}><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: loadState === "error" ? ERROR : offline ? WARNING : SUCCESS }} />{loadState === "error" ? "Server not reachable" : offline ? "Working offline" : "All changes synced"}</button>
-              <button aria-label="Report an incident" title="Report an incident" onClick={() => setIncidentOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-xl border" style={{ borderColor: BORDER }}><FirstAidKit size={16} style={{ color: MUTED }} weight="bold" /></button>
               <button aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} onClick={() => { setNotifOpen(previous => !previous); setUserMenuOpen(false); }} className="relative flex h-9 w-9 items-center justify-center rounded-xl border" style={{ borderColor: BORDER }}><Bell size={16} style={{ color: MUTED }} weight="bold" />{unread > 0 && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: ERROR }}>{unread}</span>}</button>
-              <div className="relative"><button onClick={() => { setUserMenuOpen(previous => !previous); setNotifOpen(false); setAppSwitcherOpen(false); }} className="flex items-center gap-2 rounded-xl border px-2 py-1" style={{ borderColor: BORDER }}><div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: PRIMARY }}>{initials}</div><CaretDown size={11} style={{ color: SUBTLE }} /></button>{userMenuOpen && <div className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-xl border bg-white shadow-xl" style={{ borderColor: BORDER }}><div className="border-b px-4 py-3" style={{ borderColor: BORDER }}><div className="text-xs font-semibold" style={{ color: TEXT }}>{staffName}</div><div className="mt-0.5 text-xs" style={{ color: MUTED }}>{roleLabels[role]}</div></div><button onClick={() => nav("my-preferences", "My Preferences")} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><User size={13} />My profile</button><button onClick={() => setShowSessionExpired(true)} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><Lock size={13} />Auth demo</button><button onClick={onLogout} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: ERROR }}><SignOut size={13} />Sign out</button></div>}</div>
+              <div className="relative"><button onClick={() => { setUserMenuOpen(previous => !previous); setNotifOpen(false); setAppSwitcherOpen(false); }} className="flex items-center gap-2 rounded-xl border px-2 py-1" style={{ borderColor: BORDER }}><div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: PRIMARY }}>{initials}</div><CaretDown size={11} style={{ color: SUBTLE }} /></button>{userMenuOpen && <div className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-xl border bg-white shadow-xl" style={{ borderColor: BORDER }}><div className="border-b px-4 py-3" style={{ borderColor: BORDER }}><div className="text-xs font-semibold" style={{ color: TEXT }}>{staffName}</div><div className="mt-0.5 text-xs" style={{ color: MUTED }}>{roleLabels[role]}</div></div><button onClick={() => nav("my-preferences", "My Preferences")} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><User size={13} />My profile</button><button onClick={() => setShowSessionExpired(true)} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><Lock size={13} />Auth demo</button><button onClick={() => { setIncidentOpen(true); setUserMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: TEXT }}><FirstAidKit size={13} />Report an incident</button><button onClick={onLogout} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs" style={{ color: ERROR }}><SignOut size={13} />Sign out</button></div>}</div>
             </div>
           </div>
         </header>
@@ -654,4 +654,11 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
       {showPermsChanged && <PermissionsChangedDialog onReLogin={() => { setShowPermsChanged(false); onLogout(); }} />}
     </div>
   );
+}
+
+function NoAccess({ what, who }: { what: string; who: string }) {
+  return <div className="mx-auto mt-16 max-w-md rounded-2xl border bg-white p-8 text-center" style={{ borderColor: BORDER }}>
+    <p className="text-sm font-semibold" style={{ color: TEXT }}>{what} is for {who}.</p>
+    <p className="mt-1 text-sm" style={{ color: MUTED }}>Ask one of them if something here needs changing.</p>
+  </div>;
 }

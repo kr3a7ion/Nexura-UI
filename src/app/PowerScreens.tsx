@@ -14,7 +14,7 @@ import {
   dips, deliveries, runs, reconciliations, levelOf, highBurnStreak, logDip, recordDelivery, issueFuel, recordRun, reconcile, saveReconciliation, costPerKwh,
   type RunReason, type Reconciliation,
 } from "./mock/power";
-import { PlantNow } from "./PlantScreens";
+import { PlantNow, UtilityMeters } from "./PlantScreens";
 
 type Add = (t: Omit<Toast, "id">) => void;
 type Kind = null | "dip" | "delivery" | "issue" | "run";
@@ -41,7 +41,7 @@ export function PowerDiesel({ add, staffName }: { add: Add; staffName: string })
 
   return (
     <div>
-      <PageHeader title="Power & Diesel" sub="Mains and generators as they change, the generator log and the building load. Then where the diesel came from and where it went. Deliveries are signed by two people, and a month that does not balance is explained in writing."
+      <PageHeader title="Power & Diesel" sub="Mains and generators as they change, the generator log and the building load. Then where the diesel came from and where it went, and the utility meters. Deliveries are signed by two people, and a month that does not balance is explained in writing."
         actions={<div className="flex flex-wrap gap-2 justify-end">
           <BtnO label="Log a dip" onClick={() => setDialog("dip")} /><BtnO label="Issue fuel" onClick={() => setDialog("issue")} />
           <BtnO label="Log a generator run" onClick={() => setDialog("run")} /><BtnP label="Record a delivery" onClick={() => setDialog("delivery")} />
@@ -95,6 +95,7 @@ export function PowerDiesel({ add, staffName }: { add: Add; staffName: string })
       {dialog === "delivery" && <DeliveryDialog me={staffName} onClose={() => setDialog(null)} onSave={d => { const r = recordDelivery(d, staffName); done(typeof r === "string" ? "" : `${r.id} saved: received ${L(r.receivedL)}${r.flagged ? `, ${r.variancePct}% off the invoice` : ""}`)(typeof r === "string" ? r : null); }} />}
       {dialog === "issue" && <IssueDialog onClose={() => setDialog(null)} onSave={i => { const r = issueFuel(i, staffName); done(`${L(i.litres)} issued`)(typeof r === "string" ? r : null); }} />}
       {dialog === "run" && <RunDialog onClose={() => setDialog(null)} onSave={x => { const r = recordRun(x, staffName); done(typeof r === "string" ? "" : `Run saved${r.deviationPct != null ? `: ${r.actualLph} L/h, ${r.deviationPct > 0 ? "+" : ""}${r.deviationPct}%` : ""}${r.raisedJob ? `. ${r.raisedJob} raised` : ""}`)(typeof r === "string" ? r : null); }} />}
+      <div className="mt-7"><UtilityMeters add={add} staffName={staffName} /></div>
     </div>
   );
 }
