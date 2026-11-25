@@ -97,15 +97,18 @@ export function PlantNow({ add, staffName }: { add: Add; staffName: string }) {
 }
 
 function SwitchDialog({ s, onClose, onSave }: { s: Switching; onClose: () => void; onSave: (when: Date, note: string) => void }) {
-  const [time, setTime] = useState(clock(now())); const [note, setNote] = useState("");
+  const [time, setTime] = useState(clock(now())); const [day, setDay] = useState("Today"); const [note, setNote] = useState("");
   const when = () => {
     const [h, m] = time.split(":").map(Number), d = now(); d.setHours(h, m, 0, 0);
-    if (d.getTime() > now().getTime() + 2 * 60000) d.setDate(d.getDate() - 1); // a time later than now is last night's
+    if (day === "Yesterday") d.setDate(d.getDate() - 1); // said, never guessed: a later time today is refused as the future
     return d;
   };
   return <Dialog title={s.title} danger={s.event === "Mains failed" || s.event === "Set faulty"} onClose={onClose}
     footer={<><BtnO label="Cancel" onClick={onClose} /><BtnP label={`Record ${s.event.toLowerCase()}`} onClick={() => onSave(when(), note)} /></>}>
-    <Field label="When it happened" htmlFor="sw-time" hint="Change it if you are entering this late. A time later than now is taken as yesterday."><input id="sw-time" type="time" value={time} onChange={e => setTime(e.target.value)} className={controlClass} style={controlStyle()} /></Field>
+    <div className="grid grid-cols-2 gap-4">
+      <Select id="sw-day" label="Day" value={day} onChange={setDay} options={[["Today", "Today"], ["Yesterday", "Yesterday"]]} />
+      <Field label="Time it happened" htmlFor="sw-time" hint="Change it if you are entering this late."><input id="sw-time" type="time" value={time} onChange={e => setTime(e.target.value)} className={controlClass} style={controlStyle()} /></Field>
+    </div>
     <Field label={s.event === "Set faulty" ? "What is wrong" : "Note"} htmlFor="sw-note"><input id="sw-note" value={note} onChange={e => setNote(e.target.value)} className={controlClass} style={controlStyle()} /></Field>
   </Dialog>;
 }

@@ -51,6 +51,8 @@ export const recordSwitch = (event: SwitchEvent, input: { assetId?: string; at?:
   switch (event) {
     case "Mains failed": {
       if (o) return `Mains has been recorded off since ${clock(o.start)}.`;
+      const last = OUTAGES.find(x => x.end); // newest first
+      if (last && when < last.end!) return `Mains was recorded back on at ${clock(last.end!)}. A failure before that would overlap the cut already recorded.`;
       const live = others();
       title = `Mains failed at ${clock(when)}`; body = live.length ? `${live.join(" and ")} already running.` : "No generator is running yet.";
       OUTAGES.unshift({ id: `PO-${OUTAGES.length + 1}`, start: when, by }); break;
