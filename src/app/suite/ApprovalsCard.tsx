@@ -11,7 +11,7 @@ export function ApprovalsCard({ role, staffName, dept }: { role: Role; staffName
   const [declining, setDeclining] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
-  const list = waitingFor(role).filter(a => !dept || a.dept === dept);
+  const list = waitingFor(role, staffName).filter(a => !dept || a.dept === dept);
   if (!list.length && !message) return null;
 
   const act = (id: string, approve: boolean, why = "") => {

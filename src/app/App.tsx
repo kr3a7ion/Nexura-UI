@@ -112,7 +112,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if ((screen as string) === "dept-front-office") return <FrontOfficeHome nav={nav} role={role} staffName={staffName} />;
   if ((screen as string) === "dept-access-security") return <AccessSecurityHome nav={nav} />;
   if ((screen as string) === "dept-housekeeping") return <HousekeepingHome nav={nav} />;
-  if ((screen as string) === "dept-maintenance") return <MaintenanceHome nav={nav} />;
+  if ((screen as string) === "dept-maintenance") return <MaintenanceHome nav={nav} role={role} staffName={staffName} />;
   if ((screen as string) === "dept-restaurant-pos") return <RestaurantPosHome nav={nav} />;
   if ((screen as string) === "dept-finance") return <FinanceHome nav={nav} />;
   if ((screen as string) === "dept-inventory") return <InventoryHome nav={nav} />;

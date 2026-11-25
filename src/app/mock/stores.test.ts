@@ -2,6 +2,8 @@ import { describe, expect, test } from "vitest";
 import { onHand, available, takeForJob, returnFromJob, takenFor, claimFor, receive, adjust, transfer, item, ledger, lowStock } from "./stores";
 import { addWorkOrder, moveWorkOrder, workOrder } from "./maintenance";
 import { finishWorkOrder } from "./hotel";
+import { holdersOf } from "./roster";
+import { noticesFor } from "./notify";
 
 const M = "Maintenance store", G = "Store house";
 const newJob = () => {
@@ -189,5 +191,20 @@ describe("purchases on a job", () => {
     expect(maintenanceExceptions().some(e => e.id === `MX-LOW-${sku}`)).toBe(false);
     expect(takeForJob(newJob(), sku, available(M, sku) - 1, "Emeka Obi")).toBeNull(); // one left free
     expect(maintenanceExceptions().find(e => e.id === `MX-LOW-${sku}`)).toMatchObject({ severity: "Warning", detail: expect.stringMatching(/^1 pcs free/) });
+  });
+});
+
+describe("who approves a Maintenance purchase", () => {
+  test("the head of department under the Maintenance role, never a technician with the same role", () => {
+    const id = newJob();
+    expect(recordPurchase(id, { item: "Booster pump seal kit", qty: 1, unit: 90000, supplier: "Pumpworks Abuja" }, "Emeka Obi")).toBe("Waiting for approval");
+    const hod = holdersOf("Head of department")[0];
+    expect(waitingFor("MX", "Chidi Ike").some(a => a.title.startsWith(id))).toBe(false);
+    const a = waitingFor("MX", hod).find(x => x.title.startsWith(id))!;
+    expect(a).toBeDefined();
+    expect(decide(a.id, true, "Chidi Ike", "MX")).toMatch(/cannot approve/);
+    expect(noticesFor(hod, "MX").some(n => n.event === "approval.requested" && n.title.includes("Booster pump"))).toBe(true);
+    expect(decide(a.id, true, hod, "MX")).toBeNull();
+    expect(workOrder(id)!.parts.at(-1)).toMatchObject({ item: "Booster pump seal kit" });
   });
 });
