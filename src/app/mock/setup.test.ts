@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { addWorkOrder, setTarget, PRIORITIES, addHoldReason, removeHoldReason, HOLD_REASONS, addTrade } from "./maintenance";
-import { setPerson, addTeam, addPattern, staff, patterns, canSetUp, holdersOf } from "./roster";
+import { setPerson, addTeam, addPattern, staff, patterns, canSetUp, canSetAuthority, holdersOf } from "./roster";
 import { setMoney, saveGenset, genset, addTank, parseChart, addSupply, tanks } from "./setup";
 
 describe("maintenance setup (FacilityFlow admin rules)", () => {
@@ -53,11 +53,16 @@ describe("maintenance setup (FacilityFlow admin rules)", () => {
 });
 
 describe("who opens Maintenance Setup", () => {
-  test("managers and Maintenance's head of department only, as FacilityFlow's Admin", () => {
+  test("managers, the head of department and supervisors; never technicians or team leads", () => {
     expect(canSetUp("Anyone", "MGT")).toBe(true);
     expect(canSetUp(holdersOf("Head of department")[0], "MX")).toBe(true);
-    expect(canSetUp(holdersOf("Supervisor")[0], "MX")).toBe(false);
+    expect(canSetUp(holdersOf("Supervisor")[0], "MX")).toBe(true);
     expect(canSetUp(holdersOf("Team lead")[0], "MX")).toBe(false);
     expect(canSetUp("Emeka Obi", "MX")).toBe(false);
+  });
+  test("roles and money stay with managers and the head of department: nobody sets their own authority", () => {
+    expect(canSetAuthority("Anyone", "MGT")).toBe(true);
+    expect(canSetAuthority(holdersOf("Head of department")[0], "MX")).toBe(true);
+    expect(canSetAuthority(holdersOf("Supervisor")[0], "MX")).toBe(false);
   });
 });

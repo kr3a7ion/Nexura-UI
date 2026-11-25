@@ -162,7 +162,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   // Maintenance
   if (screen === "fault-reports") return <FaultReports add={add} nav={nav} role={role} staffName={staffName} dept={DEPT_OF[role] ?? "Management"} />;
   if (screen === "work-orders") return <WorkOrders add={add} nav={nav} staffName={staffName} />;
-  if (screen === "mx-setup") return canSetUp(staffName, role) ? <MaintenanceSetup add={add} staffName={staffName} /> : <NoAccess what="Maintenance Setup" who="managers and Maintenance's head of department" />;
+  if (screen === "mx-setup") return canSetUp(staffName, role) ? <MaintenanceSetup add={add} staffName={staffName} role={role} /> : <NoAccess what="Maintenance Setup" who="managers, Maintenance's head of department and its supervisors" />;
   if (screen === "mx-safety") return <Safety add={add} staffName={staffName} role={role} />;
   if (screen === "mx-permits") return <Permits add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-handover") return <MaintenanceHandover add={add} nav={nav} staffName={staffName} />;
