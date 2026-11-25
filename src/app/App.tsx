@@ -46,6 +46,7 @@ import { generateDue } from "./mock/ppm";
 import { PowerStrip } from "./PlantScreens";
 import { canSetUp } from "./mock/roster";
 import { Safety, IncidentDialog } from "./SafetyScreens";
+import { Stores } from "./StoreScreens";
 import { reportIncident } from "./mock/safety";
 import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
 import {
@@ -163,6 +164,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "fault-reports") return <FaultReports add={add} nav={nav} role={role} staffName={staffName} dept={DEPT_OF[role] ?? "Management"} />;
   if (screen === "work-orders") return <WorkOrders add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-setup") return canSetUp(staffName, role) ? <MaintenanceSetup add={add} staffName={staffName} role={role} /> : <NoAccess what="Maintenance Setup" who="managers, Maintenance's head of department and its supervisors" />;
+  if (screen === "mx-stores" || screen === "inv-stores") return <Stores key={screen} add={add} staffName={staffName} role={role} initial={screen === "inv-stores" ? "General store" : "Maintenance store"} />;
   if (screen === "mx-safety") return <Safety add={add} staffName={staffName} role={role} />;
   if (screen === "mx-permits") return <Permits add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-handover") return <MaintenanceHandover add={add} nav={nav} staffName={staffName} />;

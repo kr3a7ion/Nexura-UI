@@ -88,7 +88,7 @@ export const DEPARTMENTS: Department[] = [
       { label: "Verify", screen: "work-order-detail" },
       { label: "Close", screen: "work-orders" },
     ],
-    screens: [group("Engineering", [["Fault Reports", "fault-reports"], ["Work Orders", "work-orders"], ["Asset Register", "asset-register"], ["Planned Work", "preventive-schedule"], ["Vendor Contacts", "vendor-contacts"], ["Roster", "mx-roster"], ["Shift Handover", "mx-handover"], ["Permits to Work", "mx-permits"], ["Safety", "mx-safety"], ["Power & Diesel", "generator-diesel"]]), group("Configuration", [["Maintenance Setup", "mx-setup"]])],
+    screens: [group("Engineering", [["Fault Reports", "fault-reports"], ["Work Orders", "work-orders"], ["Asset Register", "asset-register"], ["Planned Work", "preventive-schedule"], ["Vendor Contacts", "vendor-contacts"], ["Roster", "mx-roster"], ["Shift Handover", "mx-handover"], ["Permits to Work", "mx-permits"], ["Safety", "mx-safety"], ["Stores", "mx-stores"], ["Power & Diesel", "generator-diesel"]]), group("Configuration", [["Maintenance Setup", "mx-setup"]])],
   },
   {
     id: "restaurant-pos", name: "Restaurant & POS", icon: ForkKnife, accent: "#C2410C",
@@ -121,7 +121,7 @@ export const DEPARTMENTS: Department[] = [
       { label: "Stock in", screen: "stock-transactions" },
       { label: "Issue to department", screen: "stock-transactions" },
     ],
-    screens: [group("Stock & Procurement", [["Stock Dashboard", "stock-dashboard"], ["Products", "products"], ["Suppliers", "suppliers"], ["Stock Transactions", "stock-transactions"], ["Purchase Orders", "purchase-orders"], ["Power & Diesel", "generator-diesel"]])],
+    screens: [group("Stock & Procurement", [["Stock Dashboard", "stock-dashboard"], ["Products", "products"], ["Suppliers", "suppliers"], ["Stock Transactions", "stock-transactions"], ["Purchase Orders", "purchase-orders"], ["Stores", "inv-stores"], ["Power & Diesel", "generator-diesel"]])],
   },
   {
     id: "hr", name: "HR & Staff", icon: Users, accent: "#BE185D",
