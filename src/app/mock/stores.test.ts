@@ -105,3 +105,58 @@ describe("materials on a job (taken, claimed, confirmed, issued)", () => {
     expect(lowStock().some(l => l.item.sku === "STK-0052")).toBe(available(M, "STK-0052") <= 2);
   });
 });
+
+import { addItem, editItem, removeItem, items as allItems, startCount, recordCount, countDifferences, postCount, openCount, cancelCount } from "./stores";
+describe("store setup: items", () => {
+  test("add with or without a shelf; names stay unique; edit and remove", () => {
+    expect(addItem({ name: " ", cat: "Plumbing", unit: "pcs" })).toMatch(/Enter the name/);
+    expect(addItem({ name: "shower cartridge", cat: "Plumbing", unit: "pcs" })).toMatch(/already in the store/);
+    const it = addItem({ name: "Ball valve 1/2 in", cat: "Plumbing", unit: "pcs", min: 3 });
+    expect(it).toMatchObject({ shelf: undefined, min: { "Maintenance store": 3 } });          // the shelf is optional
+    const sku = (it as { sku: string }).sku;
+    expect(editItem(sku, { name: "Ball valve 1/2 in", cat: "Plumbing", shelf: "Rack A, shelf 3", unit: "pcs", min: 4 })).toBeNull();
+    expect(item(sku)).toMatchObject({ shelf: "Rack A, shelf 3", min: { "Maintenance store": 4 } });
+    expect(removeItem(sku)).toBeNull();                                                         // never moved: gone
+    expect(allItems().some(i => i.sku === sku)).toBe(false);
+  });
+
+  test("an item with stock cannot go; one with history is retired and keeps its name", () => {
+    const sku = (addItem({ name: "Gate valve 1 in", cat: "Plumbing", unit: "pcs" }) as { sku: string }).sku;
+    receive(M, sku, 2, 5000, "Yusuf Garba");
+    expect(removeItem(sku)).toMatch(/still has stock/);
+    adjust(M, sku, -2, "Returned to the supplier", "Yusuf Garba");
+    expect(removeItem(sku)).toBeNull();
+    expect(allItems().some(i => i.sku === sku)).toBe(false);
+    expect(item(sku)?.name).toBe("Gate valve 1 in");                                           // history still reads
+  });
+});
+
+describe("stock count", () => {
+  test("the shelf is judged against the books less what jobs hold; one count at a time", () => {
+    cancelCount();
+    const shelfNow = available(M, "STK-0044");                // WO-0091 holds refrigerant: it is off the shelf
+    expect(startCount(M, "Yusuf Garba")).toMatchObject({ store: M });
+    expect(startCount(M, "Yusuf Garba")).toMatch(/already open/);
+    expect(recordCount("STK-0044", shelfNow)).toBeNull();     // the shelf matches: no difference
+    expect(recordCount("STK-0063", available(M, "STK-0063") - 1)).toBeNull(); // one hinge missing
+    expect(countDifferences().find(d => d.sku === "STK-0044")!.diff).toBe(0);
+    const hinges = onHand(M, "STK-0063");
+    expect(postCount("Yusuf Garba")).toEqual([{ sku: "STK-0063", qty: -1 }]);
+    expect(onHand(M, "STK-0063")).toBe(hinges - 1);
+    expect(ledger()[0].reason).toMatch(/Stock count SC-/);
+    expect(openCount()).toBeUndefined();
+  });
+
+  test("a job taking items or a delivery while the count runs is neither a loss nor a gain", () => {
+    cancelCount();
+    const id = newJob();
+    startCount(M, "Yusuf Garba");
+    takeForJob(id, "STK-0071", 2, "Emeka Obi");                          // before this shelf is counted
+    recordCount("STK-0071", available(M, "STK-0071"));                   // the counter sees two fewer: right
+    recordCount("STK-0072", available(M, "STK-0072"));
+    receive(M, "STK-0072", 5, 4800, "Yusuf Garba");                      // after this shelf was counted
+    const mcb = onHand(M, "STK-0072");
+    expect(postCount("Yusuf Garba")).toEqual([]);
+    expect(onHand(M, "STK-0072")).toBe(mcb);                             // the delivery is kept, not counted away
+  });
+});

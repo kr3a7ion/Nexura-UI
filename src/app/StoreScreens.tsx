@@ -9,14 +9,14 @@ import { Card, Field, Dialog, Segmented, controlClass, controlStyle } from "./ui
 import { Select } from "./WorkOrderScreens";
 import { fmtWhen } from "./mock/maintenance";
 import { canSetUp } from "./mock/roster";
-import { STORES, items, item, onHand, held, available, ledger, receive, adjust, transfer, takeForJob, returnFromJob, takenFor, type StoreName, type Line } from "./mock/stores";
+import { STORES, items, item, onHand, held, available, ledger, receive, adjust, transfer, takeForJob, returnFromJob, takenFor, openCount, startCount, recordCount, countDifferences, postCount, cancelCount, type StoreName, type Line } from "./mock/stores";
 
 type Add = (t: Omit<Toast, "id">) => void;
 const td = "px-3 py-2.5 text-sm";
 const naira = (n: number) => `₦${n.toLocaleString()}`;
 const num = (id: string, label: string, value: string, set: (v: string) => void, hint?: string) =>
   <Field label={label} htmlFor={id} hint={hint}><input id={id} inputMode="decimal" value={value} onChange={e => set(e.target.value.replace(/[^\d.-]/g, ""))} className={controlClass} style={controlStyle()} /></Field>;
-const itemOptions = (store: StoreName = "Maintenance store") => items().map(i => [i.sku, `${i.cat}: ${i.name} (${available(store, i.sku)} ${i.unit} free, ${i.shelf})`] as [string, string]);
+const itemOptions = (store: StoreName = "Maintenance store") => items().map(i => [i.sku, `${i.cat}: ${i.name} (${available(store, i.sku)} ${i.unit} free${i.shelf ? `, ${i.shelf}` : ""})`] as [string, string]);
 
 // Maintenance sees only its own store. The store house will be its own department that every department's stock syncs to;
 // until it exists, Inventory's menu shows both stores and is where transfers happen.
@@ -29,23 +29,30 @@ export function Stores({ add, staffName, role, stores = [...STORES] }: { add: Ad
   const done = (ok: string, r: unknown) => { if (typeof r === "string") { add({ type: "error", title: r }); return; } add({ type: "success", title: ok }); setDialog(null); redraw(n => n + 1); };
   const rows = items().filter(i => onHand(store, i.sku) || i.min[store] != null);
   const cats = [...new Set(rows.map(i => i.cat))].sort();
+  const count = openCount()?.store === store ? openCount() : undefined, diffs = countDifferences();
+  const posted = () => { const r = postCount(staffName); if (typeof r === "string") { add({ type: "error", title: r }); return; }
+    add({ type: "success", title: "Count posted", body: r.length ? `${r.length} item${r.length === 1 ? "" : "s"} adjusted: ${r.map(l => `${l.qty > 0 ? "+" : ""}${l.qty} ${item(l.sku)?.name}`).join(", ")}.` : "Every counted shelf matched the books." }); redraw(n => n + 1); };
 
   return <div>
     <PageHeader title={stores.length > 1 ? "Stores" : store} sub="Laid out as the shelves are. A job takes items from the maintenance store; they leave the books only when a supervisor confirms them at verification."
-      actions={manager && <div className="flex flex-wrap gap-2">{stores.length > 1 && <BtnO label="Transfer between stores" onClick={() => setDialog("transfer")} />}<BtnO label="Adjust a count" onClick={() => setDialog("adjust")} /><BtnP label="Receive stock" onClick={() => setDialog("receive")} /></div>} />
+      actions={manager && <div className="flex flex-wrap gap-2">{count ? <><BtnO label="Cancel the count" onClick={() => { cancelCount(); redraw(n => n + 1); }} /><BtnP label="Post the count" onClick={posted} /></>
+        : <BtnO label="Start a stock count" onClick={() => { const r = startCount(store, staffName); if (typeof r === "string") add({ type: "error", title: r }); redraw(n => n + 1); }} />}{stores.length > 1 && <BtnO label="Transfer between stores" onClick={() => setDialog("transfer")} />}<BtnO label="Adjust a count" onClick={() => setDialog("adjust")} /><BtnP label="Receive stock" onClick={() => setDialog("receive")} /></div>} />
     {stores.length > 1 && <div className="mb-6"><Segmented label="Store" options={stores} value={store} onChange={setStore} /></div>}
     <div className="space-y-4">
-      <Card title={store} sub={store === "Maintenance store" ? "Held: taken for a job and not yet confirmed. Free: what the store can still give out." : undefined}>
+      <Card title={count ? `Counting the ${store.toLowerCase()} (${count.id})` : store} sub={count ? "Enter what is on each shelf as you count it. Items held for jobs are off the shelf already. A shelf left blank is not changed." : store === "Maintenance store" ? "Held: taken for a job and not yet confirmed. Free: what the store can still give out." : undefined}>
         <div className="overflow-x-auto"><table className="w-full">
-          <thead><tr style={{ borderBottom: `1px solid ${BORDER}` }}>{["Item", "Shelf", "On the shelf", ...(store === "Maintenance store" ? ["Held for jobs"] : []), "Free", "Reorder at", "Average cost"].map(h => <th key={h} className="px-3 py-2.5 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
+          <thead><tr style={{ borderBottom: `1px solid ${BORDER}` }}>{["Item", "Shelf", "On the books", ...(store === "Maintenance store" ? ["Held for jobs"] : []), "Free", ...(count ? ["Counted on the shelf", "Difference"] : ["Reorder at", "Average cost"])].map(h => <th key={h} className="px-3 py-2.5 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
           {cats.map(cat => <tbody key={cat}><tr><th colSpan={7} scope="colgroup" className="px-3 pt-4 pb-1 text-left text-sm font-semibold" style={{ color: TEXT }}>{cat}</th></tr>{rows.filter(i => i.cat === cat).map(i => { const free = available(store, i.sku), low = i.min[store] != null && free <= i.min[store]!; return <tr key={i.sku} style={{ borderTop: `1px solid ${BORDER}` }}>
             <td className={td} style={{ color: TEXT }}><b>{i.name}</b><span className="block" style={{ color: MUTED }}>{i.sku}</span></td>
-            <td className={td} style={{ color: MUTED }}>{i.shelf}</td>
+            <td className={td} style={{ color: MUTED }}>{i.shelf ?? "Not set"}</td>
             <td className={td} style={{ color: TEXT }}>{onHand(store, i.sku)} {i.unit}</td>
             {store === "Maintenance store" && <td className={td} style={{ color: held(i.sku) ? WARNING_INK : MUTED }}>{held(i.sku) || "None"}</td>}
             <td className={td} style={{ color: low ? ERROR : TEXT }}>{free}{low ? ". Reorder" : ""}</td>
-            <td className={td} style={{ color: MUTED }}>{i.min[store] ?? "Not set"}</td>
-            <td className={td} style={{ color: TEXT }}>{naira(i.avgCost)}</td>
+            {count ? <><td className="px-3 py-2"><input aria-label={`${i.name} counted on the shelf`} inputMode="numeric" defaultValue={count.counted[i.sku]?.shelf ?? ""}
+                onBlur={e => { if (e.target.value.trim() === "") return; const r = recordCount(i.sku, Number(e.target.value)); if (r) add({ type: "error", title: r }); redraw(n => n + 1); }} className={controlClass} style={{ ...controlStyle(), maxWidth: 110 }} /></td>
+              <td className={td} style={{ color: (diffs.find(d => d.sku === i.sku)?.diff ?? 0) ? ERROR : MUTED }}>{(d => d == null ? "" : d.diff ? `${d.diff > 0 ? "+" : ""}${d.diff}` : "Matches")(diffs.find(d => d.sku === i.sku))}</td></>
+            : <><td className={td} style={{ color: MUTED }}>{i.min[store] ?? "Not set"}</td>
+            <td className={td} style={{ color: TEXT }}>{naira(i.avgCost)}</td></>}
           </tr>; })}</tbody>)}
         </table></div>
       </Card>
