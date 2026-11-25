@@ -6,7 +6,7 @@ import { BORDER, TEXT, MUTED } from "./constants";
 import { PageHeader, BtnP, BtnO } from "./UIKit";
 import { Card, Field, Row, Dialog, Segmented, controlClass, controlStyle } from "./ui";
 import { Select } from "./WorkOrderScreens";
-import { PRIORITIES, HOLD_REASONS, WO_CATEGORIES, setTarget, addTrade, addHoldReason, removeHoldReason, type WOPriority } from "./mock/maintenance";
+import { PRIORITIES, HOLD_REASONS, WO_CATEGORIES, setTarget, addTrade, addHoldReason, removeHoldReason, slaRules, saveRule, removeRule, workOrders, GUEST_ROOMS, type WOPriority, type SlaRule } from "./mock/maintenance";
 import { staffList, teams, teamMembers, patterns, setPerson, addTeam, addPattern, ROLES, type StaffRole } from "./mock/roster";
 import { money, setMoney, gensets, saveGenset, tanks, addTank, parseChart, supplies, addSupply, isIncomer, type GensetProfile, type TankKind, type SupplyKind } from "./mock/setup";
 import { asset, assets } from "./mock/ppm";
@@ -24,9 +24,9 @@ const Table = ({ heads, children }: { heads: string[]; children: React.ReactNode
 );
 const td = "px-3 py-2.5 text-sm whitespace-nowrap";
 
-export function MaintenanceSetup({ add }: { add: Add }) {
+export function MaintenanceSetup({ add, staffName }: { add: Add; staffName: string }) {
   const [tab, setTab] = useState<Tab>("People and teams");
-  const [dialog, setDialog] = useState<null | { kind: "person"; name: string } | { kind: "team" | "shift" | "tank" | "supply" } | { kind: "genset"; assetId: string }>(null);
+  const [dialog, setDialog] = useState<null | { kind: "person"; name: string } | { kind: "team" | "shift" | "tank" | "supply" } | { kind: "genset"; assetId: string } | { kind: "rule"; rule?: SlaRule }>(null);
   const [, redraw] = useState(0);
   const result = (ok: string) => (refused: string | null) => {
     if (refused) { add({ type: "error", title: refused }); return false; }
@@ -56,7 +56,7 @@ export function MaintenanceSetup({ add }: { add: Add }) {
         {patterns().map(p => <Row key={p.id} label={p.name} value={`${p.start} to ${p.end}${p.end < p.start ? " (next day)" : ""}`} />)}
       </Card>}
 
-      {tab === "Targets" && <Targets onSaved={result("Targets saved")} />}
+      {tab === "Targets" && <Targets onSaved={result("Targets saved")} onRule={rule => setDialog({ kind: "rule", rule })} />}
 
       {tab === "Power and diesel" && <div className="space-y-4">
         <Card title="Generators" sub="Each set's rating, expected burn and log limits. The diesel book and the generator log are judged against these.">
@@ -81,6 +81,9 @@ export function MaintenanceSetup({ add }: { add: Add }) {
       {tab === "Money" && <MoneyCard onSaved={result("Settings saved")} />}
 
       {dialog?.kind === "person" && <PersonDialog name={dialog.name} onClose={() => setDialog(null)} onSave={(p) => result(`${dialog.name} updated`)(setPerson(dialog.name, p))} />}
+      {dialog?.kind === "rule" && <RuleDialog rule={dialog.rule} onClose={() => setDialog(null)}
+        onSave={r => result(dialog.rule ? "Rule saved. Jobs already raised keep their deadlines" : "Rule added. It applies to jobs raised from now")(saveRule(r, staffName, dialog.rule?.id))}
+        onRemove={() => { const n = removeRule(dialog.rule!.id); result(`Rule removed.${n ? ` ${n} open job${n === 1 ? "" : "s"} keep${n === 1 ? "s" : ""} the deadlines it gave.` : ""}`)(null); }} />}
       {dialog?.kind === "team" && <TeamDialog onClose={() => setDialog(null)} onSave={t => result(`Team "${t.name.trim()}" added`)(addTeam(t))} />}
       {dialog?.kind === "shift" && <ShiftDialog onClose={() => setDialog(null)} onSave={p => result(`Shift "${p.name.trim()}" added`)(addPattern(p))} />}
       {dialog?.kind === "genset" && <GensetDialog g={gensets().find(x => x.assetId === dialog.assetId)!} onClose={() => setDialog(null)} onSave={g => result("Generator saved")(saveGenset(g))} />}
@@ -90,7 +93,8 @@ export function MaintenanceSetup({ add }: { add: Add }) {
   );
 }
 
-function Targets({ onSaved }: { onSaved: (r: string | null) => boolean }) {
+const mins = (m?: number) => m == null ? "" : m % 60 ? `${m} min` : `${m / 60} h`;
+function Targets({ onSaved, onRule }: { onSaved: (r: string | null) => boolean; onRule: (r?: SlaRule) => void }) {
   const P = Object.keys(PRIORITIES) as WOPriority[];
   const [t, setT] = useState(() => Object.fromEntries(P.map(p => [p, { r: String(PRIORITIES[p].respondMin), f: String(PRIORITIES[p].resolveMin) }])) as Record<WOPriority, { r: string; f: string }>);
   const [trade, setTrade] = useState(""); const [reason, setReason] = useState("");
@@ -105,6 +109,18 @@ function Targets({ onSaved }: { onSaved: (r: string | null) => boolean }) {
           <td className="px-3 py-2"><input aria-label={`${p} resolve within`} inputMode="numeric" value={t[p].f} onChange={e => setT({ ...t, [p]: { ...t[p], f: e.target.value.replace(/\D/g, "") } })} className={controlClass} style={{ ...controlStyle(), maxWidth: 160 }} /></td>
         </tr>)}
       </Table>
+    </Card>
+    <Card title="Deadline rules" sub="A priority narrowed to a trade, a place, or both. Blanks take the priority's target. The most specific rule wins: trade and place, then place, then trade."
+      footer={<BtnO label="Add a rule" icon={Plus} onClick={() => onRule()} />}>
+      {slaRules().length ? <Table heads={["Rule", "Respond within", "Resolve within", "A breach goes to", ""]}>
+        {slaRules().map(r => <tr key={r.id} style={{ borderTop: `1px solid ${BORDER}` }}>
+          <td className="px-3 py-2.5 text-sm" style={{ color: TEXT }}><b>{r.priority}{r.trade ? `, ${r.trade}` : ""}{r.place ? `, ${r.place}` : ""}</b>{r.note && <span className="block" style={{ color: MUTED }}>{r.note}</span>}</td>
+          <td className={td} style={{ color: r.respondMin ? TEXT : MUTED }}>{r.respondMin ? mins(r.respondMin) : `${mins(PRIORITIES[r.priority].respondMin)} (priority)`}</td>
+          <td className={td} style={{ color: r.resolveMin ? TEXT : MUTED }}>{r.resolveMin ? mins(r.resolveMin) : `${mins(PRIORITIES[r.priority].resolveMin)} (priority)`}</td>
+          <td className={td} style={{ color: r.escalateTo ? TEXT : MUTED }}>{r.escalateTo ?? "As usual"}</td>
+          <td className="px-3 py-2 text-right"><BtnO label="Edit rule" onClick={() => onRule(r)} /></td>
+        </tr>)}
+      </Table> : <p className="text-sm" style={{ color: MUTED }}>No rules. Every job takes its priority's targets.</p>}
     </Card>
     <div className="grid xl:grid-cols-2 gap-4">
       <Card title="Trades" sub="Used for people and job categories.">
@@ -217,5 +233,27 @@ function SupplyDialog({ onClose, onSave }: { onClose: () => void; onSave: (s: { 
       <Field label="CT ratio" htmlFor="ps-ct" hint="1 on the cable">{input("ps-ct", f.ct, set("ct"), true)}</Field>
       <Field label="Breaker (A)" htmlFor="ps-brk">{input("ps-brk", f.breaker, set("breaker"), true)}</Field>
     </div>
+  </Dialog>;
+}
+
+function RuleDialog({ rule, onClose, onSave, onRemove }: { rule?: SlaRule; onClose: () => void; onSave: (r: Parameters<typeof saveRule>[0]) => void; onRemove: () => void }) {
+  const [f, setF] = useState({ priority: rule?.priority ?? "P2", trade: rule?.trade ?? "", place: rule?.place ?? "", respond: rule?.respondMin?.toString() ?? "", resolve: rule?.resolveMin?.toString() ?? "", escalateTo: rule?.escalateTo ?? "", note: rule?.note ?? "" });
+  const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v });
+  // Places a job can name: where the plant is and where jobs have been raised, plus every guest room at once.
+  const places = [...new Set([GUEST_ROOMS, ...assets().map(a => a.location), ...workOrders().filter(w => !w.room).map(w => w.location), ...(rule?.place ? [rule.place] : [])])];
+  const p = PRIORITIES[f.priority as WOPriority], n = (v: string) => (v.trim() === "" ? undefined : Number(v));
+  return <Dialog title={rule ? "Edit deadline rule" : "Add a deadline rule"} sub="Applies to jobs raised from now. Jobs already raised keep their deadlines." wide onClose={onClose}
+    footer={<>{rule && <BtnO label="Remove rule" onClick={onRemove} />}<BtnO label="Cancel" onClick={onClose} /><BtnP label={rule ? "Save rule" : "Add rule"} onClick={() => onSave({ priority: f.priority as WOPriority, trade: f.trade, place: f.place, respondMin: n(f.respond), resolveMin: n(f.resolve), escalateTo: (f.escalateTo || undefined) as StaffRole | undefined, note: f.note })} /></>}>
+    <div className="grid sm:grid-cols-3 gap-4">
+      <Select id="sr-priority" label="Priority" value={f.priority} onChange={set("priority")} options={(Object.keys(PRIORITIES) as WOPriority[]).map(k => [k, `${k} · ${PRIORITIES[k].name}`] as [string, string])} />
+      <Select id="sr-trade" label="Trade" value={f.trade} onChange={set("trade")} options={[["", "Any trade"], ...WO_CATEGORIES.map(t => [t, t] as [string, string])]} />
+      <Select id="sr-place" label="Place" value={f.place} onChange={set("place")} options={[["", "Anywhere"], ...places.map(x => [x, x] as [string, string])]} />
+    </div>
+    <div className="grid sm:grid-cols-3 gap-4">
+      <Field label="Respond (minutes)" htmlFor="sr-respond" hint={`Blank takes ${p.respondMin}.`}>{input("sr-respond", f.respond, set("respond"), true)}</Field>
+      <Field label="Resolve (minutes)" htmlFor="sr-resolve" hint={`Blank takes ${p.resolveMin}.`}>{input("sr-resolve", f.resolve, set("resolve"), true)}</Field>
+      <Select id="sr-escalate" label="Breach goes to" value={f.escalateTo} onChange={set("escalateTo")} options={[["", "As usual"], ...ROLES.map(r => [r, r] as [string, string])]} />
+    </div>
+    <Field label="Why this rule" htmlFor="sr-note" hint="Shown with the rule, so the next person knows why it is there.">{input("sr-note", f.note, set("note"))}</Field>
   </Dialog>;
 }
