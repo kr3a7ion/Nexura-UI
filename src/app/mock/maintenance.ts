@@ -15,7 +15,7 @@ export type WorkOrder = {
   id: string; title: string; location: string; room?: string; cat: string; priority: WOPriority; status: WOStatus;
   tech: string | null; reportedBy: string; reportedAt: Date; guestImpact: boolean;
   // Both deadlines are set once when the job is raised and never rewritten; time on hold is added back when reading them.
-  respondBy: Date; resolveBy: Date; acceptedAt?: Date; heldMs: number; heldSince?: Date; holdReason?: string;
+  respondBy: Date; resolveBy: Date; rule?: string; acceptedAt?: Date; heldMs: number; heldSince?: Date; holdReason?: string;
   completedBy?: string; verifiedBy?: string;
   outOfOrder: boolean; asset?: string; desc: string; timeline: WOEvent[];
   parts: { item: string; qty: number; unit: number; ref: string }[]; labourHours: number; resolution?: string;
@@ -147,6 +147,54 @@ export const ageOf = (w: WorkOrder) => {
 export const fmtWhen = (d: Date) => `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}, ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
 
 // A room is out of order while any order on it says so and is not closed or cancelled;
+// ── Deadline rules, as FacilityFlow keeps them (slaRules.ts). A rule names a priority and narrows it to a trade, a
+// place, or both; it may change the respond time, the resolve time and who a breach goes to. Blanks come from the
+// priority. Read once when a job is raised: deadlines are stored on the job, so editing or removing a rule never moves them.
+export const GUEST_ROOMS = "Guest rooms"; // any job on a room; a rule on the exact place beats it
+export type SlaRule = { id: string; priority: WOPriority; trade?: string; place?: string; respondMin?: number; resolveMin?: number;
+  escalateTo?: StaffRole; note?: string; removed?: boolean; by: string; at: Date };
+const SLA_RULES: SlaRule[] = [
+  { id: "SR-1", priority: "P3", place: "Generator house", respondMin: 60, resolveMin: 8 * 60, escalateTo: "Supervisor", note: "A slow fix here leaves the building with no standby power.", by: "Adaeze Okonkwo", at: at(-30, 9) },
+  { id: "SR-2", priority: "P2", trade: "Plumbing", place: GUEST_ROOMS, resolveMin: 6 * 60, note: "A guest room with no water cannot be sold.", by: "Adaeze Okonkwo", at: at(-30, 9) },
+];
+let ruleSeq = SLA_RULES.length;
+export const slaRules = () => SLA_RULES.filter(r => !r.removed);
+export const slaRule = (id?: string) => SLA_RULES.find(r => r.id === id); // removed rules still answer for the jobs that took them
+export const describeRule = (r: SlaRule) => [r.priority, r.trade, r.place].filter(Boolean).join(", ");
+
+export type RuleInput = Pick<SlaRule, "priority" | "trade" | "place" | "respondMin" | "resolveMin" | "escalateTo" | "note">;
+export const saveRule = (input: RuleInput, by: string, id?: string): string | null => {
+  const trade = input.trade?.trim() || undefined, place = input.place?.trim() || undefined, note = input.note?.trim() || undefined;
+  if (!trade && !place) return "Pick a trade, a place, or both. A rule for every job of a priority is that priority's target: change it above.";
+  if (input.respondMin == null && input.resolveMin == null && !input.escalateTo) return "The rule has to change something: the respond time, the resolve time, or who a breach goes to.";
+  if (trade && !WO_CATEGORIES.includes(trade)) return `"${trade}" is not one of Maintenance's trades.`;
+  if ([input.respondMin, input.resolveMin].some(m => m != null && !MINUTES(m))) return "Times must be whole minutes, more than zero.";
+  // Judged against what the job would actually get, so a rule that only shortens resolve cannot fall below the default respond.
+  const respond = input.respondMin ?? PRIORITIES[input.priority].respondMin, resolve = input.resolveMin ?? PRIORITIES[input.priority].resolveMin;
+  if (resolve < respond) return `That gives these jobs ${resolve} minutes to fix but ${respond} to respond. Resolve has to be at least as long as respond.`;
+  if (slaRules().some(r => r.id !== id && r.priority === input.priority && r.trade === trade && r.place === place)) return "There is already a rule for that priority, trade and place. Edit that one instead.";
+  const fields = { priority: input.priority, trade, place, respondMin: input.respondMin, resolveMin: input.resolveMin, escalateTo: input.escalateTo, note, by, at: now() };
+  if (!id) { SLA_RULES.push({ id: `SR-${++ruleSeq}`, ...fields }); return null; }
+  const r = slaRules().find(x => x.id === id); if (!r) return "That rule has been removed.";
+  Object.assign(r, fields); return null;
+};
+/** Removed, not deleted: the jobs that took it keep their deadlines and its escalation. Returns how many open jobs did. */
+export const removeRule = (id: string) => { const r = slaRules().find(x => x.id === id); if (r) r.removed = true; return LIST.filter(w => w.rule === id && isOpen(w)).length; };
+
+/** The most specific rule for a job: trade and place, then place, then trade; an exact place beats "Guest rooms". */
+export const ruleFor = (priority: WOPriority, trade: string, location: string, room?: string) => {
+  const places = [location, ...(room ? [GUEST_ROOMS] : [])]; // nearest first
+  let best: SlaRule | undefined, bestScore = -1;
+  for (const r of slaRules()) {
+    if (r.priority !== priority || (r.trade && r.trade !== trade)) continue;
+    const depth = r.place ? places.indexOf(r.place) : -1;
+    if (r.place && depth < 0) continue;
+    const score = (r.trade && r.place ? 2000 : r.place ? 1000 : 0) + (depth >= 0 ? 100 - depth : 0);
+    if (score > bestScore) { best = r; bestScore = score; }
+  }
+  return best;
+};
+
 // a completed or verified job keeps the room out until it is closed.
 export const isOutOfOrder = (room: string) => LIST.some(w => w.room === room && w.outOfOrder && w.status !== "Closed" && w.status !== "Cancelled");
 
@@ -154,6 +202,10 @@ let next = 95;
 export const addWorkOrder = (w: Pick<WorkOrder, "title" | "location" | "cat" | "priority" | "reportedBy" | "desc"> & { room?: string; outOfOrder?: boolean; guestImpact?: boolean; asset?: string; ppm?: string; dueAt?: string }) => {
   const created = wo({ id: `WO-${String(next++).padStart(4, "0")}`, status: "Raised", tech: null, reportedAt: now(),
     guestImpact: false, outOfOrder: false, ...w });
+  const rule = ruleFor(created.priority, created.cat, created.location, created.room);
+  if (rule) Object.assign(created, { rule: rule.id,
+    respondBy: plusMin(created.reportedAt, rule.respondMin ?? PRIORITIES[created.priority].respondMin),
+    resolveBy: plusMin(created.reportedAt, rule.resolveMin ?? PRIORITIES[created.priority].resolveMin) });
   LIST.unshift(created);
   const link = { screen: "work-order-detail", label: "Work Order", param: created.id };
   // A job's priority sets how loudly Maintenance is told: P1 interrupts, P4 waits on the bell.
@@ -282,10 +334,11 @@ export const escalate = () => {
       if (done.includes(step)) return;
       done.push(step);
       w.timeline.push({ at: now(), event: `Escalated to ${to.join(", ")}`, by: "System", note: title });
-      notify("workOrder.late", { title, body: `${w.title}, ${w.location}. ${assignee(w) ? `With ${assignee(w)}.` : "Nobody assigned."}`, people: to, level, link, by: "System" });
+      notify("workOrder.late", { title, body: `${w.title}, ${w.location}. ${assignee(w) ? `With ${assignee(w)}.` : "Nobody assigned."}${rule ? ` Deadlines from the rule ${describeRule(rule)}.` : ""}`, people: to, level, link, by: "System" });
     };
     const t2 = team(w.team ?? staff(w.tech ?? "")?.team ?? "");
-    const who = (name: string | undefined, role: StaffRole) => name ? [name] : holdersOf(role).length ? holdersOf(role) : holdersOf("Head of department");
+    const rule = slaRule(w.rule), named = rule?.escalateTo && holdersOf(rule.escalateTo); // the job's rule names who hears a breach
+    const who = (name: string | undefined, role: StaffRole) => named?.length ? named : name ? [name] : holdersOf(role).length ? holdersOf(role) : holdersOf("Head of department");
     if (isLateToRespond(w)) send("respond", who(t2?.lead, "Team lead"), `${w.id} not accepted in time`, "High");
     if (resolveDue(w).getTime() < t) send("resolve", who(t2?.supervisor, "Supervisor"), `${w.id} past its fix-by deadline`, "High");
     const doubled = w.reportedAt.getTime() + 2 * (w.resolveBy.getTime() - w.reportedAt.getTime()) + heldFor(w);

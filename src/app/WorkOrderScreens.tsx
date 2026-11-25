@@ -10,6 +10,7 @@ import { asset as assetOf, schedule, sheetFor, recordChecklist, everyLabel, type
 import {
   workOrders, workOrder, addWorkOrder, updateWorkOrder, moveWorkOrder, canMove, isOpen, isOverdue, isLateToRespond, respondDue, resolveDue, ageOf, fmtWhen, now,
   assignable, assignee, WO_CATEGORIES, PRIORITIES, HOLD_REASONS, priorityLabel, type WorkOrder, type WOPriority, type WOStatus,
+  slaRule, describeRule,
 } from "./mock/maintenance";
 import { finishWorkOrder } from "./mock/hotel";
 import { roomState } from "./mock/rooms";
@@ -371,6 +372,7 @@ export function WorkOrderDetail({ add, nav, id, staffName }: { add: Add; nav?: N
             <Row label="Assigned to" value={assignee(w) ?? "Nobody yet"} />
             <Row label="Accept by" value={w.acceptedAt ? `Accepted ${fmtWhen(w.acceptedAt)}` : <span style={{ color: isLateToRespond(w) ? ERROR : TEXT }}>{fmtWhen(respondDue(w))}</span>} />
             <Row label="Fix by" value={w.completedBy ? `Completed by ${w.completedBy}` : <span style={{ color: isOverdue(w) && !isLateToRespond(w) ? ERROR : TEXT }}>{fmtWhen(resolveDue(w))}</span>} />
+            <Row label="Deadlines from" value={slaRule(w.rule) ? `Rule: ${describeRule(slaRule(w.rule)!)}${slaRule(w.rule)!.removed ? " (since removed)" : ""}` : `${w.priority} targets`} />
             {(w.heldMs > 0 || w.heldSince) && <Row label="Time on hold" value={`${Math.round((w.heldMs + (w.heldSince ? now().getTime() - w.heldSince.getTime() : 0)) / 60000)} min, added to both deadlines`} />}
             {w.verifiedBy && <Row label="Verified by" value={w.verifiedBy} />}
             <Row label="Open for" value={isOpen(w) ? ageOf(w) : "No longer open"} />
