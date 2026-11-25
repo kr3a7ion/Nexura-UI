@@ -14,8 +14,9 @@ import { now, workOrder, updateWorkOrder } from "./maintenance";
 
 export const STORES = ["Maintenance store", "Store house"] as const;
 export type StoreName = typeof STORES[number];
-// Every item has a category and a shelf, so the screen reads like the store looks.
-export type Item = { sku: string; name: string; cat: string; shelf: string; unit: string; avgCost: number; min: Partial<Record<StoreName, number>> };
+// Every item has a category, and a shelf where one is set, so the screen reads like the store looks. A retired item
+// keeps its name for the history but is no longer offered.
+export type Item = { sku: string; name: string; cat: string; shelf?: string; unit: string; avgCost: number; min: Partial<Record<StoreName, number>>; retired?: boolean };
 export type MoveKind = "Receive" | "Issue" | "Adjust" | "Transfer in" | "Transfer out";
 export type Movement = { id: string; at: Date; sku: string; store: StoreName; kind: MoveKind; qty: number; unitCost: number; balance: number; job?: string; by: string; reason?: string };
 export type Line = { sku: string; qty: number };
@@ -50,7 +51,7 @@ write({ at: at(-2, 12), sku: "STK-0063", store: "Maintenance store", kind: "Issu
 const HELD: Record<string, Record<string, number>> = { "WO-0094": { "STK-0052": 1, "STK-0018": 1 }, "WO-0091": { "STK-0044": 1, "STK-0041": 1 } };
 const CLAIM: Record<string, Line[]> = {};
 
-export const items = () => ITEMS;
+export const items = () => ITEMS.filter(i => !i.retired);
 export const item = (sku: string) => ITEMS.find(i => i.sku === sku);
 export const ledger = (store?: StoreName) => (store ? LEDGER.filter(m => m.store === store) : LEDGER).slice().reverse();
 // A function declaration so the opening stock above can be written while this file loads.
@@ -157,3 +158,59 @@ export const issueConfirmed = (job: string, confirmed: Line[], by: string, reaso
 };
 /** Sent back to the technician: nothing is issued, what was taken stays with them, and they claim again. */
 export const clearClaim = (job: string) => { delete CLAIM[job]; };
+
+// ── Store setup: supervisors and up add, edit and remove the items the maintenance store keeps.
+export type ItemInput = { name: string; cat: string; shelf?: string; unit: string; min?: number };
+const checkItem = (x: ItemInput, sku?: string): string | null => {
+  if (!x.name.trim() || !x.cat.trim() || !x.unit.trim()) return "Enter the name, the category and the unit.";
+  if (ITEMS.some(i => !i.retired && i.sku !== sku && i.name.trim().toLowerCase() === x.name.trim().toLowerCase())) return "An item with that name is already in the store.";
+  if (x.min != null && !(x.min >= 0)) return "The reorder level cannot be below zero.";
+  return null;
+};
+const tidy = (x: ItemInput) => ({ name: x.name.trim(), cat: x.cat.trim(), shelf: x.shelf?.trim() || undefined, unit: x.unit.trim() });
+let skuSeq = 100;
+export const addItem = (x: ItemInput): Item | string => {
+  const r = checkItem(x); if (r) return r;
+  const it: Item = { sku: `STK-${String(++skuSeq).padStart(4, "0")}`, ...tidy(x), avgCost: 0, min: x.min != null ? { "Maintenance store": x.min } : {} };
+  ITEMS.push(it); return it;
+};
+export const editItem = (sku: string, x: ItemInput): string | null => {
+  const it = item(sku); if (!it || it.retired) return "That item is no longer in the store.";
+  const r = checkItem(x, sku); if (r) return r;
+  Object.assign(it, tidy(x), { min: { ...it.min, "Maintenance store": x.min } }); return null;
+};
+/** Only an item with nothing on any shelf and nothing held can go. One with history is retired, so old movements keep their name. */
+export const removeItem = (sku: string): string | null => {
+  const it = item(sku); if (!it || it.retired) return "That item is no longer in the store.";
+  if (STORES.some(st => onHand(st, sku)) || held(sku)) return `${it.name} still has stock or is held for a job. Count it out or issue it first.`;
+  if (LEDGER.some(m => m.sku === sku)) it.retired = true; else ITEMS.splice(ITEMS.indexOf(it), 1);
+  return null;
+};
+
+// ── Stock count, shelf by shelf. Each item is judged against what its shelf should hold at the moment it is counted
+// (the books less what jobs hold, since held items are off the shelf), and the difference goes onto the balance as it
+// is when posted. A job taking items, or a delivery, while the count runs is then never mistaken for a loss or a gain.
+// (A snapshot taken when the count opens gets either of those wrong depending on whether the shelf was counted first.)
+export type Count = { id: string; store: StoreName; openedBy: string; at: Date; counted: Record<string, { shelf: number; expected: number }> };
+let COUNT: Count | undefined; let countSeq = 0;
+export const openCount = () => COUNT;
+export const startCount = (store: StoreName, by: string): Count | string => {
+  if (COUNT) return `A count of the ${COUNT.store.toLowerCase()} is already open.`;
+  COUNT = { id: `SC-${++countSeq}`, store, openedBy: by, at: now(), counted: {} }; return COUNT;
+};
+export const recordCount = (sku: string, qty: number): string | null => {
+  if (!COUNT) return "No count is open.";
+  if (!(qty >= 0) || !Number.isFinite(qty)) return "Enter what is on the shelf, or leave it blank if you did not count it.";
+  COUNT.counted[sku] = { shelf: qty, expected: available(COUNT.store, sku) }; return null;
+};
+/** Items not counted are left as they are. */
+export const countDifferences = () => !COUNT ? [] : Object.entries(COUNT.counted).map(([sku, c]) => ({ sku, expected: c.expected, shelf: c.shelf, diff: c.shelf - c.expected }));
+export const postCount = (by: string): Line[] | string => {
+  if (!COUNT) return "No count is open.";
+  const c = COUNT, diffs = countDifferences().filter(d => d.diff);
+  for (const d of diffs) if (onHand(c.store, d.sku) + d.diff < (c.store === "Maintenance store" ? held(d.sku) : 0)) return `${item(d.sku)?.name}: the count would leave less than jobs already hold. Recount it.`;
+  for (const d of diffs) write({ at: now(), sku: d.sku, store: c.store, kind: "Adjust", qty: d.diff, unitCost: item(d.sku)!.avgCost, by, reason: `Stock count ${c.id}, opened by ${c.openedBy}` });
+  COUNT = undefined;
+  return diffs.map(d => ({ sku: d.sku, qty: d.diff }));
+};
+export const cancelCount = () => { COUNT = undefined; };
