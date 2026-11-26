@@ -50,7 +50,9 @@ import { ARRIVALS as FO_ARRIVALS, STAYS, reservations } from "./mock/frontOffice
 import { roomTypeNames } from "./mock/property";
 import { hkRooms } from "./mock/housekeeping";
 import { roomState } from "./mock/rooms";
-import { approverRoles, setApproverRoles } from "./mock/approvals";
+import { approverRoles, setApproverRoles, approverPeople, setApproverNames } from "./mock/approvals";
+import { DEPARTMENTS } from "./suite/departments";
+import { staffAll, isEmployed } from "./mock/staff";
 
 export function Av({ gender = "M", size = 36 }: { gender?: "M" | "F"; size?: number }) {
   const isFemale = gender === "F";
@@ -245,6 +247,7 @@ export function RolesPermissions({ add }: { add: (t: Omit<Toast, "id">) => void 
           </div>
         </div>
       </div>
+      <DepartmentApprovers add={add} />
     </div>
   );
 }
@@ -3773,4 +3776,28 @@ export function ComplaintDashboard() {
       </div>
     </div>
   );
+}
+
+/** Who approves each department's requests, by name. A role is often too wide (the Maintenance role covers technicians,
+ *  the Front Office role covers every desk clerk), so a department names the people; managers can always approve too. */
+function DepartmentApprovers({ add }: { add: (t: Omit<Toast, "id">) => void }) {
+  const [, redraw] = useState(0);
+  const [pick, setPick] = useState<Record<string, string>>({});
+  const people = staffAll().filter(s => isEmployed(s.name)).map(s => s.name).sort();
+  const set = (dept: string, names: string[], ok: string) => { setApproverNames(dept, names); add({ type: "success", title: ok }); redraw(n => n + 1); };
+  return <div className="mt-5 bg-white rounded-xl border p-5" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
+    <h3 className="text-sm font-semibold" style={{ color: TEXT }}>Who approves each department's requests</h3>
+    <p className="mt-1 mb-4 text-sm" style={{ color: MUTED }}>Name the people, usually the head of department. Managers can always approve. Nobody approves their own request.</p>
+    {DEPARTMENTS.map(d => { const named = approverPeople(d.name); return <div key={d.id} className="flex flex-wrap items-center gap-2 py-2.5" style={{ borderTop: `1px solid ${BORDER}` }}>
+      <span className="w-44 text-sm font-medium" style={{ color: TEXT }}>{d.name}</span>
+      {named.length ? named.map(n => <span key={n} className="flex items-center gap-1 rounded-lg border px-2 py-1 text-sm" style={{ borderColor: BORDER, color: TEXT }}>{n}
+        <button aria-label={`Remove ${n} as an approver for ${d.name}`} className="px-1" style={{ color: MUTED }} onClick={() => set(d.name, named.filter(x => x !== n), `${n} no longer approves ${d.name} requests`)}>×</button></span>)
+        : <span className="text-sm" style={{ color: MUTED }}>Managers only</span>}
+      <span className="ml-auto flex items-center gap-2">
+        <select aria-label={`Approver to add for ${d.name}`} value={pick[d.name] ?? ""} onChange={e => setPick({ ...pick, [d.name]: e.target.value })} className="rounded-lg border px-2 py-1.5 text-sm" style={{ borderColor: BORDER, color: TEXT }}>
+          <option value="">Choose a person</option>{people.filter(p => !named.includes(p)).map(p => <option key={p}>{p}</option>)}</select>
+        <BtnO label={`Add approver for ${d.name}`} onClick={() => pick[d.name] && set(d.name, [...named, pick[d.name]], `${pick[d.name]} now approves ${d.name} requests`)} />
+      </span>
+    </div>; })}
+  </div>;
 }
