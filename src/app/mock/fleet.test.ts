@@ -13,7 +13,8 @@ describe("vehicle requests: department sign-off, then Fleet", () => {
     expect(signOff(t.id, "Fatima Musa", "HK", true)).toMatch(/own request/);
     expect(signOff(t.id, "Grace Ojo", "RT", true)).toMatch(/Housekeeping supervisor or manager/);  // a lead, but of Restaurant
     expect(signOff(t.id, "Amaka Osei", "HK", true)).toMatch(/Housekeeping supervisor or manager/); // same department, but staff
-    expect(signOff(t.id, "Ngozi Okonkwo", "HK", true)).toBeNull();                                 // HK Supervisor
+    expect(signOff(t.id, "Ngozi Okonkwo", "HK", true)).toMatch(/at work today/);                   // HK Supervisor, but on leave
+    expect(signOff(t.id, "Adaeze Okonkwo", "MGT", true)).toBeNull();                               // so a hotel manager signs off
     expect(trip(t.id)!.status).toBe("waiting-fleet");
   });
 
@@ -37,7 +38,8 @@ describe("vehicle requests: department sign-off, then Fleet", () => {
   test("turning down needs a reason; Fleet's named approvers can approve", () => {
     const t = ask("Yusuf Garba", "MX");
     expect(fleetDecide(t.id, "Kunle Bello", "FLT", false, "")).toMatch(/Say why/);
-    setApproverNames("Fleet", ["Sani Abdullahi"]);
+    setApproverNames("Fleet", ["Ngozi Okonkwo", "Sani Abdullahi"]);
+    expect(fleetDecide(t.id, "Ngozi Okonkwo", "HK", true)).toMatch(/Fleet's approvers/);  // named, but on leave
     expect(fleetDecide(t.id, "Sani Abdullahi", "FLT", false, "No van free today")).toBeNull();
     expect(trip(t.id)!.status).toBe("turned-down");
     expect(fleetDecide(t.id, "Kunle Bello", "FLT", true)).toMatch(/not waiting/);

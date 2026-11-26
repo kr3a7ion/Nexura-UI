@@ -167,7 +167,7 @@ export function SuiteHome({
   );
 }
 
-export function DepartmentHome({ department, nav }: { department: Department; nav: (screen: Screen, label: string) => void }) {
+export function DepartmentHome({ department, nav, opens = () => true }: { department: Department; nav: (screen: Screen, label: string) => void; opens?: (screen: Screen) => boolean }) {
   const Icon = department.icon;
   const home = DEPARTMENT_HOME[department.id];
   return (
@@ -182,7 +182,7 @@ export function DepartmentHome({ department, nav }: { department: Department; na
         <section key={group.label} className="mb-5">
           <h2 className="mb-3 text-sm font-bold" style={{ color: TEXT, fontFamily: display }}>{group.label.charAt(0) + group.label.slice(1).toLowerCase()}</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {group.items.map(item => (
+            {group.items.filter(item => opens(item.screen)).map(item => (
               <button key={item.screen} onClick={() => nav(item.screen, item.label)} className="flex min-h-[64px] items-center gap-3 rounded-2xl border bg-white p-4 text-left transition hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#1BA39C]" style={{ borderColor: BORDER }}>
                 <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl" style={{ backgroundColor: `${department.accent}14`, color: department.accent }}><Icon size={18} weight="duotone" /></span>
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold" style={{ color: TEXT }}>{item.label}</span>

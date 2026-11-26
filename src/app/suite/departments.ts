@@ -132,7 +132,7 @@ export const DEPARTMENTS: Department[] = [
       { label: "Attendance", screen: "attendance" },
       { label: "Payroll", screen: "payroll" },
     ],
-    screens: [group("People", [["Staff Directory", "staff-directory"], ["Roles & Permissions", "roles-permissions"], ["Department Levels", "department-levels"], ["Attendance", "attendance"], ["Shift Scheduler", "shift-scheduler"], ["Leave Management", "leave-management"], ["Payroll Summary", "payroll"]])],
+    screens: [group("People", [["Staff Directory", "staff-directory"], ["Roles & Permissions", "roles-permissions"], ["Department Team", "department-levels"], ["Attendance", "attendance"], ["Shift Scheduler", "shift-scheduler"], ["Leave Management", "leave-management"], ["Payroll Summary", "payroll"]])],
   },
   {
     id: "communications", name: "Communications", icon: Chat, accent: "#2563EB",
