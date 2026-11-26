@@ -80,7 +80,7 @@ export function WalkInReg({ add, nav, staffName }: { add: (t: Omit<Toast, "id">)
     if (deposit < 0 || deposit > total) { add({ type: "error", title: "Invalid deposit", body: "Deposit cannot exceed the stay total." }); return; }
     if (form.paymentMethod !== "Cash" && deposit > 0 && !form.paymentRef.trim()) { add({ type: "error", title: "Payment reference required", body: `Enter the ${form.paymentMethod} transaction reference.` }); return; }
     if (asksOverride && !overrideReason.trim()) { add({ type: "error", title: "Say why the rate should change", body: "The approver sees this reason." }); return; }
-    const stay = walkIn({ guest: guestName, room: selRoom.id, type: selRoom.type, nights, rate: effectiveRate ?? selRoom.rate, source: "Walk-in", balance: total - deposit }, deposit);
+    const stay = walkIn({ guest: guestName, room: selRoom.id, type: selRoom.type, nights, rate: effectiveRate ?? selRoom.rate, source: "Walk-in", balance: total - deposit }, deposit, staffName);
     if (!stay) { add({ type: "error", title: `Room ${selRoom.id} is not free for those nights`, body: "Choose another room or fewer nights." }); return; }
     const id = stay.id;
     if (asksOverride) requestApproval({ kind: "Rate override", dept: "Front Office", ref: id, title: `${guestName}, room ${selRoom.id}`,
@@ -209,8 +209,8 @@ export function WalkInReg({ add, nav, staffName }: { add: (t: Omit<Toast, "id">)
 }
 
 
-// InspectionLog, LinenSupplies, HousekeepingSchedule, KeyCardMgmt, HKMyTasks → HKOpsScreens.tsx
-export { InspectionLog, LinenSupplies, HousekeepingSchedule, KeyCardMgmt, HKMyTasks } from "./HKOpsScreens";
+// InspectionLog, LinenSupplies, HousekeepingSchedule, HKMyTasks → HKOpsScreens.tsx
+export { InspectionLog, LinenSupplies, HousekeepingSchedule, HKMyTasks } from "./HKOpsScreens";
 
 
 

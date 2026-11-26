@@ -65,7 +65,7 @@ export const DEPARTMENTS: Department[] = [
       { label: "Monitor", screen: "key-card-log" },
       { label: "Revoke at check-out", screen: "room-access" },
     ],
-    screens: [group("Guest Access", [["Key Card Management", "key-card"], ["Room Access Mgmt", "room-access"], ["Key Card Log", "key-card-log"], ["PIN Management", "pin-management"]]), group("Configuration", [["Door Lock Settings", "door-lock-settings"]])],
+    screens: [group("Guest Access", [["Guest Keys", "key-card"], ["Door Passcodes", "pin-management"], ["Key Log", "key-card-log"], ["Room Access Mgmt", "room-access"]]), group("Configuration", [["Door Lock Settings", "door-lock-settings"]])],
   },
   {
     id: "housekeeping", name: "Housekeeping", icon: Bed, accent: "#7C3AED",

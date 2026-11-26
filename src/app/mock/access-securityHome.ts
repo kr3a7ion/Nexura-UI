@@ -1,9 +1,12 @@
+import { keys, keyState, validUntil, keyLog, activeKeysFor } from "./access";
+import { STAYS, leavesToday } from "./frontOffice";
+import { now } from "./maintenance";
+
 export type AccessQueueItem = {
   id: string;
   holder: string;
-  branch: "Abuja" | "Lagos";
   room: string;
-  credential: "Key card" | "Mobile key" | "Guest PIN" | "Staff card";
+  credential: string;
   departure: string;
   revokeAt: string;
   status: "Due" | "Scheduled" | "Overdue";
@@ -18,21 +21,30 @@ export type AccessException = {
   screenLabel: string;
 };
 
-export const ACCESS_SECURITY_KPIS = [
-  { label: "Active keys", value: "86", sub: "71 guest · 15 staff credentials", delta: "+9 today", deltaPositive: true },
-  { label: "PINs expiring today", value: "12", sub: "9 guest · 3 service PINs", delta: "4 by noon", deltaPositive: false },
-  { label: "Locks with low battery", value: "3", sub: "Rooms 218, 412 and 507", delta: "Below 15%", deltaPositive: false },
-  { label: "Locks offline", value: "1", sub: "Lagos staff entrance", delta: "1h 14m", deltaPositive: false },
-] as const;
+const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+/** The first two figures come from the guest keys; the lock figures come with door events (A2). */
+export const accessKpis = () => {
+  const t = now(), active = keys().filter(k => keyState(k, t) === "Active"), cards = active.filter(k => k.kind === "Card").length;
+  const stopping = STAYS.filter(s => leavesToday(s) && activeKeysFor(s.id).length);
+  const issuedToday = keyLog().filter(l => l.event === "Issued" && sameDay(l.at, t)).length;
+  return [
+    { label: "Active guest keys", value: String(active.length), sub: `${cards} cards, ${active.length - cards} passcodes`, delta: `${issuedToday} issued today`, deltaPositive: true },
+    { label: "Keys stopping today", value: String(stopping.length), sub: `${stopping.length} departing stay${stopping.length === 1 ? "" : "s"}`, delta: "At each check-out time", deltaPositive: true },
+    { label: "Locks with low battery", value: "3", sub: "Rooms 218, 412 and 507", delta: "Below 15%", deltaPositive: false },
+    { label: "Locks offline", value: "1", sub: "Lagos staff entrance", delta: "1h 14m", deltaPositive: false },
+  ];
+};
+/** Departing guests whose keys stop at their check-out time; overdue when the time has passed and they are still in. */
+export const accessQueue = (): AccessQueueItem[] => {
+  const t = now();
+  return STAYS.filter(s => leavesToday(s) && activeKeysFor(s.id).length).map(s => {
+    const ks = activeKeysFor(s.id), until = validUntil(ks[0])!, cards = ks.filter(k => k.kind === "Card").length;
+    const status = until < t ? "Overdue" as const : until.getTime() - t.getTime() < 3600000 ? "Due" as const : "Scheduled" as const;
+    return { id: s.id, holder: s.guest, room: s.room, credential: `${cards} card${cards === 1 ? "" : "s"}${ks.length > cards ? ", passcode" : ""}`, departure: `Today, ${s.checkoutTime}`, revokeAt: s.checkoutTime, status };
+  }).sort((a, b) => a.revokeAt.localeCompare(b.revokeAt));
+};
 
-export const ACCESS_QUEUE: AccessQueueItem[] = [
-  { id: "ACC-2608-0841", holder: "Chinedu Okafor", branch: "Abuja", room: "304", credential: "Mobile key", departure: "Today · 11:00", revokeAt: "11:15", status: "Due" },
-  { id: "ACC-2608-0838", holder: "Aisha Bello", branch: "Abuja", room: "218", credential: "Key card", departure: "Today · 11:30", revokeAt: "11:45", status: "Scheduled" },
-  { id: "ACC-2608-0829", holder: "Ngozi Eze", branch: "Abuja", room: "412", credential: "Guest PIN", departure: "Today · 11:00", revokeAt: "11:00", status: "Overdue" },
-  { id: "ACC-2608-0824", holder: "Musa Ibrahim", branch: "Abuja", room: "126", credential: "Key card", departure: "Today · 13:00", revokeAt: "13:15", status: "Scheduled" },
-  { id: "ACC-2608-0816", holder: "Kemi Balogun", branch: "Lagos", room: "507", credential: "Key card", departure: "Today · 10:00", revokeAt: "10:15", status: "Overdue" },
-  { id: "ACC-2608-0812", holder: "Tunde Afolabi", branch: "Lagos", room: "205", credential: "Guest PIN", departure: "Today · 14:00", revokeAt: "14:00", status: "Scheduled" },
-];
+
 
 export const ACCESS_EXCEPTIONS: AccessException[] = [
   { id: "SEC-01", title: "Failed access attempts", detail: "Three denied attempts at the Abuja staff entrance by card STF-019.", severity: "Warning", screen: "key-card-log", screenLabel: "Key Card Log" },

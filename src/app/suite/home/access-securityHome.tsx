@@ -8,7 +8,7 @@ import {
   BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
 import {
-  ACCESS_EXCEPTIONS, ACCESS_GATEWAY, ACCESS_QUEUE, ACCESS_SECURITY_KPIS, type AccessQueueItem,
+  ACCESS_EXCEPTIONS, ACCESS_GATEWAY, accessQueue, accessKpis, type AccessQueueItem,
 } from "../../mock/access-securityHome";
 import { DEPARTMENTS } from "../departments";
 
@@ -33,6 +33,7 @@ const severityColors = {
 
 export default function AccessSecurityHome({ nav }: { nav: Nav }) {
   const [viewState, setViewState] = useState<ViewState>("Ready");
+  const kpis = accessKpis(), queue = accessQueue();
 
   const quickActions: Array<{ label: string; icon: ElementType; screen: Screen }> = [
     { label: "Encode key card", icon: Plus, screen: "key-card" },
@@ -71,10 +72,10 @@ export default function AccessSecurityHome({ nav }: { nav: Nav }) {
       </section>
 
       <section className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard {...ACCESS_SECURITY_KPIS[0]} icon={Keyhole} accent={accent} />
-        <StatCard {...ACCESS_SECURITY_KPIS[1]} icon={LockKey} accent={accent} />
-        <StatCard {...ACCESS_SECURITY_KPIS[2]} icon={BatteryWarning} accent={accent} />
-        <StatCard {...ACCESS_SECURITY_KPIS[3]} icon={Door} accent={accent} />
+        <StatCard {...kpis[0]} icon={Keyhole} accent={accent} />
+        <StatCard {...kpis[1]} icon={LockKey} accent={accent} />
+        <StatCard {...kpis[2]} icon={BatteryWarning} accent={accent} />
+        <StatCard {...kpis[3]} icon={Door} accent={accent} />
       </section>
 
       <section className="mb-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
@@ -94,18 +95,18 @@ export default function AccessSecurityHome({ nav }: { nav: Nav }) {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.75fr)]">
         <section className="overflow-hidden rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
-          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Credentials to revoke</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Today’s departing guests · 2 overdue · gateway updated 10:44</p></div><BtnO label="Open access manager" icon={Door} onClick={() => nav("room-access", "Room Access Mgmt")} /></div>
+          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Keys stopping today</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Departing guests. Their keys stop at check-out, and at their check-out time if they have not checked out.</p></div><BtnO label="Open access manager" icon={Door} onClick={() => nav("room-access", "Room Access Mgmt")} /></div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px] text-left">
-              <thead><tr style={{ backgroundColor: BG }}>{["Holder", "Room", "Credential", "Departure", "Revoke at", "Status", "Action"].map(label => <th key={label} className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{label}</th>)}</tr></thead>
-              <tbody>{ACCESS_QUEUE.map(item => <tr key={item.id} className="border-t hover:bg-slate-50" style={{ borderColor: BORDER }}>
-                <td className="px-4 py-3"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.holder}</div><div className="mt-0.5 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{item.id} · {item.branch}</div></td>
+              <thead><tr style={{ backgroundColor: BG }}>{["Guest", "Room", "Keys", "Departure", "Stops at", "Status", "Action"].map(label => <th key={label} className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{label}</th>)}</tr></thead>
+              <tbody>{queue.map(item => <tr key={item.id} className="border-t hover:bg-slate-50" style={{ borderColor: BORDER }}>
+                <td className="px-4 py-3"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.holder}</div><div className="mt-0.5 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{item.id}</div></td>
                 <td className="px-4 py-3 text-xs font-semibold" style={{ color: TEXT }}>{item.room}</td>
                 <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.credential}</td>
                 <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.departure}</td>
                 <td className="px-4 py-3 text-xs" style={{ color: TEXT, fontFamily: mono }}>{item.revokeAt}</td>
                 <td className="px-4 py-3"><Badge label={item.status} colors={statusColors[item.status]} /></td>
-                <td className="px-4 py-3 text-right"><button onClick={() => nav(item.credential === "Guest PIN" ? "pin-management" : "room-access", item.credential === "Guest PIN" ? "PIN Management" : "Room Access Mgmt")} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold" style={{ backgroundColor: `${accent}12`, color: accent }}>Revoke<ArrowRight size={12} /></button></td>
+                <td className="px-4 py-3 text-right"><button onClick={() => nav("key-card", "Guest Keys")} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold" style={{ backgroundColor: `${accent}12`, color: accent }}>Open keys<ArrowRight size={12} /></button></td>
               </tr>)}</tbody>
             </table>
           </div>

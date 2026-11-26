@@ -57,6 +57,8 @@ export const ROUTES = {
   "incident.reported":     { level: "High",   roles: [] },
   "meter.flagged":         { level: "High",   roles: ["MX"] },
   "stock.low":             { level: "Normal", roles: ["MX"] },
+  "key.lost":              { level: "Low",    roles: ["FD"] },
+  "key.revoked":           { level: "High",   roles: ["MGT", "FD"] },
   "room.backFromMaintenance": { level: "Normal", roles: ["HK"] },
   "dnd.overridden":        { level: "High",   roles: ["FD", "MGT"] },
   "foundItem.logged":      { level: "Low",    roles: ["FD"] },

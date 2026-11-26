@@ -38,6 +38,7 @@ import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, 
 import { UI, controlClass, controlStyle, Field, Card, SectionTitle, Stepper, Choice, Segmented, Row } from "./ui";
 import { ROOM_TYPES, roomPrice, roomTypeNames } from "./mock/property";
 import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
+import { activeKeysFor, stopAllKeys } from "./mock/access";
 import { addBooking, checkOut, typeAvailable, assignRoom, roomsForBooking } from "./mock/hotel";
 import { requestApproval } from "./mock/approvals";
 import { addDiscount, discountOf } from "./mock/frontOffice";
@@ -907,11 +908,9 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
   const [lateChargeCat, setLateChargeCat]   = useState("Bar");
   const [lateChargeDesc, setLateChargeDesc] = useState("");
   const [lateChargeAmt, setLateChargeAmt]   = useState("");
-  const [accessRevoked, setAccessRevoked]   = useState<Record<string, boolean>>({});
   const [keyReturned, setKeyReturned]       = useState<Record<string, boolean>>({});
   const [feedbackStatus, setFeedbackStatus] = useState<Record<string, "sent" | "skipped">>({});
   const [guestSearch, setGuestSearch]       = useState("");
-  const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
   const [earlyDepartureReason, setEarlyDepartureReason] = useState("");
   const [showSplitFolio, setShowSplitFolio] = useState(false);
@@ -930,10 +929,9 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
   const [checkoutOverrides, setCheckoutOverrides] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const [reservationId, context] = initialReservationId.split("|");
+    const [reservationId] = initialReservationId.split("|");
     if (reservationId && ALL_GUESTS.some(d => d.id === reservationId)) {
       setSelectedId(reservationId);
-      if (context === "revoked") setAccessRevoked(state => ({ ...state, [reservationId]: true }));
     }
   }, [initialReservationId]);
 
@@ -959,7 +957,8 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
 
   const isCheckedOut = checkedOutIds.includes(selectedId);
   const gDiscount    = discountOf(selectedId);
-  const gAccess      = accessRevoked[selectedId] ?? false;
+  // Keys stop by themselves at check-out (mock/access.ts); stopped early only if every key was stopped from In-House.
+  const liveKeys     = activeKeysFor(selectedId), keysEnded = !liveKeys.length;
   const gKey         = keyReturned[selectedId]   ?? false;
   const gFeedback    = feedbackStatus[selectedId];
 
@@ -986,7 +985,7 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
   const balanceCovered =
     balance === 0 ||
     paymentEvidenceOk;
-  const canCheckOut  = balanceCovered && gAccess && gKey && !isCheckedOut;
+  const canCheckOut  = balanceCovered && gKey && !isCheckedOut;
   const releaseConfirmed = g.dueToday || !!earlyDepartureReason.trim();
   const splitTotal = splitLines.reduce((sum, index) => {
     const charge = charges[index];
@@ -1066,7 +1065,7 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
 
   const pick = (id: string) => {
     setSelectedId(id); setPayMethod("Cash"); setCashAmt(""); setCardAmt(""); setCardRef(""); setBankRef(""); setCorporateRef("");
-    setEarlyDepartureReason(""); setShowReleaseConfirm(false); setShowRevokeConfirm(false);
+    setEarlyDepartureReason(""); setShowReleaseConfirm(false);
     setShowSplitFolio(false); setSplitLines([]); setShowTransferCharge(false); setTransferLine(null); setShowExtendStay(false);
   };
   const GuestRow = ({ d }: { d: typeof ALL_GUESTS[0] }) => {
@@ -1221,19 +1220,15 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
               {/* Access revocation */}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: gAccess ? "#D1FAE5" : "#FEF2F2" }}>
-                    <Lock size={15} weight="bold" style={{ color: gAccess ? SUCCESS : ERROR }} />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#D1FAE5" }}>
+                    <Lock size={15} weight="bold" style={{ color: SUCCESS }} />
                   </div>
                   <div>
                     <p className="text-sm font-semibold" style={{ color: TEXT }}>Room access credentials</p>
-                    <p className="text-xs mt-0.5" style={{ color: CK_MUT }}>Key Card ×1 · PIN Active · Room {g.room} · TTLock</p>
-                    <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>Immediate revocation — stops working within 30s</p>
+                    <p className="text-xs mt-0.5" style={{ color: CK_MUT }}>{keysEnded ? "Every key already stopped" : liveKeys.map(k => k.kind === "Card" ? `Card ${k.serial}` : "Door passcode").join(", ")}. Room {g.room}</p>
+                    <p className="text-xs mt-0.5" style={{ color: SUBTLE }}>They stop at check-out, in the same step</p>
                   </div>
                 </div>
-                {!gAccess
-                  ? <button onClick={() => setShowRevokeConfirm(true)}
-                      className="text-xs px-3 py-1.5 rounded-lg font-bold text-white flex-shrink-0" style={{ backgroundColor: ERROR }}>Revoke now</button>
-                  : <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-bold flex-shrink-0" style={{ backgroundColor: "#D1FAE5", color: SUCCESS }}><CheckCircle size={11} weight="bold" />Revoked</span>}
               </div>
 
               {/* Key return */}
@@ -1371,7 +1366,6 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                 <p className="text-sm font-medium mb-2" style={{ color: TEXT }}>Before check-out</p>
                 {([
                   [balanceCovered, "Balance settled"],
-                  [gAccess, "Access revoked"],
                   [gKey, "Key cards returned"],
                 ] as [boolean, string][]).map(([done, label]) => (
                   <div key={label} className="flex items-center gap-2">
@@ -1394,7 +1388,7 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                 className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white disabled:opacity-30 hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: canCheckOut ? SUCCESS : PRIMARY }}>
                 {canCheckOut ? <CheckCircle size={15} weight="bold" /> : <CurrencyDollar size={15} weight="bold" />}
-                {!gAccess ? "Revoke access first" : !gKey ? "Confirm key return" : !balanceCovered ? "Settle balance first" : "Process & Release Room"}
+                {!gKey ? "Confirm key return" : !balanceCovered ? "Settle balance first" : "Process & Release Room"}
               </button>
             </div>
           </div>
@@ -1411,10 +1405,10 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                   ["Phone",     g.phone],
                 ] as [string, string][]).map(([k, v]) => <Row key={k} label={k} value={v} />)}
               </div>
-              <button disabled={gAccess} onClick={() => { setExtensionNights("1"); setExtensionReason(""); setShowExtendStay(true); }}
+              <button disabled={keysEnded} onClick={() => { setExtensionNights("1"); setExtensionReason(""); setShowExtendStay(true); }}
                 className="w-full mt-4 text-sm font-medium bg-white disabled:opacity-40"
                 style={{ height: 40, borderRadius: 10, border: "1px solid #CBD5E1", color: TEXT }}>
-                {gAccess ? "Key access ended, the stay can't be extended" : "Extend the stay"}
+                {keysEnded ? "Every key was stopped, so the stay can't be extended" : "Extend the stay"}
               </button>
             </div>
           </div>
@@ -1599,33 +1593,6 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
         </>
       )}
 
-      {showRevokeConfirm && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setShowRevokeConfirm(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-[calc(100%-2rem)] max-w-md overflow-hidden" style={{ border: `1.5px solid ${CK_BD}` }}>
-            <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid #E2E8F0" }}>
-              <p className="text-base font-semibold" style={{ color: ERROR, fontFamily: display }}>End key access for room {g.room}</p>
-            </div>
-            <div className="p-6">
-              <div className="flex items-start gap-3 p-3 rounded-xl mb-4" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>
-                <Lock size={18} weight="bold" className="flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-bold">Immediate TTLock revocation</p>
-                  <p className="text-xs mt-1 leading-relaxed">The active key card and PIN will stop working within 30 seconds. If the provider is offline, revocation is queued and the room must not be released until sync is confirmed.</p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setShowRevokeConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
-                <button onClick={() => {
-                  setAccessRevoked(p => ({ ...p, [selectedId]: true }));
-                  setShowRevokeConfirm(false);
-                  add({ type: "success", title: "Access revoked", body: `Room ${g.room} · TTLock confirmed immediate revocation` });
-                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: ERROR }}>End key access</button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
 
       {showReleaseConfirm && (
         <>
@@ -1665,7 +1632,7 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
               <div className="flex gap-3">
                 <button onClick={() => setShowReleaseConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
                 <button disabled={!releaseConfirmed} onClick={() => {
-                  checkOut(selectedId);
+                  checkOut(selectedId, staffName);
                   setCheckedOutIds(p => p.includes(selectedId) ? p : [...p, selectedId]);
                   setShowReleaseConfirm(false);
                   add({ type: "success", title: "Check-out complete", body: `Room ${g.room} is on the Housekeeping board to be cleaned.` });
@@ -1835,7 +1802,7 @@ export function InHouseGuests({ add, nav, staffName }: { add: (t: Omit<Toast, "i
   const [moveRoom, setMoveRoom] = useState("");
   const [moveReason, setMoveReason] = useState("");
   const [revokeReason, setRevokeReason] = useState("");
-  const [revokedAccess, setRevokedAccess] = useState<string[]>([]);
+  const [, redrawKeys] = useState(0); const keysStopped = (id: string) => !activeKeysFor(id).length;
   const filtered = guests.filter(g => {
     const ms = !ihSearch || g.guest.toLowerCase().includes(ihSearch.toLowerCase()) || g.room.includes(ihSearch);
     const mf = ihFilter === "All" ? true : ihFilter === "VIP" ? g.vip : ihFilter === "Outstanding" ? g.balance > 0 : ihFilter === "DND" ? g.dnd : ihFilter === "Attention" ? g.requests > 0 || g.complaints > 0 : g.nightsLeft === 0;
@@ -1907,13 +1874,13 @@ export function InHouseGuests({ add, nav, staffName }: { add: (t: Omit<Toast, "i
                       {g.dnd && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#F3F4F6", color: MUTED }}>DND</span>}
                       {g.requests > 0 && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>{g.requests} req</span>}
                       {g.complaints > 0 && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>{g.complaints} complaint</span>}
-                      {revokedAccess.includes(g.id) && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Access revoked</span>}
+                      {keysStopped(g.id) && <span className="text-xs px-1.5 py-0.5 rounded font-semibold" style={{ backgroundColor: "#FEE2E2", color: ERROR }}>Access revoked</span>}
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 relative">
-                      <button onClick={() => nav && nav("check-out", "Guest Folio", revokedAccess.includes(g.id) ? `${g.id}|revoked` : g.id)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold hover:bg-[#F4F4F5] transition-colors" style={{ color: PRIMARY, borderColor: BORDER }}>Folio</button>
-                      <button onClick={() => nav && nav("check-out", "Check-Out", revokedAccess.includes(g.id) ? `${g.id}|revoked` : g.id)} className="text-xs px-2.5 py-1.5 rounded-lg font-semibold text-white transition-colors hover:opacity-90" style={{ backgroundColor: PRIMARY }}>Check out</button>
+                      <button onClick={() => nav && nav("check-out", "Guest Folio", g.id)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold hover:bg-[#F4F4F5] transition-colors" style={{ color: PRIMARY, borderColor: BORDER }}>Folio</button>
+                      <button onClick={() => nav && nav("check-out", "Check-Out", g.id)} className="text-xs px-2.5 py-1.5 rounded-lg font-semibold text-white transition-colors hover:opacity-90" style={{ backgroundColor: PRIMARY }}>Check out</button>
                       <div className="relative">
                         <button aria-label="More actions" onClick={() => setMoreMenu(moreMenu === g.room ? null : g.room)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#F4F4F5] transition-colors" style={{ color: SUBTLE }}><DotsThree size={13} weight="bold" /></button>
                         {moreMenu === g.room && (
@@ -1924,7 +1891,7 @@ export function InHouseGuests({ add, nav, staffName }: { add: (t: Omit<Toast, "i
                             <button onClick={() => openAction("extend", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Extend stay</button>
                             <button onClick={() => openAction("move", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Move room</button>
                             <button onClick={() => { setMoreMenu(null); setFaultRoom(g.room); }} className="w-full text-left px-4 py-2 text-xs hover:bg-[#F8FAFC] transition-colors" style={{ color: TEXT }}>Report a fault</button>
-                            <button disabled={revokedAccess.includes(g.id)} onClick={() => openAction("revoke", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#FEF2F2] transition-colors disabled:opacity-40" style={{ color: ERROR }}>{revokedAccess.includes(g.id) ? "Access Already Revoked" : "Revoke Room Access"}</button>
+                            <button disabled={keysStopped(g.id)} onClick={() => openAction("revoke", g)} className="w-full text-left px-4 py-2 text-xs hover:bg-[#FEF2F2] transition-colors disabled:opacity-40" style={{ color: ERROR }}>{keysStopped(g.id) ? "Every key already stopped" : "Stop every key"}</button>
                           </div>
                         )}
                       </div>
@@ -2044,11 +2011,11 @@ export function InHouseGuests({ add, nav, staffName }: { add: (t: Omit<Toast, "i
                 <>
                   <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>
                     <Lock size={18} weight="bold" className="flex-shrink-0" />
-                    <div><p className="text-sm font-bold">Emergency access revocation</p><p className="text-xs mt-1 leading-relaxed">All key cards and PINs for Room {actionGuest.room} will be revoked through TTLock. Management and logged-in Front Desk staff will be notified.</p></div>
+                    <div><p className="text-sm font-bold">Stop every key for room {actionGuest.room}</p><p className="text-xs mt-1 leading-relaxed">Every card and the door passcode stop now. Managers and the front desk are told.</p></div>
                   </div>
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Revocation Reason *</label>
-                    <select aria-label="Revocation reason" value={revokeReason} onChange={e => setRevokeReason(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${revokeReason ? BORDER : ERROR}`, backgroundColor: "white", color: TEXT }}>
+                    <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: ERROR }}>Reason *</label>
+                    <select aria-label="Reason for stopping every key" value={revokeReason} onChange={e => setRevokeReason(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${revokeReason ? BORDER : ERROR}`, backgroundColor: "white", color: TEXT }}>
                       <option value="">Select reason</option>
                       {["Guest safety concern", "Lost or stolen credential", "Security incident", "Management instruction", "Room move", "Other"].map(reason => <option key={reason}>{reason}</option>)}
                     </select>
@@ -2077,9 +2044,10 @@ export function InHouseGuests({ add, nav, staffName }: { add: (t: Omit<Toast, "i
                   add({ type: "success", title: "Room move complete", body: `${actionGuest.guest} · ${oldRoom} → ${room} · New access issued` }); setGuestAction(null);
                 }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Confirm move</button>}
                 {guestAction.type === "revoke" && <button disabled={!revokeReason} onClick={() => {
-                  setRevokedAccess(ids => ids.includes(actionGuest.id) ? ids : [...ids, actionGuest.id]);
-                  add({ type: "error", title: `Emergency revoke — Room ${actionGuest.room}`, body: `${revokeReason} · Management and Front Desk notified` }); setGuestAction(null);
-                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ERROR }}>End key access</button>}
+                  const r = stopAllKeys(actionGuest.id, staffName, revokeReason);
+                  if (typeof r === "string") { add({ type: "error", title: r }); return; }
+                  add({ type: "warning", title: `Every key for room ${actionGuest.room} stopped`, body: `${r} key${r === 1 ? "" : "s"}. Managers and the front desk have been told.` }); setGuestAction(null); redrawKeys(n => n + 1);
+                }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ERROR }}>Stop every key</button>}
               </div>
             </div>
           </div>
