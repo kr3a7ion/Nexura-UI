@@ -20,158 +20,14 @@ import {
   type Toast, mono, PRIMARY, TEAL, ORANGE, SUCCESS, WARNING, ERROR,
   BORDER, TEXT, MUTED, SUBTLE,
   ShiftProposalStore, type ShiftProposal,
-fmtDate, BUSINESS_DATE, stampNow, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
+fmtDate, BUSINESS_DATE, PROPERTY_PROFILE, stampNow, ORANGE_INK, TEAL_INK, WARNING_INK } from "./constants";
 import { StatCard, PageHeader, BtnP, BtnO, Badge } from "./UIKit";
 import { DateInput } from "./DateInput";
 
 // ─── Shared fleet data ────────────────────────────────────────────────────────
 
-type TripStatus = "pending-approval" | "requested" | "assigned" | "dispatched" | "en-route" | "in-transit" | "completed" | "cancelled";
-type ServiceLine = "Airport Transfer" | "Charter" | "Hotel Transport" | "Staff & Logistics";
-type ChargeType = "folio" | "complimentary" | "cost-centre" | "cash";
-type TripPriority = "Normal" | "Urgent" | "Emergency";
-type CancelReason = "Guest cancelled" | "Guest no-show" | "Flight changed" | "No vehicle available" | "No driver available" | "Vehicle breakdown" | "Duplicate request" | "Other";
-interface TripEvent { time: string; event: string; actor: string; note?: string; }
-
-interface Trip {
-  id: string;
-  serviceL: ServiceLine;
-  status: TripStatus;
-  priority: TripPriority;
-  // guest trip
-  guest?: string;
-  reservationRef?: string;
-  // dept trip
-  dept?: string;
-  requestedBy?: string;
-  supervisor?: string;
-  costCentre?: string;
-  pickup: string;
-  dropoff: string;
-  scheduledTime: string;
-  vehicle?: string;
-  driver?: string;
-  pax: number;
-  flight?: string;
-  terminal?: "International" | "Domestic";
-  tripMode: "one-way" | "round-trip";
-  odomStart?: number;
-  odomEnd?: number;
-  chargeType: ChargeType;
-  quotedFare: number;
-  finalFare?: number;
-  waitingSurcharge?: number;
-  folioRef?: string;
-  postedToFolio?: boolean;
-  waitMinutes?: number;
-  rating?: number;
-  feedback?: string;
-  notes?: string;
-  cancelReason?: CancelReason;
-  cancelNote?: string;
-  createdAt: string;
-  createdAtMs: number;
-  events: TripEvent[];
-}
-
-const _minsAgo = (m: number) => Date.now() - m * 60_000;
-const _nowStr = () => new Date().toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" });
-
-const TRIPS: Trip[] = [
-  {
-    id:"TRP-0041", serviceL:"Airport Transfer", status:"requested", priority:"Normal",
-    guest:"Dr. Chukwuemeka Bello", reservationRef:"BK-2849",
-    pickup:"Grand Palms Abuja", dropoff:"Nnamdi Azikiwe Int'l Airport",
-    scheduledTime:"14:30", pax:2, flight:"AA421", terminal:"International",
-    tripMode:"one-way", chargeType:"folio", quotedFare:18000, folioRef:"FOL-2019",
-    createdAt:"Today 09:42", createdAtMs:_minsAgo(48),
-    events:[{ time:"09:42", event:"Trip created", actor:"Front Desk", note:"From reservation BK-2849" }],
-  },
-  {
-    id:"TRP-0040", serviceL:"Airport Transfer", status:"assigned", priority:"Normal",
-    guest:"Mrs. Ngozi Okonkwo", reservationRef:"BK-2850",
-    pickup:"Nnamdi Azikiwe Int'l Airport", dropoff:"Grand Palms Abuja",
-    scheduledTime:"12:15", pax:1, flight:"QR842", terminal:"International",
-    tripMode:"one-way", chargeType:"folio", quotedFare:18000, folioRef:"FOL-2014",
-    vehicle:"ABJ-001E", driver:"Uche Obi",
-    createdAt:"Today 08:31", createdAtMs:_minsAgo(119),
-    events:[
-      { time:"08:31", event:"Trip created", actor:"Front Desk" },
-      { time:"08:35", event:"Driver assigned", actor:"Dispatch", note:"Uche Obi · ABJ 123 XA" },
-    ],
-  },
-  {
-    id:"TRP-0039", serviceL:"Charter", status:"dispatched", priority:"Urgent",
-    guest:"Senator Adeyemi",
-    pickup:"Grand Palms Abuja", dropoff:"Aso Rock (State House)",
-    scheduledTime:"10:00", pax:3,
-    tripMode:"round-trip", chargeType:"complimentary", quotedFare:45000,
-    vehicle:"ABJ-002E", driver:"Emeka Eze",
-    createdAt:"Today 07:55", createdAtMs:_minsAgo(155),
-    events:[
-      { time:"07:55", event:"Trip created", actor:"Management" },
-      { time:"07:58", event:"Driver assigned", actor:"Dispatch", note:"Emeka Eze · ABJ 456 YB" },
-      { time:"09:52", event:"Dispatched", actor:"Emeka Eze" },
-    ],
-  },
-  {
-    id:"TRP-0038", serviceL:"Hotel Transport", status:"en-route", priority:"Normal",
-    dept:"F&B", requestedBy:"Chukwudi Eze", supervisor:"Grace Mensah", costCentre:"FB-OPS-001",
-    pickup:"FreshMart Wuse II", dropoff:"Grand Palms Abuja",
-    scheduledTime:"09:30", pax:1,
-    tripMode:"round-trip", chargeType:"cost-centre", quotedFare:8500,
-    vehicle:"ABJ-003V", driver:"Musa Danladi", odomStart:31380,
-    createdAt:"Today 07:10", createdAtMs:_minsAgo(200),
-    events:[
-      { time:"07:10", event:"Trip created", actor:"Chukwudi Eze" },
-      { time:"07:12", event:"Approved", actor:"Grace Mensah" },
-      { time:"07:15", event:"Driver assigned", actor:"Dispatch", note:"Musa Danladi · ABJ 789 ZC" },
-      { time:"09:28", event:"Dispatched", actor:"Musa Danladi" },
-      { time:"09:31", event:"En Route", actor:"Musa Danladi" },
-    ],
-  },
-  {
-    id:"TRP-0037", serviceL:"Airport Transfer", status:"completed", priority:"Normal",
-    guest:"Adaeze Okonkwo-James", reservationRef:"BK-2847",
-    pickup:"Nnamdi Azikiwe Int'l Airport", dropoff:"Grand Palms Abuja",
-    scheduledTime:"07:00", pax:2, flight:"ET902", terminal:"International",
-    tripMode:"one-way", chargeType:"folio", quotedFare:18000, finalFare:20500, waitingSurcharge:2500,
-    vehicle:"ABJ-001E", driver:"Uche Obi",
-    odomStart:47850, odomEnd:47963, waitMinutes:25, rating:4.8,
-    feedback:"Excellent service, very punctual.",
-    folioRef:"FOL-2010", postedToFolio:true,
-    createdAt:"Yesterday 22:10", createdAtMs:_minsAgo(1440),
-    events:[
-      { time:"22:10", event:"Trip created", actor:"System", note:"Auto from reservation BK-2847" },
-      { time:"22:15", event:"Driver assigned", actor:"Dispatch (Adaeze)", note:"Uche Obi · ABJ 123 XA" },
-      { time:"05:45", event:"Dispatched", actor:"Uche Obi", note:"En route to airport" },
-      { time:"06:02", event:"Arrived at pickup", actor:"Uche Obi", note:"Wait started — flight ET902" },
-      { time:"06:27", event:"Trip started", actor:"Uche Obi", note:"Odometer 47,850 km · Pax boarded" },
-      { time:"07:11", event:"Completed", actor:"Uche Obi", note:"Odometer 47,963 km · Guests dropped off" },
-      { time:"07:14", event:"Charge posted to folio", actor:"System", note:"₦20,500 → FOL-2010" },
-    ],
-  },
-  {
-    id:"TRP-0036", serviceL:"Staff & Logistics", status:"pending-approval", priority:"Normal",
-    dept:"Housekeeping", requestedBy:"Amaka Osei", supervisor:"Grace Mensah", costCentre:"HK-OPS-001",
-    pickup:"Lagos Linen Co.", dropoff:"Grand Palms Abuja",
-    scheduledTime:"11:00", pax:1,
-    tripMode:"round-trip", chargeType:"cost-centre", quotedFare:12000,
-    notes:"Linen pickup — 6 bundles. Loading bay access required.",
-    createdAt:"Today 09:58", createdAtMs:_minsAgo(32),
-    events:[{ time:"09:58", event:"Request submitted", actor:"Amaka Osei", note:"Awaiting Grace Mensah approval" }],
-  },
-  {
-    id:"TRP-0035", serviceL:"Hotel Transport", status:"pending-approval", priority:"Urgent",
-    dept:"Maintenance", requestedBy:"Chidi Eze", supervisor:"Bello Musa", costCentre:"MX-OPS-002",
-    pickup:"Grand Palms Abuja", dropoff:"Techno Tools Market, Wuse",
-    scheduledTime:"10:30", pax:2,
-    tripMode:"one-way", chargeType:"cost-centre", quotedFare:6000,
-    notes:"Emergency parts run — HVAC compressor needed for Block C repair.",
-    createdAt:"Today 10:01", createdAtMs:_minsAgo(9),
-    events:[{ time:"10:01", event:"Request submitted", actor:"Chidi Eze", note:"Urgent — awaiting Bello Musa approval" }],
-  },
-];
+import { staffRecord, levelOf } from "./mock/staff";
+import { trips as allTrips, saveTrips, nowStr as _nowStr, requestTrip, type Trip, type TripStatus, type ServiceLine, type ChargeType, type TripPriority, type CancelReason } from "./mock/fleet";
 
 // shared mutable pointer so DispatchBoard → TripDetail navigation works
 let _detailTripId = "TRP-0037";
@@ -227,8 +83,10 @@ const SL_COLOR: Record<ServiceLine, string> = {
 };
 
 const STATUS_PILL: Record<TripStatus, { bg: string; text: string; label: string }> = {
-  "pending-approval": { bg:"#EDE9FE", text:"#5B21B6", label:"Pending Approval" },
-  requested:          { bg:"#EFF6FF", text:"#1D4ED8", label:"Requested"         },
+  "waiting-department": { bg:"#EDE9FE", text:"#5B21B6", label:"Waiting for department" },
+  "waiting-fleet":    { bg:"#EDE9FE", text:"#5B21B6", label:"Waiting for Fleet" },
+  "turned-down":      { bg:"#FEE2E2", text:"#991B1B", label:"Turned down"       },
+  requested:          { bg:"#EFF6FF", text:"#1D4ED8", label:"To assign"         },
   assigned:           { bg:"#FEF3C7", text:"#92400E", label:"Assigned"          },
   dispatched:         { bg:"#FEF9C3", text:"#713F12", label:"Dispatched"        },
   "en-route":         { bg:"#DCFCE7", text:"#166534", label:"En Route"          },
@@ -277,7 +135,8 @@ function ExpiryBadge({ days, label }: { days: number; label: string }) {
 // ─── 1. DispatchBoard ─────────────────────────────────────────────────────────
 
 export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void; nav?: (s: string, label: string) => void }) {
-  const [trips, setTrips] = useState(TRIPS);
+  const [, redraw] = useState(0); const trips = allTrips();
+  const setTrips = (fn: (p: Trip[]) => Trip[]) => { saveTrips(fn(allTrips())); redraw(n => n + 1); };
   const [selectedTrip, setSelectedTrip] = useState<string | null>(null);
   const [assignVehicle, setAssignVehicle] = useState<string>("");
   const [assignDriver,  setAssignDriver]  = useState<string>("");
@@ -286,7 +145,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
   const [cancelNote,   setCancelNote]     = useState("");
 
   const STATUS_COLS: TripStatus[] = ["requested", "assigned", "dispatched", "en-route", "in-transit", "completed"];
-  const pendingApproval = trips.filter(t => t.status === "pending-approval");
+  const pendingApproval = trips.filter(t => t.status === "waiting-department" || t.status === "waiting-fleet");
   const unassigned = trips.filter(t => t.status === "requested");
   const selectedTripObj = trips.find(t => t.id === selectedTrip);
 
@@ -315,14 +174,6 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
       : x));
     add({ type:"success", title:"Trip assigned", body:`${selectedTrip} → ${drv?.name} / ${veh?.plate}` });
     setSelectedTrip(null); setAssignVehicle(""); setAssignDriver("");
-  };
-
-  const approveRequest = (id: string) => {
-    const t = _nowStr();
-    setTrips(prev => prev.map(x => x.id === id
-      ? { ...x, status:"requested" as TripStatus, events:[...x.events, { time:t, event:"Approved by supervisor", actor:"Management" }] }
-      : x));
-    add({ type:"success", title:"Request approved — added to dispatch queue", body:id });
   };
 
   const advanceStatus = (id: string) => {
@@ -369,7 +220,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <StatCard label="Active trips"     value={String(trips.filter(t=>!["cancelled","completed"].includes(t.status)).length)} sub="Pending + in progress" icon={Car}          accent={PRIMARY} />
-        <StatCard label="Pending Approval" value={String(pendingApproval.length)} sub={pendingApproval.length>0?"Needs manager action":"All clear"} icon={AlertCircle} accent={pendingApproval.length>0?"#5B21B6":SUCCESS} />
+        <StatCard label="Not yet approved" value={String(pendingApproval.length)} sub={pendingApproval.length>0?"Waiting for sign-off":"All clear"} icon={AlertCircle} accent={pendingApproval.length>0?"#5B21B6":SUCCESS} />
         <StatCard label="Vehicles active"  value={String(VEHICLES.filter(v=>v.status==="on-trip").length)} sub={`of ${VEHICLES.length} total`} icon={Truck} accent={TEAL} />
         <StatCard label="Drivers on duty"  value={String(DRIVERS.filter(d=>d.onDuty).length)} sub={`of ${DRIVERS.length} total`} icon={Users} accent={ORANGE} />
       </div>
@@ -410,7 +261,7 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
             <div className="rounded-xl border-2 p-3" style={{ borderColor:"#7C3AED", backgroundColor:"#FAFAFF" }}>
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle size={14} style={{ color:"#5B21B6" }} />
-                <span className="text-xs font-bold" style={{ color:"#5B21B6" }}>Pending Approval — {pendingApproval.length} dept request{pendingApproval.length>1?"s":""} awaiting manager sign-off</span>
+                <span className="text-xs font-bold" style={{ color:"#5B21B6" }}>{pendingApproval.length} vehicle request{pendingApproval.length>1?"s":""} not yet approved</span>
               </div>
               <div className="space-y-2">
                 {pendingApproval.map(t => (
@@ -426,12 +277,8 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
                       {t.notes && <div className="text-xs mt-0.5 truncate" style={{ color:SUBTLE }}>{t.notes}</div>}
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
-                      <button onClick={()=>approveRequest(t.id)} className="px-2.5 py-1 rounded-lg text-xs font-bold text-white flex items-center gap-1" style={{ backgroundColor:SUCCESS }}>
-                        <CheckCircle2 size={11}/>Approve
-                      </button>
-                      <button onClick={()=>{setCancelTarget(t.id);}} className="px-2.5 py-1 rounded-lg text-xs border flex items-center gap-1" style={{ borderColor:"#FCA5A5", color:ERROR, backgroundColor:"#FFF1F2" }}>
-                        <XCircle size={11}/>Decline
-                      </button>
+                      <TripPill status={t.status} />
+                      <button onClick={()=>nav?.("vehicle-requests","Vehicle Requests")} className="px-2.5 py-1 rounded-lg text-xs font-bold text-white" style={{ backgroundColor:"#5B21B6" }}>Open vehicle requests</button>
                       <button onClick={()=>goToDetail(t.id)} className="px-2.5 py-1 rounded-lg text-xs border" style={{ borderColor:BORDER, color:MUTED }}>Detail</button>
                     </div>
                   </div>
@@ -595,7 +442,8 @@ export function DispatchBoard({ add, nav }: { add: (t: Omit<Toast,"id">) => void
 // ─── 2. TripDetail ───────────────────────────────────────────────────────────
 
 export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
-  const [trips, setTrips] = useState(TRIPS);
+  const [, redraw] = useState(0); const trips = allTrips();
+  const setTrips = (fn: (p: Trip[]) => Trip[]) => { saveTrips(fn(allTrips())); redraw(n => n + 1); };
   const trip = trips.find(t => t.id === _detailTripId) ?? trips.find(t => t.status === "completed") ?? trips[0];
   if (!trip) return <div className="p-8 text-center text-sm" style={{ color:MUTED }}>Trip not found.</div>;
 
@@ -673,7 +521,7 @@ export function TripDetail({ add }: { add: (t: Omit<Toast,"id">) => void }) {
             <div className="bg-white rounded-xl border p-4" style={{ borderColor:BORDER, boxShadow:"0 1px 3px rgba(13,27,46,0.06)" }}>
               <div className="text-sm font-semibold mb-3" style={{ color:TEXT }}>Department request</div>
               <div className="grid grid-cols-2 gap-3">
-                {[["Department",trip.dept!],["Requested By",trip.requestedBy!],["Supervisor",trip.supervisor!],["Cost Centre",trip.costCentre!]].filter(([,v])=>v).map(([k,v])=>(
+                {[["Department",trip.dept!],["Requested By",trip.requestedBy!],["Signed off by",trip.signedOffBy!],["Approved by",trip.approvedBy!],["Cost Centre",trip.costCentre!]].filter(([,v])=>v).map(([k,v])=>(
                   <div key={k}><div className="text-xs" style={{ color:MUTED }}>{k}</div><div className="text-sm font-semibold" style={{ color:TEXT, fontFamily:k==="Cost Centre"?mono:undefined }}>{v}</div></div>
                 ))}
               </div>
@@ -805,7 +653,11 @@ const DEPT_DEFAULT_TYPE: Record<string, DeptTripType> = {
   RT: "Procurement Run", FD: "Official Errand",
 };
 
-export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id">) => void; nav?: (s: string, label: string) => void; deptRole?: string }) {
+export function NewTripRequest({ add, nav, deptRole, staffName }: { add: (t: Omit<Toast,"id">) => void; nav?: (s: string, label: string) => void; deptRole?: string; staffName: string }) {
+  // The request is always from the person signed in, for their own department (HR's staff list).
+  const myDept = staffRecord(staffName)?.dept ?? "Management";
+  const iAmLead = deptRole === "MGT" || levelOf(staffName) !== "Staff";
+  const [gf, setGf] = useState({ dir: "arrival", guest: "", flight: "", time: "14:30", pax: "1", start: "", to: "" });
   const isDept = !!deptRole && deptRole !== "MGT" && !!DEPT_FROM_ROLE[deptRole];
   const defaultGroup: TripGroup = isDept ? "dept" : "guest";
   const defaultDeptType: DeptTripType = isDept ? (DEPT_DEFAULT_TYPE[deptRole!] ?? "Official Errand") : "Procurement Run";
@@ -817,13 +669,12 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
   const [chargeType,  setChargeType]  = useState<ChargeType>(isDept ? "cost-centre" : "folio");
   const [estKm,       setEstKm]       = useState(15);
   const [priority,    setPriority]    = useState<Priority>("Normal");
-  const [creating,    setCreating]    = useState(false);
 
   // Dept request form fields
   const [df, setDf] = useState({
     dept: isDept ? (DEPT_FROM_ROLE[deptRole!] ?? "") : "F&B",
-    requestedBy: "", supervisor: "", dateNeeded: "", timeNeeded: "",
-    from: "Grand Palms Abuja", to: "", passengers: "1", cargo: "", purpose: "", notes: "",
+    dateNeeded: "", timeNeeded: "",
+    from: PROPERTY_PROFILE.name, to: "", passengers: "1", cargo: "", purpose: "", notes: "",
     costCentre: isDept ? (DEPT_FROM_ROLE[deptRole!]?.replace(/[^A-Z]/g,"") + "-OPS-001") : "",
   });
 
@@ -835,20 +686,23 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
 
   const confirm = () => {
     if (group === "dept") {
-      if (!df.requestedBy.trim()) { add({ type:"error", title:"Requested by (staff name) is required" }); return; }
       if (!df.to.trim())          { add({ type:"error", title:"Destination is required" }); return; }
       if (!df.dateNeeded)         { add({ type:"error", title:"Date needed is required" }); return; }
     }
-    setCreating(true);
-    setTimeout(() => {
-      setCreating(false);
-      if (group === "dept") {
-        add({ type:"success", title:"Request submitted — TRP-0042", body:"Sent to supervisor for approval. You will be notified once approved." });
-      } else {
-        add({ type:"success", title:"Trip created — TRP-0042", body:"Status: Requested. Waiting for dispatch assignment." });
-        nav?.("dispatch-board", "Dispatch Board");
-      }
-    }, 1200);
+    if (group === "guest" && !gf.guest.trim()) { add({ type:"error", title:"Guest name is required" }); return; }
+    const charter = group === "guest" && guestType === "Guest Charter";
+    const t = requestTrip({
+      serviceL: group === "dept" ? "Staff & Logistics" : charter ? "Charter" : "Airport Transfer", priority,
+      guest: group === "guest" ? gf.guest.trim() : undefined,
+      pickup: group === "dept" ? df.from : !charter && gf.dir === "arrival" ? "Airport" : PROPERTY_PROFILE.name,
+      dropoff: group === "dept" ? df.to : charter ? (gf.to || "As the guest directs") : gf.dir === "arrival" ? PROPERTY_PROFILE.name : "Airport",
+      scheduledTime: group === "dept" ? `${df.dateNeeded ? fmtDate(df.dateNeeded) : ""} ${df.timeNeeded}`.trim() : charter ? gf.start.replace("T", " ") : gf.time,
+      pax: Number(group === "dept" ? df.passengers : gf.pax) || 1, flight: gf.flight || undefined,
+      tripMode: group === "dept" || charter ? "round-trip" : "one-way", chargeType, quotedFare: total,
+      costCentre: group === "dept" ? df.costCentre : undefined, notes: [df.purpose, df.cargo, df.notes].filter(Boolean).join(". ") || undefined,
+    }, staffName, deptRole ?? "");
+    add({ type:"success", title:`Request sent: ${t.id}`, body: t.status === "waiting-department" ? `A ${t.dept} supervisor or manager signs it off, then Fleet approves it.` : "Fleet approves it, then assigns a vehicle and driver." });
+    nav?.("vehicle-requests", "Vehicle Requests");
   };
 
   const PriorityBtn = ({ p }: { p: Priority }) => {
@@ -931,28 +785,28 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Direction</div>
-                    <select aria-label="Direction" className={inp} style={{ borderColor:BORDER }}>
-                      <option>Arrival pickup — airport → hotel</option>
-                      <option>Departure drop-off — hotel → airport</option>
+                    <select aria-label="Direction" value={gf.dir} onChange={e => setGf(g => ({ ...g, dir: e.target.value }))} className={inp} style={{ borderColor:BORDER }}>
+                      <option value="arrival">Arrival pickup — airport → hotel</option>
+                      <option value="departure">Departure drop-off — hotel → airport</option>
                     </select>
                   </div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Reservation (optional)</div><input placeholder="Search reservation or guest…" aria-label="Search reservation or guest" className={inp} style={{ borderColor:BORDER }} /></div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Guest Name *</div><input placeholder="e.g. Dr. Amaka Osei" aria-label="e.g. Dr. Amaka Osei" className={inp} style={{ borderColor:BORDER }} /></div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Flight number</div><input placeholder="e.g. DL421" aria-label="e.g. DL421" className={inp} style={{ borderColor:BORDER }} /></div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Arrival / Departure Time *</div><input aria-label="Arrival / Departure Time " type="time" defaultValue="14:30" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Guest Name *</div><input value={gf.guest} onChange={e => setGf(g => ({ ...g, guest: e.target.value }))} placeholder="e.g. Dr. Amaka Osei" aria-label="Guest name" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Flight number</div><input value={gf.flight} onChange={e => setGf(g => ({ ...g, flight: e.target.value }))} placeholder="e.g. DL421" aria-label="Flight number" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Arrival / Departure Time *</div><input aria-label="Arrival or departure time" type="time" value={gf.time} onChange={e => setGf(g => ({ ...g, time: e.target.value }))} className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Terminal</div><select aria-label="Terminal" className={inp} style={{ borderColor:BORDER }}><option>International</option><option>Domestic</option></select></div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Passengers</div><input aria-label="Passengers" type="number" defaultValue="1" min={1} max={20} className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Passengers</div><input aria-label="Passengers" type="number" value={gf.pax} onChange={e => setGf(g => ({ ...g, pax: e.target.value }))} min={1} max={20} className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Luggage (bags)</div><input aria-label="Luggage (bags)" type="number" defaultValue="2" min={0} className={inp} style={{ borderColor:BORDER }} /></div>
                 </div>
               )}
 
               {guestType === "Guest Charter" && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Guest / Client *</div><input placeholder="Guest name or company" aria-label="Guest name or company" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Guest / Client *</div><input value={gf.guest} onChange={e => setGf(g => ({ ...g, guest: e.target.value }))} placeholder="Guest name or company" aria-label="Guest name or company" className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Duration basis</div><select aria-label="Duration basis" className={inp} style={{ borderColor:BORDER }}><option>Hourly</option><option>Half-day (4h)</option><option>Full day (8h)</option></select></div>
-                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Start Date & Time *</div><input aria-label="Start Date & Time " type="datetime-local" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Start Date & Time *</div><input aria-label="Start date and time" type="datetime-local" value={gf.start} onChange={e => setGf(g => ({ ...g, start: e.target.value }))} className={inp} style={{ borderColor:BORDER }} /></div>
                   <div><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Estimated end</div><input aria-label="Estimated end" type="datetime-local" className={inp} style={{ borderColor:BORDER }} /></div>
-                  <div className="lg:col-span-2"><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Destination / Itinerary</div><input placeholder="e.g. Aso Rock → National Assembly → CBD" aria-label="e.g. Aso Rock → National Assembly → CBD" className={inp} style={{ borderColor:BORDER }} /></div>
+                  <div className="lg:col-span-2"><div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Destination / Itinerary</div><input value={gf.to} onChange={e => setGf(g => ({ ...g, to: e.target.value }))} placeholder="e.g. Aso Rock → National Assembly → CBD" aria-label="Destination or itinerary" className={inp} style={{ borderColor:BORDER }} /></div>
                 </div>
               )}
 
@@ -972,20 +826,15 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Department</div>
-                    {isDept
-                      ? <div className={inp + " font-semibold"} style={{ borderColor:BORDER, backgroundColor:"#F9FAFB", color:TEXT }}>{DEPT_FROM_ROLE[deptRole!]}</div>
-                      : <select aria-label="Department" value={df.dept} onChange={e => setDf(f => ({ ...f, dept: e.target.value }))} className={inp} style={{ borderColor:BORDER }}>
-                          {Object.values(DEPT_FROM_ROLE).filter(d => d !== "Management").map(d => <option key={d}>{d}</option>)}
-                        </select>
-                    }
+                    <div className={inp + " font-semibold"} style={{ borderColor:BORDER, backgroundColor:"#F9FAFB", color:TEXT }}>{myDept}</div>
                   </div>
                   <div>
-                    <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Requested By (Staff Name) *</div>
-                    <input value={df.requestedBy} onChange={e => setDf(f => ({ ...f, requestedBy: e.target.value }))} placeholder="Your full name" aria-label="Your full name" className={inp} style={{ borderColor:BORDER }} />
+                    <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Requested by</div>
+                    <div className={inp + " font-semibold"} style={{ borderColor:BORDER, backgroundColor:"#F9FAFB", color:TEXT }}>{staffName}</div>
                   </div>
                   <div>
-                    <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Supervisor / Approver</div>
-                    <input value={df.supervisor} onChange={e => setDf(f => ({ ...f, supervisor: e.target.value }))} placeholder="Name of approving supervisor" aria-label="Name of approving supervisor" className={inp} style={{ borderColor:BORDER }} />
+                    <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Sign-off</div>
+                    <div className="text-xs py-2" style={{ color:TEXT }}>{iAmLead ? "You lead this department, so it goes straight to Fleet." : `A ${myDept} supervisor or manager, then Fleet.`}</div>
                   </div>
                   <div>
                     <div className="text-xs font-medium mb-1" style={{ color:MUTED }}>Cost centre</div>
@@ -1079,7 +928,7 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
 
             {group === "dept" && (
               <div className="mb-3 p-3 rounded-xl text-xs" style={{ backgroundColor:"#F0F9FF", border:"1px solid #BAE6FD", color:"#0369A1" }}>
-                This request will be routed to your supervisor for approval before a vehicle is dispatched. You will receive a notification on the outcome.
+                {iAmLead ? "Fleet approves it, then assigns a vehicle and driver." : `A ${myDept} supervisor or manager signs it off, then Fleet approves it.`} You are told the outcome.
               </div>
             )}
 
@@ -1095,8 +944,8 @@ export function NewTripRequest({ add, nav, deptRole }: { add: (t: Omit<Toast,"id
             </div>
           </div>
 
-          <button onClick={confirm} disabled={creating} className="w-full py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor:PRIMARY }}>
-            {creating ? "Submitting…" : group==="dept" ? "Submit for Supervisor Approval" : "Create Trip Request"}
+          <button onClick={confirm} className="w-full py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor:PRIMARY }}>
+            {group==="dept" ? "Send the vehicle request" : "Send the guest trip to Fleet"}
           </button>
 
           {group === "dept" && priority !== "Normal" && (
@@ -2036,7 +1885,7 @@ export function DriverAccessLog({ add, driverName, role }: { add: (t: Omit<Toast
   const seedForRole = isDrv ? LOGBOOK_SEED.filter(l => l.driver === driverName) : LOGBOOK_SEED;
 
   // Assigned trip requests for this driver (status ≤ assigned)
-  const myAssigned = TRIPS.filter(t =>
+  const myAssigned = allTrips().filter(t =>
     isDrv && t.driver === driverName && (t.status === "assigned" || t.status === "dispatched")
   );
 

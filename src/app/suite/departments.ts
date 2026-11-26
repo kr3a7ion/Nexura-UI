@@ -155,7 +155,7 @@ export const DEPARTMENTS: Department[] = [
       { label: "Complete", screen: "trip-detail" },
       { label: "Cost", screen: "fleet-costing" },
     ],
-    screens: [group("Dispatch", [["Dispatch Board", "dispatch-board"], ["New Trip Request", "new-trip"], ["Trip Detail", "trip-detail"], ["Driver Roster", "driver-roster"], ["Driver Access Log", "driver-access-log"]]), group("Assets & Cost", [["Fleet Costing", "fleet-costing"], ["Vehicle Register", "vehicle-register"], ["Fuel Log", "fuel-log"]])],
+    screens: [group("Dispatch", [["Vehicle Requests", "vehicle-requests"], ["Dispatch Board", "dispatch-board"], ["New Trip Request", "new-trip"], ["Trip Detail", "trip-detail"], ["Driver Roster", "driver-roster"], ["Driver Access Log", "driver-access-log"]]), group("Assets & Cost", [["Fleet Costing", "fleet-costing"], ["Vehicle Register", "vehicle-register"], ["Fuel Log", "fuel-log"]])],
   },
   {
     id: "reports", name: "Reports & Insights", icon: ChartBar, accent: "#6D28D9",
