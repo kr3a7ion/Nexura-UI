@@ -42,3 +42,17 @@ describe("approvals", () => {
     expect(CHARGES[stay.id][0]).toMatchObject({ unit: 60000, amount: 120000, tax: 9000 });
   });
 });
+
+import { setApproverNames, approverPeople } from "./approvals";
+describe("named approvers per department", () => {
+  test("a named person approves that department's requests; others with the same role do not", () => {
+    setApproverNames("Front Office", ["Fatima Ibrahim"]);
+    const a = requestApproval({ kind: "Discount", dept: "Front Office", ref: "RES-NAMED", title: "Discount for RES-NAMED", detail: "20% off", reason: "Over the desk's limit", requestedBy: "John Abubakar", apply: () => true });
+    expect(waitingFor("RSV", "Fatima Ibrahim").some(x => x.id === a.id)).toBe(true);
+    expect(waitingFor("FD", "Ada Okonkwo").some(x => x.id === a.id)).toBe(false);
+    expect(decide(a.id, true, "Ada Okonkwo", "FD")).toMatch(/cannot approve/i);
+    expect(decide(a.id, true, "Fatima Ibrahim", "RSV")).toBeNull();
+    setApproverNames("Front Office", []);
+    expect(approverPeople("Front Office")).toEqual([]);
+  });
+});

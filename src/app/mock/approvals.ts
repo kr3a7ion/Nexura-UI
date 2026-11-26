@@ -22,6 +22,8 @@ export const setApproverRoles = (dept: string, roles: Role[]) => { APPROVERS[dep
 const PEOPLE: Record<string, () => string[]> = {};
 export const setApproverPeople = (dept: string, who: () => string[]) => { PEOPLE[dept] = who; };
 export const approverPeople = (dept: string) => PEOPLE[dept]?.() ?? [];
+/** Name a department's approvers from the staff list (Admin, Roles & Permissions). Managers can always approve as well. */
+export const setApproverNames = (dept: string, names: string[]) => { const list = [...new Set(names)]; PEOPLE[dept] = () => list; };
 export const canApprove = (role: Role, dept: string, name?: string) => approverRoles(dept).includes(role) || (!!name && approverPeople(dept).includes(name));
 
 const LIST: Approval[] = [];
