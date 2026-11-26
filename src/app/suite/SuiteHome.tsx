@@ -43,7 +43,7 @@ const live = (id: DepartmentId) => {
 const ROLE_LABELS: Record<Role, string> = {
   MGT: "Hotel Manager", FD: "Front Desk", HK: "Housekeeping", MX: "Maintenance",
   FIN: "Finance", RT: "Restaurant", RSV: "Reservations", IT: "IT Administrator",
-  DRV: "Driver", FLT: "Fleet Supervisor",
+  DRV: "Driver", FLT: "Fleet Supervisor", SEC: "Security",
 };
 
 type PortalId = "field-app" | "guest-access" | "org-portal" | "admin-console";

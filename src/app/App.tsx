@@ -2,6 +2,7 @@
 // All screen components live in Screens.tsx. All data/constants in constants.ts.
 import { VehicleRequests } from "./VehicleRequestScreens";
 import { canOpen } from "./mock/staff";
+import { canSeeDoorHistory } from "./mock/doors";
 import { OpensContext } from "./suite/opens";
 import { DepartmentLevels, levelDepartments } from "./TeamScreens";
 import { Component, type ReactNode, useState, useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
@@ -51,7 +52,7 @@ import { PowerStrip } from "./PlantScreens";
 import { canSetUp } from "./mock/roster";
 import { Safety, IncidentDialog } from "./SafetyScreens";
 import { Stores } from "./StoreScreens";
-import { GuestKeys, KeyLog, DoorPasscodes } from "./AccessScreens";
+import { GuestKeys, KeyLog, DoorPasscodes, LocksAndDoors, DoorHistory } from "./AccessScreens";
 import { reportIncident } from "./mock/safety";
 import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
 import {
@@ -75,7 +76,6 @@ import {
   RoomTypeManagement, RateCalendar, AvailabilityBoard,
   CheckInWizard, CheckOut, InHouseGuests, GuestProfiles, GuestProfileDetail,
   ArrivalsScreen, DeparturesScreen, FolioScreen, FinanceFolioManagement, WalkInReg, RoomAssignmentBoard,
-  RoomAccessMgmt,
   HKBoard, HKMyTasks, InspectionLog, LinenSupplies, HousekeepingSchedule,
   LostFound, DNDLog,
   WorkOrders, WorkOrderDetail, MaintenanceRoster, MaintenanceHandover, Permits, MaintenanceSetup, AssetRegister, PlannedWork, VendorContacts,
@@ -156,7 +156,8 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "room-assignment") return <RoomAssignmentBoard add={add} nav={nav} />;
   if (screen === "walk-in") return <WalkInReg add={add} nav={nav} staffName={staffName} />;
   if (screen === "key-card") return <GuestKeys add={add} staffName={staffName} />;
-  if (screen === "room-access") return <RoomAccessMgmt add={add} nav={nav} />;
+  if (screen === "room-access") return <LocksAndDoors add={add} role={role} staffName={staffName} />;
+  if (screen === "door-history") return canSeeDoorHistory(role) ? <DoorHistory /> : <NoAccess what="Door History" who="Security and managers" />;
   if (screen === "key-card-log") return <KeyLog />;
   if (screen === "vehicle-requests") return <VehicleRequests add={add} nav={nav} role={role} staffName={staffName} />;
   if (screen === "department-levels") return <DepartmentLevels add={add} role={role} staffName={staffName} />;
@@ -398,7 +399,7 @@ type SuiteScreen = Screen | "suite-home" | Department["home"];
 type SuitePortal = "field-app" | "guest-access" | "org-portal" | "admin-console";
 
 // Which department a person reports from, shown on their fault reports.
-const DEPT_OF: Partial<Record<Role, string>> = { HK: "Housekeeping", FD: "Front Office", RSV: "Front Office", MX: "Maintenance", RT: "Restaurant", MGT: "Management" };
+const DEPT_OF: Partial<Record<Role, string>> = { HK: "Housekeeping", FD: "Front Office", RSV: "Front Office", MX: "Maintenance", RT: "Restaurant", MGT: "Management", SEC: "Security" };
 
 const LEVEL_STYLE: Record<Level, { edge: string; bg: string; ink: string }> = {
   Urgent: { edge: "#DC2626", bg: "#FEE2E2", ink: "#991B1B" },
@@ -423,6 +424,8 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   const [activeLabel, setActiveLabel] = useState("Suite Home");
   const [navParam, setNavParam] = useState("");
   const [role, setRole] = useState<Role>(initialRole);
+  // One answer to "can this person open that screen?" for the menu, search, homes and links.
+  const opens = (s: string) => canOpen(staffName, role, s) && (s !== "mx-setup" || canSetUp(staffName, role)) && (s !== "door-history" || canSeeDoorHistory(role));
   const [currentDepartmentId, setCurrentDepartmentId] = useState<DepartmentId>(initialDepartments[0]?.id ?? "front-office");
   const [pinned, setPinned] = useState<DepartmentId[]>(initialDepartments.slice(0, 2).map(department => department.id));
   const [appSwitcherOpen, setAppSwitcherOpen] = useState(false);
@@ -445,7 +448,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   const searchableScreens = useMemo(() => {
     const seen = new Set<string>();
     return allowedDepartments.flatMap(department => department.screens.flatMap(group => group.items.map(item => ({ ...item, department })))).filter(item => {
-      if (seen.has(item.screen) || (item.screen === "mx-setup" && !canSetUp(staffName, role)) || !canOpen(staffName, role, item.screen)) return false;
+      if (seen.has(item.screen) || !opens(item.screen)) return false;
       seen.add(item.screen);
       return true;
     });
@@ -525,7 +528,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
     if (fresh.some(n => n.level === "Urgent")) beep();
   });
   const openNotice = (n: Notice) => { markRead(n.id, staffName); setNotifOpen(false); if (n.link) nav(n.link.screen as SuiteScreen, n.link.label, n.link.param ?? ""); };
-  const roleLabels: Record<Role, string> = { MGT: "Manager", FLT: "Fleet Supervisor", FD: "Front Desk", HK: "Housekeeping", MX: "Maintenance", FIN: "Finance", RT: "Restaurant", RSV: "Reservations", IT: "IT Admin", DRV: "Driver" };
+  const roleLabels: Record<Role, string> = { MGT: "Manager", FLT: "Fleet Supervisor", FD: "Front Desk", HK: "Housekeeping", MX: "Maintenance", FIN: "Finance", RT: "Restaurant", RSV: "Reservations", IT: "IT Admin", DRV: "Driver", SEC: "Security" };
   const currentFlow = currentDepartment?.flow ?? [];
   const activeFlowIndex = currentFlow.findIndex(step => step.screen === screen);
 
@@ -564,7 +567,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
               {currentDepartment.screens.map(group => (
                 <div key={group.label} className="mt-3">
                   {!collapsed && <div className="px-5 pb-1 text-xs font-bold uppercase tracking-[0.14em] text-white/25">{group.label}</div>}
-                  {group.items.filter(item => (item.screen !== "mx-setup" || canSetUp(staffName, role)) && canOpen(staffName, role, item.screen)).map(item => {
+                  {group.items.filter(item => opens(item.screen)).map(item => {
                     const isActive = screen === item.screen;
                     return <button key={`${group.label}-${item.screen}`} onClick={() => nav(item.screen, item.label)} className="group relative flex min-h-9 w-full items-center gap-3 px-[18px] text-left" style={{ backgroundColor: isActive ? `${currentDepartment.accent}1c` : "transparent", borderLeft: isActive ? `3px solid ${currentDepartment.accent}` : "3px solid transparent" }} title={collapsed ? item.label : undefined}>
                       <span className="h-1.5 w-1.5 flex-none rounded-full" style={{ backgroundColor: isActive ? currentDepartment.accent : "rgba(255,255,255,.25)" }} />
@@ -624,7 +627,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
           <div className="mx-auto max-w-screen-2xl">
             {offline && <div className="mb-5 flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium" style={{ backgroundColor: "#FEF3C7", color: "#92400E", borderColor: "#FDE68A" }}><WifiSlash size={15} weight="bold" /><span>Working offline. Everything you do is saved on this hotel's server and will sync later.</span><button onClick={() => setOffline(false)} className="ml-auto rounded-lg px-2.5 py-1 text-xs font-medium text-white" style={{ backgroundColor: WARNING }}>Go online</button></div>}
             <PowerStrip onOpen={() => nav("generator-diesel", "Power & Diesel")} />
-            <OpensContext.Provider value={s => canOpen(staffName, role, s)}>
+            <OpensContext.Provider value={opens}>
             <ScreenErrorBoundary key={screen} onHome={() => nav("suite-home", "Suite Home")}>
             {loadState === "loading" ? <ScreenLoading /> : loadState === "error" ? <ScreenError onRetry={retry} /> : screen === "suite-home" ? (
               <SuiteHome staffName={staffName} role={role} departments={allowedDepartments} offline={offline} pinned={pinned.filter(id => allowedDepartments.some(department => department.id === id))} onTogglePin={togglePin} onOpenDepartment={openDepartment} onOpenScreen={(nextScreen, label) => nav(nextScreen, label)} onOpenPortal={onOpenPortal} />

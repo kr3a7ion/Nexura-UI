@@ -9,7 +9,7 @@ import {
   BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
 import {
-  ACCESS_EXCEPTIONS, ACCESS_GATEWAY, accessQueue, accessKpis, type AccessQueueItem,
+  accessExceptions, ACCESS_GATEWAY, accessQueue, accessKpis, type AccessQueueItem,
 } from "../../mock/access-securityHome";
 import { DEPARTMENTS } from "../departments";
 
@@ -116,7 +116,7 @@ export default function AccessSecurityHome({ nav }: { nav: Nav }) {
 
         <section className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
           <div className="border-b px-5 py-4" style={{ borderColor: BORDER }}><h2 className="text-sm font-bold" style={{ color: TEXT }}>Security exceptions</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Items requiring review or intervention.</p></div>
-          {ACCESS_EXCEPTIONS.map((item, index) => <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div>{opens(item.screen) && <button onClick={() => nav(item.screen, item.screenLabel)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button>}</div>)}
+          {accessExceptions().map((item, index) => <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div>{opens(item.screen) && <button onClick={() => nav(item.screen, item.screenLabel)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button>}</div>)}
         </section>
       </div>
 

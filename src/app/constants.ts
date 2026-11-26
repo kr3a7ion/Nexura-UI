@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
-export type Role = "MGT" | "FD" | "HK" | "MX" | "FIN" | "RT" | "RSV" | "IT" | "DRV" | "FLT";
+export type Role = "MGT" | "FD" | "HK" | "MX" | "FIN" | "RT" | "RSV" | "IT" | "DRV" | "FLT" | "SEC";
 export type ToastType = "success" | "error" | "info" | "warning";
 export interface Toast { id: string; type: ToastType; title: string; body?: string; }
 export type AddToast = (t: Omit<Toast, "id">) => void;
@@ -14,7 +14,7 @@ export type Screen =
   | "dashboard-mgmt" | "dashboard-role"
   | "reservation-grid" | "new-reservation" | "reservation-search" | "waitlist" | "rate-management" | "group-bookings" | "cancellation"
   | "room-types" | "rate-calendar" | "availability-board"
-  | "check-in" | "check-out" | "in-house-guests" | "arrivals" | "departures" | "guest-profiles" | "room-assignment" | "walk-in" | "folio" | "key-card" | "room-access" | "key-card-log" | "pin-management" | "department-levels" | "vehicle-requests"
+  | "check-in" | "check-out" | "in-house-guests" | "arrivals" | "departures" | "guest-profiles" | "room-assignment" | "walk-in" | "folio" | "key-card" | "room-access" | "key-card-log" | "pin-management" | "department-levels" | "door-history" | "vehicle-requests"
   | "hk-board" | "hk-tasks" | "hk-schedule" | "hk-inspection" | "lost-found" | "linen-supplies" | "dnd-log"
   | "work-orders" | "fault-reports" | "mx-roster" | "mx-handover" | "mx-permits" | "mx-safety" | "mx-stores" | "inv-stores" | "mx-setup" | "asset-register" | "preventive-schedule" | "vendor-contacts" | "work-order-detail"
   | "pos-terminal" | "kitchen-display" | "table-management" | "menu-management" | "dining-reservations" | "room-service" | "room-charges" | "cash-drawer"

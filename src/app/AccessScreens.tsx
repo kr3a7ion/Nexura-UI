@@ -1,4 +1,5 @@
-// Access & Security: guest keys (cards and door passcodes) that follow the stay, and the key log (mock/access.ts).
+// Access & Security: guest keys (cards and door passcodes) that follow the stay, and the key log (mock/access.ts);
+// locks, door alarms, remote unlock and door history (mock/doors.ts).
 import React, { useState } from "react";
 import type { Toast } from "./constants";
 import { BORDER, TEXT, MUTED, ERROR, WARNING_INK } from "./constants";
@@ -6,6 +7,7 @@ import { PageHeader, BtnO, BtnP, Badge } from "./UIKit";
 import { Card, Field, Dialog, controlClass, controlStyle } from "./ui";
 import { fmtWhen } from "./mock/maintenance";
 import { STAYS } from "./mock/frontOffice";
+import { locks, doorEvents, openAlarms, recordDoorEvent, clearAlarm, remoteUnlock, askRemoteUnlock, canUnlockDirectly, LOW_BATTERY, ALARMS, type DoorEvent, type DoorEventKind } from "./mock/doors";
 import { keysFor, keyState, validUntil, keyLog, addCard, reportLost, replacePasscode, cancelKey, CARDS_PER_STAY, type GuestKey } from "./mock/access";
 
 type Add = (t: Omit<Toast, "id">) => void;
@@ -90,6 +92,86 @@ export function KeyLog() {
           <td className={td} style={{ color: MUTED }}>{l.by}</td>
         </tr>)}</tbody>
       </table></div>
+    </Card>
+  </div>;
+}
+
+/** Every room's lock: open alarms first, then battery and connection, and opening a door remotely. */
+export function LocksAndDoors({ add, role, staffName }: { add: Add; role: string; staffName: string }) {
+  const [, redraw] = useState(0);
+  const [clearing, setClearing] = useState<DoorEvent | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
+  const [why, setWhy] = useState("");
+  const [q, setQ] = useState("");
+  const [test, setTest] = useState({ room: locks()[0]?.room ?? "", kind: "Forced" as DoorEventKind, battery: "15" });
+  const direct = canUnlockDirectly(role);
+  const alarms = openAlarms();
+  const shown = locks().filter(l => search(q, l.room));
+  const done = (r: string | null, ok: string) => { add(r ? { type: "error", title: r } : { type: "success", title: ok }); if (!r) { setClearing(null); setOpening(null); setWhy(""); } redraw(n => n + 1); };
+  const lastEvent = (room: string) => doorEvents(room)[0];
+
+  return <div>
+    <PageHeader title="Locks & Doors" sub={direct ? "Door alarms, lock batteries and connection, and opening a door remotely. Every remote unlock is logged with who and why."
+      : "Lock batteries and connection. To open a door remotely, ask: Security or a manager approves, then it opens."} />
+    {alarms.length > 0 && <div className="mb-5"><Card title={`${alarms.length} door alarm${alarms.length === 1 ? "" : "s"} open`} sub="Go to the room, then clear the alarm with what you found." flush>
+      <table className="w-full"><tbody>{alarms.map(e => <tr key={e.id} style={{ borderTop: `1px solid ${BORDER}` }}>
+        <td className={td} style={{ color: ERROR }}>Room {e.room}: door {e.kind.toLowerCase()}</td>
+        <td className={td} style={{ color: MUTED }}>{fmtWhen(e.at)}</td>
+        <td className={`${td} text-right`}>{direct && <BtnP label={`Clear the room ${e.room} alarm`} onClick={() => { setWhy(""); setClearing(e); }} />}</td>
+      </tr>)}</tbody></table>
+    </Card></div>}
+    <Card title={`${shown.length} locks`} actions={<input aria-label="Search room" placeholder="Search room" value={q} onChange={e => setQ(e.target.value)} className={controlClass} style={controlStyle()} />} flush>
+      <div className="overflow-x-auto"><table className="w-full">
+        <thead><tr className="text-left text-sm" style={{ color: MUTED }}>{["Room", "Lock", "Battery", "Last at the door", ""].map((h, i) => <th key={i} className="px-3 py-2.5 font-medium">{h}</th>)}</tr></thead>
+        <tbody>{shown.map(l => { const e = lastEvent(l.room); return <tr key={l.room} style={{ borderTop: `1px solid ${BORDER}` }}>
+          <td className={td} style={{ color: TEXT }}>{l.room}</td>
+          <td className={td}><Badge label={l.online ? "Online" : "Offline"} colors={l.online ? { bg: "#DCFCE7", text: "#166534" } : { bg: "#FEE2E2", text: "#991B1B" }} /></td>
+          <td className={td} style={{ color: l.battery < LOW_BATTERY ? ERROR : TEXT }}>{l.battery}%{l.battery < LOW_BATTERY ? ", change it" : ""}</td>
+          <td className={td} style={{ color: MUTED }}>{e ? `${e.kind}, ${fmtWhen(e.at)}` : "Nothing today"}</td>
+          <td className={`${td} text-right`}>{l.online ? <BtnO label={direct ? `Open room ${l.room} now` : `Ask to open room ${l.room}`} onClick={() => { setWhy(""); setOpening(l.room); }} /> : <span className="text-sm" style={{ color: MUTED }}>Can't open while offline</span>}</td>
+        </tr>; })}</tbody>
+      </table></div>
+    </Card>
+    {role === "MGT" && <div className="mt-5"><Card title="Test a lock event (demo)" sub="Until the lock system is connected, this stands in for what a lock reports.">
+      <div className="flex flex-wrap items-end gap-3">
+        <Field label="Room" htmlFor="te-room"><select id="te-room" value={test.room} onChange={e => setTest(t => ({ ...t, room: e.target.value }))} className={controlClass} style={controlStyle()}>{locks().map(l => <option key={l.room}>{l.room}</option>)}</select></Field>
+        <Field label="What the lock reports" htmlFor="te-kind"><select id="te-kind" value={test.kind} onChange={e => setTest(t => ({ ...t, kind: e.target.value as DoorEventKind }))} className={controlClass} style={controlStyle()}>
+          {(["Forced", "Held open", "Tampered", "Low battery", "Offline", "Back online"] as DoorEventKind[]).map(k => <option key={k}>{k}</option>)}</select></Field>
+        {test.kind === "Low battery" && <Field label="Battery (%)" htmlFor="te-bat"><input id="te-bat" value={test.battery} onChange={e => setTest(t => ({ ...t, battery: e.target.value }))} className={controlClass} style={controlStyle()} /></Field>}
+        <BtnP label="Send the lock event" onClick={() => { recordDoorEvent(test.room, test.kind, test.kind === "Low battery" ? test.battery : undefined); add({ type: "info", title: `Room ${test.room}: ${test.kind.toLowerCase()} recorded` }); redraw(n => n + 1); }} />
+      </div>
+    </Card></div>}
+    {clearing && <Dialog title={`Clear the room ${clearing.room} alarm`} sub={`Door ${clearing.kind.toLowerCase()} at ${fmtWhen(clearing.at)}.`} onClose={() => setClearing(null)}
+      footer={<><BtnO label="Back" onClick={() => setClearing(null)} /><BtnP label="Clear the alarm" onClick={() => done(clearAlarm(clearing.id, staffName, role, why), `Room ${clearing.room} alarm cleared`)} /></>}>
+      <Field label="What you found" htmlFor="da-note"><input id="da-note" value={why} onChange={e => setWhy(e.target.value)} className={controlClass} style={controlStyle()} /></Field>
+    </Dialog>}
+    {opening && <Dialog title={direct ? `Open room ${opening} now` : `Ask to open room ${opening}`} sub={direct ? "The door opens at once. The reason is kept in the door history." : "Security or a manager approves it from their dashboard; the door opens then."} onClose={() => setOpening(null)}
+      footer={<><BtnO label="Back" onClick={() => setOpening(null)} /><BtnP label={direct ? "Open the door" : "Send the request"} onClick={() =>
+        direct ? done(remoteUnlock(opening, staffName, role, why), `Room ${opening} opened`) : done(askRemoteUnlock(opening, staffName, why), `Request to open room ${opening} sent`)} /></>}>
+      <Field label="Why" htmlFor="ru-why"><input id="ru-why" value={why} onChange={e => setWhy(e.target.value)} placeholder="Guest locked out, ID checked" className={controlClass} style={controlStyle()} /></Field>
+    </Dialog>}
+  </div>;
+}
+
+/** What happened at each door. Security and managers only. */
+export function DoorHistory() {
+  const [room, setRoom] = useState("");
+  const lines = doorEvents(room || undefined);
+  return <div>
+    <PageHeader title="Door History" sub="Every opening, alarm and remote unlock at each door, and who did it. Security and managers only." />
+    <Card title={`${lines.length} entries`} actions={<select aria-label="Room" value={room} onChange={e => setRoom(e.target.value)} className={controlClass} style={controlStyle()}>
+      <option value="">Every room</option>{locks().map(l => <option key={l.room}>{l.room}</option>)}</select>} flush>
+      {lines.length === 0 ? <p className="px-6 py-5 text-sm" style={{ color: MUTED }}>Nothing at this door yet.</p> :
+      <div className="overflow-x-auto"><table className="w-full">
+        <thead><tr className="text-left text-sm" style={{ color: MUTED }}>{["When", "Room", "What happened", "By", "Cleared"].map(h => <th key={h} className="px-3 py-2.5 font-medium">{h}</th>)}</tr></thead>
+        <tbody>{lines.slice(0, 200).map(e => <tr key={e.id} style={{ borderTop: `1px solid ${BORDER}` }}>
+          <td className={`${td} whitespace-nowrap`} style={{ color: TEXT }}>{fmtWhen(e.at)}</td>
+          <td className={td} style={{ color: TEXT }}>{e.room}</td>
+          <td className={td} style={{ color: ALARMS.includes(e.kind) ? ERROR : TEXT }}>{e.kind}{e.note ? `. ${e.note}` : ""}</td>
+          <td className={td} style={{ color: MUTED }}>{e.by ?? "The lock"}</td>
+          <td className={td} style={{ color: MUTED }}>{e.clearedBy ? `${e.clearedBy}: ${e.clearNote}` : ALARMS.includes(e.kind) ? "Not yet" : ""}</td>
+        </tr>)}</tbody>
+      </table></div>}
     </Card>
   </div>;
 }

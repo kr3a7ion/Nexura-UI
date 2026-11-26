@@ -58,14 +58,14 @@ export const DEPARTMENTS: Department[] = [
   },
   {
     id: "access-security", name: "Access & Security", icon: Key, accent: "#4F46E5",
-    roles: ["MGT", "FD", "IT"], home: "dept-access-security", flow: [
+    roles: ["MGT", "FD", "IT", "SEC"], home: "dept-access-security", flow: [
       { label: "Check-in", screen: "check-in" },
       { label: "Encode key", screen: "key-card" },
       { label: "Generate PIN", screen: "pin-management" },
       { label: "Monitor", screen: "key-card-log" },
-      { label: "Revoke at check-out", screen: "room-access" },
+      { label: "Doors", screen: "room-access" },
     ],
-    screens: [group("Guest Access", [["Guest Keys", "key-card"], ["Door Passcodes", "pin-management"], ["Key Log", "key-card-log"], ["Room Access Mgmt", "room-access"]]), group("Configuration", [["Door Lock Settings", "door-lock-settings"]])],
+    screens: [group("Guest Access", [["Guest Keys", "key-card"], ["Door Passcodes", "pin-management"], ["Key Log", "key-card-log"]]), group("Doors", [["Locks & Doors", "room-access"], ["Door History", "door-history"]]), group("Configuration", [["Door Lock Settings", "door-lock-settings"]])],
   },
   {
     id: "housekeeping", name: "Housekeeping", icon: Bed, accent: "#7C3AED",
