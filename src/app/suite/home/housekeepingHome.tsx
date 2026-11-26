@@ -1,3 +1,4 @@
+import { useOpens } from "../opens";
 import { Bed, Broom, ClipboardText, Sparkle, User } from "@phosphor-icons/react";
 import type { Screen } from "../../constants";
 import { BG, BORDER, ERROR, MUTED, TEXT, TEAL_INK } from "../../constants";
@@ -18,6 +19,7 @@ const statusColors = {
 
 // Everything on this page is counted from the same rooms the board shows.
 export default function HousekeepingHome({ nav }: { nav: Nav }) {
+  const opens = useOpens();
   const rooms = hkRooms();
   const count = (s: keyof typeof statusLabel) => rooms.filter(r => r.hkSt === s).length;
   const toDo = rooms
@@ -34,7 +36,7 @@ export default function HousekeepingHome({ nav }: { nav: Nav }) {
   return (
     <div>
       <PageHeader title="Housekeeping" sub="Rooms to turn over today, counted from the board."
-        actions={<><BtnO label="Open board" icon={Bed} onClick={() => nav("hk-board", "Housekeeping Board")} /><BtnP label="Assign rooms" icon={User} onClick={() => nav("hk-schedule", "Schedule")} /></>} />
+        actions={<>{opens("hk-board") && <BtnO label="Open board" icon={Bed} onClick={() => nav("hk-board", "Housekeeping Board")} />}{opens("hk-schedule") && <BtnP label="Assign rooms" icon={User} onClick={() => nav("hk-schedule", "Schedule")} />}</>} />
 
       <section className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Dirty" value={String(count("Dirty"))} sub={`${rooms.filter(r => r.hkSt === "Dirty" && r.priority).length} priority`} icon={Broom} accent={accent} />
@@ -78,7 +80,7 @@ export default function HousekeepingHome({ nav }: { nav: Nav }) {
           {attention.map((a, i) => (
             <div key={a.id} className="p-4" style={{ borderTop: i ? `1px solid ${BORDER}` : undefined }}>
               <p className="text-sm" style={{ color: TEXT }}>{a.text}</p>
-              <button onClick={() => nav(a.screen, a.label)} className="mt-1.5 text-sm font-medium" style={{ color: TEAL_INK }}>Open {a.label}</button>
+              {opens(a.screen) && <button onClick={() => nav(a.screen, a.label)} className="mt-1.5 text-sm font-medium" style={{ color: TEAL_INK }}>Open {a.label}</button>}
             </div>
           ))}
         </section>

@@ -1,3 +1,4 @@
+import { useOpens } from "../opens";
 import { useState, type ElementType } from "react";
 import {
   ArrowRight, Buildings, CheckCircle, ClipboardText, CurrencyNgn, Package,
@@ -32,6 +33,7 @@ const severityColors = {
 };
 
 export default function InventoryHome({ nav }: { nav: Nav }) {
+  const opens = useOpens();
   const [viewState, setViewState] = useState<ViewState>("Ready");
   const quickActions: Array<{ label: string; icon: ElementType; screen: Screen }> = [
     { label: "New purchase order", icon: Plus, screen: "purchase-orders" },
@@ -42,7 +44,7 @@ export default function InventoryHome({ nav }: { nav: Nav }) {
 
   if (viewState === "Loading") return <div><PageHeader title="Inventory & Procurement" sub="Loading stock and purchasing operations…" /><div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 4 }, (_, index) => <div key={index} className="h-40 animate-pulse rounded-2xl border bg-white" style={{ borderColor: BORDER }} />)}</div><div className="mt-5 h-80 animate-pulse rounded-2xl border bg-white" style={{ borderColor: BORDER }} /></div>;
   if (viewState === "Error") return <div><PageHeader title="Inventory & Procurement" sub="Stock and purchasing operations" /><div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}><EmptyState icon={WarningCircle} message="Inventory data could not be loaded from the local server." cta="Try again" onCta={() => setViewState("Ready")} /></div></div>;
-  if (viewState === "Empty") return <div><PageHeader title="Inventory & Procurement" sub="Stock and purchasing operations" /><div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}><EmptyState icon={CheckCircle} message="All stock is above reorder level and there are no pending procurement tasks." cta="Open stock dashboard" onCta={() => nav("stock-dashboard", "Stock Dashboard")} /></div></div>;
+  if (viewState === "Empty") return <div><PageHeader title="Inventory & Procurement" sub="Stock and purchasing operations" /><div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}><EmptyState icon={CheckCircle} message="All stock is above reorder level and there are no pending procurement tasks." cta={opens("stock-dashboard") ? "Open stock dashboard" : undefined} onCta={() => nav("stock-dashboard", "Stock Dashboard")} /></div></div>;
 
   return (
     <div>
@@ -62,12 +64,12 @@ export default function InventoryHome({ nav }: { nav: Nav }) {
 
       <section className="mb-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
         <div className="mb-4"><h2 className="text-sm font-bold" style={{ color: TEXT }}>Primary procurement flow</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Move low-stock items through purchasing, receipt and department issue.</p></div>
-        <div className="flex items-center overflow-x-auto pb-1">{flow.map((step, index) => <div key={`${step.screen}-${index}`} className="flex min-w-0 flex-1 items-center"><button onClick={() => nav(step.screen, step.label)} className="flex min-w-[145px] items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition hover:shadow-sm" style={{ borderColor: `${accent}35`, backgroundColor: index === 0 ? `${accent}0c` : "white" }}><span className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-xs font-bold" style={{ backgroundColor: `${accent}16`, color: accent }}>{index + 1}</span><span className="text-xs font-semibold" style={{ color: TEXT }}>{step.label}</span></button>{index < flow.length - 1 && <ArrowRight size={15} className="mx-2 flex-none" style={{ color: SUBTLE }} />}</div>)}</div>
+        <div className="flex items-center overflow-x-auto pb-1">{flow.filter(step => opens(step.screen)).map((step, index) => <div key={`${step.screen}-${index}`} className="flex min-w-0 flex-1 items-center"><button onClick={() => nav(step.screen, step.label)} className="flex min-w-[145px] items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition hover:shadow-sm" style={{ borderColor: `${accent}35`, backgroundColor: index === 0 ? `${accent}0c` : "white" }}><span className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-xs font-bold" style={{ backgroundColor: `${accent}16`, color: accent }}>{index + 1}</span><span className="text-xs font-semibold" style={{ color: TEXT }}>{step.label}</span></button>{index < flow.length - 1 && <ArrowRight size={15} className="mx-2 flex-none" style={{ color: SUBTLE }} />}</div>)}</div>
       </section>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.75fr)]">
         <section className="overflow-hidden rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
-          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Reorder suggestions</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Sorted by stock risk · 17 items below level · updated 10:58</p></div><BtnO label="Purchase orders" icon={ShoppingCart} onClick={() => nav("purchase-orders", "Purchase Orders")} /></div>
+          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Reorder suggestions</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Sorted by stock risk · 17 items below level · updated 10:58</p></div>{opens("purchase-orders") && <BtnO label="Purchase orders" icon={ShoppingCart} onClick={() => nav("purchase-orders", "Purchase Orders")} />}</div>
           <div className="overflow-x-auto"><table className="w-full min-w-[900px] text-left">
             <thead><tr style={{ backgroundColor: BG }}>{["Product", "On hand", "Reorder level", "Suggested", "Supplier", "Last price", "Priority", "Action"].map(label => <th key={label} className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{label}</th>)}</tr></thead>
             <tbody>{REORDER_SUGGESTIONS.map(item => <tr key={`${item.branch}-${item.id}`} className="border-t hover:bg-slate-50" style={{ borderColor: BORDER }}>
@@ -78,22 +80,22 @@ export default function InventoryHome({ nav }: { nav: Nav }) {
               <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.supplier}</td>
               <td className="px-4 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>₦{item.lastPrice.toLocaleString("en-NG")}</td>
               <td className="px-4 py-3"><Badge label={item.priority} colors={priorityColors[item.priority]} /></td>
-              <td className="px-4 py-3 text-right"><button onClick={() => nav("purchase-orders", "Purchase Orders")} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold" style={{ backgroundColor: `${accent}12`, color: accent }}>Create PO<ArrowRight size={12} /></button></td>
+              <td className="px-4 py-3 text-right">{opens("purchase-orders") && <button onClick={() => nav("purchase-orders", "Purchase Orders")} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold" style={{ backgroundColor: `${accent}12`, color: accent }}>Create PO<ArrowRight size={12} /></button>}</td>
             </tr>)}</tbody>
           </table></div>
         </section>
 
         <section className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
           <div className="border-b px-5 py-4" style={{ borderColor: BORDER }}><h2 className="text-sm font-bold" style={{ color: TEXT }}>Procurement exceptions</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Cost, delivery and stock-control issues.</p></div>
-          {INVENTORY_EXCEPTIONS.map((item, index) => <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div><button onClick={() => nav(item.screen, item.screenLabel)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button></div>)}
+          {INVENTORY_EXCEPTIONS.map((item, index) => <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div>{opens(item.screen) && <button onClick={() => nav(item.screen, item.screenLabel)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button>}</div>)}
         </section>
       </div>
 
-      <section className="mt-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}><h2 className="mb-3 text-sm font-bold" style={{ color: TEXT }}>Quick actions</h2><div className="flex flex-wrap gap-2">{quickActions.map((action, index) => index === 0 ? <BtnP key={action.label} label={action.label} icon={action.icon} color={accent} onClick={() => nav(action.screen, action.label)} /> : <BtnO key={action.label} label={action.label} icon={action.icon} onClick={() => nav(action.screen, action.label)} />)}</div></section>
+      <section className="mt-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}><h2 className="mb-3 text-sm font-bold" style={{ color: TEXT }}>Quick actions</h2><div className="flex flex-wrap gap-2">{quickActions.filter(action => opens(action.screen)).map((action, index) => index === 0 ? <BtnP key={action.label} label={action.label} icon={action.icon} color={accent} onClick={() => nav(action.screen, action.label)} /> : <BtnO key={action.label} label={action.label} icon={action.icon} onClick={() => nav(action.screen, action.label)} />)}</div></section>
 
       <section className="mt-5">
         <div className="mb-3"><h2 className="text-sm font-bold" style={{ color: TEXT }}>All screens in this app</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Complete Inventory & Procurement toolkit.</p></div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{department.screens.flatMap(group => group.items.map(item => ({ ...item, group: group.label }))).map(item => <button key={`${item.group}-${item.screen}`} onClick={() => nav(item.screen, item.label)} className="group flex min-h-20 items-center gap-3 rounded-xl border bg-white p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm" style={{ borderColor: BORDER }}><div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ backgroundColor: `${accent}12`, color: accent }}><Package size={19} /></div><div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold" style={{ color: TEXT }}>{item.label}</div><div className="mt-1 text-xs uppercase tracking-wider" style={{ color: SUBTLE }}>{item.group}</div></div><ArrowRight size={13} className="flex-none transition-transform group-hover:translate-x-0.5" style={{ color: accent }} /></button>)}</div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{department.screens.flatMap(group => group.items.filter(item => opens(item.screen)).map(item => ({ ...item, group: group.label }))).map(item => <button key={`${item.group}-${item.screen}`} onClick={() => nav(item.screen, item.label)} className="group flex min-h-20 items-center gap-3 rounded-xl border bg-white p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm" style={{ borderColor: BORDER }}><div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ backgroundColor: `${accent}12`, color: accent }}><Package size={19} /></div><div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold" style={{ color: TEXT }}>{item.label}</div><div className="mt-1 text-xs uppercase tracking-wider" style={{ color: SUBTLE }}>{item.group}</div></div><ArrowRight size={13} className="flex-none transition-transform group-hover:translate-x-0.5" style={{ color: accent }} /></button>)}</div>
       </section>
     </div>
   );

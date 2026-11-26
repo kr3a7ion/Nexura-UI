@@ -1,3 +1,4 @@
+import { useOpens } from "./opens";
 import { useState } from "react";
 import {
   ArrowRight, Check, DeviceMobile, Globe, PushPin, Shield, SquaresFour,
@@ -167,7 +168,8 @@ export function SuiteHome({
   );
 }
 
-export function DepartmentHome({ department, nav, opens = () => true }: { department: Department; nav: (screen: Screen, label: string) => void; opens?: (screen: Screen) => boolean }) {
+export function DepartmentHome({ department, nav }: { department: Department; nav: (screen: Screen, label: string) => void }) {
+  const opens = useOpens();
   const Icon = department.icon;
   const home = DEPARTMENT_HOME[department.id];
   return (

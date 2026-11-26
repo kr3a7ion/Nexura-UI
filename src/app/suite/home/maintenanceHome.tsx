@@ -1,3 +1,4 @@
+import { useOpens } from "../opens";
 import { useState, type ElementType } from "react";
 import {
   ArrowRight, Buildings, CalendarDots, CheckCircle, Clock, Drop, GearSix,
@@ -29,6 +30,7 @@ const severityColors = {
 };
 
 export default function MaintenanceHome({ nav, role, staffName }: { nav: Nav; role: Role; staffName: string }) {
+  const opens = useOpens();
   // Counted from the work orders and the property's rooms.
   const open = workOrders().filter(isOpen);
   const power = maintenancePower();
@@ -76,12 +78,12 @@ export default function MaintenanceHome({ nav, role, staffName }: { nav: Nav; ro
 
       <section className="mb-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
         <div className="mb-4"><h2 className="text-sm font-bold" style={{ color: TEXT }}>Primary engineering flow</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Resolve current faults and prevent the next service disruption.</p></div>
-        <div className="flex items-center overflow-x-auto pb-1">{flow.map((step, index) => <div key={`${step.screen}-${index}`} className="flex min-w-0 flex-1 items-center"><button onClick={() => nav(step.screen, step.label)} className="flex min-w-[130px] items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition hover:shadow-sm" style={{ borderColor: `${accent}35`, backgroundColor: index === 0 ? `${accent}0c` : "white" }}><span className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-xs font-bold" style={{ backgroundColor: `${accent}16`, color: accent }}>{index + 1}</span><span className="text-xs font-semibold" style={{ color: TEXT }}>{step.label}</span></button>{index < flow.length - 1 && <ArrowRight size={15} className="mx-2 flex-none" style={{ color: SUBTLE }} />}</div>)}</div>
+        <div className="flex items-center overflow-x-auto pb-1">{flow.filter(step => opens(step.screen)).map((step, index) => <div key={`${step.screen}-${index}`} className="flex min-w-0 flex-1 items-center"><button onClick={() => nav(step.screen, step.label)} className="flex min-w-[130px] items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition hover:shadow-sm" style={{ borderColor: `${accent}35`, backgroundColor: index === 0 ? `${accent}0c` : "white" }}><span className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-xs font-bold" style={{ backgroundColor: `${accent}16`, color: accent }}>{index + 1}</span><span className="text-xs font-semibold" style={{ color: TEXT }}>{step.label}</span></button>{index < flow.length - 1 && <ArrowRight size={15} className="mx-2 flex-none" style={{ color: SUBTLE }} />}</div>)}</div>
       </section>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.75fr)]">
         <section className="overflow-hidden rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
-          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><div><h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Open work orders</h2><p className="mt-0.5 text-sm" style={{ color: MUTED }}>{open.length} open · {overdue.length} overdue</p></div><BtnO label="All work orders" icon={Wrench} onClick={() => nav("work-orders", "Work Orders")} /></div>
+          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}><div><h2 className="text-base font-semibold" style={{ color: TEXT, fontFamily: display }}>Open work orders</h2><p className="mt-0.5 text-sm" style={{ color: MUTED }}>{open.length} open · {overdue.length} overdue</p></div>{opens("work-orders") && <BtnO label="All work orders" icon={Wrench} onClick={() => nav("work-orders", "Work Orders")} />}</div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead><tr style={{ backgroundColor: BG }}>{["Work order", "Assigned to", "Open for", "Priority", "Status", ""].map(label => <th key={label} className="px-4 py-2.5 text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{label}</th>)}</tr></thead>
@@ -91,7 +93,7 @@ export default function MaintenanceHome({ nav, role, staffName }: { nav: Nav; ro
                 <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: isOverdue(item) ? ERROR : TEXT }}>{ageOf(item)}</td>
                 <td className="px-4 py-3"><Badge label={priorityLabel(item.priority)} colors={WO_PRI_C[item.priority]} /></td>
                 <td className="px-4 py-3 whitespace-nowrap"><Badge label={isOverdue(item) ? "Overdue" : item.status} colors={WO_STATUS_C[isOverdue(item) ? "Overdue" : item.status]} /></td>
-                <td className="px-4 py-3 text-right"><button onClick={() => nav("work-order-detail", item.id, item.id)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium whitespace-nowrap" style={{ backgroundColor: `${accent}12`, color: "#C2410C" }}>Open<ArrowRight size={12} /></button></td>
+                <td className="px-4 py-3 text-right">{opens("work-order-detail") && <button onClick={() => nav("work-order-detail", item.id, item.id)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium whitespace-nowrap" style={{ backgroundColor: `${accent}12`, color: "#C2410C" }}>Open<ArrowRight size={12} /></button>}</td>
               </tr>)}</tbody>
             </table>
           </div>
@@ -99,15 +101,15 @@ export default function MaintenanceHome({ nav, role, staffName }: { nav: Nav; ro
 
         <section className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
           <div className="border-b px-5 py-4" style={{ borderColor: BORDER }}><h2 className="text-sm font-bold" style={{ color: TEXT }}>Engineering exceptions</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Service and asset risks requiring action.</p></div>
-          {maintenanceExceptions().map((item, index) => <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div><button onClick={() => nav(item.screen, item.screenLabel)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button></div>)}
+          {maintenanceExceptions().map((item, index) => <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div>{opens(item.screen) && <button onClick={() => nav(item.screen, item.screenLabel)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button>}</div>)}
         </section>
       </div>
 
-      <section className="mt-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}><h2 className="mb-3 text-sm font-bold" style={{ color: TEXT }}>Quick actions</h2><div className="flex flex-wrap gap-2">{quickActions.map((action, index) => index === 0 ? <BtnP key={action.label} label={action.label} icon={action.icon} color={accent} onClick={() => nav(action.screen, "Work Orders", "new:")} /> : <BtnO key={action.label} label={action.label} icon={action.icon} onClick={() => nav(action.screen, action.label)} />)}</div></section>
+      <section className="mt-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}><h2 className="mb-3 text-sm font-bold" style={{ color: TEXT }}>Quick actions</h2><div className="flex flex-wrap gap-2">{quickActions.filter(action => opens(action.screen)).map((action, index) => index === 0 ? <BtnP key={action.label} label={action.label} icon={action.icon} color={accent} onClick={() => nav(action.screen, "Work Orders", "new:")} /> : <BtnO key={action.label} label={action.label} icon={action.icon} onClick={() => nav(action.screen, action.label)} />)}</div></section>
 
       <section className="mt-5">
         <div className="mb-3"><h2 className="text-sm font-bold" style={{ color: TEXT }}>All screens in this app</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Complete Maintenance toolkit.</p></div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{department.screens.flatMap(group => group.items.map(item => ({ ...item, group: group.label }))).map(item => <button key={`${item.group}-${item.screen}`} onClick={() => nav(item.screen, item.label)} className="group flex min-h-20 items-center gap-3 rounded-xl border bg-white p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm" style={{ borderColor: BORDER }}><div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ backgroundColor: `${accent}12`, color: accent }}><GearSix size={19} /></div><div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold" style={{ color: TEXT }}>{item.label}</div><div className="mt-1 text-xs uppercase tracking-wider" style={{ color: SUBTLE }}>{item.group}</div></div><ArrowRight size={13} className="flex-none transition-transform group-hover:translate-x-0.5" style={{ color: accent }} /></button>)}</div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{department.screens.flatMap(group => group.items.filter(item => opens(item.screen)).map(item => ({ ...item, group: group.label }))).map(item => <button key={`${item.group}-${item.screen}`} onClick={() => nav(item.screen, item.label)} className="group flex min-h-20 items-center gap-3 rounded-xl border bg-white p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm" style={{ borderColor: BORDER }}><div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ backgroundColor: `${accent}12`, color: accent }}><GearSix size={19} /></div><div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold" style={{ color: TEXT }}>{item.label}</div><div className="mt-1 text-xs uppercase tracking-wider" style={{ color: SUBTLE }}>{item.group}</div></div><ArrowRight size={13} className="flex-none transition-transform group-hover:translate-x-0.5" style={{ color: accent }} /></button>)}</div>
       </section>
     </div>
   );

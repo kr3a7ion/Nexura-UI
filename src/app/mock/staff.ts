@@ -63,6 +63,7 @@ export const setBlocked = (by: string, byRole: string, target: string, screens: 
   const why = whyNotManage(by, byRole, target); if (why) return why;
   staffRecord(target)!.blocked = [...new Set(screens)]; return null;
 };
+// shortcut: only the web app checks this; the backend must refuse a closed screen's data the same way (build plan, "Backend").
 export const canOpen = (name: string, role: string, screen: string) => role === "MGT" || !staffRecord(name)?.blocked?.includes(screen);
 export const setLevel = (by: string, byRole: string, target: string, level: Level) => {
   const why = whyNotSetLevel(by, byRole, target, level); if (why) return why;
