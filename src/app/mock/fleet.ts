@@ -6,7 +6,7 @@
 import type { Role } from "../constants";
 import { notify } from "./notify";
 import { canApprove } from "./approvals";
-import { staffRecord, levelOf, leadsOf, staffAll } from "./staff";
+import { staffRecord, leadsOf, staffAll } from "./staff";
 
 export type TripStatus = "waiting-department" | "waiting-fleet" | "turned-down" | "requested" | "assigned" | "dispatched" | "en-route" | "in-transit" | "completed" | "cancelled";
 export type ServiceLine = "Airport Transfer" | "Charter" | "Hotel Transport" | "Staff & Logistics";
@@ -163,8 +163,8 @@ export const trips = () => TRIPS;
 export const saveTrips = (list: Trip[]) => { TRIPS.splice(0, TRIPS.length, ...list); };
 export const trip = (id: string) => TRIPS.find(t => t.id === id);
 
-const isLead = (name: string, dept: string) => staffRecord(name)?.dept === dept && levelOf(name) !== "Staff";
-const fleetManagers = () => staffAll().filter(s => s.dept === "Fleet" && s.status !== "Left" && s.level === "Manager").map(s => s.name);
+const isLead = (name: string, dept: string) => leadsOf(dept).includes(name);
+const fleetManagers = () => staffAll().filter(s => s.dept === "Fleet" && s.status === "Active" && s.level === "Manager").map(s => s.name);
 const stamp = (t: Trip, event: string, actor: string, note?: string) => t.events.push({ time: nowStr(), event, actor, note });
 
 export const canSignOff = (t: Trip, by: string, role: Role | string) =>
@@ -184,8 +184,11 @@ export const requestTrip = (t: Omit<Trip, "id" | "status" | "createdAt" | "creat
   if (!guestTrip && skip) n.signedOffBy = by;
   stamp(n, "Request submitted", by, skip && !guestTrip ? `Raised by a ${dept} lead, so no separate sign-off` : undefined);
   TRIPS.unshift(n);
-  if (n.status === "waiting-department")
-    notify("trip.toSignOff", { title: `Vehicle request to sign off: ${n.id}`, body: `${by}, ${dept}. ${n.pickup} to ${n.dropoff} at ${n.scheduledTime}.`, people: leadsOf(dept!).filter(x => x !== by), link: { screen: "vehicle-requests", label: "Vehicle Requests" } });
+  if (n.status === "waiting-department") {
+    // Nobody from the department at work to sign it off: the hotel managers are asked instead, so it never sits unseen.
+    const leads = leadsOf(dept!), people = leads.length ? leads : staffAll().filter(x => x.dept === "Management" && x.status === "Active").map(x => x.name);
+    notify("trip.toSignOff", { title: `Vehicle request to sign off: ${n.id}`, body: `${by}, ${dept}. ${n.pickup} to ${n.dropoff} at ${n.scheduledTime}.${leads.length ? "" : ` No ${dept} supervisor or manager is at work, so a hotel manager signs it off.`}`, people, link: { screen: "vehicle-requests", label: "Vehicle Requests" } });
+  }
   else toFleet(n);
   return n;
 };
@@ -199,7 +202,7 @@ const turnDown = (t: Trip, by: string, reason: string) => {
 /** The department's step: a supervisor or manager of the requester's department (or a hotel manager). Returns why not, or null. */
 export const signOff = (id: string, by: string, role: Role | string, ok: boolean, reason = ""): string | null => {
   const t = trip(id); if (!t) return "There is no such request.";
-  if (!canSignOff(t, by, role)) return t.status !== "waiting-department" ? "This request is not waiting for its department." : by === t.requestedBy ? "Someone else must sign off your own request." : `Only a ${t.dept} supervisor or manager can sign this off.`;
+  if (!canSignOff(t, by, role)) return t.status !== "waiting-department" ? "This request is not waiting for its department." : by === t.requestedBy ? "Someone else must sign off your own request." : `Only a ${t.dept} supervisor or manager at work today can sign this off.`;
   if (!ok) { if (reason.trim().length < 3) return "Say why it is turned down."; turnDown(t, by, reason.trim()); return null; }
   Object.assign(t, { status: "waiting-fleet", signedOffBy: by }); stamp(t, "Signed off", by); toFleet(t); return null;
 };

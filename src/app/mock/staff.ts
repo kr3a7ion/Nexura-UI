@@ -4,7 +4,7 @@ export type StaffStatus = "Active" | "On Leave" | "Inactive" | "Left";
 export type Level = "Staff" | "Supervisor" | "Manager";
 export const LEVELS: Level[] = ["Staff", "Supervisor", "Manager"];
 // level: what the person may sign off in their own department. HR sets it; see setLevel below.
-export type StaffRecord = { id: string; name: string; role: string; dept: string; phone: string; email: string; empType: string; hireDate: string; status: StaffStatus; shift: string; gender: "M" | "F"; level?: Level; levelSetBy?: string };
+export type StaffRecord = { id: string; name: string; role: string; dept: string; phone: string; email: string; empType: string; hireDate: string; status: StaffStatus; shift: string; gender: "M" | "F"; level?: Level; levelSetBy?: string; blocked?: string[] };
 const STAFF: StaffRecord[] = [
   { id:"EMP-001", name:"John Abubakar",    role:"Front Desk Officer",  dept:"Front Desk",  phone:"0803-001-1001", email:"j.abubakar@grandpalms.ng",   empType:"Full-time",  hireDate:"3 Jan 2022", status:"Active",   shift:"Morning 07:00–15:00", gender:"M" },
   { id:"EMP-002", name:"Amaka Osei",       role:"Housekeeping Attendant",dept:"Housekeeping",phone:"0802-002-2002",email:"a.osei@grandpalms.ng",       empType:"Full-time",  hireDate:"15 Mar 2021", status:"Active",   shift:"Morning 06:00–14:00", gender:"F" },
@@ -32,23 +32,38 @@ const STAFF: StaffRecord[] = [
   { id:"EMP-024", name:"Sani Abdullahi",   role:"Driver",                dept:"Fleet",       phone:"0825-024-1024", email:"s.abdullahi@grandpalms.ng",empType:"Full-time",  hireDate:"2 May 2021", status:"Active",   shift:"Morning 07:00–15:00", gender:"M" },
 ];export const staffAll = () => STAFF;
 export const staffRecord = (name: string) => STAFF.find(s => s.name === name);
+/** At work today: not on leave, inactive or gone. Only they sign off or approve. */
+export const atWork = (name: string) => staffRecord(name)?.status === "Active";
 export const isEmployed = (name: string) => { const s = staffRecord(name); return !!s && s.status !== "Left"; };
 
 // Starting levels are read once from today's job titles; from then on the level is what counts, not the title.
 for (const s of STAFF) s.level ??= /manager/i.test(s.role) ? "Manager" : /supervisor|team lead/i.test(s.role) ? "Supervisor" : "Staff";
 export const levelOf = (name: string): Level => staffRecord(name)?.level ?? "Staff";
-/** Supervisors and managers of a department: they sign off its requests. */
-export const leadsOf = (dept: string) => STAFF.filter(s => s.dept === dept && s.status !== "Left" && s.level !== "Staff").map(s => s.name);
-/** HR (and hotel managers) set anyone's level. A department's manager sets Staff or Supervisor inside their own department.
- *  Nobody sets their own. Returns why not, or null. */
-export const whyNotSetLevel = (by: string, byRole: string, target: string, level: Level): string | null => {
+/** Supervisors and managers of a department who are at work: they sign off its requests. */
+export const leadsOf = (dept: string) => STAFF.filter(s => s.dept === dept && s.status === "Active" && s.level !== "Staff").map(s => s.name);
+/** Who may change a person's level, job title or what they can open: HR and hotel managers for anyone; a department's
+ *  manager for staff and supervisors in their own department; nobody for themselves. Returns why not, or null. */
+export const whyNotManage = (by: string, byRole: string, target: string): string | null => {
   const t = staffRecord(target), me = staffRecord(by);
   if (!t || t.status === "Left") return "That person is not on the staff list.";
-  if (by === target) return "Nobody sets their own level.";
+  if (by === target) return "Nobody changes their own level, title or access.";
   if (byRole === "MGT" || me?.dept === "HR") return null;
-  if (me?.level === "Manager" && me.dept === t.dept) return level === "Manager" || t.level === "Manager" ? "Only HR makes or changes a manager." : null;
-  return "Only HR or this department's manager can set levels.";
+  if (me?.level === "Manager" && me.dept === t.dept) return t.level === "Manager" ? "Only HR changes a manager." : null;
+  return "Only HR or this department's manager can change this.";
 };
+export const whyNotSetLevel = (by: string, byRole: string, target: string, level: Level): string | null =>
+  whyNotManage(by, byRole, target) ?? (level === "Manager" && byRole !== "MGT" && staffRecord(by)?.dept !== "HR" ? "Only HR makes someone a manager." : null);
+export const setJobTitle = (by: string, byRole: string, target: string, title: string) => {
+  const why = whyNotManage(by, byRole, target); if (why) return why;
+  const t = title.trim(); if (t.length < 2 || t.length > 60) return "Write a job title of 2 to 60 characters.";
+  staffRecord(target)!.role = t; return null;
+};
+/** Screens in their own menus this person may not open. Hotel managers open everything. */
+export const setBlocked = (by: string, byRole: string, target: string, screens: string[]) => {
+  const why = whyNotManage(by, byRole, target); if (why) return why;
+  staffRecord(target)!.blocked = [...new Set(screens)]; return null;
+};
+export const canOpen = (name: string, role: string, screen: string) => role === "MGT" || !staffRecord(name)?.blocked?.includes(screen);
 export const setLevel = (by: string, byRole: string, target: string, level: Level) => {
   const why = whyNotSetLevel(by, byRole, target, level); if (why) return why;
   Object.assign(staffRecord(target)!, { level, levelSetBy: by }); return null;

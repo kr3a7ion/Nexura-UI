@@ -3,6 +3,7 @@
 // shortcut: kept in memory with the change to make as a function; the hotel server stores the request and replays the change.
 import type { Role } from "../constants";
 import { notify } from "./notify";
+import { atWork } from "./staff";
 
 // Only decisions that give money away need a second person; check-in and check-out never wait.
 // Purchase: something bought outside the store for a maintenance job, above the supervisor's limit.
@@ -24,7 +25,8 @@ export const setApproverPeople = (dept: string, who: () => string[]) => { PEOPLE
 export const approverPeople = (dept: string) => PEOPLE[dept]?.() ?? [];
 /** Name a department's approvers from the staff list (Admin, Roles & Permissions). Managers can always approve as well. */
 export const setApproverNames = (dept: string, names: string[]) => { const list = [...new Set(names)]; PEOPLE[dept] = () => list; };
-export const canApprove = (role: Role, dept: string, name?: string) => approverRoles(dept).includes(role) || (!!name && approverPeople(dept).includes(name));
+// A named approver who is on leave or gone does not approve; managers still can.
+export const canApprove = (role: Role, dept: string, name?: string) => approverRoles(dept).includes(role) || (!!name && approverPeople(dept).includes(name) && atWork(name));
 
 const LIST: Approval[] = [];
 let next = 1;
