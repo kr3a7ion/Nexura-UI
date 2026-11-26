@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { STAYS, CHARGES, stayDates, gridBookings } from "./frontOffice";
+import { STAYS, CHARGES, stayDates, gridBookings, postCharge, voidCharge, moveCharges, takePayment, paymentsFor, balanceOf } from "./frontOffice";
+import { requestApproval, decide } from "./approvals";
 import { extendStay, moveStay, roomsToMoveTo, addBooking } from "./hotel";
 import { keysFor, activeKeysFor, validUntil } from "./access";
 import { hkStatus } from "./housekeeping";
@@ -42,5 +43,30 @@ describe("stay changes are saved, and keys follow", () => {
     expect(activeKeysFor(s.id).every(k => k.room === to)).toBe(true);
     expect(keysFor(s.id).filter(k => k.room === old).every(k => k.status === "Cancelled" && k.reason === `Moved to room ${to}`)).toBe(true);
     expect(hkStatus(old)).toBe("Dirty");
+  });
+
+  test("the bill is saved: charges, voids only once approved, moves off the bill, payments", () => {
+    const s = STAYS[STAYS.length - 1], start = balanceOf(s);
+    expect(postCharge(s.id, "Bar", "Two drinks", 4000, 2, "Chioma Nwosu")).toBe(true);
+    expect(balanceOf(s)).toBe(start + 8600);
+    const line = CHARGES[s.id].length - 1;
+    const a = requestApproval({ kind: "Void", dept: "Front Office", ref: `${s.id}/${line}`, title: s.guest, detail: "₦8,600 off", reason: "Incorrectly posted",
+      requestedBy: "Chioma Nwosu", apply: () => voidCharge(s.id, line, "Chioma Nwosu", "Incorrectly posted") });
+    expect(balanceOf(s)).toBe(start + 8600);                                   // nothing changes while it waits
+    expect(decide(a.id, true, "Chioma Nwosu", "MGT")).toMatch(/your own/);
+    expect(decide(a.id, true, "Adaeze Okonkwo", "MGT")).toBeNull();
+    expect(balanceOf(s)).toBe(start);
+    expect(CHARGES[s.id][line]).toMatchObject({ reversed: true, voidReason: "Incorrectly posted" });
+    expect(voidCharge(s.id, line, "x", "again")).toBe(false);
+
+    postCharge(s.id, "Restaurant", "Dinner for a client", 10000, 1, "Chioma Nwosu");
+    expect(moveCharges(s.id, [CHARGES[s.id].length - 1], "Company Folio · ACME-01")).toBe(true);
+    expect(balanceOf(s)).toBe(start);                                          // on the company's account now
+
+    const paid = paymentsFor(s.id).reduce((n, p) => n + p.amount, 0);
+    expect(takePayment(s.id, 0, "Cash", "Chioma Nwosu")).toBe(false);
+    expect(takePayment(s.id, 5000, "Cash", "Chioma Nwosu")).toBe(true);
+    expect(paymentsFor(s.id).reduce((n, p) => n + p.amount, 0)).toBe(paid + 5000);
+    expect(balanceOf(s)).toBe(start - 5000);
   });
 });

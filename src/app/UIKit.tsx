@@ -41,7 +41,7 @@ import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
 import { activeKeysFor, keysFor, stopAllKeys } from "./mock/access";
 import { addBooking, checkOut, typeAvailable, assignRoom, roomsForBooking, extendStay, moveStay, roomsToMoveTo } from "./mock/hotel";
 import { requestApproval } from "./mock/approvals";
-import { addDiscount, discountOf, postCharge } from "./mock/frontOffice";
+import { addDiscount, discountOf, postCharge, voidCharge, moveCharges, takePayment, paymentsFor } from "./mock/frontOffice";
 import { ReportFaultDialog } from "./FaultScreens";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
@@ -887,10 +887,9 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
   // The list as the screen opened, so a guest just checked out stays on screen with their receipt.
   const [ALL_GUESTS] = useState(checkoutGuests);
 
-  const BASE_CHARGES = CHARGES;
-
+  
   const [selectedId, setSelectedId]         = useState("BK-2848");
-  const [chargesMap, setChargesMap]         = useState<Record<string, ChargeRow[]>>(BASE_CHARGES);
+  const [, redrawBill] = useState(0); // the bill lives in mock/frontOffice; this only redraws after a change
   const [checkedOutIds, setCheckedOutIds]   = useState<string[]>([]);
   const [payMethod, setPayMethod]           = useState("Cash");
   const [cashAmt, setCashAmt]               = useState("");
@@ -951,9 +950,14 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
     checkout: checkoutOverrides[selectedId] ?? baseGuest.checkout,
     dueToday: addedNights > 0 ? false : baseGuest.dueToday,
   };
-  const charges    = chargesMap[selectedId] ?? [];
-  const setCharges = (fn: (p: ChargeRow[]) => ChargeRow[]) =>
-    setChargesMap(m => ({ ...m, [selectedId]: fn(m[selectedId] ?? []) }));
+  const charges    = CHARGES[selectedId] ?? [];
+  /** A void gives money back, so a manager approves it (approvals "Void"); the line is reversed when approved. */
+  const askVoid = (line: number, reason: string) => {
+    const c = charges[line]; if (!c) return;
+    requestApproval({ kind: "Void", dept: "Front Office", ref: `${selectedId}/${line}`, title: `${g.guest}, room ${g.room}`, detail: `₦${(c.amount + c.tax).toLocaleString()} off: ${c.desc}`,
+      reason, requestedBy: staffName, apply: () => voidCharge(selectedId, line, staffName, reason) });
+    add({ type: "info", title: "Void sent for approval", body: `${c.desc}. A manager approves it from their dashboard.` });
+  };
 
   const isCheckedOut = checkedOutIds.includes(selectedId);
   const gDiscount    = discountOf(selectedId);
@@ -1468,7 +1472,8 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                 <button onClick={() => setShowSplitFolio(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
                 <button disabled={splitLines.length === 0 || !splitReference.trim()} onClick={() => {
                   const destination = `${splitTarget} · ${splitReference.trim()}`;
-                  setCharges(rows => rows.map((row, index) => splitLines.includes(index) ? { ...row, movedTo: destination } : row));
+                  if (!moveCharges(selectedId, splitLines, destination)) { add({ type: "error", title: "Those lines can no longer be moved." }); return; }
+                  redrawBill(n => n + 1);
                   add({ type: "success", title: "Folio split complete", body: `${splitLines.length} charge${splitLines.length === 1 ? "" : "s"} · ₦${splitTotal.toLocaleString()} moved to ${splitReference.trim()}` });
                   setShowSplitFolio(false); setSplitLines([]); setSplitReference("");
                 }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Create split folio</button>
@@ -1524,7 +1529,8 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                   if (transferLine === null) return;
                   const destination = `${transferTarget} · ${transferReference.trim()}`;
                   const charge = charges[transferLine];
-                  setCharges(rows => rows.map((row, index) => index === transferLine ? { ...row, movedTo: destination } : row));
+                  if (!moveCharges(selectedId, [transferLine], destination)) { add({ type: "error", title: "That line can no longer be moved." }); return; }
+                  redrawBill(n => n + 1);
                   add({ type: "success", title: "Charge transferred", body: `${charge.desc} → ${transferReference.trim()} · ${transferReason.trim()}` });
                   setShowTransferCharge(false); setTransferLine(null); setTransferReference(""); setTransferReason("");
                 }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: TEAL_INK }}>Confirm transfer</button>
@@ -1573,7 +1579,7 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                 <button disabled={!extensionReason.trim()} onClick={() => {
                   const why = extendStay(selectedId, extensionCount, staffName);
                   if (why) { add({ type: "error", title: why }); return; }
-                  setChargesMap(m => ({ ...m, [selectedId]: [...(CHARGES[selectedId] ?? [])] })); // the bill as saved, with the new nights
+                  redrawBill(n => n + 1);
                   setExtensionMap(map => ({ ...map, [selectedId]: (map[selectedId] ?? 0) + extensionCount }));
                   setCheckoutOverrides(map => ({ ...map, [selectedId]: STAYS.find(x => x.id === selectedId)?.checkout ?? extensionCheckout }));
                   setShowExtendStay(false);
@@ -1624,6 +1630,9 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
               <div className="flex gap-3">
                 <button onClick={() => setShowReleaseConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
                 <button disabled={!releaseConfirmed} onClick={() => {
+                  // What the guest pays now is saved on the stay before it ends, so Finance sees every naira taken.
+                  const ref = payMethod === "Bank Transfer" ? bankRef : payMethod === "Corporate Account" ? `${corporateAccount} ${corporateRef}` : cardRef || undefined;
+                  if (balance > 0) takePayment(selectedId, balance, payMethod, staffName, ref);
                   checkOut(selectedId, staffName);
                   setCheckedOutIds(p => p.includes(selectedId) ? p : [...p, selectedId]);
                   setShowReleaseConfirm(false);
@@ -1664,8 +1673,7 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                 <button onClick={() => { setVoidLine(null); setVoidReason(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
                 <button disabled={!voidReason}
                   onClick={() => {
-                    setCharges(cs => cs.map((c, i) => i === voidLine ? { ...c, reversed: true } : c));
-                    add({ type: "info", title: "Charge voided", body: `${charges[voidLine]?.desc} · Reason: ${voidReason}` });
+                    if (voidLine !== null) askVoid(voidLine, voidReason);
                     setVoidLine(null); setVoidReason("");
                   }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: ERROR }}>Confirm void</button>
@@ -1687,7 +1695,7 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
             <div className="px-6 py-4 space-y-3">
               <div>
                 <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Discount Amount (₦) *</label>
-                <input type="number" value={discountAmt} onChange={e => setDiscountAmt(e.target.value)} placeholder="0" aria-label="0"
+                <input type="number" value={discountAmt} onChange={e => setDiscountAmt(e.target.value)} placeholder="0" aria-label="Discount amount (₦)"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${CK_DSH}`, fontFamily: mono }} />
                 {discountNum > balance && <p className="text-xs font-semibold mt-1.5" style={{ color: ERROR }}>Discount cannot exceed the ₦{balance.toLocaleString()} outstanding balance.</p>}
               </div>
@@ -1746,12 +1754,12 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Description *</label>
-                <input value={lateChargeDesc} onChange={e => setLateChargeDesc(e.target.value)} placeholder="e.g. Minibar — 2× Beer" aria-label="e.g. Minibar — 2× Beer"
+                <input value={lateChargeDesc} onChange={e => setLateChargeDesc(e.target.value)} placeholder="e.g. Minibar — 2× Beer" aria-label="What the late charge is for"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${CK_DSH}` }} />
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1.5" style={{ color: TEXT }}>Amount (₦) *</label>
-                <input type="number" value={lateChargeAmt} onChange={e => setLateChargeAmt(e.target.value)} placeholder="0" aria-label="0"
+                <input type="number" value={lateChargeAmt} onChange={e => setLateChargeAmt(e.target.value)} placeholder="0" aria-label="Late charge amount (₦)"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                   style={{ border: `1.5px solid ${CK_DSH}`, fontFamily: mono }} />
               </div>
@@ -1762,7 +1770,8 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                   onClick={() => {
                     const amt = parseInt(lateChargeAmt) || 0;
                     const tax = Math.round(amt * 0.075);
-                    setCharges(cs => [...cs, { date: g.checkout, cat: lateChargeCat, desc: lateChargeDesc, qty: 1, unit: amt, amount: amt, by: "Staff", tax, reversed: false }]);
+                    if (!postCharge(selectedId, lateChargeCat, lateChargeDesc, amt, 1, staffName)) { add({ type: "error", title: "That guest is no longer in house." }); return; }
+                    redrawBill(n => n + 1);
                     add({ type: "success", title: "Late charge posted", body: `₦${amt.toLocaleString()} · ${lateChargeDesc}` });
                     setShowLateCharge(false); setLateChargeDesc(""); setLateChargeAmt("");
                   }}
@@ -1871,7 +1880,7 @@ export function InHouseGuests({ add, nav, staffName }: { add: (t: Omit<Toast, "i
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 relative">
-                      <button onClick={() => nav && nav("check-out", "Guest Folio", g.id)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold hover:bg-[#F4F4F5] transition-colors" style={{ color: PRIMARY, borderColor: BORDER }}>Folio</button>
+                      <button onClick={() => nav && nav("folio", "Folio", g.id)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold hover:bg-[#F4F4F5] transition-colors" style={{ color: PRIMARY, borderColor: BORDER }}>Folio</button>
                       <button onClick={() => nav && nav("check-out", "Check-Out", g.id)} className="text-xs px-2.5 py-1.5 rounded-lg font-semibold text-white transition-colors hover:opacity-90" style={{ backgroundColor: PRIMARY }}>Check out</button>
                       <div className="relative">
                         <button aria-label="More actions" onClick={() => setMoreMenu(moreMenu === g.room ? null : g.room)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[#F4F4F5] transition-colors" style={{ color: SUBTLE }}><DotsThree size={13} weight="bold" /></button>
@@ -1932,7 +1941,7 @@ export function InHouseGuests({ add, nav, staffName }: { add: (t: Omit<Toast, "i
                     </div>
                     <div>
                       <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Amount (₦) *</label>
-                      <input type="number" value={chargeForm.amount} onChange={e => setChargeForm(form => ({ ...form, amount: e.target.value }))} placeholder="0" aria-label="0" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}`, fontFamily: mono }} />
+                      <input type="number" value={chargeForm.amount} onChange={e => setChargeForm(form => ({ ...form, amount: e.target.value }))} placeholder="0" aria-label="Charge amount (₦)" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={{ border: `1.5px solid ${BORDER}`, fontFamily: mono }} />
                     </div>
                   </div>
                   <div>
@@ -2220,22 +2229,23 @@ export function GuestProfiles({ add, nav }: { add: (t: Omit<Toast, "id">) => voi
   );
 }
 
-export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
+export function FolioScreen({ add, nav, stayId, staffName }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; stayId?: string; staffName: string }) {
+  // Any in-house guest's bill, read from and written to mock/frontOffice. Opens on the guest it was opened for.
+  const [id, setId] = useState(STAYS.some(s => s.id === stayId) ? stayId! : STAYS[0]?.id ?? "");
+  const [, redraw] = useState(0);
+  const stay = STAYS.find(s => s.id === id);
   const [catFilter, setCatFilter] = useState("All");
   const [showCharge, setShowCharge] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [charge, setCharge] = useState({ cat: "Restaurant", desc: "", qty: "1", amount: "" });
   const [payAmt, setPayAmt] = useState("");
   const [payMethod, setPayMethod] = useState("Cash");
-  const FOLIO_LINES = CHARGES["BK-2848"].map((c, i) => ({ date: c.date, cat: c.cat, desc: c.desc, qty: c.qty, unit: c.unit, amount: c.amount, tax: c.tax, by: c.by, reversed: c.reversed, id: i + 1 }));
-
-  const PAYMENTS = [
-    { date: "22 Jun", desc: "Check-in deposit", method: "Cash", amount: 55000, by: "John A.", id: "P1" },
-  ];
-  const [lines, setLines] = useState(FOLIO_LINES);
+  const lines = (CHARGES[id] ?? []).map((c, i) => ({ ...c, id: i })).filter(l => !l.movedTo);
+  const PAYMENTS = paymentsFor(id).map((p, i) => ({ date: p.at, desc: p.ref ?? "Payment", method: p.method, amount: p.amount, by: p.by, id: `P${i}` }));
+  const roomLine = lines.find(l => l.cat === "Room" && !l.reversed);
   const [voidId, setVoidId] = useState<number | null>(null);
   const [voidReason, setVoidReason] = useState("");
-  const cats = ["All", ...Array.from(new Set(FOLIO_LINES.map(l => l.cat)))];
+  const cats = ["All", ...Array.from(new Set(lines.map(l => l.cat)))];
   const visibleLines = catFilter === "All" ? lines : lines.filter(l => l.cat === catFilter);
   const chargesTotal = lines.filter(l => !l.reversed).reduce((s, l) => s + l.amount, 0);
   const taxTotal = lines.filter(l => !l.reversed).reduce((s, l) => s + l.tax, 0);
@@ -2244,11 +2254,12 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
   const balance = grand - paidTotal;
   let runningBal = paidTotal;
   const catColor: Record<string, string> = { Room: PRIMARY, Restaurant: TEAL, Bar: ORANGE, Laundry: MUTED, Minibar: "#8B5CF6" };
-  const postCharge = () => {
+  const submitCharge = () => {
     if (!charge.desc || !charge.amount) { add({ type: "warning", title: "Fill in description and amount" }); return; }
     const amt = parseInt(charge.amount) || 0; const qty = parseInt(charge.qty) || 1;
     const total = amt * qty; const tax = Math.round(total * 0.075);
-    setLines(prev => [...prev, { date: "24 Jun", cat: charge.cat, desc: charge.desc, qty, unit: amt, amount: total, tax, by: "John A.", reversed: false, id: Date.now() }]);
+    if (!postCharge(id, charge.cat, charge.desc, amt, qty, staffName)) { add({ type: "error", title: "That guest is no longer in house." }); return; }
+    redraw(n => n + 1);
     setShowCharge(false); setCharge({ cat: "Restaurant", desc: "", qty: "1", amount: "" });
     add({ type: "success", title: "Charge posted", body: `${charge.cat} · ₦${total.toLocaleString()}` });
   };
@@ -2262,14 +2273,16 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
   );
   return (
     <div>
-      <PageHeader title="Folio — BK-2848" sub="Emmanuel Adeyemi · Room 202 · 22–24 Jun 2026"
-        actions={<><BtnO label="Print folio" icon={FileText} /><BtnO label="Split folio" icon={Stack} /><BtnP label="Post charge" icon={Plus} onClick={() => setShowCharge(true)} /></>} />
+      <PageHeader title={`Folio ${stay?.folio ?? ""}`} sub={stay ? `${stay.guest}, room ${stay.room}, ${stay.checkin} to ${stay.checkout}` : ""}
+        actions={<><select aria-label="Guest" value={id} onChange={e => setId(e.target.value)} className="h-10 rounded-xl border px-3 text-sm" style={{ borderColor: BORDER, color: TEXT }}>
+          {STAYS.map(s => <option key={s.id} value={s.id}>Room {s.room}, {s.guest}</option>)}</select>
+          <BtnP label="Post charge" icon={Plus} onClick={() => setShowCharge(true)} /></>} />
       {/* Header stat bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <StatCard label="Charges + Tax" value={`₦${grand.toLocaleString()}`} sub={`${lines.filter(l=>!l.reversed).length} active lines`} icon={FileText} accent={PRIMARY} />
         <StatCard label="Payments" value={`₦${paidTotal.toLocaleString()}`} sub={`${PAYMENTS.length} payment${PAYMENTS.length !== 1 ? "s" : ""}`} icon={CheckCircle} accent={SUCCESS} />
         <StatCard label="Balance due" value={`₦${Math.max(0,balance).toLocaleString()}`} sub="Remaining" icon={CurrencyDollar} accent={balance > 0 ? ERROR : SUCCESS} />
-        <StatCard label="Room night rate" value="₦55,000" sub="Deluxe · 2 nights" icon={Bed} accent={TEAL} />
+        <StatCard label="Room night rate" value={`₦${(roomLine?.unit ?? 0).toLocaleString()}`} sub={`${stay?.type ?? ""}, ${stay?.nights ?? 0} night${stay?.nights === 1 ? "" : "s"}`} icon={Bed} accent={TEAL} />
       </div>
       {/* Charge lines */}
       <div className="bg-white rounded-xl border overflow-hidden mb-4" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
@@ -2352,10 +2365,10 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
                 <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Quantity</label><input aria-label="Quantity" type="number" min="1" value={charge.qty} onChange={e => setCharge(p => ({...p, qty: e.target.value}))} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               </div>
               <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Description</label><input value={charge.desc} onChange={e => setCharge(p=>({...p,desc:e.target.value}))} placeholder="e.g. Room Service #RS-055" aria-label="e.g. Room Service #RS-055" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Unit amount (₦)</label><input type="number" value={charge.amount} onChange={e => setCharge(p=>({...p,amount:e.target.value}))} placeholder="0" aria-label="0" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
+              <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: MUTED }}>Unit amount (₦)</label><input type="number" value={charge.amount} onChange={e => setCharge(p=>({...p,amount:e.target.value}))} placeholder="0" aria-label="Charge amount (₦)" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
               {charge.amount && charge.qty && <div className="p-3 rounded-xl text-xs" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>Total: ₦{((parseInt(charge.amount)||0)*(parseInt(charge.qty)||1)).toLocaleString()} + VAT ₦{Math.round((parseInt(charge.amount)||0)*(parseInt(charge.qty)||1)*0.075).toLocaleString()}</div>}
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowCharge(false)} /><BtnP label="Post charge" icon={CurrencyDollar} onClick={postCharge} /></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowCharge(false)} /><BtnP label="Post charge" icon={CurrencyDollar} onClick={submitCharge} /></div>
           </div>
         </>
       )}
@@ -2371,7 +2384,7 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
                 <div className="grid grid-cols-2 gap-2">{["Cash","POS / Card","Bank Transfer","Corporate Account"].map(m=><label key={m} className="flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer" style={{ borderColor: payMethod===m ? SUCCESS : BORDER, backgroundColor: payMethod===m ? "#F0FDF4" : "white" }}><div className="w-3.5 h-3.5 rounded-full border-2 flex-shrink-0" style={{ borderColor: payMethod===m ? SUCCESS : "#CBD5E1", backgroundColor: payMethod===m ? SUCCESS : "transparent" }} /><input type="radio" className="hidden" onChange={() => setPayMethod(m)} /><span className="text-xs" style={{ color: TEXT }}>{m}</span></label>)}</div>
               </div>
             </div>
-            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowPayment(false)} /><button onClick={() => { setShowPayment(false); add({ type: "success", title: "Payment posted", body: `₦${parseInt(payAmt||"0").toLocaleString()} ${payMethod}` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Post payment</button></div>
+            <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowPayment(false)} /><button onClick={() => { const amt = parseInt(payAmt || "0"); if (!takePayment(id, amt, payMethod, staffName)) { add({ type: "error", title: "Enter an amount above zero." }); return; } setShowPayment(false); setPayAmt(""); redraw(n => n + 1); add({ type: "success", title: "Payment posted", body: `₦${amt.toLocaleString()} ${payMethod}` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: SUCCESS }}>Post payment</button></div>
           </div>
         </>
       )}
@@ -2381,9 +2394,9 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
           <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setVoidId(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border: `1px solid ${BORDER}` }}>
             <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Reverse charge</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>A credit reversal line will be posted. The original line is never deleted. Select a reason:</p>
+            <p className="text-xs mb-4" style={{ color: MUTED }}>A manager approves it first. The line stays on the bill, marked reversed. Choose a reason:</p>
             <div className="space-y-2 mb-4">{["Guest complaint / dispute","Incorrectly posted","Complimentary by manager","Other"].map(r=><label key={r} className="flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer" style={{ borderColor: voidReason===r ? ERROR : BORDER, backgroundColor: voidReason===r ? "#FEF2F2" : "white" }}><div className="w-4 h-4 rounded-full border-2 flex items-center justify-center" style={{ borderColor: voidReason===r ? ERROR : "#CBD5E1" }}>{voidReason===r && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ERROR }} />}</div><input type="radio" className="hidden" onChange={() => setVoidReason(r)} /><span className="text-sm" style={{ color: TEXT }}>{r}</span></label>)}</div>
-            <div className="flex gap-3"><button onClick={() => { setVoidId(null); setVoidReason(""); }} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button><button disabled={!voidReason} onClick={() => { setLines(ls => ls.map(l => l.id === voidId ? {...l, reversed: true} : l)); add({ type: "info", title: "Charge reversed", body: voidReason }); setVoidId(null); setVoidReason(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Confirm reversal</button></div>
+            <div className="flex gap-3"><button onClick={() => { setVoidId(null); setVoidReason(""); }} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button><button disabled={!voidReason} onClick={() => { const c = CHARGES[id]?.[voidId!]; if (stay && c) { requestApproval({ kind: "Void", dept: "Front Office", ref: `${id}/${voidId}`, title: `${stay.guest}, room ${stay.room}`, detail: `₦${(c.amount + c.tax).toLocaleString()} off: ${c.desc}`, reason: voidReason, requestedBy: staffName, apply: () => voidCharge(id, voidId!, staffName, voidReason) }); add({ type: "info", title: "Reversal sent for approval", body: `${c.desc}. A manager approves it from their dashboard.` }); } setVoidId(null); setVoidReason(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Confirm reversal</button></div>
           </div>
         </>
       )}
@@ -2391,7 +2404,7 @@ export function FolioScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void;
   );
 }
 
-export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
+export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selected, setSelected] = useState<string[]>([]);
@@ -2457,7 +2470,7 @@ export function FinanceFolioManagement({ add, nav }: { add: (t: Omit<Toast, "id"
                   </div>
                 </td>
                 <td className="px-3 py-3">
-                  <button onClick={() => nav && nav("folio", f.guest)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Open Folio</button>
+                  <button onClick={() => nav && nav("folio", f.guest, f.res)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold whitespace-nowrap" style={{ color: PRIMARY, borderColor: `${PRIMARY}30` }}>Open Folio</button>
                 </td>
               </tr>
             ))}
