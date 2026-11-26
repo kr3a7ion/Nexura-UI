@@ -99,7 +99,15 @@ for (const st of moreStays) {
 export const chargesTotal = (id: string) => (CHARGES[id] ?? []).filter(c => !c.reversed).reduce((s, c) => s + c.amount + c.tax, 0);
 export const balanceOf = (s: Stay) => chargesTotal(s.id) - s.paid - discountOf(s.id);
 export const leavesToday = (s: Stay) => s.checkout === TODAY;
-const nightsLeft = (s: Stay) => Math.max(0, Math.round((new Date(`${s.checkout} ${BUSINESS_DATE.getFullYear()}`).getTime() - BUSINESS_DATE.getTime()) / 86400000));
+/** A stay's dates as real dates. They are kept as "30 Dec"; a stay never starts after today, and one that crosses
+ *  New Year checks out in the year after it checked in. */
+export const stayDates = (s: Pick<Stay, "checkin" | "checkout">, today = BUSINESS_DATE) => {
+  const y = today.getFullYear(), tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  let checkin = new Date(`${s.checkin} ${y}`); if (checkin > tomorrow) checkin = new Date(`${s.checkin} ${y - 1}`);
+  let checkout = new Date(`${s.checkout} ${checkin.getFullYear()}`); if (checkout < checkin) checkout = new Date(`${s.checkout} ${checkin.getFullYear() + 1}`);
+  return { checkin, checkout };
+};
+const nightsLeft = (s: Stay) => Math.max(0, Math.round((stayDates(s).checkout.getTime() - BUSINESS_DATE.getTime()) / 86400000));
 
 // Check-Out list
 export const checkoutGuests = () => STAYS.map(s => ({
@@ -145,7 +153,6 @@ export const ARRIVALS: Arrival[] = EMPTY ? [] : ALL_ARRIVALS;
 // and future bookings. Dates are real dates so the grid can place them on any day.
 export type GridBooking = { id: string; room: string; guest: string; checkin: Date; checkout: Date; status: "Checked in" | "Confirmed" | "Pending"; rate: number; source: string; vip: boolean; type?: string };
 const year = BUSINESS_DATE.getFullYear();
-const dayMonth = (s: string) => new Date(`${s} ${year}`);
 const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 const FUTURE: [string, string, string, string, number, GridBooking["status"], string][] = [
   // id, room, guest, check-in (ISO), nights, status, source
@@ -172,7 +179,7 @@ const DEPARTED: Reservation[] = [];
 const NO_SHOWS: (Reservation & { reason: string })[] = [];
 export const gridBookings = (): GridBooking[] => [
   ...ADDED,
-  ...STAYS.map(s => ({ id: s.id, room: s.room, guest: s.guest, checkin: dayMonth(s.checkin), checkout: dayMonth(s.checkout), status: "Checked in" as const, rate: roomPrice(s.type), source: "Front desk", vip: s.vip })),
+  ...STAYS.map(s => ({ id: s.id, room: s.room, guest: s.guest, ...stayDates(s), status: "Checked in" as const, rate: roomPrice(s.type), source: "Front desk", vip: s.vip })),
   ...ARRIVALS.filter(a => a.room).map(a => ({ id: a.id, room: a.room, guest: a.guest, checkin: BUSINESS_DATE, checkout: addDays(BUSINESS_DATE, a.nights), status: (a.status === "Pending" ? "Pending" : "Confirmed") as GridBooking["status"], rate: a.rate, source: "Phone", vip: a.vip })),
   ...(EMPTY ? [] : FUTURE.map(([id, room, guest, iso, n, status, source]) => {
     const checkin = new Date(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
@@ -222,6 +229,25 @@ export const setRoomRate = (stayId: string, rate: number) => {
   const row = CHARGES[stayId]?.find(c => c.cat === "Room" && !c.reversed); if (!row || !STAYS.some(s => s.id === stayId)) return false;
   Object.assign(row, { unit: rate, amount: rate * row.qty, tax: Math.round(rate * row.qty * 0.075) });
   return true;
+};
+/** A charge on a guest's bill, with VAT. The bill only grows: a wrong line is reversed, never edited. */
+export const postCharge = (stayId: string, cat: string, desc: string, unit: number, qty: number, by: string) => {
+  if (!STAYS.some(s => s.id === stayId)) return false;
+  const amount = unit * qty;
+  (CHARGES[stayId] ??= []).push({ date: TODAY, cat, desc, qty, unit, amount, by, tax: Math.round(amount * 0.075), reversed: false });
+  return true;
+};
+/** More nights on the same room, charged at the stay's own nightly rate. Availability is checked in hotel.ts. */
+export const addNights = (stayId: string, n: number, by: string) => {
+  const s = STAYS.find(x => x.id === stayId); if (!s) return null;
+  const rate = CHARGES[stayId]?.find(c => c.cat === "Room" && !c.reversed)?.unit ?? roomPrice(s.type);
+  postCharge(stayId, "Room", `${s.type} Room ${s.room} × ${n} more night${n === 1 ? "" : "s"}`, rate, n, by);
+  Object.assign(s, { checkout: short(addDays(stayDates(s).checkout, n)), nights: s.nights + n });
+  return s;
+};
+export const setStayRoom = (stayId: string, room: string) => {
+  const s = STAYS.find(x => x.id === stayId); if (s) Object.assign(s, { room, type: roomType(room) });
+  return s;
 };
 export const setLateCheckout = (stayId: string, time: string) => {
   const stay = STAYS.find(x => x.id === stayId); if (stay) Object.assign(stay, { lateCheckout: true, checkoutTime: time });

@@ -2,12 +2,13 @@
 // so a screen never has to keep two departments in step by itself.
 // PR C adds the bell: each action will also tell the people who need to know.
 import { BUSINESS_DATE } from "../constants";
-import { ARRIVALS, STAYS, gridBookings, bookedOn, nextBookingId, initials, addFutureBooking, addArrival, arrivalToStay, endStay, setBookingRoom, arrivalToNoShow } from "./frontOffice";
+import { ARRIVALS, STAYS, gridBookings, bookedOn, nextBookingId, initials, addFutureBooking, addArrival, arrivalToStay, endStay, setBookingRoom, arrivalToNoShow, stayDates, addNights, setStayRoom } from "./frontOffice";
 import { updateRoom, hkStatus, hkRooms } from "./housekeeping";
 import { notify } from "./notify";
 import { ROOMS } from "./property";
 import { workOrder, moveWorkOrder, isOutOfOrder } from "./maintenance";
-import { issueStayKeys, cancelStayKeys, type KeyChoice } from "./access";
+import { issueStayKeys, cancelStayKeys, rekeyStay, type KeyChoice } from "./access";
+import { roomState } from "./rooms";
 
 const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
@@ -67,6 +68,37 @@ export const checkOut = (stayId: string, by = "Front desk") => {
     notify("guest.checkedOut", { title: `Room ${s.room} is free to clean`, body: `${s.guest} checked out.`, people: [attendantOf(s.room)], link: { screen: "hk-board", label: "Housekeeping Board" } });
   }
   return s;
+};
+
+const nightsFromToday = (stayId: string) => {
+  const s = STAYS.find(x => x.id === stayId)!;
+  return Math.max(1, Math.round((day(stayDates(s).checkout).getTime() - day(BUSINESS_DATE).getTime()) / 86400000));
+};
+/** More nights in the same room. The keys follow by themselves: they run to the stay's check-out time. */
+export const extendStay = (stayId: string, nights: number, by: string): string | null => {
+  const s = STAYS.find(x => x.id === stayId); if (!s) return "That guest is not in house.";
+  if (!Number.isInteger(nights) || nights < 1 || nights > 30) return "Extend by 1 to 30 nights.";
+  if (!roomFree(s.room, stayDates(s).checkout, nights, s.id)) return `Room ${s.room} is booked from ${s.checkout}. Move the guest to another room first.`;
+  addNights(s.id, nights, by);
+  return null;
+};
+/** Rooms a guest can move to: ready now and free for the rest of the stay. */
+export const roomsToMoveTo = (stayId: string) => {
+  const s = STAYS.find(x => x.id === stayId); if (!s) return [];
+  return ROOMS.filter(r => r.id !== s.room && roomState(r.id) === "Ready" && roomFree(r.id, BUSINESS_DATE, nightsFromToday(stayId), s.id));
+};
+/** Moves an in-house guest: new room on the stay, old keys stopped and new ones issued, old room to Housekeeping dirty.
+ *  The nightly rate stays as it was; a different price is a rate change for approval. */
+export const moveStay = (stayId: string, room: string, by: string, reason: string): string | null => {
+  const s = STAYS.find(x => x.id === stayId); if (!s) return "That guest is not in house.";
+  if (reason.trim().length < 3) return "Say why the guest is moving.";
+  if (!roomsToMoveTo(stayId).some(r => r.id === room)) return `Room ${room} is not ready and free for the rest of this stay.`;
+  const old = s.room;
+  setStayRoom(stayId, room);
+  rekeyStay(stayId, by, `Moved to room ${room}`);
+  updateRoom(old, { hkSt: "Dirty", awaitingInspection: false, note: "" });
+  notify("guest.moved", { title: `${s.guest} moved from room ${old} to ${room}`, body: `Room ${old} is free to clean. ${reason.trim()}`, people: [attendantOf(old)], link: { screen: "hk-board", label: "Housekeeping Board" } });
+  return null;
 };
 
 // Closing or cancelling the last order that held a room sends it to Housekeeping dirty, not straight to sale.
