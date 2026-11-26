@@ -20,6 +20,7 @@ export const ROUTES = {
   "booking.made":          { level: "Normal", roles: ["RSV", "FD"] },
   "guest.checkedIn":       { level: "Low",    roles: ["HK"] },
   "guest.checkedOut":      { level: "Normal", roles: ["HK"] },
+  "guest.moved":           { level: "Normal", roles: ["HK", "FD"] },
   "arrival.rushRoom":      { level: "High",   roles: ["HK"] },
   "arrival.noShow":        { level: "Low",    roles: ["RSV"] },
   "approval.requested":    { level: "High",   roles: [] },

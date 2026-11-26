@@ -5,7 +5,7 @@
 // Seeds use the business date and the stays in mock/frontOffice.ts; nothing here calls back into another department
 // while loading.
 import { BUSINESS_DATE } from "../constants";
-import { STAYS } from "./frontOffice";
+import { STAYS, stayDates } from "./frontOffice";
 import { notify } from "./notify";
 import { now } from "./maintenance";
 
@@ -21,11 +21,10 @@ const LOG: KeyLogLine[] = [];
 let keySeq = 0, logSeq = 0;
 const DEPARTED: Record<string, Date> = {}; // stays that have checked out: their keys stopped then
 
-const year = BUSINESS_DATE.getFullYear();
 /** The stay's departure: its check-out day ("24 Jun") at its check-out time ("11:00"). */
 const departureOf = (stayId: string) => {
   const s = STAYS.find(x => x.id === stayId); if (!s) return DEPARTED[stayId];
-  const d = new Date(`${s.checkout} ${year} ${s.checkoutTime}`);
+  const d = stayDates(s).checkout, [h, m] = s.checkoutTime.split(":").map(Number); d.setHours(h, m);
   return isNaN(d.getTime()) ? undefined : d;
 };
 export const validUntil = (k: GuestKey) => k.endedAt ?? departureOf(k.stayId);
@@ -37,12 +36,12 @@ const log = (k: GuestKey, event: KeyEvent, by: string, note?: string, at = now()
 const newCode = (room: string) => {
   // A passcode is unique among the active codes on that room's lock.
   const taken = new Set(KEYS.filter(k => k.room === room && k.kind === "Passcode" && k.status === "Active").map(k => k.code));
-  let code: string; do code = String(Math.floor(100000 + Math.random() * 900000)); while (taken.has(code));
+  let code: string; do code = String(100000 + crypto.getRandomValues(new Uint32Array(1))[0] % 900000); while (taken.has(code)); // opens a guest's door: not Math.random
   return code;
 };
 const issue = (stayId: string, kind: KeyKind, by: string, at = now(), note?: string) => {
   const s = STAYS.find(x => x.id === stayId)!;
-  const cards = KEYS.filter(k => k.stayId === stayId && k.kind === "Card").length;
+  const cards = KEYS.filter(k => k.room === s.room && k.kind === "Card").length; // numbered by room across stays, so a serial names one card
   const k: GuestKey = { id: `KEY-${String(++keySeq).padStart(4, "0")}`, kind, stayId, room: s.room, guest: s.guest, issuedAt: at, issuedBy: by, status: "Active",
     ...(kind === "Card" ? { serial: `C-${s.room}-${cards + 1}` } : { code: newCode(s.room) }) };
   KEYS.push(k); log(k, "Issued", by, note, at); return k;
@@ -52,7 +51,7 @@ const end = (k: GuestKey, status: "Cancelled" | "Lost", by: string, reason?: str
 };
 
 // Every guest already in house has the card and passcode they were given at check-in.
-for (const s of STAYS) { const at = new Date(`${s.checkin} ${year} 14:00`); issue(s.id, "Card", "Front desk", at); issue(s.id, "Passcode", "Front desk", at); }
+for (const s of STAYS) { const at = stayDates(s).checkin; at.setHours(14); issue(s.id, "Card", "Front desk", at); issue(s.id, "Passcode", "Front desk", at); }
 
 export const keys = () => KEYS;
 export const keysFor = (stayId: string) => KEYS.filter(k => k.stayId === stayId);
@@ -80,7 +79,7 @@ export const reportLost = (keyId: string, by: string, note?: string): GuestKey |
   const k = KEYS.find(x => x.id === keyId);
   if (!k || keyState(k) !== "Active" || k.kind !== "Card") return "Only an active card can be reported lost.";
   end(k, "Lost", by, note?.trim() || undefined);
-  notify("key.lost", { title: `Card for room ${k.room} reported lost`, body: `${k.serial} stopped. A new card was encoded for ${k.guest}.`, link: { screen: "key-card-log", label: "Key Card Log" } });
+  notify("key.lost", { title: `Card for room ${k.room} reported lost`, body: `${k.serial} stopped. A new card was encoded for ${k.guest}.`, link: { screen: "key-card-log", label: "Key Log" } });
   return issue(k.stayId, "Card", by, now(), `In place of ${k.serial}`);
 };
 /** A new passcode for the stay; the old one stops at once (the guest shared it, or asked for a new one). */
@@ -96,6 +95,12 @@ export const cancelKey = (keyId: string, by: string, reason: string): string | n
   end(k, "Cancelled", by, reason.trim()); return null;
 };
 /** At check-out, in the same step: every key the stay holds stops. */
+/** A room move: the old room's keys stop and the same set is issued for the new room. */
+export const rekeyStay = (stayId: string, by: string, reason: string) => {
+  const live = activeKeysFor(stayId);
+  live.forEach(k => end(k, "Cancelled", by, reason));
+  return issueStayKeys(stayId, by, { cards: Math.max(1, live.filter(k => k.kind === "Card").length), passcode: live.some(k => k.kind === "Passcode") || !live.length });
+};
 export const cancelStayKeys = (stayId: string, by: string) => {
   DEPARTED[stayId] = now();
   keysFor(stayId).filter(k => k.status === "Active").forEach(k => end(k, "Cancelled", by, "Checked out"));

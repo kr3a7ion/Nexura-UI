@@ -38,10 +38,10 @@ import { CHARGES, type ChargeRow, checkoutGuests, inHouseGuests, folios, STAYS, 
 import { UI, controlClass, controlStyle, Field, Card, SectionTitle, Stepper, Choice, Segmented, Row } from "./ui";
 import { ROOM_TYPES, roomPrice, roomTypeNames } from "./mock/property";
 import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
-import { activeKeysFor, stopAllKeys } from "./mock/access";
-import { addBooking, checkOut, typeAvailable, assignRoom, roomsForBooking } from "./mock/hotel";
+import { activeKeysFor, keysFor, stopAllKeys } from "./mock/access";
+import { addBooking, checkOut, typeAvailable, assignRoom, roomsForBooking, extendStay, moveStay, roomsToMoveTo } from "./mock/hotel";
 import { requestApproval } from "./mock/approvals";
-import { addDiscount, discountOf } from "./mock/frontOffice";
+import { addDiscount, discountOf, postCharge } from "./mock/frontOffice";
 import { ReportFaultDialog } from "./FaultScreens";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
@@ -958,7 +958,7 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
   const isCheckedOut = checkedOutIds.includes(selectedId);
   const gDiscount    = discountOf(selectedId);
   // Keys stop by themselves at check-out (mock/access.ts); stopped early only if every key was stopped from In-House.
-  const liveKeys     = activeKeysFor(selectedId), keysEnded = !liveKeys.length;
+  const liveKeys     = activeKeysFor(selectedId), keysEnded = !keysFor(selectedId).some(k => k.status === "Active"); // past check-out time is not stopped
   const gKey         = keyReturned[selectedId]   ?? false;
   const gFeedback    = feedbackStatus[selectedId];
 
@@ -1571,21 +1571,13 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
               <div className="flex gap-3">
                 <button onClick={() => setShowExtendStay(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: CK_DSH, color: CK_MUT }}>Cancel</button>
                 <button disabled={!extensionReason.trim()} onClick={() => {
-                  setCharges(rows => [...rows, {
-                    date: g.checkout,
-                    cat: "Room",
-                    desc: `${g.type} Room ${g.room} · Stay extension × ${extensionCount} night${extensionCount === 1 ? "" : "s"}`,
-                    qty: extensionCount,
-                    unit: nightlyRate,
-                    amount: extensionSubtotal,
-                    by: "Front Desk",
-                    tax: extensionTax,
-                    reversed: false,
-                  }]);
+                  const why = extendStay(selectedId, extensionCount, staffName);
+                  if (why) { add({ type: "error", title: why }); return; }
+                  setChargesMap(m => ({ ...m, [selectedId]: [...(CHARGES[selectedId] ?? [])] })); // the bill as saved, with the new nights
                   setExtensionMap(map => ({ ...map, [selectedId]: (map[selectedId] ?? 0) + extensionCount }));
-                  setCheckoutOverrides(map => ({ ...map, [selectedId]: extensionCheckout }));
+                  setCheckoutOverrides(map => ({ ...map, [selectedId]: STAYS.find(x => x.id === selectedId)?.checkout ?? extensionCheckout }));
                   setShowExtendStay(false);
-                  add({ type: "success", title: "Stay extended", body: `Room ${g.room} · New checkout ${extensionCheckout} ${PROPERTY_PROFILE.checkOutTime} · Access validity extended` });
+                  add({ type: "success", title: "Stay extended", body: `Room ${g.room}. New check-out ${STAYS.find(x => x.id === selectedId)?.checkout} ${PROPERTY_PROFILE.checkOutTime}; the guest's keys now run to then.` });
                 }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Confirm extension</button>
               </div>
             </div>
@@ -1993,8 +1985,8 @@ export function InHouseGuests({ add, nav, staffName }: { add: (t: Omit<Toast, "i
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>New Inspected Room *</label>
                     <select aria-label="New inspected room" value={moveRoom} onChange={e => setMoveRoom(e.target.value)} className="w-full px-4 py-3 rounded-xl text-sm outline-none appearance-none" style={{ border: `1.5px solid ${moveRoom ? BORDER : ERROR}`, backgroundColor: "white", color: TEXT }}>
-                      <option value="">Select available room</option>
-                      {["102 · Standard", "104 · Standard", "201 · Deluxe", "301 · Suite", "402 · Deluxe", "502 · Suite"].map(room => <option key={room}>{room}</option>)}
+                      <option value="">Choose a ready room</option>
+                      {roomsToMoveTo(actionGuest.id).map(r => <option key={r.id} value={r.id}>{r.id} · {r.type}</option>)}
                     </select>
                   </div>
                   <div>
@@ -2027,21 +2019,22 @@ export function InHouseGuests({ add, nav, staffName }: { add: (t: Omit<Toast, "i
                 <button onClick={() => setGuestAction(null)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button>
                 {guestAction.type === "message" && <button disabled={!messageText.trim()} onClick={() => { add({ type: "success", title: `Message sent via ${messageChannel}`, body: `${actionGuest.guest} · Room ${actionGuest.room}` }); setGuestAction(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Send message</button>}
                 {guestAction.type === "charge" && <button disabled={!chargeForm.description.trim() || (parseInt(chargeForm.amount) || 0) <= 0} onClick={() => {
-                  const total = Math.round((parseInt(chargeForm.amount) || 0) * 1.075);
-                  setGuests(list => list.map(guest => guest.id === actionGuest.id ? { ...guest, balance: guest.balance + total } : guest));
+                  const amount = parseInt(chargeForm.amount) || 0, total = Math.round(amount * 1.075);
+                  if (!postCharge(actionGuest.id, chargeForm.category, chargeForm.description.trim(), amount, 1, staffName)) { add({ type: "error", title: "That guest is no longer in house." }); return; }
+                  setGuests(inHouseGuests());
                   add({ type: "success", title: "Charge posted", body: `${actionGuest.guest} · ${chargeForm.category} · ₦${total.toLocaleString()} incl. VAT` }); setGuestAction(null);
                 }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Post charge</button>}
                 {guestAction.type === "extend" && <button disabled={!extendReason.trim()} onClick={() => {
-                  const extra = parseInt(extendNights) || 1;
-                  const checkout = addDaysLabel(actionGuest.checkout, extra);
-                  setGuests(list => list.map(guest => guest.id === actionGuest.id ? { ...guest, checkout, nights: guest.nights + extra, nightsLeft: guest.nightsLeft + extra } : guest));
-                  add({ type: "success", title: "Stay extended", body: `${actionGuest.guest} · New checkout ${checkout} ${PROPERTY_PROFILE.checkOutTime}` }); setGuestAction(null);
+                  const why = extendStay(actionGuest.id, parseInt(extendNights) || 1, staffName);
+                  if (why) { add({ type: "error", title: why }); return; }
+                  setGuests(inHouseGuests());
+                  add({ type: "success", title: "Stay extended", body: `${actionGuest.guest}. New check-out ${STAYS.find(x => x.id === actionGuest.id)?.checkout} ${PROPERTY_PROFILE.checkOutTime}; the keys now run to then.` }); setGuestAction(null);
                 }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Confirm extension</button>}
                 {guestAction.type === "move" && <button disabled={!moveRoom || !moveReason.trim()} onClick={() => {
-                  const [room, type] = moveRoom.split(" · ");
-                  const oldRoom = actionGuest.room;
-                  setGuests(list => list.map(guest => guest.id === actionGuest.id ? { ...guest, room, type } : guest));
-                  add({ type: "success", title: "Room move complete", body: `${actionGuest.guest} · ${oldRoom} → ${room} · New access issued` }); setGuestAction(null);
+                  const oldRoom = actionGuest.room, why = moveStay(actionGuest.id, moveRoom, staffName, moveReason);
+                  if (why) { add({ type: "error", title: why }); return; }
+                  setGuests(inHouseGuests());
+                  add({ type: "success", title: `${actionGuest.guest} moved to room ${moveRoom}`, body: `Room ${oldRoom}'s keys stopped and new ones issued. Room ${oldRoom} goes to Housekeeping to clean.` }); setGuestAction(null);
                 }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: PRIMARY }}>Confirm move</button>}
                 {guestAction.type === "revoke" && <button disabled={!revokeReason} onClick={() => {
                   const r = stopAllKeys(actionGuest.id, staffName, revokeReason);
