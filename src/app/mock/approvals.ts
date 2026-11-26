@@ -7,11 +7,12 @@ import { atWork } from "./staff";
 
 // Only decisions that give money away need a second person; check-in and check-out never wait.
 // Purchase: something bought outside the store for a maintenance job, above the supervisor's limit.
-export type ApprovalKind = "Rate override" | "Discount" | "Purchase" | "Void";
+// Remote unlock: the one exception that is not money: a door opened for the wrong person is a safety matter.
+export type ApprovalKind = "Rate override" | "Discount" | "Purchase" | "Void" | "Remote unlock";
 export type Approval = {
   id: string; kind: ApprovalKind; dept: string; ref: string; title: string; detail: string; reason: string;
   requestedBy: string; at: string; status: "Waiting" | "Approved" | "Declined"; decidedBy?: string; note?: string;
-  apply: () => boolean; // false when the change can no longer be made, for example the guest has left
+  apply: (approvedBy: string) => boolean; // false when the change can no longer be made, for example the guest has left
 };
 
 // Who may approve each department's requests. Roles & Permissions changes this.
@@ -51,7 +52,7 @@ export const decide = (id: string, approve: boolean, by: string, role: Role, not
   if (!canApprove(role, a.dept, by)) return "You cannot approve this department's requests.";
   if (a.requestedBy === by) return "Someone else must approve your own request.";
   // Approving after the guest has checked out would change a closed bill, so it is declined instead.
-  const tooLate = approve && !a.apply();
+  const tooLate = approve && !a.apply(by);
   if (tooLate) { approve = false; note = "The guest checked out before this was approved; settle it at Finance."; }
   Object.assign(a, { status: approve ? "Approved" : "Declined", decidedBy: by, note });
   notify("approval.decided", { title: `${a.kind} ${approve ? "approved" : "declined"}: ${a.title}`, body: approve ? `${by} approved ${a.detail}.` : `${by}: ${note}`, people: [a.requestedBy] });

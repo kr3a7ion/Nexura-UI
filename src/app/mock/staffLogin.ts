@@ -20,6 +20,7 @@ export const LOGIN_ACCOUNTS: LoginAccount[] = [
   { username: "amina.yusuf", password: "demo123", name: "Amina Yusuf", role: "RSV", roleName: "Reservations", destination: "hms", branches: 1, kind: "staff" },
   { username: "adaeze.okonkwo", password: "demo123", name: "Adaeze Okonkwo", role: "MGT", roleName: "Hotel Manager", destination: "hms", branches: 2, kind: "staff" },
   { username: "ngozi.eze", password: "demo123", name: "Ngozi Eze", role: "FIN", roleName: "Finance", destination: "hms", branches: 2, kind: "staff" },
+  { username: "ibrahim.danladi", password: "demo123", name: "Ibrahim Danladi", role: "SEC", roleName: "Security", destination: "hms", branches: 1, kind: "staff" },
   { username: "tunde.afolabi", password: "demo123", name: "Tunde Afolabi", role: "IT", roleName: "IT Administrator", destination: "hms", branches: 3, kind: "staff" },
   { username: "musa.ibrahim", password: "demo123", name: "Alhaji Musa Ibrahim", role: "ORG", roleName: "Owner", destination: "org-portal", branches: 4, kind: "cloud" },
   { username: "ops.admin", password: "demo123", name: "System Admin", role: "PLT", roleName: "Platform Admin", destination: "admin-console", branches: 5, kind: "cloud" },
