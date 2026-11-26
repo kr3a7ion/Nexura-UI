@@ -249,6 +249,8 @@ export const setStayRoom = (stayId: string, room: string) => {
   const s = STAYS.find(x => x.id === stayId); if (s) Object.assign(s, { room, type: roomType(room) });
   return s;
 };
+/** Discounts and voids up to this (₦, with VAT) the desk gives itself; above it a manager approves. */
+export const DESK_LIMIT = 5000;
 /** Takes a line off the guest's bill, once approved (approvals "Void"). The line stays, marked reversed, with who and why. */
 export const voidCharge = (stayId: string, line: number, by: string, reason: string) => {
   const row = CHARGES[stayId]?.[line];

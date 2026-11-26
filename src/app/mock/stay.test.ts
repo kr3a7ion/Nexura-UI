@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { STAYS, CHARGES, stayDates, gridBookings, postCharge, voidCharge, moveCharges, takePayment, paymentsFor, balanceOf } from "./frontOffice";
 import { requestApproval, decide } from "./approvals";
-import { extendStay, moveStay, roomsToMoveTo, addBooking } from "./hotel";
+import { extendStay, moveStay, roomsToMoveTo, addBooking, voidOrAsk } from "./hotel";
+import { waitingFor } from "./approvals";
 import { keysFor, activeKeysFor, validUntil } from "./access";
 import { hkStatus } from "./housekeeping";
 
@@ -68,5 +69,19 @@ describe("stay changes are saved, and keys follow", () => {
     expect(takePayment(s.id, 5000, "Cash", "Chioma Nwosu")).toBe(true);
     expect(paymentsFor(s.id).reduce((n, p) => n + p.amount, 0)).toBe(paid + 5000);
     expect(balanceOf(s)).toBe(start - 5000);
+  });
+
+  test("a small void is done at the desk; a bigger one waits for a manager", () => {
+    const s = STAYS[0];
+    postCharge(s.id, "Bar", "Soft drink", 1500, 1, "Chioma Nwosu");
+    const small = CHARGES[s.id].length - 1;
+    expect(voidOrAsk(s.id, small, "Chioma Nwosu", "")).toMatch(/Say why/);
+    expect(voidOrAsk(s.id, small, "Chioma Nwosu", "Wrong room")).toBe("Voided");
+    expect(CHARGES[s.id][small].reversed).toBe(true);
+    postCharge(s.id, "Restaurant", "Dinner", 20000, 1, "Chioma Nwosu");
+    const big = CHARGES[s.id].length - 1;
+    expect(voidOrAsk(s.id, big, "Chioma Nwosu", "Guest complaint")).toBe("Asked");
+    expect(CHARGES[s.id][big].reversed).toBe(false);
+    expect(waitingFor("MGT").some(a => a.kind === "Void" && a.ref === `${s.id}/${big}`)).toBe(true);
   });
 });

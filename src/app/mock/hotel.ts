@@ -2,6 +2,8 @@
 // so a screen never has to keep two departments in step by itself.
 // PR C adds the bell: each action will also tell the people who need to know.
 import { BUSINESS_DATE } from "../constants";
+import { CHARGES, DESK_LIMIT, voidCharge } from "./frontOffice";
+import { requestApproval } from "./approvals";
 import { ARRIVALS, STAYS, gridBookings, bookedOn, nextBookingId, initials, addFutureBooking, addArrival, arrivalToStay, endStay, setBookingRoom, arrivalToNoShow, stayDates, addNights, setStayRoom } from "./frontOffice";
 import { updateRoom, hkStatus, hkRooms } from "./housekeeping";
 import { notify } from "./notify";
@@ -99,6 +101,19 @@ export const moveStay = (stayId: string, room: string, by: string, reason: strin
   updateRoom(old, { hkSt: "Dirty", awaitingInspection: false, note: "" });
   notify("guest.moved", { title: `${s.guest} moved from room ${old} to ${room}`, body: `Room ${old} is free to clean. ${reason.trim()}`, people: [attendantOf(old)], link: { screen: "hk-board", label: "Housekeeping Board" } });
   return null;
+};
+
+/** A void up to DESK_LIMIT is done at the desk; a bigger one waits for a manager (approvals "Void").
+ *  Returns "Voided", "Asked", or why it can't be done. */
+export const voidOrAsk = (stayId: string, line: number, by: string, reason: string): "Voided" | "Asked" | string => {
+  const s = STAYS.find(x => x.id === stayId), c = CHARGES[stayId]?.[line];
+  if (!s || !c || c.reversed || c.movedTo) return "That line can no longer be voided.";
+  if (reason.trim().length < 3) return "Say why the line is voided.";
+  const total = c.amount + c.tax;
+  if (total <= DESK_LIMIT) return voidCharge(stayId, line, by, reason) ? "Voided" : "That line can no longer be voided.";
+  requestApproval({ kind: "Void", dept: "Front Office", ref: `${stayId}/${line}`, title: `${s.guest}, room ${s.room}`, detail: `₦${total.toLocaleString()} off: ${c.desc}`,
+    reason, requestedBy: by, apply: () => voidCharge(stayId, line, by, reason) });
+  return "Asked";
 };
 
 // Closing or cancelling the last order that held a room sends it to Housekeeping dirty, not straight to sale.
