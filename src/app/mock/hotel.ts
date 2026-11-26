@@ -7,6 +7,7 @@ import { updateRoom, hkStatus, hkRooms } from "./housekeeping";
 import { notify } from "./notify";
 import { ROOMS } from "./property";
 import { workOrder, moveWorkOrder, isOutOfOrder } from "./maintenance";
+import { issueStayKeys, cancelStayKeys, type KeyChoice } from "./access";
 
 const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
@@ -39,25 +40,29 @@ export const addBooking = (b: NewBooking) => {
 };
 
 // Turns today's arrival into a guest in the room; Housekeeping then sees a stayover.
-export const checkIn = (arrivalId: string, room: string, rate: number, paid: number) => {
+export const checkIn = (arrivalId: string, room: string, rate: number, paid: number, by = "Front desk", keys?: KeyChoice) => {
   // The room must be free for every night of the stay, not just tonight, and not out of order.
   const a = ARRIVALS.find(x => x.id === arrivalId);
   if (!a || isOutOfOrder(room) || !roomFree(room, BUSINESS_DATE, a.nights, a.id)) return null;
   const stay = arrivalToStay(arrivalId, room, rate, paid);
-  if (stay) notify("guest.checkedIn", { title: `${stay.guest} checked in to room ${room}`, body: "Now a stayover on the Housekeeping board." });
+  if (stay) {
+    issueStayKeys(stay.id, by, keys); // the cards and passcode chosen at the desk, valid to the departure check-out time
+    notify("guest.checkedIn", { title: `${stay.guest} checked in to room ${room}`, body: "Now a stayover on the Housekeeping board." });
+  }
   return stay;
 };
 
 // A walk-in is a booking for tonight checked in straight away.
-export const walkIn = (b: Omit<NewBooking, "checkin" | "status">, paid: number) => {
+export const walkIn = (b: Omit<NewBooking, "checkin" | "status">, paid: number, by = "Front desk") => {
   const id = addBooking({ ...b, checkin: BUSINESS_DATE });
-  return id ? checkIn(id, b.room, b.rate, paid) : null;
+  return id ? checkIn(id, b.room, b.rate, paid, by) : null;
 };
 
 // Ends the stay and puts the room on the Housekeeping board to be cleaned.
-export const checkOut = (stayId: string) => {
+export const checkOut = (stayId: string, by = "Front desk") => {
   const s = endStay(stayId);
   if (s) {
+    cancelStayKeys(s.id, by); // no key outlives the stay
     updateRoom(s.room, { hkSt: "Dirty", awaitingInspection: false, note: "" });
     notify("guest.checkedOut", { title: `Room ${s.room} is free to clean`, body: `${s.guest} checked out.`, people: [attendantOf(s.room)], link: { screen: "hk-board", label: "Housekeeping Board" } });
   }

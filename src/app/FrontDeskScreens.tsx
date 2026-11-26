@@ -45,6 +45,7 @@ import { FOUND_ITEMS, logFoundItem, hkRooms } from "./mock/housekeeping";
 import { UI, controlClass, controlStyle, SectionTitle, Stepper, Row, Dialog, Field } from "./ui";
 import { roomPrice } from "./mock/property";
 import { notify } from "./mock/notify";
+import { activeKeysFor } from "./mock/access";
 import { checkIn, checkOut, assignRoom, roomsForBooking, markNoShow, rushRoom, roomFree } from "./mock/hotel";
 import { isOutOfOrder } from "./mock/maintenance";
 
@@ -172,7 +173,7 @@ export function CheckInWizard({ add, initialReservationId = "", staffName }: { a
     step === 3 ? "Select an available room" :
     step === 4 ? !termsAccepted ? "Confirm acceptance of the hotel terms" : !signatureCaptured ? "Capture the guest's signature" : "" :
     step === 5 ? payMethod === "Cash" && selData && cashNum < selData.deposit ? `Collect the full ₦${selData.deposit.toLocaleString()} deposit` : payMethod === "Corporate Account" && !purchaseOrder.trim() ? "Enter the corporate purchase order number" : "Enter the transaction reference" :
-    step === 6 ? credType === "both" ? "Encode the card and generate the PIN" : credType === "card" ? "Encode at least one key card" : "Generate the guest PIN" :
+    step === 6 ? credType === "both" ? "Encode the card and generate the passcode" : credType === "card" ? "Encode at least one key card" : "Generate the door passcode" :
     "";
 
   // ── Design tokens (boarding-pass palette) ───────────────────────────────
@@ -423,7 +424,7 @@ export function CheckInWizard({ add, initialReservationId = "", staffName }: { a
                         style={{ border: credType === ct ? `2px solid ${PRIMARY}` : `1px solid ${CK_BD}`, backgroundColor: credType === ct ? `${PRIMARY}08` : "white" }}>
                         <Ph.Key size={18} className="mx-auto mb-2" style={{ color: credType === ct ? PRIMARY : CK_MUT }} />
                         <div className="text-xs font-bold mb-0.5" style={{ color: credType === ct ? PRIMARY : TEXT }}>
-                          {ct === "card" ? "Key Card" : ct === "pin" ? "PIN Code" : "Card + PIN"}
+                          {ct === "card" ? "Key card" : ct === "pin" ? "Door passcode" : "Card and passcode"}
                         </div>
                         <div className="text-xs" style={{ color: SUBTLE }}>{ct === "card" ? "Physical" : ct === "pin" ? "Digital" : "Recommended"}</div>
                       </button>
@@ -461,14 +462,14 @@ export function CheckInWizard({ add, initialReservationId = "", staffName }: { a
                 )}
                 {(credType === "pin" || credType === "both") && (
                   <section>
-                    <SecLabel>PIN code</SecLabel>
+                    <SecLabel>Door passcode</SecLabel>
                     <div className="rounded-xl p-4" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white" }}>
                       {!pinGen ? (
                         <button onClick={() => {
                           const pin = String(Math.floor(100000 + Math.random() * 900000));
                           setPinCode(pin); setPinGen(true); setPinRevealed(true);
-                          add({ type: "success", title: "PIN generated — show to guest now" });
-                        }} className="w-full py-3 rounded-xl text-sm font-bold text-white hover:opacity-90" style={{ backgroundColor: PRIMARY }}>Generate PIN</button>
+                          add({ type: "success", title: "Passcode generated. Show it to the guest now." });
+                        }} className="w-full py-3 rounded-xl text-sm font-bold text-white hover:opacity-90" style={{ backgroundColor: PRIMARY }}>Generate passcode</button>
                       ) : (
                         <div className="space-y-3">
                           <div className="rounded-xl p-5 text-center" style={{ backgroundColor: PRIMARY }}>
@@ -540,9 +541,10 @@ export function CheckInWizard({ add, initialReservationId = "", staffName }: { a
               ) : (
                 <BtnP label="Finish" onClick={() => {
                   const room = selRoom ?? selData?.room;
-                  const stay = selData && room ? checkIn(selData.id, room, nightlyRate, selData.rate * selData.nights - selData.balance + (payMethod === "Corporate Account" ? 0 : selData.deposit)) : null;
+                  const stay = selData && room ? checkIn(selData.id, room, nightlyRate, selData.rate * selData.nights - selData.balance + (payMethod === "Corporate Account" ? 0 : selData.deposit), staffName, { cards: credType === "pin" ? 0 : cardCount, passcode: credType !== "card", code: pinCode }) : null;
                   if (!stay) { add({ type: "error", title: `Room ${room} already has a guest`, body: "Go back and choose another room." }); return; }
-                  add({ type: "success", title: "Check-in complete", body: `${stay.guest} · Room ${stay.room}` }); doReset(); }} />
+                  const ks = activeKeysFor(stay.id), code = ks.find(k => k.kind === "Passcode")?.code, cards = ks.filter(k => k.kind === "Card").length;
+                  add({ type: "success", title: "Check-in complete", body: `${stay.guest}, room ${stay.room}. ${cards ? `${cards} card${cards > 1 ? "s" : ""} encoded` : "No card"}${code ? `; door passcode ${code}` : ""}, valid until check-out.` }); doReset(); }} />
               )}
             </div>
           </div>
@@ -793,7 +795,7 @@ export function ArrivalsScreen({ add, nav, staffName }: { add: (t: Omit<Toast, "
   );
 }
 
-export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
+export function DeparturesScreen({ add, nav, staffName }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void; staffName: string }) {
   const [dep, setDep] = useState(departures);
   type Departure = typeof dep[number];
   const [depSearch, setDepSearch] = useState("");
@@ -896,7 +898,7 @@ export function DeparturesScreen({ add, nav }: { add: (t: Omit<Toast, "id">) => 
                 <div className="space-y-2">{selectedEligible.map(item => <div key={item.id} className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: `1px solid ${BORDER}` }}><div><p className="text-sm font-bold" style={{ color: TEXT }}>Room {item.room} · {item.guest}</p><p className="text-xs" style={{ color: MUTED }}>Zero balance · {item.method} on file</p></div><Ph.CheckCircle size={16} weight="fill" style={{ color: SUCCESS }} /></div>)}</div>
                 <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E", border: "1px solid #FDE68A" }}><Ph.Warning size={14} className="flex-shrink-0" />The stays end and the rooms go on the Housekeeping board to be cleaned.</div>
               </>}
-              <div className="flex gap-3"><button onClick={() => setShowBulkConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button disabled={selectedEligible.length === 0} onClick={() => { const rooms = selectedEligible.map(item => item.room); selectedEligible.forEach(item => checkOut(item.id)); setDep(list => list.map(item => rooms.includes(item.room) ? { ...item, status: "Departed", hkSt: "Dirty", checkout: "Now" } : item)); setSelectedRooms([]); setShowBulkConfirm(false); add({ type: "success", title: `${rooms.length} express check-out${rooms.length === 1 ? "" : "s"} complete`, body: `Rooms ${rooms.join(", ")} are on the Housekeeping board to be cleaned.` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: SUCCESS }}>Confirm express check-out</button></div>
+              <div className="flex gap-3"><button onClick={() => setShowBulkConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm font-bold border" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button disabled={selectedEligible.length === 0} onClick={() => { const rooms = selectedEligible.map(item => item.room); selectedEligible.forEach(item => checkOut(item.id, staffName)); setDep(list => list.map(item => rooms.includes(item.room) ? { ...item, status: "Departed", hkSt: "Dirty", checkout: "Now" } : item)); setSelectedRooms([]); setShowBulkConfirm(false); add({ type: "success", title: `${rooms.length} express check-out${rooms.length === 1 ? "" : "s"} complete`, body: `Rooms ${rooms.join(", ")} are on the Housekeeping board to be cleaned.` }); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-35" style={{ backgroundColor: SUCCESS }}>Confirm express check-out</button></div>
             </div>
           </div>
         </>
@@ -1038,231 +1040,6 @@ export function RoomAccessMgmt({ add, nav }: { add: (t: Omit<Toast, "id">) => vo
   );
 }
 
-export function KeyCardLog({ add }: { add?: (t: Omit<Toast, "id">) => void }) {
-  const [typeFilter, setTypeFilter] = useState("All");
-  const [roomFilter, setRoomFilter] = useState("");
-  const [search, setSearch] = useState("");
-  const EVT_COLORS: Record<string, { bg: string; text: string }> = {
-    "Issued": { bg: "#CCFBF1", text: "#0F766E" },
-    "Duplicate Issued": { bg: "#DBEAFE", text: "#1E40AF" },
-    "Replacement Issued": { bg: "#EEF2FF", text: "#4338CA" },
-    "Revoked": { bg: "#FEE2E2", text: "#991B1B" },
-    "Emergency Revoked": { bg: "#FEE2E2", text: "#7F1D1D" },
-    "Encode Failed": { bg: "#FEE2E2", text: "#991B1B" },
-    "API Failed": { bg: "#FEE2E2", text: "#991B1B" },
-    "Queued Offline": { bg: "#FEF3C7", text: "#92400E" },
-    "Sync Success": { bg: "#DCFCE7", text: "#166534" },
-    "Sync Failed": { bg: "#FEE2E2", text: "#991B1B" },
-    "PIN Issued": { bg: "#CCFBF1", text: "#0F766E" },
-    "PIN Revoked": { bg: "#FEF3C7", text: "#92400E" },
-  };
-  const LOG = [
-    { ts: "24 Jun 14:35", type: "Duplicate Issued", room: "202", guest: "Emmanuel Adeyemi", cred: "Key Card", ref: "KC-003", by: "Grace M.", ip: "192.168.1.12", detail: "Duplicate card requested by guest — original intact" },
-    { ts: "24 Jun 14:10", type: "Issued", room: "501", guest: "Dr. Chukwuemeka Bello", cred: "Key Card", ref: "KC-005", by: "Grace M.", ip: "192.168.1.12", detail: "New check-in credential issued" },
-    { ts: "24 Jun 10:00", type: "Issued", room: "304", guest: "Chukwuemeka Obi", cred: "Key Card", ref: "KC-004", by: "John A.", ip: "192.168.1.11", detail: "New check-in credential issued" },
-    { ts: "23 Jun 16:00", type: "Revoked", room: "101", guest: "Adaeze Okonkwo", cred: "Key Card", ref: "KC-006", by: "John A.", ip: "192.168.1.11", detail: "Lost card reported by guest" },
-    { ts: "23 Jun 14:35", type: "Sync Success", room: "202", guest: "Emmanuel Adeyemi", cred: "Key Card", ref: "KC-002", by: "System", ip: "—", detail: "Queued credential confirmed active by lock provider" },
-    { ts: "23 Jun 14:12", type: "Issued", room: "202", guest: "Emmanuel Adeyemi", cred: "Key Card", ref: "KC-002", by: "John A.", ip: "192.168.1.11", detail: "Check-in credential issued" },
-    { ts: "23 Jun 14:10", type: "Queued Offline", room: "202", guest: "Emmanuel Adeyemi", cred: "Key Card", ref: "KC-002", by: "John A.", ip: "192.168.1.11", detail: "Encoder offline — credential queued for sync" },
-    { ts: "23 Jun 09:15", type: "PIN Issued", room: "101", guest: "Adaeze Okonkwo", cred: "PIN", ref: "PIN-101", by: "John A.", ip: "192.168.1.11", detail: "PIN generated for check-in" },
-    { ts: "22 Jun 16:00", type: "Encode Failed", room: "304", guest: "Chukwuemeka Obi", cred: "Key Card", ref: "ERR-044", by: "Grace M.", ip: "192.168.1.12", detail: "Card encoder returned hardware fault — retried with new card" },
-    { ts: "22 Jun 14:03", type: "Issued", room: "101", guest: "Adaeze Okonkwo", cred: "Key Card", ref: "KC-001", by: "John A.", ip: "192.168.1.11", detail: "New check-in credential issued" },
-  ];
-  const EVENT_TYPES = ["All", "Issued", "Duplicate Issued", "Replacement Issued", "Revoked", "Emergency Revoked", "Encode Failed", "API Failed", "Queued Offline", "Sync Success", "Sync Failed", "PIN Issued", "PIN Revoked"];
-  const filtered = LOG.filter(l => {
-    const ts = typeFilter === "All" || l.type === typeFilter;
-    const rs = !roomFilter || l.room === roomFilter;
-    const ss = !search || l.guest.toLowerCase().includes(search.toLowerCase()) || l.ref.toLowerCase().includes(search.toLowerCase()) || l.room.includes(search);
-    return ts && rs && ss;
-  });
-  return (
-    <div>
-      <PageHeader title="Key Card Log" sub="Append-only event log · No delete affordance — retention per policy"
-        actions={<><BtnO label="Export CSV" icon={Download} onClick={() => add?.({ type: "info", title: "Key card log exported as CSV" })} /><BtnO label="Export PDF" icon={FileText} onClick={() => add?.({ type: "info", title: "Key card log exported as PDF" })} /></>} />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Events today" value="7" sub="All credential events" icon={ClipboardList} accent={PRIMARY} />
-        <StatCard label="Issued" value="4" sub="New credentials" icon={CreditCard} accent={SUCCESS} />
-        <StatCard label="Revoked" value="1" sub="Access removed" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Failed / Queued" value="2" sub="Errors or offline" icon={AlertCircle} accent={WARNING} />
-      </div>
-      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-        <div className="flex items-center gap-3 px-5 py-3 border-b flex-wrap" style={{ backgroundColor: "#F8FAFC", borderColor: BORDER }}>
-          <div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search guest, ref, room…" aria-label="Search guest, ref, room" className="pl-7 pr-3 py-1.5 text-xs rounded-xl border bg-white outline-none w-48" style={{ borderColor: BORDER }} /></div>
-          <select aria-label="Event" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
-            {EVENT_TYPES.map(t => <option key={t}>{t}</option>)}
-          </select>
-          <select aria-label="Room" value={roomFilter} onChange={e => setRoomFilter(e.target.value)} className="px-3 py-1.5 text-xs rounded-xl border bg-white outline-none" style={{ borderColor: BORDER, color: TEXT }}>
-            <option value="">All rooms</option>
-            {["101","202","203","302","304","501"].map(r => <option key={r}>{r}</option>)}
-          </select>
-          <span className="ml-auto text-xs" style={{ color: SUBTLE }}>{filtered.length} events · Read-only</span>
-        </div>
-        <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Timestamp", "Event type", "Room", "Guest", "Credential", "Ref", "Performed by", "IP", "Detail"].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-          <tbody>
-            {filtered.map((l, i) => (
-              <tr key={i} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER }}>
-                <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: MUTED, fontFamily: mono }}>{l.ts}</td>
-                <td className="px-4 py-3 whitespace-nowrap"><Badge label={l.type} colors={EVT_COLORS[l.type] ?? { bg: "#F3F4F6", text: "#374151" }} /></td>
-                <td className="px-4 py-3 text-sm font-bold" style={{ color: PRIMARY }}>{l.room}</td>
-                <td className="px-4 py-3 text-sm" style={{ color: TEXT }}>{l.guest}</td>
-                <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{l.cred}</td>
-                <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{l.ref}</td>
-                <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{l.by}</td>
-                <td className="px-4 py-3 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{l.ip}</td>
-                <td className="px-4 py-3 text-xs max-w-48" style={{ color: MUTED }}>{l.detail}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {filtered.length === 0 && <EmptyState icon={ClipboardList} message="No events match your filters." />}
-        <div className="px-5 py-3 border-t text-xs" style={{ borderColor: BORDER, color: SUBTLE, backgroundColor: "#F9FAFB" }}>
-          Retention policy: 2 years per data policy. No deletion affordance. Export for compliance use.
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function PINManagement({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string) => void }) {
-  const [showGenerate, setShowGenerate] = useState(false);
-  const [genRes, setGenRes] = useState("BK-2848");
-  const [genRoom, setGenRoom] = useState("202");
-  const [genHrs, setGenHrs] = useState("48");
-  const [generatedPIN, setGeneratedPIN] = useState<string | null>(null);
-  const [pinAcknowledged, setPinAcknowledged] = useState(false);
-  const [revokeId, setRevokeId] = useState<string | null>(null);
-  const PIN_SUPPORTED = true; // Would be false if provider is OSDP-only
-  const pinStC: Record<string, { bg: string; text: string }> = {
-    "Active": { bg: "#DCFCE7", text: "#166534" },
-    "Expiring": { bg: "#FEF3C7", text: "#92400E" },
-    "Expired": { bg: "#F3F4F6", text: "#374151" },
-    "Revoked": { bg: "#FEE2E2", text: "#991B1B" },
-  };
-  const [pins, setPins] = useState([
-    { id: "PIN-101", room: "101", res: "BK-2845", guest: "Adaeze Okonkwo", hint: "73**19", validFrom: "22 Jun 14:03", validTo: "25 Jun 12:00", status: "Active", by: "John A." },
-    { id: "PIN-501", room: "501", res: "BK-2854", guest: "Dr. Chukwuemeka Bello", hint: "44**83", validFrom: "24 Jun 14:10", validTo: "27 Jun 12:00", status: "Active", by: "Grace M." },
-    { id: "PIN-202X", room: "202", res: "BK-2847", guest: "Previous Guest", hint: "91**54", validFrom: "21 Jun 12:00", validTo: "23 Jun 12:00", status: "Expired", by: "John A." },
-  ]);
-  const generateRandom6 = () => String(Math.floor(100000 + Math.random() * 900000));
-  const handleGenerate = () => {
-    const pin = generateRandom6();
-    setGeneratedPIN(pin);
-    setPinAcknowledged(false);
-  };
-  const savePIN = () => {
-    if (!pinAcknowledged || !generatedPIN) return;
-    const masked = generatedPIN.slice(0,2) + "**" + generatedPIN.slice(-2);
-    setPins(prev => [...prev, { id: `PIN-${genRoom}-${Date.now()}`, room: genRoom, res: genRes, guest: "Emmanuel Adeyemi", hint: masked, validFrom: "24 Jun " + new Date().getHours() + ":00", validTo: "25 Jun 12:00", status: "Active", by: "Grace M." }]);
-    add({ type: "success", title: `PIN generated — Room ${genRoom}`, body: "Shown once only — now masked." });
-    setShowGenerate(false); setGeneratedPIN(null); setPinAcknowledged(false);
-  };
-  if (!PIN_SUPPORTED) return (
-    <div>
-      <PageHeader title="PIN Management" sub="PIN access not supported by configured lock provider" />
-      <div className="bg-white rounded-xl border p-10 text-center" style={{ borderColor: BORDER }}>
-        <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4" style={{ backgroundColor: "#F3F4F6" }}><Hash size={24} style={{ color: MUTED }} /></div>
-        <h3 className="text-base font-semibold mb-1" style={{ color: TEXT }}>PIN not supported</h3>
-        <p className="text-sm" style={{ color: MUTED }}>The configured lock provider (OSDP) does not support PIN codes. Configure a compatible provider to enable this feature.</p>
-      </div>
-    </div>
-  );
-  return (
-    <div>
-      <PageHeader title="PIN Management" sub="All active door PINs across the property · SALTO KS"
-        actions={<><BtnO label="Key Card Log" icon={ClipboardList} onClick={() => nav?.("key-card-log", "Key Card Log")} /><BtnP label="Generate PIN" icon={Plus} onClick={() => { setShowGenerate(true); setGeneratedPIN(null); }} /></>} />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Active PINs" value={String(pins.filter(p=>p.status==="Active").length)} sub="Currently valid" icon={Hash} accent={SUCCESS} />
-        <StatCard label="Generated today" value="2" sub="New PINs" icon={Plus} accent={PRIMARY} />
-        <StatCard label="Expired" value={String(pins.filter(p=>p.status==="Expired").length)} sub="Lapsed" icon={Clock} accent={MUTED} />
-        <StatCard label="Revoked" value={String(pins.filter(p=>p.status==="Revoked").length)} sub="Deactivated" icon={AlertTriangle} accent={ERROR} />
-      </div>
-      <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER, boxShadow: "0 1px 4px rgba(13,27,46,0.07)" }}>
-        <div className="flex items-center gap-3 px-5 py-3 border-b" style={{ backgroundColor: "#F8FAFC", borderColor: BORDER }}>
-          <span className="text-sm font-semibold" style={{ color: TEXT }}>Active PINs</span>
-          <div className="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>PINs are shown once at generation — masked permanently thereafter</div>
-        </div>
-        <table className="w-full">
-          <thead><tr style={{ backgroundColor: "#F9FAFB" }}>{["Room", "Guest / res", "PIN reference", "Valid from", "Valid to", "Status", "Issued by", ""].map((h,i) => <th key={i} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
-          <tbody>
-            {pins.map(p => (
-              <tr key={p.id} className="border-t hover:bg-[#F8FAFC] transition-colors" style={{ borderColor: BORDER, opacity: ["Expired","Revoked"].includes(p.status) ? 0.55 : 1 }}>
-                <td className="px-4 py-3 text-base font-bold" style={{ color: PRIMARY }}>{p.room}</td>
-                <td className="px-4 py-3">
-                  <div className="text-sm font-semibold" style={{ color: TEXT }}>{p.guest}</div>
-                  <div className="text-xs" style={{ color: MUTED, fontFamily: mono }}>{p.res}</div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base font-bold tracking-widest" style={{ fontFamily: mono, color: TEXT }}>{p.hint}</span>
-                    <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: "#F3F4F6", color: MUTED }}>masked</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{p.validFrom}</td>
-                <td className="px-4 py-3 text-xs" style={{ color: MUTED, fontFamily: mono }}>{p.validTo}</td>
-                <td className="px-4 py-3"><Badge label={p.status} colors={pinStC[p.status] ?? { bg: "#F3F4F6", text: "#374151" }} /></td>
-                <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{p.by}</td>
-                <td className="px-4 py-3">
-                  {p.status === "Active" && <button onClick={() => setRevokeId(p.id)} className="text-xs px-2.5 py-1.5 rounded border" style={{ color: ERROR, borderColor: `${ERROR}30` }}>Revoke</button>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Generate PIN modal */}
-      {showGenerate && (
-        <>
-          <div className="fixed inset-0 z-40 backdrop-blur-sm" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onClick={() => { if (!generatedPIN) setShowGenerate(false); }} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" style={{ border: `1px solid ${BORDER}` }}>
-            {!generatedPIN ? (
-              <>
-                <h3 className="text-base font-bold mb-4" style={{ color: TEXT }}>Generate PIN</h3>
-                <div className="space-y-3">
-                  <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Reservation</label><select aria-label="Reservation" value={genRes} onChange={e => setGenRes(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option>BK-2845 — Adaeze Okonkwo · Room 101</option><option>BK-2848 — Emmanuel Adeyemi · Room 202</option><option>BK-2852 — Chukwuemeka Obi · Room 304</option><option>BK-2854 — Dr. Chukwuemeka Bello · Room 501</option></select></div>
-                  <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Room</label><input aria-label="Room" value={genRoom} onChange={e => setGenRoom(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }} /></div>
-                  <div><label className="text-xs font-semibold uppercase tracking-wider block mb-1.5" style={{ color: MUTED }}>Validity</label><select aria-label="Validity" value={genHrs} onChange={e => setGenHrs(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={{ borderColor: BORDER }}><option value="24">24 hours</option><option value="48">48 hours</option><option value="72">72 hours</option></select></div>
-                </div>
-                <div className="flex gap-3 mt-4"><BtnO label="Cancel" onClick={() => setShowGenerate(false)} /><button onClick={handleGenerate} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Generate</button></div>
-              </>
-            ) : (
-              <>
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center mb-3" style={{ backgroundColor: "#FEF3C7" }}><Hash size={22} style={{ color: ORANGE_INK }} /></div>
-                  <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>PIN Generated — Show Once</h3>
-                  <p className="text-xs" style={{ color: MUTED }}>This PIN cannot be retrieved again after this dialog closes. It will be masked permanently.</p>
-                </div>
-                <div className="p-5 rounded-2xl text-center mb-4" style={{ backgroundColor: "#0F2044", border: "2px solid #1BA39C" }}>
-                  <div className="text-5xl font-black tracking-[0.35em] text-white" style={{ fontFamily: mono }}>{generatedPIN}</div>
-                  <div className="text-xs mt-2" style={{ color: "rgba(255,255,255,0.5)" }}>Room {genRoom} · Valid {genHrs}h · SALTO KS</div>
-                </div>
-                <label className="flex items-start gap-3 p-3 rounded-xl cursor-pointer mb-4" style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A" }}>
-                  <input type="checkbox" checked={pinAcknowledged} onChange={e => setPinAcknowledged(e.target.checked)} className="mt-0.5 flex-shrink-0 w-4 h-4" />
-                  <span className="text-xs font-semibold" style={{ color: "#92400E" }}>I have noted this PIN and understand it cannot be retrieved again once this dialog is closed.</span>
-                </label>
-                <div className="flex gap-3"><button onClick={() => { setGeneratedPIN(null); setShowGenerate(false); }} className="flex-1 py-2.5 rounded-xl border text-sm font-medium" style={{ color: MUTED, borderColor: BORDER }}>Discard</button><button disabled={!pinAcknowledged} onClick={savePIN} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: PRIMARY }}>Save &amp; Close</button></div>
-              </>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Revoke modal */}
-      {revokeId && (
-        <>
-          <div className="fixed inset-0 z-40" style={{ backgroundColor: "rgba(13,27,46,0.5)" }} onClick={() => setRevokeId(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" style={{ border: `1px solid ${BORDER}` }}>
-            <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Revoke PIN</h3>
-            <p className="text-xs mb-4" style={{ color: MUTED }}>PIN {pins.find(p=>p.id===revokeId)?.hint} for Room {pins.find(p=>p.id===revokeId)?.room} will be deactivated. This action is audited.</p>
-            <p className="text-xs mb-4 p-2.5 rounded-lg" style={{ backgroundColor: "#FEF2F2", color: ERROR }}>SALTO KS: revocation applies on next lock sync (~30 s).</p>
-            <div className="flex gap-3"><button onClick={() => setRevokeId(null)} className="flex-1 py-2.5 rounded-xl border text-sm font-medium" style={{ color: MUTED, borderColor: BORDER }}>Cancel</button><button onClick={() => { setPins(ps => ps.map(p => p.id === revokeId ? {...p, status: "Revoked"} : p)); add({ type: "warning", title: `PIN revoked — Room ${pins.find(p=>p.id===revokeId)?.room}` }); setRevokeId(null); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: ERROR }}>Confirm revoke</button></div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
 export function ShiftHandover({ add }: { add: (t: Omit<Toast, "id">) => void }) {
   type HSection = { key: string; label: string; placeholder: string };

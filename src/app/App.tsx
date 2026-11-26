@@ -47,6 +47,7 @@ import { PowerStrip } from "./PlantScreens";
 import { canSetUp } from "./mock/roster";
 import { Safety, IncidentDialog } from "./SafetyScreens";
 import { Stores } from "./StoreScreens";
+import { GuestKeys, KeyLog, DoorPasscodes } from "./AccessScreens";
 import { reportIncident } from "./mock/safety";
 import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
 import {
@@ -70,7 +71,7 @@ import {
   RoomTypeManagement, RateCalendar, AvailabilityBoard,
   CheckInWizard, CheckOut, InHouseGuests, GuestProfiles, GuestProfileDetail,
   ArrivalsScreen, DeparturesScreen, FolioScreen, FinanceFolioManagement, WalkInReg, RoomAssignmentBoard,
-  KeyCardMgmt, RoomAccessMgmt, KeyCardLog, PINManagement,
+  RoomAccessMgmt,
   HKBoard, HKMyTasks, InspectionLog, LinenSupplies, HousekeepingSchedule,
   LostFound, DNDLog,
   WorkOrders, WorkOrderDetail, MaintenanceRoster, MaintenanceHandover, Permits, MaintenanceSetup, AssetRegister, PlannedWork, VendorContacts,
@@ -145,13 +146,13 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "folio") return <FolioScreen add={add} nav={nav} />;
   if (screen === "finance-folio") return <FinanceFolioManagement add={add} nav={nav} />;
   if (screen === "arrivals") return <ArrivalsScreen add={add} nav={nav} staffName={staffName} />;
-  if (screen === "departures") return <DeparturesScreen add={add} nav={nav} />;
+  if (screen === "departures") return <DeparturesScreen add={add} nav={nav} staffName={staffName} />;
   if (screen === "room-assignment") return <RoomAssignmentBoard add={add} nav={nav} />;
   if (screen === "walk-in") return <WalkInReg add={add} nav={nav} staffName={staffName} />;
-  if (screen === "key-card") return <KeyCardMgmt add={add} />;
+  if (screen === "key-card") return <GuestKeys add={add} staffName={staffName} />;
   if (screen === "room-access") return <RoomAccessMgmt add={add} nav={nav} />;
-  if (screen === "key-card-log") return <KeyCardLog add={add} />;
-  if (screen === "pin-management") return <PINManagement add={add} nav={nav} />;
+  if (screen === "key-card-log") return <KeyLog />;
+  if (screen === "pin-management") return <DoorPasscodes add={add} staffName={staffName} />;
   // Housekeeping
   if (screen === "hk-board") return <HKBoard add={add} nav={nav} staffName={staffName} />;
   if (screen === "hk-tasks") return <HKMyTasks add={add} staffName={staffName} />;
