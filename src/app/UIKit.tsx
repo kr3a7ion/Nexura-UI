@@ -39,9 +39,9 @@ import { UI, controlClass, controlStyle, Field, Card, SectionTitle, Stepper, Cho
 import { ROOM_TYPES, roomPrice, roomTypeNames } from "./mock/property";
 import { roomState, ROOM_STATE_COLOR } from "./mock/rooms";
 import { activeKeysFor, keysFor, stopAllKeys } from "./mock/access";
-import { addBooking, checkOut, typeAvailable, assignRoom, roomsForBooking, extendStay, moveStay, roomsToMoveTo } from "./mock/hotel";
+import { addBooking, checkOut, typeAvailable, assignRoom, roomsForBooking, extendStay, moveStay, roomsToMoveTo, voidOrAsk } from "./mock/hotel";
 import { requestApproval } from "./mock/approvals";
-import { addDiscount, discountOf, postCharge, voidCharge, moveCharges, takePayment, paymentsFor } from "./mock/frontOffice";
+import { addDiscount, discountOf, postCharge, moveCharges, takePayment, paymentsFor, DESK_LIMIT } from "./mock/frontOffice";
 import { ReportFaultDialog } from "./FaultScreens";
 
 // ─── UI Primitives ──────────────────────────────────────────────────────────
@@ -951,12 +951,12 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
     dueToday: addedNights > 0 ? false : baseGuest.dueToday,
   };
   const charges    = CHARGES[selectedId] ?? [];
-  /** A void gives money back, so a manager approves it (approvals "Void"); the line is reversed when approved. */
+  /** Small voids are done at the desk; above DESK_LIMIT a manager approves (mock/hotel.ts voidOrAsk). */
   const askVoid = (line: number, reason: string) => {
-    const c = charges[line]; if (!c) return;
-    requestApproval({ kind: "Void", dept: "Front Office", ref: `${selectedId}/${line}`, title: `${g.guest}, room ${g.room}`, detail: `₦${(c.amount + c.tax).toLocaleString()} off: ${c.desc}`,
-      reason, requestedBy: staffName, apply: () => voidCharge(selectedId, line, staffName, reason) });
-    add({ type: "info", title: "Void sent for approval", body: `${c.desc}. A manager approves it from their dashboard.` });
+    const c = charges[line], r = voidOrAsk(selectedId, line, staffName, reason);
+    if (r === "Voided") { redrawBill(n => n + 1); add({ type: "success", title: "Charge voided", body: `${c?.desc}. ${reason}` }); return; }
+    if (r !== "Asked") { add({ type: "error", title: r }); return; }
+    add({ type: "info", title: "Void sent for approval", body: `${c?.desc}. Above ₦${DESK_LIMIT.toLocaleString()}, a manager approves it from their dashboard.` });
   };
 
   const isCheckedOut = checkedOutIds.includes(selectedId);
@@ -1161,7 +1161,7 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                 <p className="text-sm mt-0.5" style={{ color: MUTED }}>{g.id} · {g.checkin} to {g.checkout} · {g.visits === 1 ? "First stay" : `${g.visits} stays with us`}</p>
               </div>
               <div className="flex gap-2 flex-wrap">
-                <button onClick={() => setShowDiscount(true)} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>{discountNum > 5000 ? "Send for approval" : "Apply discount"}</button>
+                <button onClick={() => setShowDiscount(true)} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>{discountNum > DESK_LIMIT ? "Send for approval" : "Apply discount"}</button>
                 <button onClick={() => setShowLateCharge(true)} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Add late charge</button>
                 <button onClick={() => { setSplitLines([]); setSplitTarget("Guest Folio B"); setSplitReference(""); setShowSplitFolio(true); }} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Split folio</button>
                 <button onClick={() => { setTransferLine(null); setTransferTarget("Guest Folio"); setTransferReference(""); setTransferReason(""); setShowTransferCharge(true); }} className="text-sm px-3 rounded-lg font-medium flex-shrink-0 bg-white" style={{ height: 34, color: TEXT, border: "1px solid #CBD5E1" }}>Transfer a charge</button>
@@ -1705,9 +1705,9 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
                   style={{ border: `1.5px solid ${CK_DSH}` }} placeholder="Guest complaint, loyalty benefit, etc." aria-label="Guest complaint, loyalty benefit, etc" />
               </div>
-              {discountNum > 5000 && (
+              {discountNum > DESK_LIMIT && (
                 <div>
-                  <p className="text-sm" style={{ color: CK_MUT }}>Discounts above ₦5,000 go to a manager to approve from their dashboard. The bill changes once they approve.</p>
+                  <p className="text-sm" style={{ color: CK_MUT }}>Discounts above ₦{DESK_LIMIT.toLocaleString()} go to a manager to approve from their dashboard. The bill changes once they approve.</p>
                 </div>
               )}
               <div className="flex gap-3 pt-1">
@@ -1717,7 +1717,7 @@ export function CheckOut({ add, initialReservationId = "", staffName }: { add: (
                   disabled={!discountReason || discountNum <= 0 || discountNum > balance }
                   onClick={() => {
                     const amt = discountNum;
-                    if (amt > 5000) {
+                    if (amt > DESK_LIMIT) {
                       requestApproval({ kind: "Discount", dept: "Front Office", ref: selectedId, title: `${g.guest}, room ${g.room}`, detail: `₦${amt.toLocaleString()} off the bill`,
                         reason: discountReason, requestedBy: staffName, apply: () => addDiscount(selectedId, amt) });
                       add({ type: "info", title: `Discount of ₦${amt.toLocaleString()} sent for approval`, body: "A manager approves it from their dashboard." });
@@ -2396,7 +2396,7 @@ export function FolioScreen({ add, nav, stayId, staffName }: { add: (t: Omit<Toa
             <h3 className="text-base font-bold mb-1" style={{ color: ERROR }}>Reverse charge</h3>
             <p className="text-xs mb-4" style={{ color: MUTED }}>A manager approves it first. The line stays on the bill, marked reversed. Choose a reason:</p>
             <div className="space-y-2 mb-4">{["Guest complaint / dispute","Incorrectly posted","Complimentary by manager","Other"].map(r=><label key={r} className="flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer" style={{ borderColor: voidReason===r ? ERROR : BORDER, backgroundColor: voidReason===r ? "#FEF2F2" : "white" }}><div className="w-4 h-4 rounded-full border-2 flex items-center justify-center" style={{ borderColor: voidReason===r ? ERROR : "#CBD5E1" }}>{voidReason===r && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ERROR }} />}</div><input type="radio" className="hidden" onChange={() => setVoidReason(r)} /><span className="text-sm" style={{ color: TEXT }}>{r}</span></label>)}</div>
-            <div className="flex gap-3"><button onClick={() => { setVoidId(null); setVoidReason(""); }} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button><button disabled={!voidReason} onClick={() => { const c = CHARGES[id]?.[voidId!]; if (stay && c) { requestApproval({ kind: "Void", dept: "Front Office", ref: `${id}/${voidId}`, title: `${stay.guest}, room ${stay.room}`, detail: `₦${(c.amount + c.tax).toLocaleString()} off: ${c.desc}`, reason: voidReason, requestedBy: staffName, apply: () => voidCharge(id, voidId!, staffName, voidReason) }); add({ type: "info", title: "Reversal sent for approval", body: `${c.desc}. A manager approves it from their dashboard.` }); } setVoidId(null); setVoidReason(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Confirm reversal</button></div>
+            <div className="flex gap-3"><button onClick={() => { setVoidId(null); setVoidReason(""); }} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button><button disabled={!voidReason} onClick={() => { const c = CHARGES[id]?.[voidId!], r = voidOrAsk(id, voidId!, staffName, voidReason); add(r === "Voided" ? { type: "success", title: "Charge reversed", body: `${c?.desc}. ${voidReason}` } : r === "Asked" ? { type: "info", title: "Reversal sent for approval", body: `${c?.desc}. Above ₦${DESK_LIMIT.toLocaleString()}, a manager approves it from their dashboard.` } : { type: "error", title: r }); redraw(n => n + 1); setVoidId(null); setVoidReason(""); }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{ backgroundColor: ERROR }}>Confirm reversal</button></div>
           </div>
         </>
       )}
