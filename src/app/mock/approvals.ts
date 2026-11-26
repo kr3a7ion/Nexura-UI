@@ -7,7 +7,7 @@ import { atWork } from "./staff";
 
 // Only decisions that give money away need a second person; check-in and check-out never wait.
 // Purchase: something bought outside the store for a maintenance job, above the supervisor's limit.
-export type ApprovalKind = "Rate override" | "Discount" | "Purchase";
+export type ApprovalKind = "Rate override" | "Discount" | "Purchase" | "Void";
 export type Approval = {
   id: string; kind: ApprovalKind; dept: string; ref: string; title: string; detail: string; reason: string;
   requestedBy: string; at: string; status: "Waiting" | "Approved" | "Declined"; decidedBy?: string; note?: string;

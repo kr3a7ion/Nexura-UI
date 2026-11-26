@@ -149,7 +149,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "in-house-guests") return <InHouseGuests add={add} nav={nav} staffName={staffName} />;
   if (screen === "guest-profiles") return <GuestProfiles add={add} nav={nav} />;
   if (screen === "guest-profile-detail") return <GuestProfileDetail add={add} nav={nav} guestId={navParam} />;
-  if (screen === "folio") return <FolioScreen add={add} nav={nav} />;
+  if (screen === "folio") return <FolioScreen add={add} nav={nav} stayId={navParam} staffName={staffName} />;
   if (screen === "finance-folio") return <FinanceFolioManagement add={add} nav={nav} />;
   if (screen === "arrivals") return <ArrivalsScreen add={add} nav={nav} staffName={staffName} />;
   if (screen === "departures") return <DeparturesScreen add={add} nav={nav} staffName={staffName} />;

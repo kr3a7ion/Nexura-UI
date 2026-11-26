@@ -7,7 +7,7 @@ import { roomPrice, ROOMS } from "./property";
 // ?state=empty shows a quiet day: nobody in house, nobody arriving.
 const EMPTY = DEMO_STATE === "empty";
 
-export type ChargeRow = { date: string; cat: string; desc: string; qty: number; unit: number; amount: number; by: string; tax: number; reversed: boolean; movedTo?: string };
+export type ChargeRow = { date: string; cat: string; desc: string; qty: number; unit: number; amount: number; by: string; tax: number; reversed: boolean; movedTo?: string; voidedBy?: string; voidReason?: string };
 
 export type Stay = {
   id: string; folio: string; guest: string; av: string; room: string; type: string;
@@ -96,7 +96,7 @@ for (const st of moreStays) {
   const unit = roomPrice(st.type), amount = unit * st.nights;
   CHARGES[st.id] = [{ date: st.checkin, cat: "Room", desc: `${st.type} Room ${st.room} × ${st.nights} night${st.nights === 1 ? "" : "s"}`, qty: st.nights, unit, amount, by: "System", tax: Math.round(amount * 0.075), reversed: false }];
 }
-export const chargesTotal = (id: string) => (CHARGES[id] ?? []).filter(c => !c.reversed).reduce((s, c) => s + c.amount + c.tax, 0);
+export const chargesTotal = (id: string) => (CHARGES[id] ?? []).filter(c => !c.reversed && !c.movedTo).reduce((s, c) => s + c.amount + c.tax, 0);
 export const balanceOf = (s: Stay) => chargesTotal(s.id) - s.paid - discountOf(s.id);
 export const leavesToday = (s: Stay) => s.checkout === TODAY;
 /** A stay's dates as real dates. They are kept as "30 Dec"; a stay never starts after today, and one that crosses
@@ -248,6 +248,33 @@ export const addNights = (stayId: string, n: number, by: string) => {
 export const setStayRoom = (stayId: string, room: string) => {
   const s = STAYS.find(x => x.id === stayId); if (s) Object.assign(s, { room, type: roomType(room) });
   return s;
+};
+/** Takes a line off the guest's bill, once approved (approvals "Void"). The line stays, marked reversed, with who and why. */
+export const voidCharge = (stayId: string, line: number, by: string, reason: string) => {
+  const row = CHARGES[stayId]?.[line];
+  if (!row || row.reversed || row.movedTo || !STAYS.some(s => s.id === stayId)) return false;
+  Object.assign(row, { reversed: true, voidedBy: by, voidReason: reason }); return true;
+};
+/** Moves lines to another account (a company or group folio): they leave this guest's balance but stay on record. */
+export const moveCharges = (stayId: string, lines: number[], to: string) => {
+  const rows = lines.map(i => CHARGES[stayId]?.[i]);
+  if (!STAYS.some(s => s.id === stayId) || !rows.length || rows.some(r => !r || r.reversed || r.movedTo)) return false;
+  rows.forEach(r => { r!.movedTo = to; }); return true;
+};
+// Payments taken at the desk after check-in. What a guest paid before (the deposit) is the rest of `paid`.
+// shortcut: kept in memory until reload; Finance's ledger keeps them once the hotel server is wired.
+export type Payment = { stayId: string; amount: number; method: string; ref?: string; by: string; at: string };
+const PAYMENTS: Payment[] = [];
+export const takePayment = (stayId: string, amount: number, method: string, by: string, ref?: string) => {
+  const s = STAYS.find(x => x.id === stayId);
+  if (!s || !Number.isFinite(amount) || amount <= 0) return false;
+  s.paid += amount; PAYMENTS.push({ stayId, amount, method, ref, by, at: TODAY }); return true;
+};
+/** Every payment on a stay, the check-in deposit first. */
+export const paymentsFor = (stayId: string) => {
+  const s = STAYS.find(x => x.id === stayId), later = PAYMENTS.filter(p => p.stayId === stayId);
+  const before = (s?.paid ?? 0) - later.reduce((n, p) => n + p.amount, 0);
+  return [...(s && before > 0 ? [{ stayId, amount: before, method: s.method, by: "Front desk", at: s.checkin, ref: "Paid at check-in" }] : []), ...later];
 };
 export const setLateCheckout = (stayId: string, time: string) => {
   const stay = STAYS.find(x => x.id === stayId); if (stay) Object.assign(stay, { lateCheckout: true, checkoutTime: time });
