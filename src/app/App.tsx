@@ -2,6 +2,7 @@
 // All screen components live in Screens.tsx. All data/constants in constants.ts.
 import { VehicleRequests } from "./VehicleRequestScreens";
 import { canOpen } from "./mock/staff";
+import { OpensContext } from "./suite/opens";
 import { DepartmentLevels, levelDepartments } from "./TeamScreens";
 import { Component, type ReactNode, useState, useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { lazy, Suspense } from "react";
@@ -623,15 +624,17 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
           <div className="mx-auto max-w-screen-2xl">
             {offline && <div className="mb-5 flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium" style={{ backgroundColor: "#FEF3C7", color: "#92400E", borderColor: "#FDE68A" }}><WifiSlash size={15} weight="bold" /><span>Working offline. Everything you do is saved on this hotel's server and will sync later.</span><button onClick={() => setOffline(false)} className="ml-auto rounded-lg px-2.5 py-1 text-xs font-medium text-white" style={{ backgroundColor: WARNING }}>Go online</button></div>}
             <PowerStrip onOpen={() => nav("generator-diesel", "Power & Diesel")} />
+            <OpensContext.Provider value={s => canOpen(staffName, role, s)}>
             <ScreenErrorBoundary key={screen} onHome={() => nav("suite-home", "Suite Home")}>
             {loadState === "loading" ? <ScreenLoading /> : loadState === "error" ? <ScreenError onRetry={retry} /> : screen === "suite-home" ? (
               <SuiteHome staffName={staffName} role={role} departments={allowedDepartments} offline={offline} pinned={pinned.filter(id => allowedDepartments.some(department => department.id === id))} onTogglePin={togglePin} onOpenDepartment={openDepartment} onOpenScreen={(nextScreen, label) => nav(nextScreen, label)} onOpenPortal={onOpenPortal} />
             ) : (screen as string).startsWith("dept-") && !["dept-front-office", "dept-access-security", "dept-housekeeping", "dept-maintenance", "dept-restaurant-pos", "dept-finance", "dept-inventory", "dept-hr", "dept-communications", "dept-fleet"].includes(screen as string) && currentDepartment ? (
-              <DepartmentHome department={currentDepartment} opens={s => canOpen(staffName, role, s)} nav={(nextScreen, label) => nav(nextScreen, label)} />
+              <DepartmentHome department={currentDepartment} nav={(nextScreen, label) => nav(nextScreen, label)} />
             ) : (
               <Router screen={screen as Screen} add={add} role={role} nav={(nextScreen, label, param) => nav(nextScreen as SuiteScreen, label, param)} staffName={staffName} navParam={navParam} />
             )}
             </ScreenErrorBoundary>
+            </OpensContext.Provider>
           </div>
         </main>
       </div>

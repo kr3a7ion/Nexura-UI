@@ -1,3 +1,4 @@
+import { useOpens } from "../opens";
 import { useState } from "react";
 import {
   ArrowRight, Bed, Buildings, CalendarCheck, CheckCircle, Clock, CurrencyNgn,
@@ -41,6 +42,7 @@ const severityColors = {
 };
 
 export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; role: Role; staffName: string }) {
+  const opens = useOpens();
   const [viewState, setViewState] = useState<ViewState>("Ready");
 
   const quickActions: Array<{ label: string; icon: typeof Plus; screen: Screen }> = [
@@ -76,7 +78,7 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
       <div>
         <PageHeader title="Front Office" sub="Guest operations command centre" />
         <div className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
-          <EmptyState icon={CalendarCheck} message="There are no arrivals, departures or pending guest tasks for today." cta="Create reservation" onCta={() => nav("new-reservation", "New Reservation")} />
+          <EmptyState icon={CalendarCheck} message="There are no arrivals, departures or pending guest tasks for today." cta={opens("new-reservation") ? "Create reservation" : undefined} onCta={() => nav("new-reservation", "New Reservation")} />
         </div>
       </div>
     );
@@ -113,7 +115,7 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
       <section className="mb-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
         <div className="mb-4"><h2 className="text-sm font-bold" style={{ color: TEXT }}>Primary guest flow</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Jump directly to each stage of today’s guest journey.</p></div>
         <div className="flex items-center overflow-x-auto pb-1">
-          {flow.map((step, index) => (
+          {flow.filter(step => opens(step.screen)).map((step, index) => (
             <div key={step.screen} className="flex min-w-0 flex-1 items-center">
               <button onClick={() => nav(step.screen, step.label)} className="group flex min-w-[132px] items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition hover:shadow-sm" style={{ borderColor: `${accent}35`, backgroundColor: index === 0 ? `${accent}0c` : "white" }}>
                 <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-xs font-bold" style={{ backgroundColor: `${accent}16`, color: accent }}>{index + 1}</span>
@@ -129,7 +131,7 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
         <section className="overflow-hidden rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
           <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}>
             <div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Today’s arrival queue</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>12 expected · 7 rooms assigned · updated 10:42</p></div>
-            <BtnO label="View all arrivals" icon={CalendarCheck} onClick={() => nav("arrivals", "Arrivals List")} />
+            {opens("arrivals") && <BtnO label="View all arrivals" icon={CalendarCheck} onClick={() => nav("arrivals", "Arrivals List")} />}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left">
@@ -137,12 +139,12 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
               <tbody>
                 {FRONT_OFFICE_QUEUE.map(item => (
                   <tr key={item.id} className="border-t hover:bg-slate-50" style={{ borderColor: BORDER }}>
-                    <td className="px-4 py-3"><button onClick={() => nav("reservation-detail", "Reservation Detail", item.id)} className="text-left"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.guest}</div><div className="mt-0.5 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{item.id} · {item.city}</div></button></td>
+                    <td className="px-4 py-3">{opens("reservation-detail") && <button onClick={() => nav("reservation-detail", "Reservation Detail", item.id)} className="text-left"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.guest}</div><div className="mt-0.5 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{item.id} · {item.city}</div></button>}</td>
                     <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.roomType}</td>
                     <td className="px-4 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>{item.eta}</td>
                     <td className="px-4 py-3"><Badge label={item.depositStatus} colors={depositColors[item.depositStatus]} /></td>
                     <td className="px-4 py-3"><Badge label={item.roomReady} colors={roomReadyColors[item.roomReady]} /></td>
-                    <td className="px-4 py-3"><div className="flex justify-end gap-2"><button onClick={() => nav("room-assignment", "Room Assignment")} className="inline-flex min-h-9 items-center rounded-lg border px-3 text-xs font-semibold" style={{ borderColor: BORDER, color: TEXT }}>Assign room</button><button onClick={() => nav("check-in", "Check-In", item.id)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold" style={{ backgroundColor: `${accent}12`, color: accent }}>Check in<ArrowRight size={12} /></button></div></td>
+                    <td className="px-4 py-3"><div className="flex justify-end gap-2">{opens("room-assignment") && <button onClick={() => nav("room-assignment", "Room Assignment")} className="inline-flex min-h-9 items-center rounded-lg border px-3 text-xs font-semibold" style={{ borderColor: BORDER, color: TEXT }}>Assign room</button>}{opens("check-in") && <button onClick={() => nav("check-in", "Check-In", item.id)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold" style={{ backgroundColor: `${accent}12`, color: accent }}>Check in<ArrowRight size={12} /></button>}</div></td>
                   </tr>
                 ))}
               </tbody>
@@ -156,7 +158,7 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
             {FRONT_OFFICE_EXCEPTIONS.map((item, index) => (
               <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}>
                 <div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div>
-                <button onClick={() => nav(item.screen, item.screenLabel, item.navParam)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button>
+                {opens(item.screen) && <button onClick={() => nav(item.screen, item.screenLabel, item.navParam)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button>}
               </div>
             ))}
           </div>
@@ -166,7 +168,7 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
       <section className="mt-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
         <h2 className="mb-3 text-sm font-bold" style={{ color: TEXT }}>Quick actions</h2>
         <div className="flex flex-wrap gap-2">
-          {quickActions.map((action, index) => index === 0
+          {quickActions.filter(action => opens(action.screen)).map((action, index) => index === 0
             ? <BtnP key={action.label} label={action.label} icon={action.icon} color={accent} onClick={() => nav(action.screen, action.label)} />
             : <BtnO key={action.label} label={action.label} icon={action.icon} onClick={() => nav(action.screen, action.label)} />)}
         </div>
@@ -175,7 +177,7 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
       <section className="mt-5">
         <div className="mb-3"><h2 className="text-sm font-bold" style={{ color: TEXT }}>All screens in this app</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Complete Front Office toolkit.</p></div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {department.screens.flatMap(group => group.items.map(item => ({ ...item, group: group.label }))).map(item => (
+          {department.screens.flatMap(group => group.items.filter(item => opens(item.screen)).map(item => ({ ...item, group: group.label }))).map(item => (
             <button key={`${item.group}-${item.screen}`} onClick={() => nav(item.screen, item.label)} className="group flex min-h-20 items-center gap-3 rounded-xl border bg-white p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm" style={{ borderColor: BORDER }}>
               <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ backgroundColor: `${accent}12`, color: accent }}><DoorOpen size={19} /></div>
               <div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold" style={{ color: TEXT }}>{item.label}</div><div className="mt-1 text-xs uppercase tracking-wider" style={{ color: SUBTLE }}>{item.group}</div></div>
