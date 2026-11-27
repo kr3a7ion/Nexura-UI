@@ -1,6 +1,7 @@
 // Global UI values. Every form, card, stepper and choice in the suite uses these,
 // so screens look and behave the same. Change a value here, not on a screen.
 import React from "react";
+import { DndContext, KeyboardSensor, PointerSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { BORDER, ERROR, MUTED, PRIMARY, SUBTLE, TEXT, TEAL_INK, display } from "./constants";
 
 export const UI = {
@@ -170,3 +171,77 @@ export const downloadCsv = (name: string, rows: (string | number)[][]) => {
   a.href = URL.createObjectURL(new Blob([rows.map(r => r.map(cell).join(",")).join("\n")], { type: "text/csv" }));
   a.download = name; a.click(); URL.revokeObjectURL(a.href);
 };
+
+// ── Moving things (the "UI alive" pieces) ────────────────────────────────────────────
+// A drag or a swipe is a shortcut for a button: every drop calls the same data function the button calls, and a refused
+// drop gives the reason. Mouse, touch and keyboard (Space to pick up, arrows to move, Space to drop) all work.
+// Motion is light: 150–200 ms transform and opacity transitions only; reduced motion turns them off (styles/index.css).
+
+/** Wraps an area with draggable cards and drop zones. `onDrop` returns why not (shown by the caller) or nothing. */
+export function DragArea({ onDrop, children }: { onDrop: (item: string, target: string) => void; children: React.ReactNode }) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),       // a click stays a click
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 6 } }), // a scroll stays a scroll
+    useSensor(KeyboardSensor),
+  );
+  return <DndContext sensors={sensors} onDragEnd={(e: DragEndEvent) => { if (e.over) onDrop(String(e.active.id), String(e.over.id)); }}>{children}</DndContext>;
+}
+
+/** A card that can be picked up. `label` is read out to screen readers, e.g. "Peter Okafor, Standard". */
+export function DragCard({ id, label, children, className = "", style }: { id: string; label: string; children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
+  return <div ref={setNodeRef} {...listeners} {...attributes} aria-roledescription="draggable card" aria-label={label}
+    className={`touch-manipulation ${isDragging ? "cursor-grabbing" : "cursor-grab"} ${className}`}
+    style={{ ...style, transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined, zIndex: isDragging ? 40 : undefined,
+      boxShadow: isDragging ? "0 12px 28px rgba(15,23,42,0.18)" : style?.boxShadow, transition: isDragging ? "box-shadow 150ms" : "transform 180ms ease-out, box-shadow 150ms" }}>
+    {children}</div>;
+}
+
+/** Somewhere a card can be dropped. Outlined in teal while a card is over it. */
+export function DropZone({ id, children, className = "", style, onClick }: { id: string; children: React.ReactNode; className?: string; style?: React.CSSProperties; onClick?: () => void }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return <div ref={setNodeRef} onClick={onClick} className={className} style={{ ...style, ...(isOver ? { outline: `3px solid ${UI.focus}`, outlineOffset: 2 } : {}) }}>{children}</div>;
+}
+
+export type SwipeAction = { label: string; icon?: React.ElementType; color: string; run: () => void };
+/** Swipe a card right for `left`, left for `right` (touch and mouse). On a screen with a mouse the same actions
+ *  also show as buttons, and they are always reachable by keyboard. */
+export function SwipeRow({ left, right, children, className = "", style, onClick }: {
+  left?: SwipeAction; right?: SwipeAction; children: React.ReactNode; className?: string; style?: React.CSSProperties; onClick?: () => void;
+}) {
+  const REVEAL = 110, card = React.useRef<HTMLDivElement>(null), hintL = React.useRef<HTMLDivElement>(null), hintR = React.useRef<HTMLDivElement>(null);
+  const d = React.useRef({ on: false, x0: 0, last: 0, t: 0, v: 0, moved: false });
+  const move = (x: number) => {
+    const el = card.current; if (!el) return;
+    const lim = (n: number, has?: SwipeAction) => (has ? n : 0);
+    const raw = x > 0 ? lim(x, left) : lim(x, right);
+    const soft = Math.abs(raw) > REVEAL ? Math.sign(raw) * (REVEAL + Math.pow(Math.abs(raw) - REVEAL, 0.65)) : raw;
+    el.style.transform = `translateX(${soft}px)`;
+    if (hintL.current) hintL.current.style.opacity = raw > 0 ? String(Math.min(1, raw / REVEAL)) : "0";
+    if (hintR.current) hintR.current.style.opacity = raw < 0 ? String(Math.min(1, -raw / REVEAL)) : "0";
+  };
+  const settle = () => { const el = card.current; if (!el) return; el.style.transition = "transform 180ms ease-out"; move(0); setTimeout(() => { el.style.transition = ""; }, 200); };
+  const hint = (a: SwipeAction, side: "left" | "right", ref: React.RefObject<HTMLDivElement | null>) => {
+    const Icon = a.icon;
+    return <div ref={ref} aria-hidden className={`absolute inset-y-0 ${side}-0 flex flex-col items-center justify-center gap-1.5 pointer-events-none`} style={{ width: REVEAL, backgroundColor: `${a.color}14`, opacity: 0 }}>
+      {Icon && <Icon size={19} style={{ color: a.color }} />}<span className="text-xs font-bold" style={{ color: a.color }}>{a.label}</span></div>;
+  };
+  return <div className={`relative overflow-hidden select-none ${className}`} style={style} onClick={() => { if (!d.current.moved) onClick?.(); }}>
+    {left && hint(left, "left", hintL)}{right && hint(right, "right", hintR)}
+    <div ref={card} className="relative bg-white" style={{ touchAction: "pan-y", zIndex: 2 }}
+      onPointerDown={e => { d.current = { on: true, x0: e.clientX, last: e.clientX, t: performance.now(), v: 0, moved: false }; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); }}
+      onPointerMove={e => { const s = d.current; if (!s.on) return; const now = performance.now(); if (now > s.t) s.v = (e.clientX - s.last) / (now - s.t); s.last = e.clientX; s.t = now;
+        if (Math.abs(e.clientX - s.x0) > 6) s.moved = true; move(e.clientX - s.x0); }}
+      onPointerUp={e => { const s = d.current; if (!s.on) return; s.on = false; const dx = e.clientX - s.x0, go = (dir: number) => s.v * dir > 0.45 || (Math.abs(s.v) < 0.35 && dx * dir > REVEAL * 0.45);
+        settle(); if (left && go(1)) setTimeout(left.run, 180); else if (right && go(-1)) setTimeout(right.run, 180); setTimeout(() => { s.moved = false; }, 0); }}
+      onPointerCancel={() => { d.current.on = false; settle(); }}>
+      {children}
+      {/* The button twin: shown where there is a mouse, always in the keyboard order. */}
+      {(left || right) && <div className="absolute right-2 top-2 flex gap-1 opacity-0 focus-within:opacity-100 hover:opacity-100 [@media(hover:hover)]:opacity-60">
+        {[left, right].filter(Boolean).map(a => { const Icon = a!.icon; return <button key={a!.label} type="button" aria-label={a!.label} title={a!.label}
+          onPointerDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); a!.run(); }}
+          className="rounded-lg p-1.5 bg-white border" style={{ borderColor: BORDER, color: a!.color }}>{Icon ? <Icon size={14} /> : a!.label}</button>; })}
+      </div>}
+    </div>
+  </div>;
+}

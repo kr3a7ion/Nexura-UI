@@ -1,5 +1,6 @@
 // All screen components and shared UI primitives.
 // Imported by App.tsx — no circular dependencies.
+import { SwipeRow } from "./ui";
 import { staffAll } from "./mock/staff";
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -1212,15 +1213,6 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
   const [editVals,   setEditVals]   = useState({ name:"", base:"", size:"", beds:"", maxOcc:"", description:"" });
   const [newType,    setNewType]    = useState({ code:"", name:"", base:"", size:"", beds:"", maxOcc:"2", description:"" });
   const [newAmenity, setNewAmenity] = useState("");
-  /* swipe — right=delete, left=edit; swipe IS the action, no tap needed */
-  const dragRef = useRef<{
-    code: string; active: boolean;
-    startX: number; baseX: number;
-    lastX: number; lastT: number; vel: number;
-  }>({ code:"", active:false, startX:0, baseX:0, lastX:0, lastT:0, vel:0 });
-  const cardRefs  = useRef<Record<string, HTMLDivElement|null>>({});
-  const deleteRef = useRef<Record<string, HTMLDivElement|null>>({});
-  const editRef   = useRef<Record<string, HTMLDivElement|null>>({});
   const [confirmDelete, setConfirmDelete] = useState<{ code: string; name: string } | null>(null);
   /* room assignments: roomId → rtCode (or "" = unassigned) */
   const initAssign = () => {
@@ -1292,93 +1284,17 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
     ROOMS.filter(r => roomAssign[r.id] === rt.code);
 
   /* ── Swipe: right = delete, left = edit ── */
-  const REVEAL   = 110;
-  const TRIGGER  = REVEAL * 0.45; // position threshold to fire action
-  const SPRING   = "transform 0.36s cubic-bezier(0.34,1.56,0.64,1)";
-  const EASE_OUT = "transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94)";
-
-  const snapTo = (code: string, targetX: number, useSpring = false) => {
-    const el = cardRefs.current[code];
-    if (!el) return;
-    el.style.transition = useSpring ? SPRING : EASE_OUT;
-    el.style.transform = `translateX(${targetX}px)`;
-    setTimeout(() => { if (el) el.style.transition = ""; }, 420);
-  };
-
-  /* update the visual hint zone opacity directly (no re-render) */
-  const setHintOpacity = (code: string, raw: number) => {
-    const delEl = deleteRef.current[code];
-    const edEl  = editRef.current[code];
-    if (delEl) delEl.style.opacity = raw > 0  ? String(Math.min(1, raw / REVEAL)) : "0";
-    if (edEl)  edEl.style.opacity  = raw < 0  ? String(Math.min(1, -raw / REVEAL)) : "0";
-  };
-
   const deleteType = (code: string) => {
     const inUse = assignedRooms(roomTypes.find(r => r.code === code) ?? selected).length;
     if (inUse) { add({ type: "warning", title: `Move its ${inUse} rooms to another type first` }); return; }
-    const el = cardRefs.current[code];
-    if (el) {
-      el.style.transition = "transform 0.3s cubic-bezier(0.4,0,1,1), opacity 0.3s ease";
-      el.style.transform = "translateX(110%)";
-      el.style.opacity = "0";
-    }
-    setTimeout(() => {
-      setRoomTypes(prev => {
-        const next = prev.filter(r=>r.code!==code);
-        if (selected.code===code) setSelected(next[0] ?? INIT[0]);
-        return next;
-      });
-      add({ type:"info", title:"Room type deleted" });
-    }, 320);
+    setRoomTypes(prev => {
+      const next = prev.filter(r=>r.code!==code);
+      if (selected.code===code) setSelected(next[0] ?? INIT[0]);
+      return next;
+    });
+    add({ type:"info", title:"Room type deleted" });
   };
 
-  const onPtrDown = (e: React.PointerEvent, code: string) => {
-    const el = cardRefs.current[code];
-    let baseX = 0;
-    if (el) baseX = new DOMMatrix(getComputedStyle(el).transform).m41;
-    const now = performance.now();
-    dragRef.current = { code, active:true, startX:e.clientX, baseX, lastX:e.clientX, lastT:now, vel:0 };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  };
-
-  const onPtrMove = (e: React.PointerEvent, code: string) => {
-    const d = dragRef.current;
-    if (!d.active || d.code !== code) return;
-    const now = performance.now();
-    const dt = now - d.lastT;
-    if (dt > 0) d.vel = (e.clientX - d.lastX) / dt;
-    d.lastX = e.clientX; d.lastT = now;
-    const raw = d.baseX + (e.clientX - d.startX);
-    const rubber = raw > REVEAL
-      ? REVEAL  + Math.pow(raw - REVEAL, 0.65)
-      : raw < -REVEAL
-      ? -REVEAL - Math.pow(-raw - REVEAL, 0.65)
-      : raw;
-    const el = cardRefs.current[code];
-    if (el) el.style.transform = `translateX(${rubber}px)`;
-    setHintOpacity(code, raw);
-  };
-
-  const onPtrUp = (rt: RT) => {
-    const d = dragRef.current;
-    if (!d.active || d.code !== rt.code) return;
-    d.active = false;
-    const el = cardRefs.current[rt.code];
-    if (!el) return;
-    const curX = new DOMMatrix(getComputedStyle(el).transform).m41;
-    const goDelete = d.vel >  0.45 || (Math.abs(d.vel) < 0.35 && curX >  TRIGGER);
-    const goEdit   = d.vel < -0.45 || (Math.abs(d.vel) < 0.35 && curX < -TRIGGER);
-    setHintOpacity(rt.code, 0);
-    if (goDelete) {
-      snapTo(rt.code, 0, false);
-      setTimeout(() => setConfirmDelete({ code: rt.code, name: rt.name }), 180);
-    } else if (goEdit) {
-      snapTo(rt.code, 0);
-      setTimeout(() => openEdit(rt), 260);
-    } else {
-      snapTo(rt.code, 0, false);
-    }
-  };
 
   const ModalShell = ({ title, sub, onClose, children, wide }: { title:string; sub:string; onClose:()=>void; children:React.ReactNode; wide?:boolean }) => (
     <>
@@ -1426,46 +1342,10 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
             const occPct = rt.count ? Math.round(((rt.count-rt.available)/rt.count)*100) : 0;
             const avPct  = rt.count ? Math.round((rt.available/rt.count)*100) : 0;
             return (
-              <div key={rt.code} className="relative rounded-xl overflow-hidden select-none"
-                style={{ border:`2px solid ${isSel ? color : BORDER}` }}
-                onClick={()=>setSelected(rt)}>
-
-                {/* ── LEFT: DELETE zone (visual only, revealed on swipe right) ── */}
-                <div ref={el=>{ deleteRef.current[rt.code]=el; }}
-                  className="absolute inset-y-0 left-0 flex flex-col items-center justify-center gap-1.5 pointer-events-none"
-                  style={{ width: REVEAL, backgroundColor:`${ERROR}14`, opacity:0 }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor:`${ERROR}25` }}>
-                    <Trash2 size={19} style={{ color: ERROR }}/>
-                  </div>
-                  <span className="text-xs font-bold" style={{ color: ERROR }}>Delete</span>
-                </div>
-
-                {/* ── RIGHT: EDIT zone (visual only, revealed on swipe left) ── */}
-                <div ref={el=>{ editRef.current[rt.code]=el; }}
-                  className="absolute inset-y-0 right-0 flex flex-col items-center justify-center gap-1.5 pointer-events-none"
-                  style={{ width: REVEAL, backgroundColor:`${color}12`, opacity:0 }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor:`${color}22` }}>
-                    <Edit3 size={19} style={{ color }}/>
-                  </div>
-                  <span className="text-xs font-bold" style={{ color }}>Edit</span>
-                </div>
-
-                {/* ── Card content (draggable layer, always on top) ── */}
-                <div ref={el=>{ cardRefs.current[rt.code]=el; }}
-                  className="bg-white flex cursor-grab active:cursor-grabbing relative"
-                  style={{ willChange:"transform", touchAction:"pan-y", zIndex:2 }}
-                  onPointerDown={e=>onPtrDown(e, rt.code)}
-                  onPointerMove={e=>onPtrMove(e, rt.code)}
-                  onPointerUp={()=>onPtrUp(rt)}>
-
-                  {/* Faint ghost edge hints on the card face */}
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none" style={{ opacity:0.14 }}>
-                    <Trash2 size={13} style={{ color: ERROR }}/>
-                  </div>
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none" style={{ opacity:0.14 }}>
-                    <Edit3 size={13} style={{ color }}/>
-                  </div>
-
+              <SwipeRow key={rt.code} className="rounded-xl" style={{ border:`2px solid ${isSel ? color : BORDER}` }} onClick={()=>setSelected(rt)}
+                left={{ label: `Delete ${rt.name}`, icon: Trash2, color: ERROR, run: () => setConfirmDelete({ code: rt.code, name: rt.name }) }}
+                right={{ label: `Edit ${rt.name}`, icon: Edit3, color, run: () => openEdit(rt) }}>
+                <div className="flex">
                   <div className="w-1.5 flex-shrink-0" style={{ backgroundColor: color }} />
                   <div className="flex-1 px-5 py-4">
                     <div className="flex items-start justify-between mb-3">
@@ -1501,7 +1381,7 @@ export function RoomTypeManagement({ add }: { add: (t: Omit<Toast, "id">) => voi
                     </div>
                   </div>
                 </div>
-              </div>
+              </SwipeRow>
             );
           })}
           {roomTypes.length === 0 && (

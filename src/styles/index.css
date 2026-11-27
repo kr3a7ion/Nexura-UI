@@ -35,3 +35,8 @@
 /* Names, pills and badges in tables stay on one line; a wide table scrolls inside its own box. */
 body { -webkit-font-smoothing: antialiased; }
 td span[class*="rounded"], td .text-sm.font-semibold, td .text-sm.font-bold, th { white-space: nowrap; }
+
+/* Light motion only; nothing moves for people who ask their device for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}

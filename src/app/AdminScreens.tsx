@@ -29,7 +29,7 @@ import {
 stampNow, ORANGE_INK, TEAL_INK, WARNING_INK, propertyLabel, ROOMS } from "./constants";
 import { Badge, EmptyState, StatCard, PageHeader, BtnP, BtnO, Inp } from "./UIKit";
 import { absences, parseDay, TODAY } from "./mock/roster";
-import { Card } from "./ui";
+import { Card, Dialog, Row, DragArea, DragCard, DropZone } from "./ui";
 
 // Absences set on department rosters (with the reason the supervisor gave) and leave HR recorded, in one list.
 function RosterAbsences() {
@@ -50,6 +50,7 @@ import { ARRIVALS as FO_ARRIVALS, STAYS, reservations } from "./mock/frontOffice
 import { roomTypeNames } from "./mock/property";
 import { hkRooms } from "./mock/housekeeping";
 import { roomState } from "./mock/rooms";
+import { assignRoom, roomsForBooking } from "./mock/hotel";
 import { approverRoles, setApproverRoles, approverPeople, setApproverNames } from "./mock/approvals";
 import { DEPARTMENTS } from "./suite/departments";
 import { staffAll, isEmployed } from "./mock/staff";
@@ -1756,204 +1757,134 @@ export function ReservationDetail({ add, nav, resId }: { add: (t: Omit<Toast, "i
 
 // FD-03 Room Assignment Board
 export function RoomAssignmentBoard({ add, nav }: { add: (t: Omit<Toast, "id">) => void; nav?: (s: string, label: string, param?: string) => void }) {
-  const UNASSIGNED_ARRIVALS = FO_ARRIVALS.filter(a => !a.room).map(({ id, guest, av, type, eta, vip, nights }) => ({ id, guest, av, type, eta, vip, nights }));
-  // Every room of the property, with its housekeeping state and current guest.
-  const ALL_ROOMS = hkRooms().map(r => {
-    const status = roomState(r.id);
-    const guest = STAYS.find(x => x.room === r.id)?.guest ?? null;
-    return { id: r.id, type: r.type, floor: r.floor, status,
-      hkSt: status === "Occupied" ? "Occupied" : status === "Out of order" ? "Maintenance" : r.hkSt as string, guest };
-  });
+  // Today's arrivals and every room, from the data. Dragging (or choosing then tapping) assigns through assignRoom,
+  // the same rule as the Arrivals screen: the booked room type, free for the whole stay, not out of order.
+  const [, redraw] = useState(0);
   const [selGuest, setSelGuest] = useState<string | null>(null);
-  const [assigned, setAssigned] = useState<Record<string, string>>({});
   const [floorFilter, setFloorFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [search, setSearch] = useState("");
-  const [pendingAssignment, setPendingAssignment] = useState<{ guestId: string; roomId: string } | null>(null);
   const [detailRoom, setDetailRoom] = useState<string | null>(null);
-  const floors = ["All", ...[...new Set(ROOMS.map(r => String(r.floor)))]];
-  const hkDot: Record<string, string> = { Inspected: SUCCESS, Clean: "#22C55E", "In Progress": WARNING, Dirty: ORANGE, Maintenance: ERROR, Occupied: MUTED, DND: "#6B7280" };
-  const isReady = (room: typeof ALL_ROOMS[0]) => room.status === "Ready";
-  const roomForGuest = (guestId: string) => Object.keys(assigned).find(roomId => assigned[roomId] === guestId);
-  const doAssign = (guestId: string, roomId: string) => {
-    const g = UNASSIGNED_ARRIVALS.find(a => a.id === guestId);
-    const previousRoom = roomForGuest(guestId);
-    const displacedGuest = assigned[roomId];
-    setAssigned(prev => {
-      const next = { ...prev };
-      if (previousRoom) delete next[previousRoom];
-      next[roomId] = guestId;
-      if (displacedGuest && previousRoom) next[previousRoom] = displacedGuest;
-      return next;
-    });
-    add({
-      type: "success",
-      title: displacedGuest && previousRoom ? "Room assignments swapped" : previousRoom ? "Room reassigned" : "Room assigned",
-      body: `${g?.guest} → Room ${roomId}${previousRoom ? ` (from ${previousRoom})` : ""}`,
-    });
-    setSelGuest(null);
-    setPendingAssignment(null);
+  const [justSet, setJustSet] = useState<string | null>(null); // the room that just changed, highlighted briefly
+  const arrivals = FO_ARRIVALS;
+  const rooms = hkRooms().map(r => ({ id: r.id, type: r.type, floor: r.floor, status: roomState(r.id), hkSt: r.hkSt as string,
+    guest: STAYS.find(x => x.room === r.id)?.guest ?? arrivals.find(a => a.room === r.id)?.guest ?? null }));
+  const floors = ["All", ...[...new Set(rooms.map(r => String(r.floor)))]];
+  const hkDot: Record<string, string> = { Inspected: SUCCESS, Clean: "#22C55E", "In Progress": WARNING, Dirty: ORANGE, DND: "#6B7280" };
+  const whyNot = (arrivalId: string, roomId: string) => {
+    const a = arrivals.find(x => x.id === arrivalId), r = rooms.find(x => x.id === roomId);
+    if (!a || !r) return "That room or arrival is no longer here.";
+    if (r.type !== a.type) return `${a.guest} booked a ${a.type}; room ${r.id} is a ${r.type}.`;
+    if (r.status === "Out of order") return `Room ${r.id} is out of order.`;
+    return `Room ${r.id} is not free for ${a.nights} night${a.nights === 1 ? "" : "s"}${r.guest ? ` (${r.guest})` : ""}.`;
   };
-  const handleRoomClick = (r: typeof ALL_ROOMS[0]) => {
-    if (!selGuest) { setDetailRoom(r.id); return; }
-    const currentRoom = roomForGuest(selGuest);
-    const isSwap = Boolean(assigned[r.id] && currentRoom);
-    if (!isReady(r) && !isSwap) {
-      const reason = r.status === "Arriving today" ? "kept for another arrival" : r.status === "Occupied" ? "occupied" : r.status === "Out of order" ? "out of order" : `not ready (${r.hkSt})`;
-      add({ type: "error", title: "Room unavailable", body: `Room ${r.id} is ${reason}. Only available Clean or Inspected rooms can be assigned.` });
-      return;
-    }
-    setPendingAssignment({ guestId: selGuest, roomId: r.id });
+  const place = (arrivalId: string, roomId: string) => {
+    const a = arrivals.find(x => x.id === arrivalId);
+    if (!a || a.room === roomId) return;
+    if (!assignRoom(arrivalId, roomId)) { add({ type: "error", title: "Can't assign that room", body: whyNot(arrivalId, roomId) }); return; }
+    const r = rooms.find(x => x.id === roomId);
+    add({ type: "success", title: `Room ${roomId} for ${a.guest}`, body: r?.status === "Ready" ? "Ready for check-in." : `Not ready yet (${r?.hkSt}); Housekeeping sees it on the board.` });
+    setSelGuest(null); setJustSet(roomId); setTimeout(() => setJustSet(null), 900); redraw(n => n + 1);
   };
   const autoAssign = () => {
-    const next = { ...assigned };
-    const unassigned = UNASSIGNED_ARRIVALS.filter(arrival => !Object.values(next).includes(arrival.id));
-    const readyRooms = ALL_ROOMS.filter(room => isReady(room) && !next[room.id]);
-    let assignedCount = 0;
-    unassigned.forEach(arrival => {
-      const exact = readyRooms.find(room => room.type === arrival.type && !next[room.id]);
-      const upgrade = readyRooms.find(room => room.type === "Suite" && !next[room.id]);
-      const room = exact ?? upgrade;
-      if (room) { next[room.id] = arrival.id; assignedCount += 1; }
-    });
-    setAssigned(next);
-    setSelGuest(null);
-    add({
-      type: assignedCount === unassigned.length ? "success" : "info",
-      title: assignedCount ? `${assignedCount} arrival${assignedCount === 1 ? "" : "s"} auto-assigned` : "No compatible rooms available",
-      body: assignedCount < unassigned.length ? `${unassigned.length - assignedCount} arrival${unassigned.length - assignedCount === 1 ? "" : "s"} still need a ready room.` : "Booked room types were matched first; Suite upgrades were used when needed.",
-    });
+    let n = 0;
+    arrivals.filter(a => !a.room).forEach(a => { const r = roomsForBooking(a.id).find(id => roomState(id) === "Ready"); if (r && assignRoom(a.id, r)) n++; });
+    const left = arrivals.filter(a => !a.room).length;
+    add({ type: n ? "success" : "info", title: n ? `${n} arrival${n === 1 ? "" : "s"} given a ready room` : "No ready room of the booked type",
+      body: left ? `${left} still need a room of their booked type.` : "Every arrival has a room." });
+    redraw(x => x + 1);
   };
-  const filteredRooms = ALL_ROOMS.filter(room =>
-    (floorFilter === "All" || String(room.floor) === floorFilter) &&
-    (typeFilter === "All" || room.type === typeFilter)
-  );
-  const visibleArrivals = UNASSIGNED_ARRIVALS.filter(arrival =>
-    !search.trim() || `${arrival.guest} ${arrival.id} ${arrival.type}`.toLowerCase().includes(search.trim().toLowerCase())
-  );
-  const grouped = floors.filter(f => f !== "All").reduce((acc, f) => { acc[f] = filteredRooms.filter(r => String(r.floor) === f); return acc; }, {} as Record<string, typeof ALL_ROOMS>);
-  const totalAssigned = UNASSIGNED_ARRIVALS.length - UNASSIGNED_ARRIVALS.filter(a => !Object.values(assigned).includes(a.id)).length;
-  const pendingGuest = UNASSIGNED_ARRIVALS.find(arrival => arrival.id === pendingAssignment?.guestId);
-  const pendingRoom = ALL_ROOMS.find(room => room.id === pendingAssignment?.roomId);
-  const inspectedRoom = ALL_ROOMS.find(room => room.id === detailRoom);
+  const visibleArrivals = arrivals.filter(a => !search.trim() || `${a.guest} ${a.id} ${a.type}`.toLowerCase().includes(search.trim().toLowerCase()));
+  const filteredRooms = rooms.filter(r => (floorFilter === "All" || String(r.floor) === floorFilter) && (typeFilter === "All" || r.type === typeFilter));
+  const grouped = floors.filter(f => f !== "All").map(f => [f, filteredRooms.filter(r => String(r.floor) === f)] as const).filter(([, list]) => list.length);
+  const selected = arrivals.find(a => a.id === selGuest);
+  const inspected = rooms.find(r => r.id === detailRoom);
+  const unassigned = arrivals.filter(a => !a.room).length;
   return (
     <div>
-      <PageHeader title="Room Assignment Board" sub="Select or drag an arrival to a ready room; review upgrades before confirming" actions={<BtnP label="Auto-assign ready rooms" icon={Zap} onClick={autoAssign} />} />
+      <PageHeader title="Room Assignment Board" sub="Drag an arrival onto a room of the booked type, or choose the arrival and then the room. Works by touch and keyboard too." actions={<BtnP label="Auto-assign ready rooms" icon={Zap} onClick={autoAssign} />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <StatCard label="Unassigned" value={String(UNASSIGNED_ARRIVALS.filter(a => !Object.values(assigned).includes(a.id)).length)} sub="Need room" icon={AlertTriangle} accent={ERROR} />
-        <StatCard label="Ready rooms" value={String(ALL_ROOMS.filter(r => isReady(r) && !(r.id in assigned)).length)} sub="Clean or inspected" icon={BedDouble} accent={SUCCESS} />
-        <StatCard label="Total arrivals" value={String(UNASSIGNED_ARRIVALS.length + 3)} sub="Expected today" icon={CalendarCheck} accent={PRIMARY} />
-        <StatCard label="Assigned today" value={String(totalAssigned + 3)} sub="Ready for check-in" icon={CheckCircle2} accent={TEAL} />
+        <StatCard label="Unassigned" value={String(unassigned)} sub="Need a room" icon={AlertTriangle} accent={ERROR} />
+        <StatCard label="Ready rooms" value={String(rooms.filter(r => r.status === "Ready").length)} sub="Clean or inspected, free" icon={BedDouble} accent={SUCCESS} />
+        <StatCard label="Arrivals today" value={String(arrivals.length)} sub="Expected" icon={CalendarCheck} accent={PRIMARY} />
+        <StatCard label="Have a room" value={String(arrivals.length - unassigned)} sub="Ready for check-in when clean" icon={CheckCircle2} accent={TEAL} />
       </div>
+      <DragArea onDrop={(item, target) => place(item, target)}>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        {/* Left: unassigned arrivals */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between gap-3 mb-3">
-            <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Today’s arrivals</div>
-            <span className="text-xs" style={{ color: MUTED }}>{totalAssigned}/{UNASSIGNED_ARRIVALS.length} assigned</span>
+            <div className="text-sm font-semibold" style={{ color: MUTED }}>Today’s arrivals</div>
+            <span className="text-xs" style={{ color: MUTED }}>{arrivals.length - unassigned}/{arrivals.length} have a room</span>
           </div>
-          <div className="relative mb-3"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search guest, booking, or type…" aria-label="Search guest, booking, or type" className="w-full rounded-xl border bg-white py-2.5 pl-9 pr-9 text-sm outline-none" style={{ borderColor: BORDER }} />{search && <button aria-label="Clear search" onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2"><X size={15} style={{ color: MUTED }} /></button>}</div>
+          <div className="relative mb-3"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: SUBTLE }} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search guest, booking, or type…" aria-label="Search arrivals" className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border outline-none bg-white" style={{ borderColor: BORDER }} /></div>
           <div className="space-y-3">
             {visibleArrivals.map(a => {
-              const isAssigned = Object.values(assigned).includes(a.id);
-              const assignedRoom = roomForGuest(a.id);
               const isSel = selGuest === a.id;
               return (
-                <div key={a.id} draggable onDragStart={event => { event.dataTransfer.setData("text/guest-id", a.id); setSelGuest(a.id); }} onClick={() => setSelGuest(isSel ? null : a.id)}
-                  className="bg-white rounded-xl border overflow-hidden cursor-grab hover:shadow-md transition-all"
-                  style={{ borderColor: isSel ? PRIMARY : isAssigned ? SUCCESS : BORDER, borderWidth: isSel || isAssigned ? 2 : 1 }}>
-                  <div className="flex items-center gap-3 p-4">
+                <DragCard key={a.id} id={a.id} label={`${a.guest}, ${a.type}${a.room ? `, room ${a.room}` : ", no room"}`}
+                  className="bg-white rounded-xl border overflow-hidden hover:shadow-md"
+                  style={{ borderColor: isSel ? PRIMARY : a.room ? SUCCESS : BORDER, borderWidth: isSel || a.room ? 2 : 1 }}>
+                  <div className="flex items-center gap-3 p-4" onClick={() => setSelGuest(isSel ? null : a.id)}>
                     <GripVertical size={16} style={{ color: SUBTLE }} />
                     <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: a.vip ? "#FFF7ED" : "#EFF6FF", color: a.vip ? ORANGE : PRIMARY }}><User size={19} /></div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5"><span className="text-sm font-semibold" style={{ color: TEXT }}>{a.guest}</span>{a.vip && <Star size={10} fill={ORANGE} style={{ color: ORANGE_INK }} />}</div>
                       <div className="text-xs" style={{ color: MUTED }}>{a.id} · {a.type} · ETA {a.eta} · {a.nights}n</div>
                     </div>
-                    {isAssigned ? <Badge label={`Room ${assignedRoom}`} colors={{ bg: "#DCFCE7", text: "#166534" }} /> : isSel ? <Badge label="Selected" colors={{ bg: "#DBEAFE", text: PRIMARY }} /> : null}
+                    {a.room ? <Badge label={`Room ${a.room}`} colors={{ bg: "#DCFCE7", text: "#166534" }} /> : isSel ? <Badge label="Selected" colors={{ bg: "#DBEAFE", text: PRIMARY }} /> : null}
                   </div>
                   <div className="px-4 pb-3 flex items-center gap-2">
-                    <button onClick={event => { event.stopPropagation(); nav?.("reservation-detail", a.id, a.id); }} className="text-xs font-semibold" style={{ color: PRIMARY }}>View booking</button>
-                    {isAssigned && <button onClick={event => { event.stopPropagation(); setAssigned(prev => { const next = { ...prev }; if (assignedRoom) delete next[assignedRoom]; return next; }); setSelGuest(null); add({ type: "info", title: "Assignment removed", body: `${a.guest} is unassigned.` }); }} className="text-xs font-semibold" style={{ color: ERROR }}>Remove</button>}
-                    {isSel && <span className="ml-auto text-xs font-semibold" style={{ color: PRIMARY }}>{isAssigned ? "Choose another room to reassign" : "Choose or drop onto a room"}</span>}
+                    <button onPointerDown={e => e.stopPropagation()} onClick={() => nav?.("reservation-detail", a.id, a.id)} className="text-xs font-semibold" style={{ color: PRIMARY }}>View booking</button>
+                    {isSel && <span className="ml-auto text-xs font-semibold" style={{ color: PRIMARY }}>Now choose a {a.type} room</span>}
                   </div>
-                </div>
+                </DragCard>
               );
             })}
             {visibleArrivals.length === 0 && <EmptyState icon={Search} message="No arrivals match your search." />}
-            {UNASSIGNED_ARRIVALS.every(a => Object.values(assigned).includes(a.id)) && (
-              <div className="py-8 text-center rounded-xl border" style={{ borderColor: BORDER }}><CheckCircle2 size={24} className="mx-auto mb-2" style={{ color: SUCCESS }} /><p className="text-sm font-semibold" style={{ color: SUCCESS }}>All arrivals assigned</p></div>
+            {arrivals.length > 0 && unassigned === 0 && (
+              <div className="py-8 text-center rounded-xl border" style={{ borderColor: BORDER }}><CheckCircle2 size={24} className="mx-auto mb-2" style={{ color: SUCCESS }} /><p className="text-sm font-semibold" style={{ color: SUCCESS }}>Every arrival has a room</p></div>
             )}
           </div>
         </div>
-        {/* Right: room grid by floor */}
         <div className="lg:col-span-3">
           <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <div className="text-xs font-semibold uppercase tracking-wider mr-auto" style={{ color: MUTED }}>Rooms by floor</div>
-            <select aria-label="Room type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)} className="text-xs px-2.5 py-1.5 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: MUTED }}><option>All</option><option>Standard</option><option>Deluxe</option><option>Suite</option></select>
-            {floors.map(f => <button key={f} onClick={() => setFloorFilter(f)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold transition-all" style={{ backgroundColor: floorFilter===f ? PRIMARY : "white", color: floorFilter===f ? "white" : MUTED, borderColor: floorFilter===f ? PRIMARY : BORDER }}>{f === "All" ? "All floors" : `Floor ${f}`}</button>)}
+            <div className="text-sm font-semibold mr-auto" style={{ color: MUTED }}>Rooms by floor</div>
+            <select aria-label="Room type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)} className="text-xs px-2.5 py-1.5 rounded-lg border bg-white outline-none" style={{ borderColor: BORDER, color: MUTED }}><option>All</option>{roomTypeNames().map(t => <option key={t}>{t}</option>)}</select>
+            {floors.map(f => <button key={f} onClick={() => setFloorFilter(f)} className="text-xs px-2.5 py-1.5 rounded-lg border font-semibold" style={{ backgroundColor: floorFilter === f ? PRIMARY : "white", color: floorFilter === f ? "white" : MUTED, borderColor: floorFilter === f ? PRIMARY : BORDER }}>{f === "All" ? "All floors" : `Floor ${f}`}</button>)}
           </div>
-          {Object.entries(grouped).filter(([,rooms]) => rooms.length > 0).map(([floor, rooms]) => (
+          {grouped.map(([floor, list]) => (
             <div key={floor} className="mb-4">
-              <div className="text-xs font-bold uppercase tracking-wider mb-2 px-1" style={{ color: MUTED }}>Floor {floor}</div>
+              <div className="text-xs font-semibold mb-2 px-1" style={{ color: MUTED }}>Floor {floor}</div>
               <div className="grid grid-cols-3 xl:grid-cols-4 gap-2">
-                {rooms.map(r => {
-                  const isNewAssigned = r.id in assigned;
-                  const assignedGuest = isNewAssigned ? UNASSIGNED_ARRIVALS.find(a => a.id === assigned[r.id])?.guest : null;
-                  const ready = isReady(r) && !isNewAssigned;
-                  const selectedArrival = UNASSIGNED_ARRIVALS.find(arrival => arrival.id === selGuest);
-                  const isRecommended = ready && selectedArrival?.type === r.type;
+                {list.map(r => {
+                  const ready = r.status === "Ready", match = !!selected && r.type === selected.type && ready;
                   return (
-                    <div key={r.id}
-                      onDragOver={event => { if (ready || isNewAssigned) event.preventDefault(); }}
-                      onDrop={event => { event.preventDefault(); const guestId = event.dataTransfer.getData("text/guest-id"); if (guestId) { setSelGuest(guestId); const currentRoom = roomForGuest(guestId); if (isReady(r) || (assigned[r.id] && currentRoom)) setPendingAssignment({ guestId, roomId: r.id }); else add({ type: "error", title: "Room unavailable", body: `Room ${r.id} must be Available and Clean or Inspected.` }); } }}
-                      onClick={() => handleRoomClick(r)}
-                      className="bg-white rounded-xl border overflow-hidden transition-all"
-                      style={{ borderColor: isRecommended && selGuest ? PRIMARY : isNewAssigned ? SUCCESS : BORDER, borderWidth: isRecommended && selGuest || isNewAssigned ? 2 : 1, cursor: "pointer" }}>
-                      <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: isNewAssigned ? "#D1FAE5" : ready ? "#EFF6FF" : roomStC[r.status]?.bg ?? "#F8FAFC" }}>
-                        <span className="text-base font-black" style={{ color: isNewAssigned ? SUCCESS : ready ? PRIMARY : roomStC[r.status]?.text ?? TEXT }}>{r.id}</span>
-                        <button aria-label={`View room ${r.id} details`} onClick={event => { event.stopPropagation(); setDetailRoom(r.id); }} className="p-1 rounded-lg hover:bg-white"><Eye size={14} style={{ color: MUTED }} /></button>
+                    <DropZone key={r.id} id={r.id} onClick={() => selected ? place(selected.id, r.id) : setDetailRoom(r.id)}
+                      className="bg-white rounded-xl border overflow-hidden cursor-pointer"
+                      style={{ borderColor: match || justSet === r.id ? SUCCESS : BORDER, borderWidth: match || justSet === r.id ? 2 : 1,
+                        backgroundColor: justSet === r.id ? "#F0FDF4" : "white", transition: "background-color 600ms ease-out, border-color 200ms" }}>
+                      <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: ready ? "#EFF6FF" : roomStC[r.status]?.bg ?? "#F8FAFC" }}>
+                        <span className="text-base font-bold" style={{ color: ready ? PRIMARY : roomStC[r.status]?.text ?? TEXT }}>{r.id}</span>
+                        <button aria-label={`View room ${r.id} details`} onPointerDown={e => e.stopPropagation()} onClick={event => { event.stopPropagation(); setDetailRoom(r.id); }} className="p-1 rounded-lg hover:bg-white"><Eye size={14} style={{ color: MUTED }} /></button>
                       </div>
                       <div className="px-3 py-2">
-                        <div className="flex items-center justify-between gap-1"><span className="text-xs font-medium" style={{ color: TEXT }}>{r.type}</span><span className="flex items-center gap-1 text-xs" style={{ color: MUTED }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: hkDot[r.hkSt] ?? SUBTLE }} />{r.hkSt}</span></div>
-                        <div className="text-xs mt-1" style={{ color: MUTED }}>{isNewAssigned ? assignedGuest : r.guest ?? r.status}</div>
-                        {isRecommended && selGuest && <div className="text-xs font-semibold mt-1" style={{ color: PRIMARY }}>Recommended match</div>}
+                        <div className="flex items-center justify-between gap-1"><span className="text-xs font-medium" style={{ color: TEXT }}>{r.type}</span><span className="flex items-center gap-1 text-xs" style={{ color: MUTED }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: hkDot[r.hkSt] ?? MUTED }} />{r.hkSt}</span></div>
+                        <div className="text-xs mt-1" style={{ color: MUTED }}>{r.guest ?? r.status}</div>
+                        {match && <div className="text-xs font-semibold mt-1" style={{ color: SUCCESS }}>Matches the booking</div>}
                       </div>
-                    </div>
+                    </DropZone>
                   );
                 })}
               </div>
             </div>
           ))}
-          {Object.values(grouped).every(rooms => rooms.length === 0) && <EmptyState icon={BedDouble} message="No rooms match the selected floor and type filters." cta="Clear filters" onCta={() => { setFloorFilter("All"); setTypeFilter("All"); }} />}
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t flex-wrap" style={{ borderColor: BORDER }}>
-            {[["Inspected — assignable", SUCCESS], ["Clean — assignable", "#22C55E"], ["In progress — blocked", WARNING], ["Maintenance — blocked", ERROR]].map(([l, c]) => (
-              <div key={l} className="flex items-center gap-1.5 text-xs" style={{ color: MUTED }}><div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c }} />{l}</div>
-            ))}
-          </div>
+          {grouped.length === 0 && <EmptyState icon={BedDouble} message="No rooms match the selected floor and type filters." cta="Clear filters" onCta={() => { setFloorFilter("All"); setTypeFilter("All"); }} />}
         </div>
       </div>
-      {pendingAssignment && pendingGuest && pendingRoom && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onMouseDown={() => setPendingAssignment(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl" onMouseDown={event => event.stopPropagation()}>
-            <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}><div><h3 className="font-bold" style={{ color: TEXT }}>{assigned[pendingRoom.id] ? "Confirm room swap" : roomForGuest(pendingGuest.id) ? "Confirm reassignment" : "Confirm room assignment"}</h3><p className="text-xs mt-0.5" style={{ color: MUTED }}>{pendingGuest.id} · {pendingGuest.guest}</p></div><button aria-label="Close" onClick={() => setPendingAssignment(null)}><X size={20} style={{ color: MUTED }} /></button></div>
-            <div className="p-5 space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: "#F8FAFC" }}><div><p className="text-xs" style={{ color: MUTED }}>Booked type</p><p className="text-sm font-bold" style={{ color: TEXT }}>{pendingGuest.type}</p></div><ChevronRight size={18} style={{ color: SUBTLE }} /><div className="text-right"><p className="text-xs" style={{ color: MUTED }}>Assigned room</p><p className="text-sm font-bold" style={{ color: PRIMARY }}>{pendingRoom.id} · {pendingRoom.type}</p></div></div>
-              {pendingGuest.type !== pendingRoom.type && <div className="p-3 rounded-xl flex gap-2 text-xs" style={{ backgroundColor: "#FFFBEB", color: "#92400E" }}><AlertTriangle size={16} className="flex-shrink-0" /><span>This changes the booked room type from {pendingGuest.type} to {pendingRoom.type}. Confirm the upgrade or room-type change with the guest and verify the rate.</span></div>}
-              {assigned[pendingRoom.id] && <div className="p-3 rounded-xl text-xs" style={{ backgroundColor: "#EFF6FF", color: PRIMARY }}>Room {pendingRoom.id} is assigned to {UNASSIGNED_ARRIVALS.find(arrival => arrival.id === assigned[pendingRoom.id])?.guest}. The two room assignments will be swapped.</div>}
-            </div>
-            <div className="px-5 py-4 border-t flex justify-end gap-2" style={{ borderColor: BORDER }}><button onClick={() => setPendingAssignment(null)} className="px-4 py-2 rounded-xl border text-sm font-semibold" style={{ borderColor: BORDER, color: MUTED }}>Cancel</button><button onClick={() => doAssign(pendingGuest.id, pendingRoom.id)} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Confirm assignment</button></div>
-          </div>
-        </div>
-      )}
-      {inspectedRoom && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(13,27,46,0.55)" }} onMouseDown={() => setDetailRoom(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl" onMouseDown={event => event.stopPropagation()}>
-            <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: BORDER }}><div><h3 className="font-bold" style={{ color: TEXT }}>Room {inspectedRoom.id}</h3><p className="text-xs mt-0.5" style={{ color: MUTED }}>Floor {inspectedRoom.floor} · {inspectedRoom.type}</p></div><button aria-label="Close" onClick={() => setDetailRoom(null)}><X size={20} style={{ color: MUTED }} /></button></div>
-            <div className="p-5 space-y-3">{[["Room status", inspectedRoom.status], ["Housekeeping", inspectedRoom.hkSt], ["Current guest", inspectedRoom.guest ?? "None"], ["Assignment", assigned[inspectedRoom.id] ? UNASSIGNED_ARRIVALS.find(arrival => arrival.id === assigned[inspectedRoom.id])?.guest ?? "Assigned" : "None"]].map(([label, value]) => <div key={label} className="flex justify-between gap-4 text-sm"><span style={{ color: MUTED }}>{label}</span><span className="font-semibold text-right" style={{ color: TEXT }}>{value}</span></div>)}</div>
-            <div className="px-5 py-4 border-t flex justify-end" style={{ borderColor: BORDER }}><button onClick={() => setDetailRoom(null)} className="px-4 py-2 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: PRIMARY }}>Done</button></div>
-          </div>
-        </div>
-      )}
+      </DragArea>
+      {inspected && <Dialog title={`Room ${inspected.id}`} sub={`Floor ${inspected.floor} · ${inspected.type}`} onClose={() => setDetailRoom(null)} footer={<BtnP label="Done" onClick={() => setDetailRoom(null)} />}>
+        <div className="space-y-2">{[["Room status", inspected.status], ["Housekeeping", inspected.hkSt], ["Guest", inspected.guest ?? "None"]].map(([l, v]) => <Row key={l} label={l} value={v} />)}</div>
+      </Dialog>}
     </div>
   );
 }
