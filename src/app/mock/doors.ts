@@ -7,7 +7,8 @@ import type { Role } from "../constants";
 import { ROOMS } from "./property";
 import { notify } from "./notify";
 import { now, reportFault } from "./maintenance";
-import { requestApproval, setApproverRoles } from "./approvals";
+import { requestApproval, setApproverRoles, setApproverPeople } from "./approvals";
+import { leadsOf } from "./staff";
 
 export type DoorEventKind = "Opened" | "Remote unlock" | "Forced" | "Held open" | "Tampered" | "Low battery" | "Offline" | "Back online";
 export const ALARMS: DoorEventKind[] = ["Forced", "Held open", "Tampered"];
@@ -15,7 +16,10 @@ export type DoorEvent = { id: string; at: Date; room: string; kind: DoorEventKin
 export type Lock = { room: string; battery: number; online: boolean; faultRaised?: boolean };
 export const LOW_BATTERY = 20; // per cent
 
-setApproverRoles("Access & Security", ["MGT", "SEC"]);
+// Who approves the desk's remote unlocks: managers, and Security's supervisors and managers at work (not every officer).
+// HR can name others on Roles & Permissions, which replaces the Security leads.
+setApproverRoles("Access & Security", ["MGT"]);
+setApproverPeople("Access & Security", () => leadsOf("Security"));
 export const canUnlockDirectly = (role: Role | string) => role === "MGT" || role === "SEC";
 export const canSeeDoorHistory = canUnlockDirectly;
 
