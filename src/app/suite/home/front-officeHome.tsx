@@ -44,6 +44,8 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
   const opens = useOpens();
   const [viewState, setViewState] = useState<ViewState>("Ready");
   const kpis = frontOfficeKpis();
+  const staying = STAYS.filter(s => !leavingToday().includes(s) && (balanceOf(s) > 0 || s.complaints > 0 || s.requests > 0 || s.vip))
+    .sort((x, y) => balanceOf(y) - balanceOf(x)); // biggest balance first; the row shows the first 12
 
   const quickActions: Array<{ label: string; icon: typeof Plus; screen: Screen }> = [
     { label: "New reservation", icon: Plus, screen: "new-reservation" },
@@ -140,9 +142,11 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
                 action={!a.room ? opens("room-assignment") && { label: "Give a room", run: () => nav("room-assignment", "Room Assignment") }
                   : opens("check-in") && { label: "Check in", run: () => nav("check-in", "Check-In", a.id) }} />; })}
           </CardRail>
-          <CardRail title="Staying" count={STAYS.length - leavingToday().length} empty="Nobody else is in house.">
-            {STAYS.filter(s => !leavingToday().includes(s)).map(s => <GuestCard key={s.id} name={s.guest} vip={s.vip} line={`Room ${s.room} · until ${s.checkout}`}
-              tag={balanceOf(s) > 0 ? { label: `Owes ₦${balanceOf(s).toLocaleString()}`, good: false } : { label: "Paid up", good: true }}
+          {/* Only guests who need something today, so the row stays short in a big hotel; everyone else is one tap away. */}
+          <CardRail title="Staying, needs something" count={staying.length} empty="Nobody staying needs anything right now."
+            more={opens("in-house-guests") ? { label: `View all ${STAYS.length - leavingToday().length} in house`, run: () => nav("in-house-guests", "In-House Guests") } : undefined}>
+            {staying.slice(0, 12).map(s => <GuestCard key={s.id} name={s.guest} vip={s.vip} line={`Room ${s.room} · until ${s.checkout}`}
+              tag={balanceOf(s) > 0 ? { label: `Owes ₦${balanceOf(s).toLocaleString()}`, good: false } : s.complaints ? { label: "Has a complaint", good: false } : s.requests ? { label: `${s.requests} request${s.requests === 1 ? "" : "s"} open`, good: false } : { label: "VIP", good: true }}
               action={opens("folio") && { label: "Folio", run: () => nav("folio", "Folio", s.id) }} />)}
           </CardRail>
           <CardRail title="Leaving" count={leavingToday().length} empty="Nobody else leaves today.">

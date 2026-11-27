@@ -251,10 +251,11 @@ export function SwipeRow({ left, right, children, className = "", style, onClick
 
 /** A row of cards that scrolls sideways: swipe on touch, scroll or Shift+wheel with a mouse, Tab through by keyboard.
  *  Native scroll with snap points, so it costs nothing on slow machines. */
-export function CardRail({ title, count, empty, children }: { title: string; count: number; empty: string; children: React.ReactNode }) {
+export function CardRail({ title, count, empty, children, more }: { title: string; count: number; empty: string; children: React.ReactNode; more?: { label: string; run: () => void } }) {
   return <div className="mb-4 last:mb-0">
     <div className="mb-2 flex items-center gap-2"><h3 className="text-xs font-semibold" style={{ color: MUTED }}>{title}</h3>
-      <span className="rounded-full px-2 text-xs font-semibold" style={{ backgroundColor: "#F1F5F9", color: TEXT }}>{count}</span></div>
+      <span className="rounded-full px-2 text-xs font-semibold" style={{ backgroundColor: "#F1F5F9", color: TEXT }}>{count}</span>
+      {more && <button onClick={more.run} className="ml-auto text-xs font-semibold" style={{ color: PRIMARY }}>{more.label}</button>}</div>
     {React.Children.count(children) ? <div role="list" aria-label={title} className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">{React.Children.map(children, c => <div role="listitem" className="contents">{c}</div>)}</div>
       : <p className="text-xs" style={{ color: MUTED }}>{empty}</p>}
   </div>;
