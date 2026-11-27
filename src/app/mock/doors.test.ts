@@ -33,7 +33,9 @@ describe("doors: alarms, batteries, offline locks, remote unlock", () => {
     expect(remoteUnlock("104", "Chioma Nwosu", "FD", "Guest locked out")).toMatch(/Ask Security/);
     expect(askRemoteUnlock("104", "Chioma Nwosu", "Guest locked out, ID checked")).toBeNull();
     expect(doorEvents("104").some(e => e.kind === "Remote unlock")).toBe(false);
-    const a = waitingFor("SEC").find(x => x.kind === "Remote unlock" && x.ref === "104")!;
+    const a = waitingFor("SEC", "Ibrahim Danladi").find(x => x.kind === "Remote unlock" && x.ref === "104")!;
+    expect(waitingFor("SEC", "Samuel Okafor").some(x => x.id === a.id)).toBe(false);    // a Security officer, not a lead
+    expect(decide(a.id, true, "Samuel Okafor", "SEC")).toMatch(/approve/i);
     expect(waitingFor("FD").some(x => x.id === a.id)).toBe(false);
     expect(decide(a.id, true, "Ibrahim Danladi", "SEC")).toBeNull();
     expect(doorEvents("104")[0]).toMatchObject({ kind: "Remote unlock", by: "Ibrahim Danladi", note: "Guest locked out, ID checked. Asked by Chioma Nwosu" });
