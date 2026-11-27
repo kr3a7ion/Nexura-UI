@@ -177,10 +177,13 @@ export const downloadCsv = (name: string, rows: (string | number)[][]) => {
 // drop gives the reason. Mouse, touch and keyboard (Space to pick up, arrows to move, Space to drop) all work.
 // Motion is light: 150–200 ms transform and opacity transitions only; reduced motion turns them off (styles/index.css).
 
+/** How far (px) the mouse moves with the button down before a drag starts. 10 is the usual desktop value; raise it
+ *  here, once, if staff start drags by accident. Touch uses a short press instead. */
+export const DRAG_START_PX = 10;
 /** Wraps an area with draggable cards and drop zones. `onDrop` returns why not (shown by the caller) or nothing. */
 export function DragArea({ onDrop, children }: { onDrop: (item: string, target: string) => void; children: React.ReactNode }) {
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),       // a click stays a click
+    useSensor(PointerSensor, { activationConstraint: { distance: DRAG_START_PX } }), // a click, or a hand that shakes a little, stays a click
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 6 } }), // a scroll stays a scroll
     useSensor(KeyboardSensor),
   );
@@ -243,5 +246,16 @@ export function SwipeRow({ left, right, children, className = "", style, onClick
           className="rounded-lg p-1.5 bg-white border" style={{ borderColor: BORDER, color: a!.color }}>{Icon ? <Icon size={14} /> : a!.label}</button>; })}
       </div>}
     </div>
+  </div>;
+}
+
+/** A row of cards that scrolls sideways: swipe on touch, scroll or Shift+wheel with a mouse, Tab through by keyboard.
+ *  Native scroll with snap points, so it costs nothing on slow machines. */
+export function CardRail({ title, count, empty, children }: { title: string; count: number; empty: string; children: React.ReactNode }) {
+  return <div className="mb-4 last:mb-0">
+    <div className="mb-2 flex items-center gap-2"><h3 className="text-xs font-semibold" style={{ color: MUTED }}>{title}</h3>
+      <span className="rounded-full px-2 text-xs font-semibold" style={{ backgroundColor: "#F1F5F9", color: TEXT }}>{count}</span></div>
+    {React.Children.count(children) ? <div role="list" aria-label={title} className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">{React.Children.map(children, c => <div role="listitem" className="contents">{c}</div>)}</div>
+      : <p className="text-xs" style={{ color: MUTED }}>{empty}</p>}
   </div>;
 }
