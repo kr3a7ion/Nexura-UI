@@ -34,7 +34,7 @@ function GuestCard({ name, vip, line, tag, action }: { name: string; vip?: boole
     <div>
       <div className="flex items-center gap-1.5"><span className="truncate text-sm font-semibold" style={{ color: TEXT }}>{name}</span>{vip && <Badge label="VIP" colors={{ bg: "#FFF7ED", text: "#B45309" }} />}</div>
       <p className="mt-0.5 truncate text-xs" style={{ color: MUTED }}>{line}</p>
-      <div className="mt-2"><Badge label={tag.label} colors={tag.good ? { bg: "#ECFDF5", text: SUCCESS } : { bg: "#FFFBEB", text: "#B45309" }} /></div>
+      <div className="mt-2" title={tag.label}><Badge label={tag.label.length > 30 ? `${tag.label.slice(0, 29)}…` : tag.label} colors={tag.good ? { bg: "#ECFDF5", text: SUCCESS } : { bg: "#FFFBEB", text: "#B45309" }} /></div>
     </div>
     {action && <button onClick={action.run} className="mt-3 min-h-[32px] rounded-lg border px-3 text-xs font-semibold" style={{ borderColor: BORDER, color: PRIMARY }}>{action.label}</button>}
   </div>;
@@ -44,7 +44,7 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
   const opens = useOpens();
   const [viewState, setViewState] = useState<ViewState>("Ready");
   const kpis = frontOfficeKpis();
-  const staying = STAYS.filter(s => !leavingToday().includes(s) && (balanceOf(s) > 0 || s.complaints > 0 || s.requests > 0 || s.vip))
+  const staying = STAYS.filter(s => !leavingToday().includes(s) && (balanceOf(s) > 0 || s.complaints > 0 || s.requests > 0 || !!s.notes?.length || s.vip))
     .sort((x, y) => balanceOf(y) - balanceOf(x)); // biggest balance first; the row shows the first 12
 
   const quickActions: Array<{ label: string; icon: typeof Plus; screen: Screen }> = [
@@ -146,7 +146,7 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
           <CardRail title="Staying, needs something" count={staying.length} empty="Nobody staying needs anything right now."
             more={opens("in-house-guests") ? { label: `View all ${STAYS.length - leavingToday().length} in house`, run: () => nav("in-house-guests", "In-House Guests") } : undefined}>
             {staying.slice(0, 12).map(s => <GuestCard key={s.id} name={s.guest} vip={s.vip} line={`Room ${s.room} · until ${s.checkout}`}
-              tag={balanceOf(s) > 0 ? { label: `Owes ₦${balanceOf(s).toLocaleString()}`, good: false } : s.complaints ? { label: "Has a complaint", good: false } : s.requests ? { label: `${s.requests} request${s.requests === 1 ? "" : "s"} open`, good: false } : { label: "VIP", good: true }}
+              tag={balanceOf(s) > 0 ? { label: `Owes ₦${balanceOf(s).toLocaleString()}`, good: false } : s.complaints ? { label: "Has a complaint", good: false } : s.notes?.length ? { label: `${s.notes.at(-1)!.kind}: ${s.notes.at(-1)!.text}`, good: false } : s.requests ? { label: `${s.requests} request${s.requests === 1 ? "" : "s"} open`, good: false } : { label: "VIP", good: true }}
               action={opens("folio") && { label: "Folio", run: () => nav("folio", "Folio", s.id) }} />)}
           </CardRail>
           <CardRail title="Leaving" count={leavingToday().length} empty="Nobody else leaves today.">

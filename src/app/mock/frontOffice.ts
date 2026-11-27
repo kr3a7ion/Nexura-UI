@@ -16,6 +16,7 @@ export type Stay = {
   method: "Cash" | "Card" | "Transfer";
   checkoutTime: string; lateCheckout: boolean;
   dnd: boolean; requests: number; complaints: number;
+  notes?: ArrivalNote[];              // notes and the request typed on the booking, kept through the stay
   lastActivity: string; creditLimit: boolean; unposted: boolean;
 };
 
@@ -218,7 +219,8 @@ export const arrivalToStay = (arrivalId: string, room: string, rate: number, pai
   const type = roomType(room), amount = rate * a.nights;
   const stay: Stay = { id: a.id, folio: `FO-${bkNum(a.id)}`, guest: a.guest, av: a.av, room, type, checkin: TODAY, checkout: short(addDays(BUSINESS_DATE, a.nights)),
     nights: a.nights, vip: a.vip, phone: "", visits: 1, paid, method: "Cash", checkoutTime: "11:00", lateCheckout: false, dnd: false,
-    requests: a.requests ? 1 : 0, complaints: 0, lastActivity: "Just now", creditLimit: false, unposted: false };
+    requests: a.requests ? 1 : 0, complaints: 0, lastActivity: "Just now", creditLimit: false, unposted: false,
+    notes: [...(a.requests ? [{ kind: "Request", text: a.requests, by: "Booking", at: TODAY }] : []), ...(a.notes ?? [])] };
   CHARGES[a.id] = [{ date: TODAY, cat: "Room", desc: `${type} Room ${room} × ${a.nights} night${a.nights === 1 ? "" : "s"}`, qty: a.nights, unit: rate, amount, by: "System", tax: Math.round(amount * 0.075), reversed: false }];
   STAYS.push(stay);
   return stay;

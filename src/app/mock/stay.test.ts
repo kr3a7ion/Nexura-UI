@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { STAYS, CHARGES, stayDates, gridBookings, postCharge, voidCharge, moveCharges, takePayment, paymentsFor, balanceOf } from "./frontOffice";
 import { requestApproval, decide } from "./approvals";
-import { extendStay, moveStay, roomsToMoveTo, addBooking, voidOrAsk } from "./hotel";
+import { extendStay, moveStay, roomsToMoveTo, addBooking, voidOrAsk, checkIn, roomsForBooking } from "./hotel";
+import { ARRIVALS, addArrivalNote } from "./frontOffice";
 import { waitingFor } from "./approvals";
 import { keysFor, activeKeysFor, validUntil } from "./access";
 import { hkStatus } from "./housekeeping";
@@ -83,5 +84,12 @@ describe("stay changes are saved, and keys follow", () => {
     expect(voidOrAsk(s.id, big, "Chioma Nwosu", "Guest complaint")).toBe("Asked");
     expect(CHARGES[s.id][big].reversed).toBe(false);
     expect(waitingFor("MGT").some(a => a.kind === "Void" && a.ref === `${s.id}/${big}`)).toBe(true);
+  });
+
+  test("the booking's request and notes stay with the guest after check-in", () => {
+    const a = ARRIVALS.find(x => x.requests)!;
+    addArrivalNote(a.id, { kind: "Note", text: "Arriving with a wheelchair", by: "Amina Yusuf", at: "Today" });
+    const stay = checkIn(a.id, a.room || roomsForBooking(a.id)[0], a.rate, 0, "Chioma Nwosu")!;
+    expect(stay.notes!.map(n => n.text)).toEqual([a.requests, "Arriving with a wheelchair"]);
   });
 });
