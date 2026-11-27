@@ -113,8 +113,8 @@ export const DEPARTMENTS: Department[] = [
     screens: [group("Daily Control", [["Night Audit", "night-audit"], ["Daily Summary", "daily-summary"], ["Folio Management", "finance-folio"], ["Invoice & Receipts", "invoices"], ["Credit Notes", "credit-notes"], ["Refund Processing", "refund-processing"], ["Folio Void & Reversal", "folio-void"]]), group("Accounting", [["Tax Configuration", "tax-config"], ["Accounts Payable", "accounts-payable"], ["Accounting Export", "accounting-export"], ["Revenue Reports", "revenue-reports"]])],
   },
   {
-    id: "inventory", name: "Inventory", icon: Package, accent: "#B45309",
-    roles: ["MGT", "FIN", "RT", "HK", "MX"], home: "dept-inventory", flow: [
+    id: "inventory", name: "Store House", icon: Package, accent: "#B45309",
+    roles: ["MGT", "STH", "FIN"], home: "dept-inventory", flow: [
       { label: "Low stock", screen: "stock-dashboard" },
       { label: "Purchase order", screen: "purchase-orders" },
       { label: "Receive", screen: "purchase-orders" },

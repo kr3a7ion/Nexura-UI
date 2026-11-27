@@ -3,6 +3,7 @@
 import { VehicleRequests } from "./VehicleRequestScreens";
 import { canOpen } from "./mock/staff";
 import { canSeeDoorHistory } from "./mock/doors";
+import { storesFor } from "./mock/stores";
 import { OpensContext } from "./suite/opens";
 import { DepartmentLevels, levelDepartments } from "./TeamScreens";
 import { Component, type ReactNode, useState, useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
@@ -176,7 +177,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "fault-reports") return <FaultReports add={add} nav={nav} role={role} staffName={staffName} dept={DEPT_OF[role] ?? "Management"} />;
   if (screen === "work-orders") return <WorkOrders add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-setup") return canSetUp(staffName, role) ? <MaintenanceSetup add={add} staffName={staffName} role={role} /> : <NoAccess what="Maintenance Setup" who="managers, Maintenance's head of department and its supervisors" />;
-  if (screen === "mx-stores" || screen === "inv-stores") return <Stores key={screen} add={add} staffName={staffName} role={role} stores={screen === "inv-stores" ? ["Store house", "Maintenance store"] : ["Maintenance store"]} />;
+  if (screen === "mx-stores" || screen === "inv-stores") return <Stores key={screen} add={add} staffName={staffName} role={role} stores={screen === "inv-stores" ? storesFor(staffName, role) : ["Maintenance store"]} />;
   if (screen === "mx-safety") return <Safety add={add} staffName={staffName} role={role} />;
   if (screen === "mx-permits") return <Permits add={add} nav={nav} staffName={staffName} />;
   if (screen === "mx-handover") return <MaintenanceHandover add={add} nav={nav} staffName={staffName} />;
@@ -401,7 +402,7 @@ type SuiteScreen = Screen | "suite-home" | Department["home"];
 type SuitePortal = "field-app" | "guest-access" | "org-portal" | "admin-console";
 
 // Which department a person reports from, shown on their fault reports.
-const DEPT_OF: Partial<Record<Role, string>> = { HK: "Housekeeping", FD: "Front Office", RSV: "Front Office", MX: "Maintenance", RT: "Restaurant", MGT: "Management", SEC: "Security" };
+const DEPT_OF: Partial<Record<Role, string>> = { HK: "Housekeeping", FD: "Front Office", RSV: "Front Office", MX: "Maintenance", RT: "Restaurant", MGT: "Management", SEC: "Security", STH: "Store house" };
 
 const LEVEL_STYLE: Record<Level, { edge: string; bg: string; ink: string }> = {
   Urgent: { edge: "#DC2626", bg: "#FEE2E2", ink: "#991B1B" },
@@ -530,7 +531,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
     if (fresh.some(n => n.level === "Urgent")) beep();
   });
   const openNotice = (n: Notice) => { markRead(n.id, staffName); setNotifOpen(false); if (n.link) nav(n.link.screen as SuiteScreen, n.link.label, n.link.param ?? ""); };
-  const roleLabels: Record<Role, string> = { MGT: "Manager", FLT: "Fleet Supervisor", FD: "Front Desk", HK: "Housekeeping", MX: "Maintenance", FIN: "Finance", RT: "Restaurant", RSV: "Reservations", IT: "IT Admin", DRV: "Driver", SEC: "Security" };
+  const roleLabels: Record<Role, string> = { MGT: "Manager", FLT: "Fleet Supervisor", FD: "Front Desk", HK: "Housekeeping", MX: "Maintenance", FIN: "Finance", RT: "Restaurant", RSV: "Reservations", IT: "IT Admin", DRV: "Driver", SEC: "Security", STH: "Store House" };
   const currentFlow = currentDepartment?.flow ?? [];
   const activeFlowIndex = currentFlow.findIndex(step => step.screen === screen);
 
@@ -589,7 +590,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
           ) : (
             <div className="rounded-xl border border-white/10 bg-white/[.05] p-3">
               <div className="flex items-center gap-2.5"><div className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: PRIMARY, border: "1px solid rgba(255,255,255,.16)" }}>{initials}</div><div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold text-white">{staffName}</div><div className="truncate text-xs text-white/35">{roleLabels[role]}</div></div><button onClick={onLogout} className="flex h-9 w-9 items-center justify-center rounded-md text-white/35 hover:bg-white/10" title="Sign out"><SignOut size={13} /></button></div>
-              <select value={role} onChange={event => switchRole(event.target.value as Role)} className="mt-3 w-full cursor-pointer rounded-lg border-0 bg-white/[.07] px-2 py-2 text-xs text-white/55 outline-none" title="Switch role (demo)">{(["MGT", "FLT", "FD", "HK", "MX", "FIN", "RT", "RSV", "IT", "DRV"] as Role[]).map(item => <option key={item} value={item}>{item} · {roleLabels[item]}</option>)}</select>
+              <select value={role} onChange={event => switchRole(event.target.value as Role)} className="mt-3 w-full cursor-pointer rounded-lg border-0 bg-white/[.07] px-2 py-2 text-xs text-white/55 outline-none" title="Switch role (demo)">{(Object.keys(roleLabels) as Role[]).map(item => <option key={item} value={item}>{item} · {roleLabels[item]}</option>)}</select>
             </div>
           )}
         </div>

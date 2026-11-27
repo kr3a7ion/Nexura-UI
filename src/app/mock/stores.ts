@@ -11,9 +11,19 @@
 import { BUSINESS_DATE } from "../constants";
 import { notify } from "./notify";
 import { now, workOrder, updateWorkOrder } from "./maintenance";
+import { leadsOf } from "./staff";
 
-export const STORES = ["Maintenance store", "Store house"] as const;
-export type StoreName = typeof STORES[number];
+// The store house is its own department over every department's store (decided 25 Nov): it runs the central store,
+// buys through procurement, and keeps every department store's catalogue. Each department store belongs to a department.
+export const STORE_DEPT = {
+  "Store house": "Store house",
+  "Front Office supplies": "Front Desk", "HR & admin supplies": "HR", "Maintenance store": "Maintenance", "Fleet parts": "Fleet",
+  "Kitchen": "Kitchen", "Restaurant": "Restaurant", "Bar": "Restaurant", "Minibar": "Housekeeping", "Housekeeping supplies": "Housekeeping",
+  "Linen": "Housekeeping", "Laundry": "Laundry", "Uniforms": "HR", "Security": "Security", "IT": "IT",
+  "Spa & gym": "Spa", "Pool & grounds": "Maintenance", "Banquet & events": "Banquet",
+} as const;
+export type StoreName = keyof typeof STORE_DEPT;
+export const STORES = Object.keys(STORE_DEPT) as StoreName[];
 // Every item has a category, and a shelf where one is set, so the screen reads like the store looks. A retired item
 // keeps its name for the history but is no longer offered.
 export type Item = { sku: string; name: string; cat: string; shelf?: string; unit: string; avgCost: number; min: Partial<Record<StoreName, number>>; retired?: boolean };
@@ -30,7 +40,18 @@ const ITEMS: Item[] = [
   { sku: "STK-0071", name: "13 A socket outlet", cat: "Electrical", shelf: "Rack D, shelf 1", unit: "pcs", avgCost: 2600, min: { "Maintenance store": 5 } },
   { sku: "STK-0072", name: "MCB 32 A single pole", cat: "Electrical", shelf: "Rack D, shelf 2", unit: "pcs", avgCost: 4800, min: { "Maintenance store": 3 } },
   { sku: "STK-0080", name: "LED bulb 12 W", cat: "Lighting", shelf: "Rack D, shelf 3", unit: "pcs", avgCost: 1500, min: { "Maintenance store": 10, "Store house": 20 } },
-  { sku: "CLN-001", name: "Floor cleaner 5 L", cat: "Cleaning", shelf: "Bay 2", unit: "jerrycan", avgCost: 2200, min: { "Store house": 20 } },
+  { sku: "CLN-001", name: "Floor cleaner 5 L", cat: "Cleaning", shelf: "Bay 2", unit: "jerrycan", avgCost: 2200, min: { "Store house": 20, "Housekeeping supplies": 6 } },
+  { sku: "AMN-001", name: "Bath soap 40 g", cat: "Guest amenities", shelf: "Bay 3", unit: "pcs", avgCost: 150, min: { "Store house": 300, "Housekeeping supplies": 120 } },
+  { sku: "AMN-002", name: "Shampoo 30 ml", cat: "Guest amenities", shelf: "Bay 3", unit: "pcs", avgCost: 180, min: { "Store house": 300, "Housekeeping supplies": 120 } },
+  { sku: "LIN-001", name: "Bed sheet, king", cat: "Bed linen", shelf: "Linen room, shelf 1", unit: "pcs", avgCost: 9500, min: { "Linen": 60 } },
+  { sku: "LIN-002", name: "Bath towel", cat: "Bath linen", shelf: "Linen room, shelf 3", unit: "pcs", avgCost: 4200, min: { "Linen": 80 } },
+  { sku: "MNB-001", name: "Bottled water 75 cl", cat: "Drinks", shelf: "Cold room", unit: "bottle", avgCost: 250, min: { "Store house": 240, "Minibar": 60 } },
+  { sku: "BAR-001", name: "Lager beer 60 cl", cat: "Beer", shelf: "Bar store, rack 1", unit: "bottle", avgCost: 900, min: { "Bar": 48 } },
+  { sku: "KIT-001", name: "Rice, 50 kg bag", cat: "Dry goods", shelf: "Dry store, rack 1", unit: "bag", avgCost: 78000, min: { "Kitchen": 2 } },
+  { sku: "KIT-002", name: "Vegetable oil 25 L", cat: "Dry goods", shelf: "Dry store, rack 2", unit: "jerrycan", avgCost: 52000, min: { "Kitchen": 1 } },
+  { sku: "LAU-001", name: "Laundry detergent 20 kg", cat: "Chemicals", shelf: "Chemical cage", unit: "bag", avgCost: 41000, min: { "Laundry": 2 } },
+  { sku: "FOS-001", name: "Registration card pad", cat: "Stationery", shelf: "Back office drawer", unit: "pad", avgCost: 2500, min: { "Front Office supplies": 4 } },
+  { sku: "FOS-002", name: "Blank key card", cat: "Key cards", shelf: "Back office safe", unit: "pcs", avgCost: 900, min: { "Store house": 100, "Front Office supplies": 40 } },
 ];
 const LEDGER: Movement[] = [];
 let seq = 0;
@@ -43,8 +64,11 @@ const write = (m: Omit<Movement, "id" | "balance">) => {
 // Opening stock a month ago, and what earlier jobs used.
 ([["STK-0052", 4], ["STK-0018", 10], ["STK-0044", 6], ["STK-0041", 8], ["STK-0063", 12], ["STK-0071", 15], ["STK-0072", 6], ["STK-0080", 30]] as const)
   .forEach(([sku, qty]) => write({ at: at(-30, 9), sku, store: "Maintenance store", kind: "Receive", qty, unitCost: ITEMS.find(i => i.sku === sku)!.avgCost, by: "Yusuf Garba", reason: "Opening stock" }));
-([["STK-0080", 60], ["CLN-001", 18]] as const)
-  .forEach(([sku, qty]) => write({ at: at(-30, 9), sku, store: "Store house", kind: "Receive", qty, unitCost: ITEMS.find(i => i.sku === sku)!.avgCost, by: "Store keeper", reason: "Opening stock" }));
+([["Store house", "STK-0080", 60], ["Store house", "CLN-001", 18], ["Store house", "AMN-001", 900], ["Store house", "AMN-002", 650], ["Store house", "MNB-001", 480],
+  ["Store house", "FOS-002", 400], ["Housekeeping supplies", "CLN-001", 5], ["Housekeeping supplies", "AMN-001", 140], ["Housekeeping supplies", "AMN-002", 90],
+  ["Linen", "LIN-001", 120], ["Linen", "LIN-002", 150], ["Minibar", "MNB-001", 48], ["Bar", "BAR-001", 96], ["Kitchen", "KIT-001", 3], ["Kitchen", "KIT-002", 2],
+  ["Laundry", "LAU-001", 3], ["Front Office supplies", "FOS-001", 6], ["Front Office supplies", "FOS-002", 35]] as const)
+  .forEach(([store, sku, qty]) => write({ at: at(-30, 9), sku, store, kind: "Receive", qty, unitCost: ITEMS.find(i => i.sku === sku)!.avgCost, by: "Halima Bako", reason: "Opening stock" }));
 write({ at: at(-2, 12), sku: "STK-0063", store: "Maintenance store", kind: "Issue", qty: -2, unitCost: 1800, job: "WO-0087", by: "Emeka Obi" });
 
 // Held: taken off the shelf for a job, not yet issued. Claim: what the technician said they used, waiting for the supervisor.
@@ -159,8 +183,24 @@ export const issueConfirmed = (job: string, confirmed: Line[], by: string, reaso
 /** Sent back to the technician: nothing is issued, what was taken stays with them, and they claim again. */
 export const clearClaim = (job: string) => { delete CLAIM[job]; };
 
-// ── Store setup: supervisors and up add, edit and remove the items the maintenance store keeps.
-export type ItemInput = { name: string; cat: string; shelf?: string; unit: string; min?: number };
+// ── Who keeps which store. The store house's staff (and hotel managers) keep every store: catalogue, receiving what
+// procurement buys, moving stock out to departments. A department's own store is also kept by its supervisors and
+// managers at work, and by anyone the store house names for it, so a department can enter what it gets itself.
+const KEEPERS: Partial<Record<StoreName, string[]>> = {};
+export const storeHouseStaff = (by: string, role: string) => role === "MGT" || role === "STH";
+export const keepersOf = (store: StoreName) => KEEPERS[store] ?? [];
+export const canKeep = (by: string, role: string, store: StoreName) =>
+  storeHouseStaff(by, role) || (store !== "Store house" && (leadsOf(STORE_DEPT[store]).includes(by) || keepersOf(store).includes(by)));
+export const setKeepers = (by: string, role: string, store: StoreName, names: string[]): string | null => {
+  if (!storeHouseStaff(by, role)) return "Only the store house names a store's keepers.";
+  if (store === "Store house") return "The store house's own staff keep it.";
+  KEEPERS[store] = [...new Set(names)]; return null;
+};
+/** The stores a person works with: every store for the store house; otherwise the ones they keep. */
+export const storesFor = (by: string, role: string) => STORES.filter(s => canKeep(by, role, s));
+
+// ── Store setup: the store house adds, edits and removes items for every store; Maintenance's supervisors do it for theirs.
+export type ItemInput = { name: string; cat: string; shelf?: string; unit: string; min?: number; store?: StoreName }; // min is the reorder level in `store` (the maintenance store unless named)
 const checkItem = (x: ItemInput, sku?: string): string | null => {
   if (!x.name.trim() || !x.cat.trim() || !x.unit.trim()) return "Enter the name, the category and the unit.";
   if (ITEMS.some(i => !i.retired && i.sku !== sku && i.name.trim().toLowerCase() === x.name.trim().toLowerCase())) return "An item with that name is already in the store.";
@@ -171,13 +211,13 @@ const tidy = (x: ItemInput) => ({ name: x.name.trim(), cat: x.cat.trim(), shelf:
 let skuSeq = 100;
 export const addItem = (x: ItemInput): Item | string => {
   const r = checkItem(x); if (r) return r;
-  const it: Item = { sku: `STK-${String(++skuSeq).padStart(4, "0")}`, ...tidy(x), avgCost: 0, min: x.min != null ? { "Maintenance store": x.min } : {} };
+  const it: Item = { sku: `STK-${String(++skuSeq).padStart(4, "0")}`, ...tidy(x), avgCost: 0, min: { [x.store ?? "Maintenance store"]: x.min } }; // the key marks the item as kept in that store
   ITEMS.push(it); return it;
 };
 export const editItem = (sku: string, x: ItemInput): string | null => {
   const it = item(sku); if (!it || it.retired) return "That item is no longer in the store.";
   const r = checkItem(x, sku); if (r) return r;
-  Object.assign(it, tidy(x), { min: { ...it.min, "Maintenance store": x.min } }); return null;
+  Object.assign(it, tidy(x), { min: { ...it.min, [x.store ?? "Maintenance store"]: x.min } }); return null;
 };
 /** Only an item with nothing on any shelf and nothing held can go. One with history is retired, so old movements keep their name. */
 export const removeItem = (sku: string): string | null => {

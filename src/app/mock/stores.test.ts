@@ -208,3 +208,27 @@ describe("who approves a Maintenance purchase", () => {
     expect(workOrder(id)!.parts.at(-1)).toMatchObject({ item: "Booster pump seal kit" });
   });
 });
+
+describe("the store house over every store", () => {
+  test("store house staff keep every store; a department keeps only its own, by its leads and named keepers", async () => {
+    const { canKeep, storesFor, setKeepers, STORES } = await import("./stores");
+    expect(storesFor("Halima Bako", "STH")).toEqual(STORES);
+    expect(canKeep("Fatima Ibrahim", "FD", "Front Office supplies")).toBe(true);      // Reservations Manager, Front Desk
+    expect(canKeep("Fatima Ibrahim", "FD", "Kitchen")).toBe(false);
+    expect(canKeep("Amina Yusuf", "RSV", "Front Office supplies")).toBe(false);       // Front Desk staff
+    expect(setKeepers("Fatima Ibrahim", "FD", "Front Office supplies", ["Amina Yusuf"])).toMatch(/Only the store house/);
+    expect(setKeepers("Halima Bako", "STH", "Front Office supplies", ["Amina Yusuf"])).toBeNull();
+    expect(canKeep("Amina Yusuf", "RSV", "Front Office supplies")).toBe(true);
+    expect(canKeep("Amina Yusuf", "RSV", "Store house")).toBe(false);
+  });
+  test("an item added for a store belongs to it, and the store house sends stock out to a department", async () => {
+    const { addItem, items, transfer, onHand, receive } = await import("./stores");
+    const it = addItem({ name: "Napkins, paper", cat: "Table", unit: "pack", min: 10, store: "Restaurant" });
+    expect(typeof it).not.toBe("string");
+    const sku = (it as { sku: string }).sku;
+    expect(items().find(i => i.sku === sku)!.min).toEqual({ Restaurant: 10 });
+    receive("Store house", sku, 50, 700, "Musa Idris", "Supplier delivery");
+    expect(transfer("Store house", "Restaurant", sku, 20, "Halima Bako")).toBeNull();
+    expect([onHand("Store house", sku), onHand("Restaurant", sku)]).toEqual([30, 20]);
+  });
+});
