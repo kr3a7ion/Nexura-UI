@@ -7,9 +7,26 @@
 import { BUSINESS_DATE } from "../constants";
 import { STAYS, stayDates } from "./frontOffice";
 import { notify } from "./notify";
+import { leadsOf } from "./staff";
 import { now } from "./maintenance";
 
-export const CARDS_PER_STAY = 4; // shortcut: fixed until Door Lock Settings holds it (A3)
+/** Door Lock Settings. Security's supervisors and managers, and hotel managers, change them; the check-out time
+ *  (when guest keys stop) belongs to the property's setup. */
+export type LockSettings = { cardsPerStay: number; passcodeLength: number; heldOpenMinutes: number; lowBattery: number };
+const SETTINGS: LockSettings = { cardsPerStay: 4, passcodeLength: 6, heldOpenMinutes: 2, lowBattery: 20 };
+export const lockSettings = () => SETTINGS;
+const RANGE: Record<keyof LockSettings, [number, number, string]> = {
+  cardsPerStay: [1, 8, "Cards per stay"], passcodeLength: [4, 8, "Passcode length"], heldOpenMinutes: [1, 10, "Held-open limit"], lowBattery: [5, 50, "Low battery level"],
+};
+export const canSetLockSettings = (by: string, role: string) => role === "MGT" || leadsOf("Security").includes(by);
+export const setLockSettings = (by: string, role: string, next: LockSettings): string | null => {
+  if (!canSetLockSettings(by, role)) return "Only Security's supervisors and managers, or a hotel manager, change these.";
+  for (const k of Object.keys(RANGE) as (keyof LockSettings)[]) {
+    const [lo, hi, label] = RANGE[k], v = next[k];
+    if (!Number.isInteger(v) || v < lo || v > hi) return `${label} must be a whole number from ${lo} to ${hi}.`;
+  }
+  Object.assign(SETTINGS, next); return null;
+};
 export type KeyKind = "Card" | "Passcode";
 export type GuestKey = { id: string; kind: KeyKind; stayId: string; room: string; guest: string; serial?: string; code?: string;
   issuedAt: Date; issuedBy: string; status: "Active" | "Cancelled" | "Lost"; endedAt?: Date; endedBy?: string; reason?: string };
@@ -33,17 +50,18 @@ export const keyState = (k: GuestKey, t = now()) => k.status === "Active" && (va
 
 const log = (k: GuestKey, event: KeyEvent, by: string, note?: string, at = now()) =>
   LOG.unshift({ id: `KL-${String(++logSeq).padStart(4, "0")}`, at, keyId: k.id, kind: k.kind, room: k.room, guest: k.guest, event, by, note });
-const newCode = (room: string) => {
+export const newPasscode = (room: string) => {
   // A passcode is unique among the active codes on that room's lock.
   const taken = new Set(KEYS.filter(k => k.room === room && k.kind === "Passcode" && k.status === "Active").map(k => k.code));
-  let code: string; do code = String(100000 + crypto.getRandomValues(new Uint32Array(1))[0] % 900000); while (taken.has(code)); // opens a guest's door: not Math.random
+  const lo = 10 ** (SETTINGS.passcodeLength - 1);
+  let code: string; do code = String(lo + crypto.getRandomValues(new Uint32Array(1))[0] % (9 * lo)); while (taken.has(code)); // opens a guest's door: not Math.random
   return code;
 };
 const issue = (stayId: string, kind: KeyKind, by: string, at = now(), note?: string) => {
   const s = STAYS.find(x => x.id === stayId)!;
   const cards = KEYS.filter(k => k.room === s.room && k.kind === "Card").length; // numbered by room across stays, so a serial names one card
   const k: GuestKey = { id: `KEY-${String(++keySeq).padStart(4, "0")}`, kind, stayId, room: s.room, guest: s.guest, issuedAt: at, issuedBy: by, status: "Active",
-    ...(kind === "Card" ? { serial: `C-${s.room}-${cards + 1}` } : { code: newCode(s.room) }) };
+    ...(kind === "Card" ? { serial: `C-${s.room}-${cards + 1}` } : { code: newPasscode(s.room) }) };
   KEYS.push(k); log(k, "Issued", by, note, at); return k;
 };
 const end = (k: GuestKey, status: "Cancelled" | "Lost", by: string, reason?: string) => {
@@ -62,16 +80,16 @@ export type KeyChoice = { cards: number; passcode: boolean; code?: string };
 /** At check-in: the cards encoded and the door passcode the desk chose, all until the departure check-out time.
  *  The code the guest was shown is kept, unless another active code on that lock already has it. */
 export const issueStayKeys = (stayId: string, by: string, c: KeyChoice = { cards: 1, passcode: true }) => {
-  const out = Array.from({ length: Math.min(Math.max(c.cards, 0), CARDS_PER_STAY) }, () => issue(stayId, "Card", by));
+  const out = Array.from({ length: Math.min(Math.max(c.cards, 0), SETTINGS.cardsPerStay) }, () => issue(stayId, "Card", by));
   if (c.passcode) { const k = issue(stayId, "Passcode", by); const room = k.room;
-    if (c.code && /^\d{6}$/.test(c.code) && !KEYS.some(x => x !== k && x.room === room && x.kind === "Passcode" && x.status === "Active" && x.code === c.code)) k.code = c.code;
+    if (c.code && c.code.length === SETTINGS.passcodeLength && /^\d+$/.test(c.code) && !KEYS.some(x => x !== k && x.room === room && x.kind === "Passcode" && x.status === "Active" && x.code === c.code)) k.code = c.code;
     out.push(k); }
   return out;
 };
 
 export const addCard = (stayId: string, by: string): GuestKey | string => {
   if (!STAYS.some(s => s.id === stayId)) return "That guest is not in house.";
-  if (activeKeysFor(stayId).filter(k => k.kind === "Card").length >= CARDS_PER_STAY) return `A stay can hold ${CARDS_PER_STAY} cards at once. Cancel one first.`;
+  if (activeKeysFor(stayId).filter(k => k.kind === "Card").length >= SETTINGS.cardsPerStay) return `A stay can hold ${SETTINGS.cardsPerStay} cards at once. Cancel one first.`;
   return issue(stayId, "Card", by);
 };
 /** A lost card stops working at once and a new one is encoded in its place. */

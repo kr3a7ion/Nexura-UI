@@ -7,8 +7,10 @@ import { PageHeader, BtnO, BtnP, Badge } from "./UIKit";
 import { Card, Field, Dialog, controlClass, controlStyle } from "./ui";
 import { fmtWhen } from "./mock/maintenance";
 import { STAYS } from "./mock/frontOffice";
-import { locks, doorEvents, openAlarms, recordDoorEvent, clearAlarm, remoteUnlock, askRemoteUnlock, canUnlockDirectly, LOW_BATTERY, ALARMS, type DoorEvent, type DoorEventKind } from "./mock/doors";
-import { keysFor, keyState, validUntil, keyLog, addCard, reportLost, replacePasscode, cancelKey, CARDS_PER_STAY, type GuestKey } from "./mock/access";
+import { staffKeys, staffKeyLog, signOutKey, signBackKey, canHandOut, type StaffKey } from "./mock/staffKeys";
+import { staffAll, atWork } from "./mock/staff";
+import { locks, doorEvents, openAlarms, recordDoorEvent, clearAlarm, remoteUnlock, askRemoteUnlock, canUnlockDirectly, lowBattery, ALARMS, type DoorEvent, type DoorEventKind } from "./mock/doors";
+import { keysFor, keyState, validUntil, keyLog, addCard, reportLost, replacePasscode, cancelKey, lockSettings, setLockSettings, canSetLockSettings, type GuestKey, type LockSettings } from "./mock/access";
 
 type Add = (t: Omit<Toast, "id">) => void;
 const td = "px-3 py-2.5 text-sm align-top";
@@ -24,7 +26,7 @@ export function GuestKeys({ add, staffName }: { add: Add; staffName: string }) {
   const done = (r: unknown, ok: (k: GuestKey) => string) => { if (typeof r === "string") add({ type: "error", title: r }); else { add({ type: "success", title: ok(r as GuestKey) }); redraw(n => n + 1); } };
   const stays = STAYS.filter(s => search(q, s.room, s.guest)).sort((a, b) => a.room.localeCompare(b.room));
   return <div>
-    <PageHeader title="Guest Keys" sub={`Each guest's cards and door passcode. Issued at check-in, valid until check-out, stopped at check-out. Up to ${CARDS_PER_STAY} cards per stay.`} />
+    <PageHeader title="Guest Keys" sub={`Each guest's cards and door passcode. Issued at check-in, valid until check-out, stopped at check-out. Up to ${lockSettings().cardsPerStay} cards per stay.`} />
     <Card title={`${stays.length} guests in house`} actions={<input aria-label="Search room or guest" placeholder="Search room or guest" value={q} onChange={e => setQ(e.target.value)} className={controlClass} style={{ ...controlStyle(), maxWidth: 240 }} />}>
       <div className="overflow-x-auto"><table className="w-full">
         <thead><tr style={{ borderBottom: `1px solid ${BORDER}` }}>{["Room", "Guest", "Valid until", "Keys", "Change"].map(h => <th key={h} className="px-3 py-2.5 text-left text-sm font-medium whitespace-nowrap" style={{ color: MUTED }}>{h}</th>)}</tr></thead>
@@ -126,7 +128,7 @@ export function LocksAndDoors({ add, role, staffName }: { add: Add; role: string
         <tbody>{shown.map(l => { const e = lastEvent(l.room); return <tr key={l.room} style={{ borderTop: `1px solid ${BORDER}` }}>
           <td className={td} style={{ color: TEXT }}>{l.room}</td>
           <td className={td}><Badge label={l.online ? "Online" : "Offline"} colors={l.online ? { bg: "#DCFCE7", text: "#166534" } : { bg: "#FEE2E2", text: "#991B1B" }} /></td>
-          <td className={td} style={{ color: l.battery < LOW_BATTERY ? ERROR : TEXT }}>{l.battery}%{l.battery < LOW_BATTERY ? ", change it" : ""}</td>
+          <td className={td} style={{ color: l.battery < lowBattery() ? ERROR : TEXT }}>{l.battery}%{l.battery < lowBattery() ? ", change it" : ""}</td>
           <td className={td} style={{ color: MUTED }}>{e ? `${e.kind}, ${fmtWhen(e.at)}` : "Nothing today"}</td>
           <td className={`${td} text-right`}>{l.online ? <BtnO label={direct ? `Open room ${l.room} now` : `Ask to open room ${l.room}`} onClick={() => { setWhy(""); setOpening(l.room); }} /> : <span className="text-sm" style={{ color: MUTED }}>Can't open while offline</span>}</td>
         </tr>; })}</tbody>
@@ -174,4 +176,61 @@ export function DoorHistory() {
       </table></div>}
     </Card>
   </div>;
+}
+
+/** Master, floor and area cards: who has each, until when, and signing them out and back. */
+export function StaffKeys({ add, role, staffName }: { add: Add; role: string; staffName: string }) {
+  const [, redraw] = useState(0);
+  const [giving, setGiving] = useState<string | null>(null);
+  const [holder, setHolder] = useState("");
+  const can = canHandOut(role);
+  const people = staffAll().filter(s => atWork(s.name)).map(s => s.name).sort();
+  const done = (r: string | null, ok: string) => { add(r ? { type: "error", title: r } : { type: "success", title: ok }); if (!r) setGiving(null); redraw(n => n + 1); };
+  const state = (k: StaffKey) => k.status === "In" ? "In the key cabinet" : k.status === "Stopped" ? `Stopped: ${k.holder} has left` : `${k.holder}, back by ${fmtWhen(k.dueBack!)}${k.flagged ? " (late)" : ""}`;
+  return <div>
+    <PageHeader title="Staff Keys" sub="Master, floor and area cards are signed out for one shift to someone at work, and signed back at the end of it. Late keys and keys held by someone who has left go to Security." />
+    <Card title={`${staffKeys().filter(k => k.status !== "In").length} of ${staffKeys().length} out`} flush>
+      <table className="w-full">
+        <thead><tr className="text-left text-sm" style={{ color: MUTED }}>{["Key", "Opens", "Where it is", ""].map((h, i) => <th key={i} className="px-3 py-2.5 font-medium">{h}</th>)}</tr></thead>
+        <tbody>{staffKeys().map(k => <tr key={k.id} style={{ borderTop: `1px solid ${BORDER}` }}>
+          <td className={td} style={{ color: TEXT }}>{k.id}<div className="text-xs" style={{ color: MUTED }}>{k.kind}</div></td>
+          <td className={td} style={{ color: TEXT }}>{k.opens}</td>
+          <td className={td} style={{ color: k.flagged || k.status === "Stopped" ? ERROR : TEXT }}>{state(k)}</td>
+          <td className={`${td} text-right`}>{can && (k.status === "In"
+            ? <BtnO label={`Sign out ${k.id}`} onClick={() => { setHolder(""); setGiving(k.id); }} />
+            : <BtnO label={`Sign ${k.id} back in`} onClick={() => done(signBackKey(k.id, staffName, role), `${k.id} is back in the cabinet`)} />)}</td>
+        </tr>)}</tbody>
+      </table>
+    </Card>
+    <div className="mt-5"><Card title="Staff key log" flush>
+      {staffKeyLog().length === 0 ? <p className="px-6 py-5 text-sm" style={{ color: MUTED }}>No staff key has moved today.</p> :
+      <table className="w-full"><tbody>{staffKeyLog().slice(0, 50).map(l => <tr key={l.id} style={{ borderTop: `1px solid ${BORDER}` }}>
+        <td className={`${td} whitespace-nowrap`} style={{ color: TEXT }}>{fmtWhen(l.at)}</td>
+        <td className={td} style={{ color: TEXT }}>{l.keyId}</td>
+        <td className={td} style={{ color: l.event === "Not back" || l.event === "Stopped" ? ERROR : TEXT }}>{l.event}{l.holder ? `: ${l.holder}` : ""}{l.note ? `. ${l.note}` : ""}</td>
+        <td className={td} style={{ color: MUTED }}>{l.by}</td>
+      </tr>)}</tbody></table>}
+    </Card></div>
+    {giving && <Dialog title={`Sign out ${giving}`} sub="To someone at work today. It is due back at the end of their shift." onClose={() => setGiving(null)}
+      footer={<><BtnO label="Back" onClick={() => setGiving(null)} /><BtnP label="Sign it out" onClick={() => done(signOutKey(giving, holder, staffName, role), `${giving} signed out to ${holder}`)} /></>}>
+      <Field label="Who takes it" htmlFor="sk-holder"><select id="sk-holder" value={holder} onChange={e => setHolder(e.target.value)} className={controlClass} style={controlStyle()}>
+        <option value="">Choose a person</option>{people.map(n => <option key={n}>{n}</option>)}</select></Field>
+    </Dialog>}
+  </div>;
+}
+
+/** Door Lock Settings' rules: cards per stay, passcode length, held-open limit, low battery level. */
+export function LockRulesCard({ add, role, staffName }: { add: Add; role: string; staffName: string }) {
+  const [f, setF] = useState(() => ({ ...lockSettings() }));
+  const can = canSetLockSettings(staffName, role);
+  const field = (k: keyof LockSettings, label: string, unit: string) => <Field label={`${label} (${unit})`} htmlFor={`ls-${k}`}>
+    <input id={`ls-${k}`} type="number" value={f[k]} disabled={!can} onChange={e => setF(x => ({ ...x, [k]: Number(e.target.value) }))} className={`${controlClass} disabled:opacity-60`} style={controlStyle()} /></Field>;
+  return <Card title="Key and lock rules" sub={can ? "Used for every new guest key and every lock reading. Guest keys stop at the check-out time in the property's setup."
+    : "Security's supervisors and managers, or a hotel manager, change these."}>
+    <div className="grid gap-4 sm:grid-cols-2">
+      {field("cardsPerStay", "Cards per stay", "at most")}{field("passcodeLength", "Door passcode length", "digits")}
+      {field("heldOpenMinutes", "Held-open alarm after", "minutes")}{field("lowBattery", "Low battery below", "%")}
+    </div>
+    {can && <div className="mt-4 flex justify-end"><BtnP label="Save the rules" onClick={() => { const r = setLockSettings(staffName, role, f); add(r ? { type: "error", title: r } : { type: "success", title: "Key and lock rules saved" }); }} /></div>}
+  </Card>;
 }

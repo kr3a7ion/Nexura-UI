@@ -52,7 +52,8 @@ import { PowerStrip } from "./PlantScreens";
 import { canSetUp } from "./mock/roster";
 import { Safety, IncidentDialog } from "./SafetyScreens";
 import { Stores } from "./StoreScreens";
-import { GuestKeys, KeyLog, DoorPasscodes, LocksAndDoors, DoorHistory } from "./AccessScreens";
+import { GuestKeys, KeyLog, DoorPasscodes, LocksAndDoors, DoorHistory, StaffKeys } from "./AccessScreens";
+import { checkStaffKeys } from "./mock/staffKeys";
 import { reportIncident } from "./mock/safety";
 import { subscribe, getVersion, setCurrentUser, noticesFor, unreadCount, isRead, markRead, markAllRead, type Notice, type Level } from "./mock/notify";
 import {
@@ -156,6 +157,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "room-assignment") return <RoomAssignmentBoard add={add} nav={nav} />;
   if (screen === "walk-in") return <WalkInReg add={add} nav={nav} staffName={staffName} />;
   if (screen === "key-card") return <GuestKeys add={add} staffName={staffName} />;
+  if (screen === "staff-keys") return <StaffKeys add={add} role={role} staffName={staffName} />;
   if (screen === "room-access") return <LocksAndDoors add={add} role={role} staffName={staffName} />;
   if (screen === "door-history") return canSeeDoorHistory(role) ? <DoorHistory /> : <NoAccess what="Door History" who="Security and managers" />;
   if (screen === "key-card-log") return <KeyLog />;
@@ -245,7 +247,7 @@ function Router({ screen, add, role, nav, staffName, navParam }: { screen: Scree
   if (screen === "error-log") return <ErrorLog add={add} />;
   // Settings
   if (screen === "hotel-config") return <HotelConfig add={add} />;
-  if (screen === "door-lock-settings") return <DoorLockSettings add={add} />;
+  if (screen === "door-lock-settings") return <DoorLockSettings add={add} role={role} staffName={staffName} />;
   if (screen === "my-preferences") return <MyPreferences add={add} />;
   if (screen === "settings-sync") return <SyncSettings add={add} />;
   if (screen === "print-settings") return <PrintSettings add={add} />;
@@ -511,7 +513,7 @@ function HMSApp({ initialRole, staffName, onLogout, onOpenPortal }: {
   useEffect(() => setCurrentUser(staffName, role), [staffName, role]);
   // Late jobs chase themselves: check every minute on the demo clock.
   // Planned jobs coming due are raised on the same check, as FacilityFlow's host sweep does.
-  useEffect(() => { const tick = () => { generateDue(); escalate(); }; tick(); const t = setInterval(tick, 60000); return () => clearInterval(t); }, []);
+  useEffect(() => { const tick = () => { generateDue(); escalate(); checkStaffKeys(); }; tick(); const t = setInterval(tick, 60000); return () => clearInterval(t); }, []);
   const notices = noticesFor(staffName, role);
   const unread = unreadCount(staffName, role);
   const urgentOpen = notices.filter(n => n.level === "Urgent" && !isRead(n, staffName));

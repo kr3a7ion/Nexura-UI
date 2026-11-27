@@ -45,7 +45,7 @@ import { FOUND_ITEMS, logFoundItem, hkRooms } from "./mock/housekeeping";
 import { UI, controlClass, controlStyle, SectionTitle, Stepper, Row, Dialog, Field } from "./ui";
 import { roomPrice } from "./mock/property";
 import { notify } from "./mock/notify";
-import { activeKeysFor } from "./mock/access";
+import { activeKeysFor, newPasscode } from "./mock/access";
 import { checkIn, checkOut, assignRoom, roomsForBooking, markNoShow, rushRoom, roomFree } from "./mock/hotel";
 import { isOutOfOrder } from "./mock/maintenance";
 
@@ -466,7 +466,7 @@ export function CheckInWizard({ add, initialReservationId = "", staffName }: { a
                     <div className="rounded-xl p-4" style={{ border: `1.5px solid ${CK_DSH}`, backgroundColor: "white" }}>
                       {!pinGen ? (
                         <button onClick={() => {
-                          const pin = String(Math.floor(100000 + Math.random() * 900000));
+                          const pin = newPasscode(selRoom ?? selData?.room ?? ""); // secure, the length Door Lock Settings asks for, unique on that lock
                           setPinCode(pin); setPinGen(true); setPinRevealed(true);
                           add({ type: "success", title: "Passcode generated. Show it to the guest now." });
                         }} className="w-full py-3 rounded-xl text-sm font-bold text-white hover:opacity-90" style={{ backgroundColor: PRIMARY }}>Generate passcode</button>
