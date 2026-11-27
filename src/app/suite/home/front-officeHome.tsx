@@ -9,10 +9,10 @@ import { ApprovalsCard } from "../ApprovalsCard";
 import {
   BG, BORDER, ERROR, MUTED, PRIMARY, SUBTLE, SUCCESS, TEXT, WARNING, display, mono, propertyLabel } from "../../constants";
 import { Badge, BtnO, BtnP, EmptyState, PageHeader, Sel, StatCard } from "../../UIKit";
-import {
-  FRONT_OFFICE_EXCEPTIONS, FRONT_OFFICE_KPIS, FRONT_OFFICE_QUEUE,
-  type FrontOfficeQueueItem,
-} from "../../mock/front-officeHome";
+import { frontOfficeKpis, frontOfficeExceptions, leavingToday } from "../../mock/front-officeHome";
+import { ARRIVALS, STAYS, balanceOf } from "../../mock/frontOffice";
+import { hkStatus } from "../../mock/housekeeping";
+import { CardRail } from "../../ui";
 import { DEPARTMENTS } from "../departments";
 
 const department = DEPARTMENTS.find(item => item.id === "front-office")!;
@@ -22,28 +22,28 @@ const flow = department.flow;
 type Nav = (screen: Screen, label: string, param?: string) => void;
 type ViewState = "Ready" | "Loading" | "Empty" | "Error";
 
-const depositColors: Record<FrontOfficeQueueItem["depositStatus"], { bg: string; text: string }> = {
-  Paid: { bg: "#ECFDF5", text: SUCCESS },
-  Partial: { bg: "#FFFBEB", text: "#B45309" },
-  Unpaid: { bg: "#FEF2F2", text: ERROR },
-};
-
-const roomReadyColors: Record<FrontOfficeQueueItem["roomReady"], { bg: string; text: string }> = {
-  Ready: { bg: "#ECFDF5", text: SUCCESS },
-  Cleaning: { bg: "#EFF6FF", text: "#1D4ED8" },
-  "Not assigned": { bg: "#FEF2F2", text: ERROR },
-  "Inspection due": { bg: "#F5F3FF", text: "#6D28D9" },
-};
-
 const severityColors = {
   Critical: { bg: "#FEF2F2", text: ERROR },
   Warning: { bg: "#FFFBEB", text: "#B45309" },
   Info: { bg: "#EFF6FF", text: "#1D4ED8" },
 };
 
+/** One guest on a card: who, where, one fact that matters, and the next step. */
+function GuestCard({ name, vip, line, tag, action }: { name: string; vip?: boolean; line: string; tag: { label: string; good: boolean }; action: false | { label: string; run: () => void } }) {
+  return <div className="flex w-56 flex-none snap-start flex-col justify-between rounded-xl border p-3.5 transition-shadow hover:shadow-md" style={{ borderColor: BORDER }}>
+    <div>
+      <div className="flex items-center gap-1.5"><span className="truncate text-sm font-semibold" style={{ color: TEXT }}>{name}</span>{vip && <Badge label="VIP" colors={{ bg: "#FFF7ED", text: "#B45309" }} />}</div>
+      <p className="mt-0.5 truncate text-xs" style={{ color: MUTED }}>{line}</p>
+      <div className="mt-2"><Badge label={tag.label} colors={tag.good ? { bg: "#ECFDF5", text: SUCCESS } : { bg: "#FFFBEB", text: "#B45309" }} /></div>
+    </div>
+    {action && <button onClick={action.run} className="mt-3 min-h-[32px] rounded-lg border px-3 text-xs font-semibold" style={{ borderColor: BORDER, color: PRIMARY }}>{action.label}</button>}
+  </div>;
+}
+
 export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; role: Role; staffName: string }) {
   const opens = useOpens();
   const [viewState, setViewState] = useState<ViewState>("Ready");
+  const kpis = frontOfficeKpis();
 
   const quickActions: Array<{ label: string; icon: typeof Plus; screen: Screen }> = [
     { label: "New reservation", icon: Plus, screen: "new-reservation" },
@@ -106,10 +106,10 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
       </section>
 
       <section className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard {...FRONT_OFFICE_KPIS[0]} icon={SignIn} accent={accent} />
-        <StatCard {...FRONT_OFFICE_KPIS[1]} icon={SignOut} accent={accent} />
-        <StatCard {...FRONT_OFFICE_KPIS[2]} icon={Buildings} accent={accent} />
-        <StatCard {...FRONT_OFFICE_KPIS[3]} icon={Bed} accent={accent} />
+        <StatCard {...kpis[0]} icon={SignIn} accent={accent} />
+        <StatCard {...kpis[1]} icon={SignOut} accent={accent} />
+        <StatCard {...kpis[2]} icon={Buildings} accent={accent} />
+        <StatCard {...kpis[3]} icon={Bed} accent={accent} />
       </section>
 
       <section className="mb-5 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
@@ -128,34 +128,34 @@ export default function FrontOfficeHome({ nav, role, staffName }: { nav: Nav; ro
       </section>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.75fr)]">
-        <section className="overflow-hidden rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
-          <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: BORDER }}>
-            <div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Today’s arrival queue</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>12 expected · 7 rooms assigned · updated 10:42</p></div>
+        <section className="min-w-0 rounded-2xl border bg-white p-5" style={{ borderColor: BORDER }}>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div><h2 className="text-sm font-bold" style={{ color: TEXT }}>Today</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Every guest arriving, staying and leaving, with the next step on each card. Swipe or scroll sideways.</p></div>
             {opens("arrivals") && <BtnO label="View all arrivals" icon={CalendarCheck} onClick={() => nav("arrivals", "Arrivals List")} />}
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left">
-              <thead><tr style={{ backgroundColor: BG }}>{["Guest", "Room type", "ETA", "Deposit", "Room ready", "Actions"].map(label => <th key={label} className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{ color: MUTED }}>{label}</th>)}</tr></thead>
-              <tbody>
-                {FRONT_OFFICE_QUEUE.map(item => (
-                  <tr key={item.id} className="border-t hover:bg-slate-50" style={{ borderColor: BORDER }}>
-                    <td className="px-4 py-3">{opens("reservation-detail") && <button onClick={() => nav("reservation-detail", "Reservation Detail", item.id)} className="text-left"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.guest}</div><div className="mt-0.5 text-xs" style={{ color: SUBTLE, fontFamily: mono }}>{item.id} · {item.city}</div></button>}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: MUTED }}>{item.roomType}</td>
-                    <td className="px-4 py-3 text-xs font-semibold" style={{ color: TEXT, fontFamily: mono }}>{item.eta}</td>
-                    <td className="px-4 py-3"><Badge label={item.depositStatus} colors={depositColors[item.depositStatus]} /></td>
-                    <td className="px-4 py-3"><Badge label={item.roomReady} colors={roomReadyColors[item.roomReady]} /></td>
-                    <td className="px-4 py-3"><div className="flex justify-end gap-2">{opens("room-assignment") && <button onClick={() => nav("room-assignment", "Room Assignment")} className="inline-flex min-h-9 items-center rounded-lg border px-3 text-xs font-semibold" style={{ borderColor: BORDER, color: TEXT }}>Assign room</button>}{opens("check-in") && <button onClick={() => nav("check-in", "Check-In", item.id)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold" style={{ backgroundColor: `${accent}12`, color: accent }}>Check in<ArrowRight size={12} /></button>}</div></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <CardRail title="Arriving" count={ARRIVALS.length} empty="No more arrivals today.">
+            {ARRIVALS.map(a => { const ready = !!a.room && ["Clean", "Inspected"].includes(hkStatus(a.room) ?? "");
+              return <GuestCard key={a.id} name={a.guest} vip={a.vip} line={`${a.type} · ETA ${a.eta} · ${a.nights}n`}
+                tag={a.room ? { label: ready ? `Room ${a.room} ready` : `Room ${a.room} not ready`, good: ready } : { label: "No room yet", good: false }}
+                action={!a.room ? opens("room-assignment") && { label: "Give a room", run: () => nav("room-assignment", "Room Assignment") }
+                  : opens("check-in") && { label: "Check in", run: () => nav("check-in", "Check-In", a.id) }} />; })}
+          </CardRail>
+          <CardRail title="Staying" count={STAYS.length - leavingToday().length} empty="Nobody else is in house.">
+            {STAYS.filter(s => !leavingToday().includes(s)).map(s => <GuestCard key={s.id} name={s.guest} vip={s.vip} line={`Room ${s.room} · until ${s.checkout}`}
+              tag={balanceOf(s) > 0 ? { label: `Owes ₦${balanceOf(s).toLocaleString()}`, good: false } : { label: "Paid up", good: true }}
+              action={opens("folio") && { label: "Folio", run: () => nav("folio", "Folio", s.id) }} />)}
+          </CardRail>
+          <CardRail title="Leaving" count={leavingToday().length} empty="Nobody else leaves today.">
+            {leavingToday().map(s => <GuestCard key={s.id} name={s.guest} vip={s.vip} line={`Room ${s.room} · by ${s.checkoutTime}`}
+              tag={balanceOf(s) > 0 ? { label: `Owes ₦${balanceOf(s).toLocaleString()}`, good: false } : { label: "Paid up", good: true }}
+              action={opens("check-out") && { label: "Check out", run: () => nav("check-out", "Check-Out", s.id) }} />)}
+          </CardRail>
         </section>
 
         <section className="rounded-2xl border bg-white" style={{ borderColor: BORDER }}>
           <div className="border-b px-5 py-4" style={{ borderColor: BORDER }}><h2 className="text-sm font-bold" style={{ color: TEXT }}>Needs attention</h2><p className="mt-0.5 text-xs" style={{ color: MUTED }}>Exceptions affecting today’s service.</p></div>
           <div>
-            {FRONT_OFFICE_EXCEPTIONS.map((item, index) => (
+            {frontOfficeExceptions().map((item, index) => (
               <div key={item.id} className="p-4" style={{ borderTop: index ? `1px solid ${BORDER}` : undefined }}>
                 <div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="text-xs font-semibold" style={{ color: TEXT }}>{item.title}</div><p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>{item.detail}</p></div><Badge label={item.severity} colors={severityColors[item.severity]} /></div>
                 {opens(item.screen) && <button onClick={() => nav(item.screen, item.screenLabel, item.navParam)} className="mt-2 flex min-h-[32px] items-center gap-1 text-xs font-semibold" style={{ color: accent }}>Open {item.screenLabel}<ArrowRight size={11} /></button>}
