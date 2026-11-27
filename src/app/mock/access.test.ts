@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { BUSINESS_DATE } from "../constants";
 import { addBooking, checkIn, checkOut, walkIn } from "./hotel";
 import { STAYS, setLateCheckout } from "./frontOffice";
-import { keysFor, activeKeysFor, keyState, validUntil, addCard, reportLost, replacePasscode, cancelKey, keyLog, stopAllKeys, CARDS_PER_STAY } from "./access";
+import { keysFor, activeKeysFor, keyState, validUntil, addCard, reportLost, replacePasscode, cancelKey, keyLog, stopAllKeys, lockSettings } from "./access";
 
 const arriveAndCheckIn = (room: string, nights = 2) => {
   const id = addBooking({ guest: `Key Guest ${room}`, room, type: "Deluxe", checkin: BUSINESS_DATE, nights, rate: 55000, source: "Phone" })!;
@@ -50,7 +50,7 @@ describe("guest keys follow the stay (A1)", () => {
     expect(card.status).toBe("Lost");
     expect(fresh).toMatchObject({ kind: "Card", serial: "C-116-2", status: "Active" });
     expect(reportLost(card.id, "Chioma Nwosu")).toMatch(/Only an active card/);
-    for (let i = activeKeysFor(stay.id).filter(k => k.kind === "Card").length; i < CARDS_PER_STAY; i++) expect(addCard(stay.id, "Chioma Nwosu")).toMatchObject({ kind: "Card" });
+    for (let i = activeKeysFor(stay.id).filter(k => k.kind === "Card").length; i < lockSettings().cardsPerStay; i++) expect(addCard(stay.id, "Chioma Nwosu")).toMatchObject({ kind: "Card" });
     expect(addCard(stay.id, "Chioma Nwosu")).toMatch(/hold 4 cards/);
   });
 

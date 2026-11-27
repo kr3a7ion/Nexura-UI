@@ -63,6 +63,8 @@ export const ROUTES = {
   "trip.decided":          { level: "Normal", roles: [] },
   "door.alarm":            { level: "Urgent", roles: ["SEC", "MGT"] },
   "lock.offline":          { level: "High",   roles: ["IT", "SEC"] },
+  "staffkey.overdue":      { level: "High",   roles: ["SEC"] },
+  "staffkey.stopped":      { level: "High",   roles: ["SEC", "MGT"] },
   "key.lost":              { level: "Low",    roles: ["FD"] },
   "key.revoked":           { level: "High",   roles: ["MGT", "FD"] },
   "room.backFromMaintenance": { level: "Normal", roles: ["HK"] },

@@ -9,12 +9,14 @@ import { notify } from "./notify";
 import { now, reportFault } from "./maintenance";
 import { requestApproval, setApproverRoles, setApproverPeople } from "./approvals";
 import { leadsOf } from "./staff";
+import { lockSettings } from "./access";
 
 export type DoorEventKind = "Opened" | "Remote unlock" | "Forced" | "Held open" | "Tampered" | "Low battery" | "Offline" | "Back online";
 export const ALARMS: DoorEventKind[] = ["Forced", "Held open", "Tampered"];
 export type DoorEvent = { id: string; at: Date; room: string; kind: DoorEventKind; by?: string; note?: string; clearedBy?: string; clearedAt?: Date; clearNote?: string };
 export type Lock = { room: string; battery: number; online: boolean; faultRaised?: boolean };
-export const LOW_BATTERY = 20; // per cent
+/** Below this (per cent) a lock battery is low: Door Lock Settings. */
+export const lowBattery = () => lockSettings().lowBattery;
 
 // Who approves the desk's remote unlocks: managers, and Security's supervisors and managers at work (not every officer).
 // HR can name others on Roles & Permissions, which replaces the Security leads.

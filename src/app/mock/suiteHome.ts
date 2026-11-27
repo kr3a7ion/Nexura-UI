@@ -7,7 +7,7 @@ import { tanks } from "./setup";
 import { levelOf } from "./power";
 import { maintenancePower } from "./maintenanceHome";
 import { workOrders, isOpen, isUrgent, isOverdue, fmtWhen } from "./maintenance";
-import { locks, openAlarms, LOW_BATTERY } from "./doors";
+import { locks, openAlarms, lowBattery } from "./doors";
 import { keys, keyState } from "./access";
 
 export type HomeStat = { label: string; value: string; sub: string; screen: Screen; screenLabel: string };
@@ -117,7 +117,7 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
     stats: [
       stat("Door alarms open", String(openAlarms().length), openAlarms().length ? "Go and clear them" : "All clear", "room-access", "Locks & Doors"),
       stat("Locks offline", String(locks().filter(l => !l.online).length), `${locks().length} locks`, "room-access", "Locks & Doors"),
-      stat("Low batteries", String(locks().filter(l => l.battery < LOW_BATTERY).length), "Maintenance changes them", "room-access", "Locks & Doors"),
+      stat("Low batteries", String(locks().filter(l => l.battery < lowBattery()).length), "Maintenance changes them", "room-access", "Locks & Doors"),
       stat("Active guest keys", String(keys().filter(k => keyState(k) === "Active").length), "Cards and passcodes", "key-card", "Guest Keys"),
     ],
     alerts: openAlarms().map(e => alert(`Room ${e.room}: door ${e.kind.toLowerCase()}`, "Access & Security", fmtWhen(e.at), "error", "room-access", "Locks & Doors")),

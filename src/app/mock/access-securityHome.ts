@@ -1,7 +1,7 @@
 import { keys, keyState, validUntil, keyLog, activeKeysFor } from "./access";
 import { STAYS, leavesToday } from "./frontOffice";
 import { now, fmtWhen } from "./maintenance";
-import { locks, openAlarms, LOW_BATTERY } from "./doors";
+import { locks, openAlarms, lowBattery } from "./doors";
 
 export type AccessQueueItem = {
   id: string;
@@ -31,7 +31,7 @@ export const accessKpis = () => {
   return [
     { label: "Active guest keys", value: String(active.length), sub: `${cards} cards, ${active.length - cards} passcodes`, delta: `${issuedToday} issued today`, deltaPositive: true },
     { label: "Keys stopping today", value: String(stopping.length), sub: `${stopping.length} departing stay${stopping.length === 1 ? "" : "s"}`, delta: "At each check-out time", deltaPositive: true },
-    { label: "Locks with low battery", value: String(locks().filter(l => l.battery < LOW_BATTERY).length), sub: locks().filter(l => l.battery < LOW_BATTERY).map(l => `Room ${l.room}`).join(", ") || "None", delta: `Below ${LOW_BATTERY}%`, deltaPositive: false },
+    { label: "Locks with low battery", value: String(locks().filter(l => l.battery < lowBattery()).length), sub: locks().filter(l => l.battery < lowBattery()).map(l => `Room ${l.room}`).join(", ") || "None", delta: `Below ${lowBattery()}%`, deltaPositive: false },
     { label: "Door alarms open", value: String(openAlarms().length), sub: `${locks().filter(l => !l.online).length} lock${locks().filter(l => !l.online).length === 1 ? "" : "s"} offline`, delta: openAlarms().length ? "Go and clear them" : "All clear", deltaPositive: !openAlarms().length },
   ];
 };
@@ -51,7 +51,7 @@ export const accessQueue = (): AccessQueueItem[] => {
 export const accessExceptions = (): AccessException[] => [
   ...openAlarms().map(e => ({ id: e.id, title: `Room ${e.room}: door ${e.kind.toLowerCase()}`, detail: `At ${fmtWhen(e.at)}. Go to the room and clear the alarm.`, severity: "Critical" as const, screen: "room-access" as const, screenLabel: "Locks & Doors" })),
   ...locks().filter(l => !l.online).map(l => ({ id: `OFF-${l.room}`, title: `Room ${l.room}'s lock is offline`, detail: "Keys still work on the lock; remote unlock waits until it is back.", severity: "Warning" as const, screen: "room-access" as const, screenLabel: "Locks & Doors" })),
-  ...locks().filter(l => l.battery < LOW_BATTERY).map(l => ({ id: `BAT-${l.room}`, title: `Room ${l.room}'s lock battery is at ${l.battery}%`, detail: "Maintenance has a fault report to change it.", severity: "Info" as const, screen: "room-access" as const, screenLabel: "Locks & Doors" })),
+  ...locks().filter(l => l.battery < lowBattery()).map(l => ({ id: `BAT-${l.room}`, title: `Room ${l.room}'s lock battery is at ${l.battery}%`, detail: "Maintenance has a fault report to change it.", severity: "Info" as const, screen: "room-access" as const, screenLabel: "Locks & Doors" })),
 ];
 
 export const ACCESS_GATEWAY = {

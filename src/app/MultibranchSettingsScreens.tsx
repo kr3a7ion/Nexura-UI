@@ -1,6 +1,7 @@
 // Batch 18 — Multi-branch & Settings (8 screens)
 // BranchOverview, BranchComparison, CentralSyncStatus, HotelConfig,
 // SyncSettings, DoorLockSettings, MyPreferences, PrintSettings
+import { LockRulesCard } from "./AccessScreens";
 import { useState } from "react";
 import {
   Building2, RefreshCw, Download, Globe, Wifi, WifiOff,
@@ -650,10 +651,9 @@ const CAP_COLS: { key: keyof Provider; label: string }[] = [
   { key: "gateway",         label: "Gateway Required"  },
 ];
 
-export function DoorLockSettings({ add }: { add: (t: Omit<Toast, "id">) => void }) {
+export function DoorLockSettings({ add, role, staffName }: { add: (t: Omit<Toast, "id">) => void; role: string; staffName: string }) {
   const [providerId, setProviderId] = useState("dormakaba");
   const [testing, setTesting] = useState(false);
-  const [autoRevoke, setAutoRevoke]     = useState(true);
   const [queueOffline, setQueueOffline] = useState(true);
   const [notifyMgmt, setNotifyMgmt]     = useState(true);
 
@@ -674,6 +674,7 @@ export function DoorLockSettings({ add }: { add: (t: Omit<Toast, "id">) => void 
           </div>
         }
       />
+      <div className="mb-5"><LockRulesCard add={add} role={role} staffName={staffName} /></div>
 
       {/* Provider picker */}
       <SectionCard title="Lock Provider">
@@ -741,7 +742,6 @@ export function DoorLockSettings({ add }: { add: (t: Omit<Toast, "id">) => void 
         <SectionCard title="Behaviour">
           <div className="space-y-3">
             {[
-              { label: "Auto-revoke credentials on checkout",    val: autoRevoke,   set: setAutoRevoke,   note: provider.immediateRevoke ? "Immediate revocation supported." : "Revocation queued — takes effect on next lock sync." },
               { label: "Queue credential ops when offline",      val: queueOffline, set: setQueueOffline, note: "Credentials issued during offline will sync when connection restores." },
               { label: "Notify management on offline revoke",    val: notifyMgmt,   set: setNotifyMgmt,   note: "Manager receives push notification when a revoke must wait for reconnection." },
             ].map(t => (
