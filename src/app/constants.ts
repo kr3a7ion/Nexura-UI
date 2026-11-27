@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
-export type Role = "MGT" | "FD" | "HK" | "MX" | "FIN" | "RT" | "RSV" | "IT" | "DRV" | "FLT" | "SEC";
+export type Role = "MGT" | "FD" | "HK" | "MX" | "FIN" | "RT" | "RSV" | "IT" | "DRV" | "FLT" | "SEC" | "STH";
 export type ToastType = "success" | "error" | "info" | "warning";
 export interface Toast { id: string; type: ToastType; title: string; body?: string; }
 export type AddToast = (t: Omit<Toast, "id">) => void;

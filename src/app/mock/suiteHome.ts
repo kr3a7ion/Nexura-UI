@@ -8,6 +8,7 @@ import { levelOf } from "./power";
 import { maintenancePower } from "./maintenanceHome";
 import { workOrders, isOpen, isUrgent, isOverdue, fmtWhen } from "./maintenance";
 import { locks, openAlarms, lowBattery } from "./doors";
+import { lowStock, STORES } from "./stores";
 import { keys, keyState } from "./access";
 
 export type HomeStat = { label: string; value: string; sub: string; screen: Screen; screenLabel: string };
@@ -112,6 +113,13 @@ export const homeToday = (): Record<Role, { stats: HomeStat[]; alerts: HomeAlert
       stat("Fuel this week", "₦148,000", "212 litres", "fuel-log", "Fuel Log"),
     ],
     alerts: [alert("The 15:00 airport pickup has no driver", "Fleet", "13:30", "error", "dispatch-board", "Dispatch Board")],
+  },
+  STH: {
+    stats: [
+      stat("Items to reorder", String(lowStock().length), `Across ${new Set(lowStock().map(l => l.store)).size} stores`, "inv-stores", "Stores"),
+      stat("Stores", String(STORES.length), "The store house and every department's", "inv-stores", "Stores"),
+    ],
+    alerts: lowStock().slice(0, 5).map(l => alert(`${l.item.name}: ${l.left} ${l.item.unit} left in ${l.store}`, "Store House", "Now", "warning", "inv-stores", "Stores")),
   },
   SEC: {
     stats: [

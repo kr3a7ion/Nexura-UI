@@ -10,7 +10,7 @@ import { PRIORITIES, HOLD_REASONS, WO_CATEGORIES, setTarget, addTrade, addHoldRe
 import { canSetAuthority, staffList, teams, teamMembers, patterns, setPerson, addTeam, addPattern, ROLES, type StaffRole } from "./mock/roster";
 import { money, setMoney, gensets, saveGenset, tanks, addTank, parseChart, supplies, addSupply, isIncomer, type GensetProfile, type TankKind, type SupplyKind } from "./mock/setup";
 import { asset, assets } from "./mock/ppm";
-import { items, addItem, editItem, removeItem, onHand, type Item, type ItemInput } from "./mock/stores";
+import { items, addItem, editItem, removeItem, onHand, type Item, type ItemInput , type StoreName } from "./mock/stores";
 
 type Add = (t: Omit<Toast, "id">) => void;
 const TABS = ["People and teams", "Shifts", "Targets", "Power and diesel", "Store", "Money"] as const;
@@ -262,14 +262,15 @@ function RuleDialog({ rule, onClose, onSave, onRemove }: { rule?: SlaRule; onClo
   </Dialog>;
 }
 
-/** The items the maintenance store keeps, grouped as the shelves are. Removing an item that has history retires it. */
-function StoreItems({ add }: { add: Add }) {
+/** The items a store keeps, grouped as the shelves are. Removing an item that has history retires it.
+ *  Used by Maintenance Setup (the maintenance store) and by the store house for every store. */
+export function StoreItems({ add, store = "Maintenance store" }: { add: Add; store?: StoreName }) {
   const [editing, setEditing] = useState<null | { item?: Item }>(null);
   const [, redraw] = useState(0);
   const done = (ok: string, r: unknown) => { if (typeof r === "string") { add({ type: "error", title: r }); return; } add({ type: "success", title: ok }); setEditing(null); redraw(n => n + 1); };
-  const list = items().filter(i => i.min["Maintenance store"] != null || onHand("Maintenance store", i.sku) || !i.min["Store house"]);
+  const list = items().filter(i => store in i.min || onHand(store, i.sku) > 0);
   const cats = [...new Set(list.map(i => i.cat))].sort();
-  return <Card title="Maintenance store items" sub="What the store keeps, by category. The shelf is optional. An item with stock or held for a job cannot be removed; one that has moved before is retired so its history keeps its name."
+  return <Card title={`${store} items`} sub="What the store keeps, by category. The shelf is optional. An item with stock or held for a job cannot be removed; one that has moved before is retired so its history keeps its name."
     footer={<BtnO label="Add an item" icon={Plus} onClick={() => setEditing({})} />}>
     <Table heads={["Item", "Shelf", "Unit", "Reorder at", "Change"]}>
       {cats.map(cat => <React.Fragment key={cat}>
@@ -278,21 +279,21 @@ function StoreItems({ add }: { add: Add }) {
           <td className={td} style={{ color: TEXT }}>{i.name}</td>
           <td className={td} style={{ color: MUTED }}>{i.shelf ?? "Not set"}</td>
           <td className={td} style={{ color: TEXT }}>{i.unit}</td>
-          <td className={td} style={{ color: TEXT }}>{i.min["Maintenance store"] ?? "Not set"}</td>
+          <td className={td} style={{ color: TEXT }}>{i.min[store] ?? "Not set"}</td>
           <td className="px-3 py-2"><div className="flex gap-2"><BtnO label={`Edit ${i.name}`} onClick={() => setEditing({ item: i })} /><BtnO label={`Remove ${i.name}`} onClick={() => done(`${i.name} removed`, removeItem(i.sku))} /></div></td>
         </tr>)}
       </React.Fragment>)}
     </Table>
-    {editing && <ItemDialog item={editing.item} cats={cats} onClose={() => setEditing(null)}
+    {editing && <ItemDialog item={editing.item} store={store} cats={cats} onClose={() => setEditing(null)}
       onSave={x => done(editing.item ? `${x.name.trim()} saved` : `${x.name.trim()} added to the store`, editing.item ? editItem(editing.item.sku, x) : addItem(x))} />}
   </Card>;
 }
 
-function ItemDialog({ item, cats, onClose, onSave }: { item?: Item; cats: string[]; onClose: () => void; onSave: (x: ItemInput) => void }) {
-  const [f, setF] = useState({ name: item?.name ?? "", cat: item?.cat ?? "", shelf: item?.shelf ?? "", unit: item?.unit ?? "pcs", min: item?.min["Maintenance store"]?.toString() ?? "" });
+function ItemDialog({ item, store, cats, onClose, onSave }: { item?: Item; store: StoreName; cats: string[]; onClose: () => void; onSave: (x: ItemInput) => void }) {
+  const [f, setF] = useState({ name: item?.name ?? "", cat: item?.cat ?? "", shelf: item?.shelf ?? "", unit: item?.unit ?? "pcs", min: item?.min[store]?.toString() ?? "" });
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v });
   return <Dialog title={item ? `Edit ${item.name}` : "Add an item to the store"} onClose={onClose}
-    footer={<><BtnO label="Cancel" onClick={onClose} /><BtnP label={item ? "Save item" : "Add item"} onClick={() => onSave({ name: f.name, cat: f.cat, shelf: f.shelf, unit: f.unit, min: f.min.trim() === "" ? undefined : Number(f.min) })} /></>}>
+    footer={<><BtnO label="Cancel" onClick={onClose} /><BtnP label={item ? "Save item" : "Add item"} onClick={() => onSave({ name: f.name, cat: f.cat, shelf: f.shelf, unit: f.unit, min: f.min.trim() === "" ? undefined : Number(f.min), store })} /></>}>
     <Field label="Name" htmlFor="it-name">{input("it-name", f.name, set("name"))}</Field>
     <div className="grid grid-cols-2 gap-4">
       <Field label="Category" htmlFor="it-cat" hint="Pick one or type a new one."><input id="it-cat" list="it-cats" value={f.cat} onChange={e => set("cat")(e.target.value)} className={controlClass} style={controlStyle()} /><datalist id="it-cats">{cats.map(c => <option key={c} value={c} />)}</datalist></Field>
